@@ -1,0 +1,462 @@
+/* =============================================================
+   css/studentdetail/student_index.css
+   หน้าข้อมูลนักเรียน
+   ============================================================= */
+
+.si-page {
+    padding: 24px 28px;
+    min-height: 100%;
+}
+
+/* ── Breadcrumb ── */
+.si-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    color: #555;
+}
+
+.si-breadcrumb a {
+    color: #0bb;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.si-breadcrumb a:hover {
+    text-decoration: underline;
+}
+
+.si-breadcrumb span {
+    color: #0bb;
+    font-weight: 600;
+}
+
+.si-breadcrumb i {
+    font-size: 0.7rem;
+    color: #aaa;
+}
+
+/* ── Card ── */
+.si-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+    margin-bottom: 28px;
+    overflow: visible;
+    position: relative;
+    padding: 28px 24px 22px;
+}
+
+.si-card-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.25rem;
+    position: absolute;
+    top: -14px;
+    left: 24px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+    z-index: 2;
+}
+
+.si-card-body {
+    padding-top: 16px;
+}
+
+.si-card-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    margin: 0 0 18px 0;
+}
+
+/* ══════════════════════════════════════
+   Search Form — 3 คอลัมน์ label อยู่บน
+   ══════════════════════════════════════ */
+.si-form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px 24px;
+    margin-bottom: 22px;
+}
+
+.si-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.si-form-row label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: #344054;
+}
+
+.si-input,
+.si-select {
+    width: 100%;
+    height: 40px;
+    border: 1.5px solid #d0d7de;
+    border-radius: 8px;
+    padding: 0 12px;
+    font-size: 0.85rem;
+    color: #333;
+    background: #fafbfc;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    font-family: inherit;
+    box-sizing: border-box;
+}
+
+.si-input:focus,
+.si-select:focus {
+    border-color: #00cccc;
+    box-shadow: 0 0 0 3px rgba(0, 204, 204, 0.12);
+    background: #fff;
+}
+
+.si-input::placeholder {
+    color: #aaa;
+}
+
+.si-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 14px;
+    padding-right: 30px;
+}
+
+/* ── Search Actions ── */
+.si-search-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    border-top: 1px solid #f0f3f7;
+    margin-top: 4px;
+    padding-top: 18px;
+}
+
+.si-btn-search {
+    background: linear-gradient(135deg, #00cccc 0%, #00aaaa 100%);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 36px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+    font-family: inherit;
+    box-shadow: 0 2px 8px rgba(0, 204, 204, 0.25);
+}
+
+.si-btn-search:hover {
+    background: linear-gradient(135deg, #00bbbb 0%, #009999 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 14px rgba(0, 204, 204, 0.3);
+}
+
+.si-btn-reset {
+    background: #fff;
+    color: #666;
+    border: 1.5px solid #d0d7de;
+    border-radius: 8px;
+    padding: 10px 28px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    transition: all 0.2s;
+    font-family: inherit;
+    text-decoration: none;
+}
+
+.si-btn-reset:hover {
+    background: #f5f5f5;
+    border-color: #bbb;
+    color: #333;
+    text-decoration: none;
+}
+
+/* ══════════════════════════════════════
+   Table
+   ══════════════════════════════════════ */
+.si-table-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+}
+
+.si-btn-add {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 18px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: background 0.2s, transform 0.1s;
+}
+
+.si-btn-add:hover {
+    background: #218838;
+    color: #fff;
+    transform: translateY(-1px);
+}
+
+.si-table-wrap {
+    overflow-x: auto;
+    border-radius: 10px;
+    border: 1px solid #eaeef2;
+}
+
+.si-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.84rem;
+    table-layout: fixed;
+}
+
+/* สัดส่วนคอลัมน์ */
+.si-table col.col-no {
+    width: 5%;
+}
+
+.si-table col.col-number {
+    width: 5%;
+}
+
+.si-table col.col-code {
+    width: 11%;
+}
+
+.si-table col.col-prefix {
+    width: 8%;
+}
+
+.si-table col.col-name {
+    width: 14%;
+}
+
+.si-table col.col-lastname {
+    width: 14%;
+}
+
+.si-table col.col-level {
+    width: 5%;
+}
+
+.si-table col.col-status {
+    width: 10%;
+}
+
+.si-table col.col-date {
+    width: 12%;
+}
+
+.si-table col.col-actions {
+    width: 16%;
+}
+
+.si-table thead tr {
+    background: linear-gradient(135deg, #4479DA 0%, #5a95f5 100%);
+}
+
+.si-table thead th {
+    padding: 12px 6px;
+    font-weight: 600;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    font-size: 0.8rem;
+    border: none;
+}
+
+.si-table thead th i {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    cursor: pointer;
+    margin-left: 2px;
+}
+
+.si-th-sub {
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.72rem;
+}
+
+.si-table tbody tr {
+    border-bottom: 1px solid #f0f3f7;
+    transition: background 0.12s;
+}
+
+.si-table tbody tr:nth-child(even) {
+    background: #fafcff;
+}
+
+.si-table tbody tr:hover {
+    background: #eef6ff;
+}
+
+.si-table tbody td {
+    padding: 11px 6px;
+    color: #374151;
+    vertical-align: middle;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.si-empty {
+    text-align: center;
+    padding: 40px 0 !important;
+    color: #aab;
+}
+
+.si-empty i {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+}
+
+.si-badge {
+    display: inline-block;
+    padding: 4px 14px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.si-badge-active {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.si-badge-inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.si-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.si-action-btn {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.82rem;
+    text-decoration: none;
+    transition: transform 0.15s, box-shadow 0.2s;
+    line-height: 1;
+}
+
+.si-action-btn:hover {
+    transform: translateY(-2px);
+    text-decoration: none;
+}
+
+.si-action-view {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.si-action-view:hover {
+    box-shadow: 0 3px 8px rgba(29, 78, 216, 0.2);
+}
+
+.si-action-edit {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.si-action-edit:hover {
+    box-shadow: 0 3px 8px rgba(146, 64, 14, 0.2);
+}
+
+.si-action-delete {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.si-action-delete:hover {
+    box-shadow: 0 3px 8px rgba(185, 28, 28, 0.2);
+}
+
+.si-pagination {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+}
+
+.si-pagination .pagination {
+    gap: 4px;
+    margin-bottom: 0;
+}
+
+.si-pagination .page-link {
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0;
+    color: #374151;
+    font-size: 0.85rem;
+    padding: 6px 12px;
+}
+
+.si-pagination .page-item.active .page-link {
+    background: #4479DA;
+    border-color: #4479DA;
+    color: #fff;
+}
+
+@media (max-width: 1024px) {
+    .si-form-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .si-form-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .si-page {
+        padding: 14px;
+    }
+
+    .si-table {
+        table-layout: auto;
+    }
+
+    .si-search-actions {
+        flex-direction: column;
+    }
+}

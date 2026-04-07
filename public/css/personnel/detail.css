@@ -1,0 +1,233 @@
+/* =============================================================
+   css/personnel/detail.css
+   หน้ารายละเอียดบุคลากร — 4 Tabs
+   ============================================================= */
+
+[x-cloak] { display: none !important; }
+
+.pn-page { padding: 24px 28px; min-height: 100%; }
+
+/* ── Breadcrumb ── */
+.pn-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; margin-bottom: 20px; color: #555; }
+.pn-breadcrumb a { color: #4479DA; text-decoration: none; font-weight: 500; }
+.pn-breadcrumb a:hover { text-decoration: underline; }
+.pn-breadcrumb span { color: #4479DA; font-weight: 600; }
+.pn-breadcrumb i { font-size: 0.7rem; color: #aaa; }
+
+/* ── Profile Card ── */
+.pn-profile-card {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+    padding: 28px;
+    text-align: center;
+    margin-bottom: 24px;
+}
+.pn-profile-img-wrap { margin-bottom: 12px; }
+.pn-profile-img {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 4px solid #e0ecff;
+}
+.pn-profile-placeholder {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #dbeafe, #c7d2fe);
+    display: inline-flex;
+    align-items: center; justify-content: center;
+    font-size: 3rem;
+    color: #4479DA;
+}
+.pn-profile-name { font-size: 1.15rem; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
+.pn-profile-role { font-size: 0.85rem; color: #64748b; }
+
+/* ── Tabs ── */
+.pn-tabs {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    background: #fff;
+    border-radius: 14px;
+    padding: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    overflow-x: auto;
+}
+.pn-tab {
+    flex: 1;
+    padding: 12px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    font-size: 0.84rem;
+    font-weight: 600;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-family: inherit;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+    white-space: nowrap;
+}
+.pn-tab:hover { background: #f0f4ff; color: #4479DA; }
+.pn-tab-active { background: linear-gradient(135deg, #4479DA, #5a95f5); color: #fff !important; box-shadow: 0 3px 10px rgba(68,121,218,0.3); }
+.pn-tab:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ── Card ── */
+.pn-card {
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    margin-bottom: 20px;
+    overflow: hidden;
+}
+.pn-card-header {
+    background: linear-gradient(135deg, #4479DA, #5a95f5);
+    color: #fff;
+    padding: 14px 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+.pn-card-header i { margin-right: 6px; }
+.pn-card-body { padding: 20px; }
+
+/* ── Grid ── */
+.pn-grid-3 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px 20px;
+}
+
+/* ── Field ── */
+.pn-field { display: flex; flex-direction: column; gap: 4px; }
+.pn-field label { font-size: 0.8rem; font-weight: 600; color: #344054; }
+
+.pn-input, .pn-select {
+    width: 100%; height: 40px;
+    border: 1.5px solid #d0d7de; border-radius: 10px;
+    padding: 0 12px; font-size: 0.85rem; color: #333;
+    background: #fafbfc; outline: none; font-family: inherit;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+}
+.pn-input:focus, .pn-select:focus {
+    border-color: #4479DA;
+    box-shadow: 0 0 0 3px rgba(68,121,218,0.12);
+    background: #fff;
+}
+.pn-select {
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23888' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M2 5l6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat; background-position: right 10px center; background-size: 13px;
+    padding-right: 30px;
+}
+
+/* ── Save Button ── */
+.pn-save-wrap { text-align: center; padding: 20px 0 8px; }
+.pn-btn-save {
+    background: linear-gradient(135deg, #4479DA, #5a95f5);
+    color: #fff; border: none; border-radius: 10px;
+    padding: 12px 40px; font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(68,121,218,0.3);
+}
+.pn-btn-save:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(68,121,218,0.35); }
+
+/* ── Add Button (small, in header) ── */
+.pn-btn-add-sm {
+    background: rgba(255,255,255,0.2);
+    color: #fff; border: 1.5px solid rgba(255,255,255,0.4);
+    border-radius: 8px; padding: 6px 14px;
+    font-size: 0.78rem; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+}
+.pn-btn-add-sm:hover { background: rgba(255,255,255,0.3); }
+
+/* ── Inline Form ── */
+.pn-inline-form {
+    background: #f0f4ff;
+    border: 1.5px dashed #4479DA;
+    border-radius: 12px;
+    padding: 18px;
+    margin-bottom: 16px;
+}
+.pn-form-actions { text-align: right; padding-top: 12px; }
+.pn-btn-save-sm {
+    background: #28a745; color: #fff; border: none;
+    border-radius: 8px; padding: 8px 20px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit;
+    display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.2s;
+}
+.pn-btn-save-sm:hover { background: #218838; }
+
+/* ── Table ── */
+.pn-table-wrap { overflow-x: auto; border-radius: 10px; border: 1px solid #eaeef2; }
+.pn-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+.pn-table thead tr { background: #f7f9fc; }
+.pn-table thead th {
+    padding: 10px 12px; font-weight: 600; color: #374151;
+    text-align: center; white-space: nowrap; font-size: 0.78rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+.pn-table tbody tr { border-bottom: 1px solid #f0f3f7; transition: background 0.12s; }
+.pn-table tbody tr:nth-child(even) { background: #fafcff; }
+.pn-table tbody tr:hover { background: #eef6ff; }
+.pn-table tbody td {
+    padding: 10px 12px; color: #374151;
+    vertical-align: middle; text-align: center;
+    white-space: nowrap;
+}
+.pn-empty { text-align: center; padding: 24px 0 !important; color: #aab; font-size: 0.85rem; }
+
+/* ── Action btn in table ── */
+.pn-td-actions { white-space: nowrap; }
+.pn-action-btn {
+    width: 28px; height: 28px; border-radius: 6px; border: none;
+    cursor: pointer; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 0.78rem; transition: all 0.15s;
+}
+.pn-action-edit { background: #fef3c7; color: #92400e; }
+.pn-action-edit:hover { background: #fde68a; transform: translateY(-1px); }
+.pn-action-delete { background: #fee2e2; color: #b91c1c; }
+.pn-action-delete:hover { background: #fecaca; transform: translateY(-1px); }
+
+/* Edit row */
+.pn-edit-row td { background: #f0f4ff; padding: 16px !important; }
+.pn-btn-cancel-sm {
+    background: #fff; color: #64748b; border: 1.5px solid #d0d7de;
+    border-radius: 8px; padding: 8px 18px;
+    font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 5px;
+    transition: all 0.2s; margin-right: 8px;
+}
+.pn-btn-cancel-sm:hover { background: #f8fafc; border-color: #94a3b8; }
+
+/* ── Summary Row (Tab 3) ── */
+.pn-summary-row {
+    display: flex; gap: 24px;
+    margin-top: 20px; padding: 16px 20px;
+    background: #f0f7ff;
+    border-radius: 12px;
+    border: 1px solid #dbeafe;
+}
+.pn-summary-item { flex: 1; text-align: center; }
+.pn-summary-label { display: block; font-size: 0.78rem; color: #64748b; margin-bottom: 4px; font-weight: 600; }
+.pn-summary-value { font-size: 1.1rem; font-weight: 700; color: #4479DA; }
+
+/* ── Responsive ── */
+@media (max-width: 1024px) { .pn-grid-3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) {
+    .pn-grid-3 { grid-template-columns: 1fr; }
+    .pn-page { padding: 14px; }
+    .pn-tabs { flex-direction: column; }
+    .pn-summary-row { flex-direction: column; gap: 12px; }
+}

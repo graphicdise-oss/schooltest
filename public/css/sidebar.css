@@ -1,0 +1,315 @@
+body {
+    margin: 0;
+    font-family: sans-serif;
+}
+
+.layout {
+    display: flex;
+}
+
+.sidebar {
+    width: 260px;
+    height: 100vh;
+    background: #1f2a30;
+    color: #fff;
+    position: fixed;
+    /* ป้องกันเนื้อหาภายในล้นออกนอก sidebar */
+    overflow-x: hidden;
+}
+
+.content {
+    margin-left: 260px;
+    padding: 20px;
+    width: 100%;
+}
+
+.user-panel {
+    display: flex;
+    gap: 10px;
+    padding: 15px;
+    border-bottom: 1px solid #333;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    background: #555;
+    border-radius: 50%;
+}
+
+.menu {
+    list-style: none;
+    padding: 0;
+}
+
+.menu-title {
+    padding: 10px 15px;
+    font-size: 12px;
+    color: #aaa;
+}
+
+.menu-item a {
+    display: flex;
+    justify-content: flex-start;
+    /* ให้ทุกอย่างมากองรวมกันที่ด้านหน้า */
+    padding: 12px 15px;
+    color: #fff;
+    text-decoration: none;
+
+
+}
+
+.menu-item a:hover {
+    background: #2e3d45;
+}
+
+
+/* เมื่อเอาเมาส์ไปวาง หรือตอนเมนู Active ให้สีอยู่ในกรอบ */
+.menu-item a:hover,
+.dropdown-toggle:hover {
+    background: #2e3d45;
+}
+
+.menu-item a,
+.dropdown-toggle {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    color: #fff;
+    text-decoration: none;
+    /* หัวใจสำคัญ: ทำให้กว้างเต็มพอดีกรอบ ไม่ล้น */
+    width: 100%;
+    box-sizing: border-box;
+    transition: background 0.3s;
+    gap: 10px;
+}
+
+
+
+/* ปรับ Badge ให้มีระยะห่างที่สวยงาม */
+.badge {
+    margin-left: auto;
+    background: #777;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.badge {
+    background: #777;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+}
+
+.submenu {
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    transition: max-height 0.4s ease-in-out, opacity 0.3s ease;
+    /* อนิเมชั่นนุ่มนวลตามข้อกำหนด 6.4 [cite: 95] */
+    background: #2b3940;
+    padding: 0;
+}
+
+.menu-item.dropdown.active>.submenu {
+    display: block;
+}
+
+.dropdown.active>.submenu {
+    max-height: 1000px;
+    /* เพิ่มค่าให้เยอะขึ้นเผื่อกรณีมีเมนูย่อยหลายชั้น */
+    opacity: 1;
+}
+
+
+
+/* 4. เมื่อตัวซ้อน (ระดับ 2) ถูกกด (active) ถึงค่อยโชว์ลูกของมัน (ระดับ 3) */
+.submenu .dropdown.active>.submenu {
+    display: block;
+}
+
+.submenu li a {
+    /* เปลี่ยนจาก padding-left: 30px; เป็นค่าเดียวกับเมนูหลัก */
+    padding: 12px 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    /* ให้ไอคอนกับข้อความชิดกันตามที่ต้องการ */
+    justify-content: flex-start;
+}
+
+.level-3 li a {
+    padding-left: 50px !important;
+    /* ดันเข้าไปข้างใน */
+    border-left: 2px solid #ddd;
+    /* (ตัวเลือก) เพิ่มเส้นประหรือเส้นทึบด้านซ้ายเพื่อให้ดูง่ายขึ้น */
+}
+
+/* ถ้าอยากให้ดูต่างจากเมนูหลักนิดหน่อย อาจจะใช้สีพื้นที่เข้มขึ้นแทนการย่อหน้า */
+.submenu li a:hover {
+    background: #36464e;
+}
+
+.dropdown.active>.submenu {
+    display: block;
+}
+
+/* ซ่อน Submenu ชั้นในสุดไว้ก่อนเสมอ */
+.submenu .dropdown .submenu {
+    display: none;
+    background: #161e22;
+}
+
+
+/* แสดง Submenu ชั้นในสุดเมื่อตัวมันเอง (Nested Dropdown) ถูกคลิก Active */
+.submenu .dropdown.active>.submenu {
+    display: block;
+}
+
+.arrow {
+    margin-left: auto;
+    font-size: 12px;
+    opacity: 0.6;
+    transition: transform 0.3s ease;
+    /* ทำให้หมุนนุ่มนวลตามข้อกำหนดความเร็ว/ความสวยงาม [cite: 106] */
+
+    /* บังคับให้ตอนไม่คลิก ชี้ไปทางซ้าย (หรือขวาตามที่คุณต้องการ) */
+    /* ในที่นี้ใช้ rotate(0deg) โดยใน HTML ต้องใช้ไอคอนที่ชี้ขวาเป็นหลัก */
+    transform: rotate(0deg);
+}
+
+
+ul,
+li {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+/* เมื่อเมนูถูกกด (Active) ให้หมุนลง */
+.dropdown.active>.dropdown-toggle .arrow {
+    /* หมุน 90 องศา จากชี้ขวามาเป็นชี้ลง */
+    transform: rotate(90deg);
+    opacity: 1;
+}
+
+/* คุมสีพื้นหลังให้เข้มขึ้นเรื่อยๆ ตามระดับชั้น */
+.submenu.nested-list {
+    background: #161e22;
+    /* เข้มกว่าชั้นแรก */
+}
+
+
+.menu-item.dropdown>.dropdown-toggle .arrow {
+    transition: transform 0.3s ease;
+}
+
+/* สำหรับเมนูชั้นในสุด ให้ย่อหน้าเข้าไป */
+.nested-list li a {
+    padding-left: 45px !important;
+    /* ปรับตัวเลขนี้ตามความต้องการ ยิ่งมากยิ่งเยื้องเยอะ */
+    font-size: 13px;
+    /* อาจจะปรับตัวอักษรให้เล็กลงนิดหน่อยเพื่อให้ดูเป็นชั้นย่อย */
+    background: #1a2429;
+    /* เปลี่ยนสีพื้นหลังให้เข้มขึ้นเพื่อให้ดูแยกชั้นชัดเจน */
+}
+
+/* ถ้าอยากให้มีสัญลักษณ์เล็กๆ หน้าชื่อเมนูย่อย */
+.nested-list li a::before {
+    content: "-";
+    margin-right: 8px;
+    color: #666;
+}
+
+.submenu.nested-list.level-3 li a {
+    padding-left: 70px !important;
+    /* เพิ่มค่านี้ให้มากขึ้นเพื่อ "ถอยหลัง" เข้าไปอีก */
+    font-size: 12px;
+    /* ปรับตัวอักษรเล็กลงหน่อยเพื่อให้ดูเป็นลูกย่อยชัดเจน */
+    background: #11181b !important;
+    /* ปรับสีพื้นให้เข้มขึ้นอีกระดับ */
+    border-left: 1px solid #444;
+    /* เพิ่มเส้นประนำสายตา (ถ้าชอบ) */
+}
+
+/* แก้ไขเอฟเฟกต์ตอนชี้ (Hover) สำหรับเมนูชั้นที่ 2 และ 3 */
+.nested-list li a:hover,
+.level-3 li a:hover {
+    background-color: #2e3d45 !important;
+    /* ใช้สีเดียวกับเมนูหลักที่คุณตั้งไว้ */
+    color: #fff !important;
+}
+
+/* ล้างค่าเดิมที่อาจจะไปทับกัน */
+.nested-list li a,
+.level-3 li a {
+    padding-left: 40px !important;
+    /* ชั้นที่ 2 */
+    background: #1a2429 !important;
+    transition: all 0.3s;
+}
+
+/* ชั้นที่ 3: บังคับให้ถอยเข้าไปอีก */
+.submenu .submenu.level-3 li a {
+    padding-left: 60px !important;
+    /* ปรับเลขนี้ให้เยอะขึ้นตามใจชอบ */
+    background: #11181b !important;
+    /* สีพื้นหลังเข้มขึ้น */
+    font-size: 0.9em;
+}
+
+/* แก้ไข Hover: ต้องระบุ Selector ให้เฉพาะเจาะจงกว่าเดิมเพื่อชนะ !important ด้านบน */
+.menu .submenu li a:hover,
+.menu .submenu .level-3 li a:hover {
+    background: #2e3d45 !important;
+    /* สีตอนเอาเมาส์ชี้ */
+    color: #ffffff !important;
+}
+
+/* sidebar.css */
+
+.visitor-stats {
+    padding: 15px;
+    background: #161e22;
+    /* พื้นหลังเข้มกว่าปกติเล็กน้อยเพื่อให้ดูแยกส่วน */
+    font-size: 13px;
+    border-top: 1px solid #333;
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.stat-row {
+    display: grid;
+    grid-template-columns: 25px 1fr 25px 1fr;
+    /* แบ่ง 4 คอลัมน์ให้ธงกับตัวเลขตรงกัน */
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-row img {
+    width: 18px;
+    border-radius: 2px;
+}
+
+.pageviews {
+    margin: 15px 0 10px;
+    font-size: 12px;
+    color: #aaa;
+    text-align: center;
+    border-top: 1px dashed #444;
+    padding-top: 10px;
+}
+
+.flag-counter {
+    text-align: center;
+    padding: 5px;
+    background: #fff;
+    /* ตามรูปต้นฉบับจะมีพื้นหลังขาวให้ตัว Flag Counter */
+    border-radius: 4px;
+}
