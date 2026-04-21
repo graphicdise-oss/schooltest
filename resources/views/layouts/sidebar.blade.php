@@ -188,8 +188,8 @@
                                         <li><a href="{{ route('personnels.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลผู้ปกครอง</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] โhover:text-[#082b75] hover:underline transition-colors">ประเภทนักเรียน</a>
+                                        <li><a href="{{ route('student-types.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ประเภทนักเรียน</a>
                                         </li>
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ส่งข้อมูล

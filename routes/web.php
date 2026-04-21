@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Setting\PersonnelTypeController;
+use App\Http\Controllers\Student\StudentTypeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -98,6 +99,14 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/decoration/{id}', 'destroyDecoration')->name('decoration.destroy');
     });
 
+
+    Route::controller(StudentTypeController::class)->prefix('student-types')->name('student-types.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::put('/{id}/toggle', 'toggle')->name('toggle');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
 
     Route::controller(PersonnelTypeController::class)->prefix('personnel-types')->name('personnel-types.')->group(function () {
         Route::get('/', 'index')->name('index');
