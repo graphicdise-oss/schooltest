@@ -29,4 +29,14 @@ class LoginController extends Controller
             'employee_code' => 'ชื่อผู้ใช้งานหรือรหัสผ่านไม่ถูกต้อง',
         ]);
     }
+
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/login');
+    }
 }

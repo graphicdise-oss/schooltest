@@ -6,6 +6,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>School Tech</title>
+    <link rel="icon" type="image/png" href="{{ asset('img/login_pic/graduation_cap.png') }}">
+
     {{-- Tailwind: ปิด preflight เฉพาะใน main เพื่อไม่ให้ทับ Bootstrap --}}
     <script>
         tailwind.config = {
@@ -511,7 +513,7 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">บันทึกคะแนน</h4>
                                     <ul class="space-y-1 pl-2">
-                                       <li><a href="{{ route('scores.index') }}"
+                                        <li><a href="{{ route('scores.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกคะแนนผลการเรียน</a>
                                         </li>
                                         <li><a href="#"
@@ -962,7 +964,7 @@
 
         {{-- ปุ่มออกจากระบบ --}}
         <div class="mt-auto pb-6 pl-4 relative z-10">
-            <form method="POST" action="#">
+            <form method="POST" action="{{ route('logout') }}">
                 @csrf
                 <button type="submit"
                     class="flex items-center py-3 pl-6 hover:bg-white/10 rounded-l-[30px] transition-colors w-full text-[18px] font-medium text-left text-white">

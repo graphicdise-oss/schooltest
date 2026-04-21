@@ -1,4 +1,5 @@
 <?php
+
 use App\Http\Controllers\Setting\PersonnelTypeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -118,17 +119,6 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    // Logout
-    Route::post('/logout', function (Request $request) {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
-    })->name('logout');
-
-
-
-
     // === 1. จัดการรายวิชา ===
     Route::controller(SubjectController::class)->prefix('subjects')->name('subjects.')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -202,4 +192,11 @@ Route::middleware(['auth'])->group(function () {
 
 
 
+    // Logout
+    Route::post('/logout', function (Request $request) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login');
+    })->name('logout');
 });
