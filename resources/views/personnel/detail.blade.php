@@ -79,10 +79,22 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="pn-field"><label>รหัสพนักงาน</label><input type="text" name="employee_code" class="pn-input" value="{{ old('employee_code', $personnel->employee_code ?? '') }}"></div>
-                        <div class="pn-field"><label>ตำแหน่ง</label><input type="text" name="position" class="pn-input" value="{{ old('position', $personnel->position ?? '') }}"></div>
                         
-                        <div class="pn-field"><label>ตำแหน่ง</label><input type="text" name="position" class="pn-input" value="{{ old('position', $personnel->position ?? '') }}"></div>
+                        <div class="pn-field"><label>รหัสพนักงาน</label><input type="text" name="employee_code" class="pn-input" value="{{ old('employee_code', $personnel->employee_code ?? '') }}"></div>
+                     <div class="pn-field">
+                        <label>ตำแหน่ง</label>
+                        <select name="position" class="pn-select">
+                            <option value="">-- เลือกตำแหน่ง --</option>
+                            @foreach(\App\Models\Personne\Position::where('is_active', true)->orderBy('sort_order')->get() as $pos)
+                                <option value="{{ $pos->name }}"
+                                    {{ old('position', $personnel->position ?? '') == $pos->name ? 'selected' : '' }}>
+                                    {{ $pos->name }} ({{ $pos->employee_type }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+
                                 {{-- เพิ่ม <div class="pn-field"> ตรงนี้ --}}
                             <div class="pn-field">
                                 <label>ประเภทบุคลากร / แผนก</label>

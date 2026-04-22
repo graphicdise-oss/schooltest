@@ -17,6 +17,10 @@ use App\Http\Controllers\Academic\TimetableController;
 use App\Http\Controllers\Academic\ScoreController;
 use App\Http\Controllers\Academic\GradeController;
 use App\Http\Controllers\Academic\PromotionController;
+use App\Http\Controllers\Student\StudentAlumniController;
+use App\Http\Controllers\Setting\PositionController;
+use App\Http\Controllers\Student\StudentCardController;
+
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -200,6 +204,21 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
+    Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
+
+    Route::controller(PositionController::class)->prefix('positions')->name('positions.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::put('/{id}/toggle', 'toggle')->name('toggle');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+Route::controller(StudentCardController::class)->prefix('student-cards')->name('student-cards.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::get('/print/{id}', 'printOne')->name('print-one');
+    Route::get('/print-all', 'printAll')->name('print-all');
+});
 
     // Logout
     Route::post('/logout', function (Request $request) {

@@ -197,8 +197,8 @@
                                         <li><a href="{{ route('promotions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
+                                        <a href="{{ route('student-alumni.index') }}"
+                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
                                         </li>
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">นำเข้าข้อมูลศิษย์เก่า</a>
@@ -252,7 +252,7 @@
                                         <li><a href="{{ route('personnel-types.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทบุคลากร</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('positions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าตำแหน่ง</a>
                                         </li>
                                         <li><a href="#"
@@ -319,8 +319,11 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึกบัตรนักเรียน</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">พิมพ์บัตรนักเรียน</a>
+                                        <li><a href="{{ route('student-cards.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">
+                                                พิมพ์บัตรนักเรียน</a>
+                                        </li>
+
                                         </li>
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">พิมพ์บัตรสอบ</a>
