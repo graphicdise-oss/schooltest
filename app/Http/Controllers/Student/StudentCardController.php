@@ -31,31 +31,28 @@ class StudentCardController extends Controller
 
         $students = collect();
 
-        if ($request->filled('section_id') || $request->filled('search')) {
-            $query = StudentSection::with([
+        if ($request->filled('section_id')) {
+            // กรองตามห้องเรียน → ใช้ StudentSection
+            $students = StudentSection::with([
                 'student',
                 'classSection.level',
                 'classSection.semester.academicYear',
-            ])->where('status', 'กำลังศึกษา');
-
-            if ($request->filled('section_id')) {
-                $query->where('section_id', $request->section_id);
-            } elseif ($request->filled('semester_id')) {
-                $query->whereHas('classSection', fn($q) =>
-                    $q->where('semester_id', $request->semester_id)
-                );
-            }
-
-            if ($request->filled('search')) {
-                $s = $request->search;
-                $query->whereHas('student', fn($q) =>
+            ])->where('status', 'กำลังศึกษา')
+              ->where('section_id', $request->section_id)
+              ->orderBy('student_number')
+              ->get()
+              ->map(fn($ss) => (object)['student' => $ss->student]);
+        } elseif ($request->filled('search')) {
+            // ค้นหาด้วยชื่อ/รหัส → ค้นจาก Student โดยตรง
+            $s = $request->search;
+            $students = Student::where(fn($q) =>
                     $q->where('student_code', 'like', "%$s%")
                       ->orWhere('thai_firstname', 'like', "%$s%")
                       ->orWhere('thai_lastname', 'like', "%$s%")
-                );
-            }
-
-            $students = $query->orderBy('student_number')->get();
+                )
+                ->orderBy('thai_firstname')
+                ->get()
+                ->map(fn($student) => (object)['student' => $student]);
         }
 
         return view('student.student_card_index', compact(
@@ -76,22 +73,33 @@ class StudentCardController extends Controller
         return view('student.student_card_print', compact('students'));
     }
 
-    // พิมพ์ทั้งห้อง
+    // พิมพ์ทั้งห้อง / พิมพ์ผลการค้นหาทั้งหมด
     public function printAll(Request $request)
     {
-        $query = StudentSection::with([
-            'student',
-            'classSection.level',
-            'classSection.semester.academicYear',
-        ])->where('status', 'กำลังศึกษา');
-
         if ($request->filled('section_id')) {
-            $query->where('section_id', $request->section_id);
+            $rows = StudentSection::with([
+                'student',
+                'classSection.level',
+                'classSection.semester.academicYear',
+            ])->where('status', 'กำลังศึกษา')
+              ->where('section_id', $request->section_id)
+              ->orderBy('student_number')->get();
+
+            $students = $rows->map(fn($ss) => ['student' => $ss->student, 'ss' => $ss]);
+        } elseif ($request->filled('search')) {
+            $s = $request->search;
+            $students = Student::where(fn($q) =>
+                    $q->where('student_code', 'like', "%$s%")
+                      ->orWhere('thai_firstname', 'like', "%$s%")
+                      ->orWhere('thai_lastname', 'like', "%$s%")
+                )
+                ->orderBy('thai_firstname')
+                ->get()
+                ->map(fn($student) => ['student' => $student, 'ss' => null]);
+        } else {
+            $students = collect();
         }
 
-        $rows = $query->orderBy('student_number')->get();
-
-        $students = $rows->map(fn($ss) => ['student' => $ss->student, 'ss' => $ss]);
         return view('student.student_card_print', compact('students'));
     }
 }
