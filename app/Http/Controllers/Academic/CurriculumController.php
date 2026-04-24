@@ -90,6 +90,16 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'เพิ่มวิชาในหลักสูตรสำเร็จ');
     }
 
+    public function updateSubject(Request $request, $id, $csId)
+    {
+        CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)
+            ->update([
+                'semester_type' => $request->semester_type ?? 'both',
+                'is_required'   => $request->boolean('is_required', true),
+            ]);
+        return redirect()->back()->with('success', 'แก้ไขวิชาสำเร็จ');
+    }
+
     public function removeSubject($id, $csId)
     {
         CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)->delete();
