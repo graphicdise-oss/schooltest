@@ -17,20 +17,21 @@ class TimetableController extends Controller
     public function index(Request $request)
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $levels = Level::orderBy('sort_order')->get();
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
-        $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
-        $subjects = Subject::where('is_active', true)->orderBy('code')->get();
+        $levels     = Level::orderBy('sort_order')->get();
+        $semesters  = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
 
-        $sections = ClassSection::with('level')
+        $query = ClassSection::with(['level', 'homeroomTeacher', 'teachingAssigns.timetableSlots'])
             ->where('semester_id', $semesterId)
-            ->orderBy('level_id')->orderBy('section_number')->get();
+            ->orderBy('level_id')->orderBy('section_number');
 
-        $assigns = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'timetableSlots'])
-            ->where('semester_id', $semesterId)
-            ->get();
+        if ($request->filled('level_id')) {
+            $query->where('level_id', $request->level_id);
+        }
 
-        return view('academic.timetable', compact('assigns', 'sections', 'teachers', 'subjects', 'semesters', 'levels', 'semesterId'));
+        $sections        = $query->get();
+        $currentSemester = $semesters->firstWhere('semester_id', $semesterId);
+
+        return view('academic.timetable_index', compact('sections', 'semesters', 'levels', 'semesterId', 'currentSemester'));
     }
 
     public function storeAssign(Request $request)
