@@ -60,6 +60,22 @@ class StudentCardController extends Controller
         ));
     }
 
+    // พิมพ์บัตรที่เลือก
+    public function printSelected(Request $request)
+    {
+        $ids = array_filter(explode(',', $request->get('ids', '')));
+        if (empty($ids)) {
+            return redirect()->route('student-cards.index');
+        }
+
+        $students = Student::whereIn('student_id', $ids)
+            ->orderBy('thai_firstname')
+            ->get()
+            ->map(fn($student) => ['student' => $student, 'ss' => null]);
+
+        return view('student.student_card_print', compact('students'));
+    }
+
     // พิมพ์บัตรคนเดียว
     public function printOne($id)
     {

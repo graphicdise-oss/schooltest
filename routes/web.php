@@ -218,6 +218,7 @@ Route::controller(StudentCardController::class)->prefix('student-cards')->name('
     Route::get('/', 'index')->name('index');
     Route::get('/print/{id}', 'printOne')->name('print-one');
     Route::get('/print-all', 'printAll')->name('print-all');
+    Route::get('/print-selected', 'printSelected')->name('print-selected');
 });
 
     // Logout

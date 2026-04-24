@@ -55,6 +55,16 @@
     .btn-print-school:hover { background: #43a047; }
 
     .sc-bulk-row { display: flex; gap: 10px; margin-bottom: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+    .cb-wrap { display: flex; align-items: center; justify-content: center; }
+    .cb-wrap input[type=checkbox] { width: 16px; height: 16px; cursor: pointer; accent-color: #00bcd4; }
+    .btn-print-selected {
+        background: #7c3aed; color: #fff; border: none; border-radius: 5px;
+        padding: 7px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+        font-family: inherit; display: inline-flex; align-items: center; gap: 5px;
+    }
+    .btn-print-selected:hover { background: #6d28d9; }
+    .btn-print-selected:disabled { background: #bbb; cursor: not-allowed; }
 </style>
 @endpush
 
@@ -129,10 +139,12 @@
         <div class="sc-card-title">รายการ</div>
 
         @if($students->count() > 0)
-        {{-- ปุ่มพิมพ์ทั้งหมด --}}
         <div class="sc-bulk-row">
+            <button type="button" class="btn-print-selected" id="btnPrintSelected" disabled onclick="printSelected()">
+                <i class="bi bi-printer-fill"></i> พิมพ์ที่เลือก (<span id="selectedCount">0</span>)
+            </button>
             <a href="{{ route('student-cards.print-all', request()->query()) }}" target="_blank" class="btn-print-school">
-                <i class="bi bi-printer-fill"></i> พิมพ์บัตรนักเรียนทั้งหมด
+                <i class="bi bi-printer-fill"></i> พิมพ์ทั้งหมด
             </a>
         </div>
         @endif
@@ -140,6 +152,11 @@
         <table class="sc-table">
             <thead>
                 <tr>
+                    <th style="width:44px;text-align:center">
+                        <div class="cb-wrap">
+                            <input type="checkbox" id="checkAll" onchange="toggleAll(this)" title="เลือกทั้งหมด">
+                        </div>
+                    </th>
                     <th style="width:60px">ลำดับ</th>
                     <th>รหัสนักเรียน</th>
                     <th>ชื่อ - นามสกุล</th>
@@ -150,21 +167,52 @@
                 @forelse($students as $i => $row)
                 @php $s = $row->student; @endphp
                 <tr>
+                    <td>
+                        <div class="cb-wrap">
+                            <input type="checkbox" class="student-check" value="{{ $s->student_id }}" onchange="updateCount()">
+                        </div>
+                    </td>
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $s?->student_code ?? '-' }}</td>
                     <td>{{ ($s?->thai_prefix ?? '') . ($s?->thai_firstname ?? '') . ' ' . ($s?->thai_lastname ?? '') }}</td>
                     <td style="text-align:center">
                         <a href="{{ route('student-cards.print-one', $s->student_id) }}" target="_blank"
                            class="btn-print-school">
-                            <i class="bi bi-printer-fill"></i> พิมพ์บัตรนักเรียน
+                            <i class="bi bi-printer-fill"></i> พิมพ์บัตร
                         </a>
                     </td>
                 </tr>
                 @empty
-                <tr><td colspan="4" style="text-align:center;padding:30px;color:#aaa">กรุณาเลือกชั้นเรียนเพื่อดูรายชื่อ</td></tr>
+                <tr><td colspan="5" style="text-align:center;padding:30px;color:#aaa">กรุณาเลือกชั้นเรียนหรือค้นหาชื่อเพื่อดูรายชื่อ</td></tr>
                 @endforelse
             </tbody>
         </table>
+
+        @if($students->count() > 0)
+        <script>
+        const printSelectedUrl = '{{ route('student-cards.print-selected') }}';
+
+        function toggleAll(cb) {
+            document.querySelectorAll('.student-check').forEach(c => c.checked = cb.checked);
+            updateCount();
+        }
+
+        function updateCount() {
+            const checked = document.querySelectorAll('.student-check:checked');
+            const total   = document.querySelectorAll('.student-check');
+            document.getElementById('selectedCount').textContent = checked.length;
+            document.getElementById('btnPrintSelected').disabled = checked.length === 0;
+            document.getElementById('checkAll').indeterminate = checked.length > 0 && checked.length < total.length;
+            document.getElementById('checkAll').checked = checked.length === total.length && total.length > 0;
+        }
+
+        function printSelected() {
+            const ids = Array.from(document.querySelectorAll('.student-check:checked')).map(c => c.value);
+            if (ids.length === 0) return;
+            window.open(printSelectedUrl + '?ids=' + ids.join(','), '_blank');
+        }
+        </script>
+        @endif
     </div>
 
 </div>
