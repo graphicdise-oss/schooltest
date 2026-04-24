@@ -88,4 +88,38 @@ class TimetableController extends Controller
 
         return view('academic.timetable_view', compact('slots', 'days', 'sections', 'teachers', 'semesters', 'semesterId', 'sectionId', 'teacherId'));
     }
+
+    public function sectionView($sectionId)
+    {
+        $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher'])->findOrFail($sectionId);
+
+        $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
+            ->where('section_id', $sectionId)
+            ->where('semester_id', $section->semester_id)
+            ->get();
+
+        $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+        $subjects = Subject::where('is_active', true)->orderBy('code')->get();
+        $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+        $hours    = range(6, 20);
+
+        $slotGrid = [];
+        foreach ($assigns as $assign) {
+            foreach ($assign->timetableSlots as $slot) {
+                $h = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
+                $slotGrid[$slot->day_of_week][$h] = ['slot' => $slot, 'assign' => $assign];
+            }
+        }
+
+        return view('academic.timetable_section', compact(
+            'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid'
+        ));
+    }
+
+    public function clearSection($sectionId)
+    {
+        $assignIds = TeachingAssign::where('section_id', $sectionId)->pluck('assign_id');
+        TimetableSlot::whereIn('assign_id', $assignIds)->delete();
+        return redirect()->back()->with('success', 'ล้างข้อมูลตารางสอนสำเร็จ');
+    }
 }
