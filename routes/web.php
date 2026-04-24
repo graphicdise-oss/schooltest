@@ -151,6 +151,8 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::post('/{id}/subjects', 'addSubject')->name('addSubject');
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
+        Route::get('/year/{year}', 'byYear')->name('byYear');
+        Route::post('/{id}/copy', 'copy')->name('copy');
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===
@@ -173,6 +175,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
         Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
         Route::get('/view', 'viewTimetable')->name('view');
+        Route::get('/section/{id}', 'sectionView')->name('section');
+        Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
     });
 
     // === 5. บันทึกคะแนน ===

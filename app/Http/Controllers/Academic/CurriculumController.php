@@ -13,8 +13,37 @@ class CurriculumController extends Controller
 {
     public function index()
     {
-        $curriculums = Curriculum::with('level')->orderBy('curriculum_id', 'desc')->paginate(20);
-        return view('academic.curriculums', compact('curriculums'));
+        $years = Curriculum::selectRaw('year_applied, count(*) as total')
+            ->whereNotNull('year_applied')
+            ->groupBy('year_applied')
+            ->orderByDesc('year_applied')
+            ->get();
+        return view('academic.curriculums', compact('years'));
+    }
+
+    public function byYear($year)
+    {
+        $curriculums = Curriculum::with(['level', 'curriculumSubjects'])
+            ->where('year_applied', $year)
+            ->orderBy('curriculum_id')->get();
+        $levels = Level::orderBy('sort_order')->get();
+        return view('academic.curriculum_by_year', compact('curriculums', 'year', 'levels'));
+    }
+
+    public function copy($id)
+    {
+        $original = Curriculum::with('curriculumSubjects')->findOrFail($id);
+        $new = $original->replicate();
+        $new->name = $original->name . ' (คัดลอก)';
+        $new->save();
+        foreach ($original->curriculumSubjects as $cs) {
+            $new->curriculumSubjects()->create([
+                'subject_id'    => $cs->subject_id,
+                'semester_type' => $cs->semester_type,
+                'is_required'   => $cs->is_required,
+            ]);
+        }
+        return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
     }
 
     public function create()

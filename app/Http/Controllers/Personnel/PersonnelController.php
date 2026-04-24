@@ -251,9 +251,23 @@ class PersonnelController extends Controller
     // เปลี่ยนจาก
 
     // เป็น
-    public function index()
+    public function index(Request $request)
     {
-        $personnels = \App\Models\Personne\Personnel::orderBy('personnel_id', 'desc')->paginate(20);
+        $query = \App\Models\Personne\Personnel::orderBy('personnel_id', 'desc');
+
+        if ($request->filled('type')) {
+            $query->where('personnel_type_id', $request->type);
+        }
+        if ($request->filled('search')) {
+            $search = '%' . $request->search . '%';
+            $query->where(function ($q) use ($search) {
+                $q->where('thai_firstname', 'like', $search)
+                  ->orWhere('thai_lastname', 'like', $search)
+                  ->orWhere('employee_code', 'like', $search);
+            });
+        }
+
+        $personnels = $query->paginate(20)->withQueryString();
         return view('personnel.index', compact('personnels'));
     }
 
