@@ -103,7 +103,7 @@
                 </div>
                 <div class="sc-field">
                     <label>ชั้นเรียน</label>
-                    <select name="section_id">
+                    <select name="section_id" onchange="this.form.submit()">
                         <option value="">-- เลือก --</option>
                         @foreach($sections as $sec)
                             <option value="{{ $sec->section_id }}" {{ request('section_id')==$sec->section_id ? 'selected':'' }}>

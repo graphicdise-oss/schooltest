@@ -40,6 +40,10 @@ class StudentCardController extends Controller
 
             if ($request->filled('section_id')) {
                 $query->where('section_id', $request->section_id);
+            } elseif ($request->filled('semester_id')) {
+                $query->whereHas('classSection', fn($q) =>
+                    $q->where('semester_id', $request->semester_id)
+                );
             }
 
             if ($request->filled('search')) {
