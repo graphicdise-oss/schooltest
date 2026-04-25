@@ -92,7 +92,7 @@
 .level-pill {
     padding: 5px 16px; border-radius: 20px; font-size: 0.82rem; font-weight: 600;
     border: 1.5px solid #b2dfdb; color: #00695c; background: #fff; cursor: pointer;
-    text-decoration: none; transition: background 0.15s;
+    font-family: inherit; transition: background 0.15s;
 }
 .level-pill:hover, .level-pill.active { background: #00897b; color: #fff; border-color: #00897b; }
 </style>
@@ -121,13 +121,9 @@
         {{-- Level filter --}}
         @if($levels->count())
         <div class="level-filter" style="margin-left:0">
-            <a href="{{ route('curriculums.byYear', $year) }}"
-               class="level-pill {{ !request('level_id') ? 'active' : '' }}">ทุกระดับ</a>
+            <button class="level-pill active" onclick="filterLevel(this, '')">ทุกระดับ</button>
             @foreach($levels as $lv)
-            <a href="{{ route('curriculums.byYear', $year) }}?level_id={{ $lv->level_id }}"
-               class="level-pill {{ request('level_id') == $lv->level_id ? 'active' : '' }}">
-               {{ $lv->name }}
-            </a>
+            <button class="level-pill" onclick="filterLevel(this, '{{ $lv->level_id }}')">{{ $lv->name }}</button>
             @endforeach
         </div>
         @endif
@@ -143,13 +139,8 @@
                 </tr>
             </thead>
             <tbody>
-                @php
-                    $filtered = request('level_id')
-                        ? $curriculums->where('level_id', request('level_id'))
-                        : $curriculums;
-                @endphp
-                @forelse($filtered as $i => $c)
-                <tr>
+                @forelse($curriculums as $i => $c)
+                <tr data-level="{{ $c->level_id ?? '' }}">
                     <td>{{ $i + 1 }}</td>
                     <td>
                         <strong>{{ $c->name }}</strong>
@@ -198,4 +189,24 @@
     </div>
 
 </div>
+<script>
+function filterLevel(btn, levelId) {
+    // active pill
+    document.querySelectorAll('.level-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+
+    // filter rows
+    document.querySelectorAll('.cby-table tbody tr[data-level]').forEach(row => {
+        row.style.display = (!levelId || row.dataset.level == levelId) ? '' : 'none';
+    });
+
+    // re-number visible rows
+    let n = 1;
+    document.querySelectorAll('.cby-table tbody tr[data-level]').forEach(row => {
+        if (row.style.display !== 'none') {
+            row.querySelector('td:first-child').textContent = n++;
+        }
+    });
+}
+</script>
 @endsection
