@@ -8,6 +8,7 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
 use App\Models\Academic\StudentSection;
+use App\Models\Academic\TeachingAssign;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -68,6 +69,32 @@ class GradeController extends Controller
             ->groupBy('student_id');
 
         return view('academic.section_grades', compact('section', 'students', 'grades'));
+    }
+
+    // พิมพ์ใบบันทึกคะแนน
+    public function printScoreSheet($assignId)
+    {
+        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level',
+            'classSection.semester.academicYear', 'scoreCategories'])->findOrFail($assignId);
+
+        $students = StudentSection::with('student')
+            ->where('section_id', $assign->section_id)
+            ->where('status', 'กำลังศึกษา')
+            ->orderBy('student_number')->get();
+
+        $categories = $assign->scoreCategories()->orderBy('sort_order')->get();
+
+        $scoreMatrix = [];
+        foreach ($categories as $cat) {
+            foreach ($cat->studentScores as $sc) {
+                $scoreMatrix[$sc->student_id][$cat->category_id] = $sc->score;
+            }
+        }
+
+        $finalGrades = FinalGrade::where('assign_id', $assignId)
+            ->get()->keyBy('student_id');
+
+        return view('academic.grade_print', compact('assign', 'students', 'categories', 'scoreMatrix', 'finalGrades'));
     }
 
     // รายงาน GPA

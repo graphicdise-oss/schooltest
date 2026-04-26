@@ -189,6 +189,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/category/{id}', 'destroyCategory')->name('destroyCategory');
         Route::post('/{assignId}/save', 'saveScores')->name('save');
         Route::post('/{assignId}/calculate', 'calculateGrades')->name('calculate');
+        Route::post('/{assignId}/setup', 'setupCategories')->name('setup');
     });
 
     // === 6. ผลการเรียน / เกรด ===
@@ -197,6 +198,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/student/{studentId}', 'studentTranscript')->name('transcript');
         Route::get('/section/{sectionId}', 'sectionReport')->name('section');
         Route::get('/gpa-report', 'gpaReport')->name('gpa');
+        Route::get('/print/{assignId}', 'printScoreSheet')->name('print');
     });
 
     // === 7. เลื่อนชั้น / ย้ายห้อง / บันทึกจบ ===

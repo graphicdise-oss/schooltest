@@ -88,6 +88,24 @@ class ScoreController extends Controller
         return redirect()->back()->with('success', 'บันทึกคะแนนสำเร็จ');
     }
 
+    // ตั้งค่าหมวดคะแนนมาตรฐาน
+    public function setupCategories($assignId)
+    {
+        $assign = TeachingAssign::findOrFail($assignId);
+        if ($assign->scoreCategories()->count() === 0) {
+            $defaults = [
+                ['name' => 'คะแนนเก็บก่อนกลางภาค', 'max_score' => 20, 'weight_pct' => 20, 'sort_order' => 1],
+                ['name' => 'กลางภาค',               'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 2],
+                ['name' => 'คะแนนเก็บหลังกลางภาค', 'max_score' => 20, 'weight_pct' => 20, 'sort_order' => 3],
+                ['name' => 'ปลายภาค',               'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 4],
+            ];
+            foreach ($defaults as $d) {
+                $assign->scoreCategories()->create($d);
+            }
+        }
+        return redirect()->back()->with('success', 'ตั้งค่าสัดส่วนคะแนนมาตรฐานแล้ว');
+    }
+
     // คำนวณเกรดจากคะแนน
     public function calculateGrades(Request $request, $assignId)
     {
