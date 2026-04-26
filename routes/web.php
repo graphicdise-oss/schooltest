@@ -203,6 +203,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/section/{sectionId}', 'sectionReport')->name('section');
         Route::get('/gpa-report', 'gpaReport')->name('gpa');
         Route::get('/print/{assignId}', 'printScoreSheet')->name('print');
+        Route::get('/excel/{assignId}', 'exportScoreExcel')->name('excel');
     });
 
     // === 7. เลื่อนชั้น / ย้ายห้อง / บันทึกจบ ===

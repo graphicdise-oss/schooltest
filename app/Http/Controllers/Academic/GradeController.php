@@ -73,6 +73,38 @@ class GradeController extends Controller
         return redirect()->back()->with('success', 'ลบเกรดสำเร็จ');
     }
 
+    // Export score sheet to Excel
+    public function exportScoreExcel($assignId)
+    {
+        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level',
+            'classSection.semester.academicYear', 'scoreCategories'])->findOrFail($assignId);
+
+        $students = \App\Models\Academic\StudentSection::with('student')
+            ->where('section_id', $assign->section_id)
+            ->where('status', 'กำลังศึกษา')
+            ->orderBy('student_number')->get();
+
+        $categories = $assign->scoreCategories()->orderBy('sort_order')->get();
+
+        $scoreMatrix = [];
+        foreach ($categories as $cat) {
+            foreach ($cat->studentScores as $sc) {
+                $scoreMatrix[$sc->student_id][$cat->category_id] = $sc->score;
+            }
+        }
+
+        $finalGrades = FinalGrade::where('assign_id', $assignId)->get()->keyBy('student_id');
+
+        $filename = 'คะแนน_' . $assign->subject->code . '_' . $assign->classSection->level->name . $assign->classSection->section_number . '.xls';
+
+        $html = view('academic.score_excel', compact('assign', 'students', 'categories', 'scoreMatrix', 'finalGrades'))->render();
+
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . urlencode($filename) . '"')
+            ->header('Cache-Control', 'max-age=0');
+    }
+
     private function buildTranscriptData($studentId): array
     {
         $allGrades = FinalGrade::with(['teachingAssign.subject', 'semester.academicYear'])
