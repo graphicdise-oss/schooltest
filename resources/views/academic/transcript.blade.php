@@ -1,67 +1,201 @@
 @extends('layouts.sidebar')
-@push('styles')<link rel="stylesheet" href="{{ asset('css/academic/academic.css') }}?v={{ time() }}">@endpush
+@push('styles')
+<style>
+.tr-page { padding: 24px 28px; }
+.tr-card {
+    background: #fff; border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 30px 22px 22px; position: relative;
+    margin-top: 50px; margin-bottom: 20px;
+}
+.tr-icon {
+    position: absolute; top: -25px; left: 20px;
+    width: 70px; height: 70px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 30px; color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.tr-icon-student { background: #1565c0; }
+.tr-icon-sem     { background: #37474f; }
+.tr-card-header {
+    margin-left: 90px; display: flex; align-items: center;
+    justify-content: space-between; margin-top: -8px; margin-bottom: 16px;
+    flex-wrap: wrap; gap: 8px;
+}
+.tr-card-title { font-size: 1.05rem; color: #555; font-weight: 600; }
+
+.btn-print {
+    background: #1565c0; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 18px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-print:hover { background: #0d47a1; color: #fff; }
+
+.btn-edit {
+    background: #e65100; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 18px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-edit:hover { background: #bf360c; color: #fff; }
+
+.btn-back {
+    background: #5c6bc0; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 18px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-back:hover { background: #3949ab; color: #fff; }
+
+.stu-info-grid {
+    display: grid; grid-template-columns: auto 1fr auto;
+    align-items: center; gap: 20px;
+}
+.stu-name { font-size: 1.1rem; font-weight: 700; color: #1a237e; }
+.stu-code { font-size: 0.82rem; color: #666; margin-top: 2px; }
+.gpa-circle {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #1565c0, #42a5f5);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    color: #fff; box-shadow: 0 3px 10px rgba(21,101,192,0.3);
+}
+.gpa-num  { font-size: 1.4rem; font-weight: 700; line-height: 1; }
+.gpa-label{ font-size: 0.65rem; opacity: 0.85; margin-top: 2px; }
+
+/* Semester table */
+.sem-header {
+    background: #37474f; color: #fff; padding: 8px 14px;
+    font-size: 0.9rem; font-weight: 700; border-radius: 6px 6px 0 0;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.tr-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+.tr-table thead th {
+    padding: 9px 12px; background: #eceff1; color: #455a64;
+    font-weight: 600; text-align: left; font-size: 0.83rem;
+}
+.tr-table thead th:last-child { text-align: center; }
+.tr-table tbody tr { border-bottom: 1px solid #f0f0f0; }
+.tr-table tbody tr:hover { background: #f5f7ff; }
+.tr-table tbody td { padding: 9px 12px; color: #555; vertical-align: middle; }
+.tr-table tfoot td { padding: 8px 12px; background: #f0f4ff; font-weight: 700; color: #1a237e; }
+
+.grade-chip {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 38px; height: 38px; border-radius: 50%; font-weight: 700; font-size: 0.9rem;
+}
+.grade-pass { background: #e8f5e9; color: #2e7d32; }
+.grade-fail { background: #ffebee; color: #c62828; }
+
+.badge-pass { display: inline-block; background: #e8f5e9; color: #2e7d32; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; font-weight: 700; }
+.badge-fail { display: inline-block; background: #ffebee; color: #c62828; border-radius: 20px; padding: 2px 10px; font-size: 0.75rem; font-weight: 700; }
+</style>
+@endpush
 
 @section('content')
-<div class="ac-page">
-    <nav class="ac-breadcrumb"><a href="#">วิชาการ</a><i class="bi bi-chevron-right"></i><a href="{{ route('grades.index') }}">ผลการเรียน</a><i class="bi bi-chevron-right"></i><span>ใบแสดงผลการเรียน</span></nav>
+<div class="tr-page">
 
-    {{-- ข้อมูลนักเรียน --}}
-    <div class="ac-card">
-        <div class="ac-card-header"><i class="bi bi-person-badge"></i> ใบแสดงผลการเรียน (Transcript)</div>
-        <div class="ac-card-body" style="text-align:center">
-            <h5 style="font-size:1.1rem; font-weight:700; color:#333">{{ $student->thai_prefix }}{{ $student->thai_firstname }} {{ $student->thai_lastname }}</h5>
-            <p style="color:#888; font-size:0.85rem">รหัสนักเรียน: {{ $student->student_code ?? '-' }}</p>
-            <div style="display:inline-block; background:#e8f0fe; padding:10px 28px; border-radius:10px; margin-top:8px">
-                <span style="font-size:0.8rem; color:#555">GPA รวม</span><br>
-                <span style="font-size:1.8rem; font-weight:700; color:#4479DA">{{ $gpa }}</span>
+    {{-- Student info card --}}
+    <div class="tr-card">
+        <div class="tr-icon tr-icon-student"><i class="bi bi-person-badge"></i></div>
+        <div class="tr-card-header">
+            <span class="tr-card-title">ใบแสดงผลการเรียน</span>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <a href="{{ route('grades.student.edit', $student->student_id) }}" class="btn-edit">
+                    <i class="bi bi-pencil-square"></i> แก้ไขเกรด
+                </a>
+                <a href="{{ route('grades.transcript.print', $student->student_id) }}" class="btn-print" target="_blank">
+                    <i class="bi bi-printer"></i> พิมพ์ Transcript
+                </a>
+                <a href="javascript:history.back()" class="btn-back">
+                    <i class="bi bi-arrow-left"></i> ย้อนกลับ
+                </a>
+            </div>
+        </div>
+
+        <div class="stu-info-grid">
+            <div class="gpa-circle">
+                <span class="gpa-num">{{ $gpa }}</span>
+                <span class="gpa-label">GPA</span>
+            </div>
+            <div>
+                <div class="stu-name">{{ $student->thai_prefix }}{{ $student->thai_firstname }} {{ $student->thai_lastname }}</div>
+                <div class="stu-code">รหัสนักเรียน: {{ $student->student_code ?? '-' }}</div>
+                <div style="font-size:0.8rem;color:#888;margin-top:2px">หน่วยกิตรวม: {{ $totalCredits }}</div>
             </div>
         </div>
     </div>
 
-    {{-- เกรดแต่ละเทอม --}}
-    @foreach($grades as $semLabel => $semGrades)
-    <div class="ac-card">
-        <div class="ac-card-header"><i class="bi bi-calendar3"></i> {{ $semLabel }}</div>
-        <div class="ac-card-body">
-            <div class="ac-table-wrap">
-                <table class="ac-table">
-                    <thead><tr><th>รหัสวิชา</th><th>ชื่อวิชา</th><th>หน่วยกิต</th><th>คะแนน</th><th>เกรด</th><th>GPA</th><th>หมายเหตุ</th></tr></thead>
-                    <tbody>
-                        @php $semCredits = 0; $semPoints = 0; @endphp
-                        @foreach($semGrades as $g)
-                        @php
-                            $credits = $g->teachingAssign->subject->credits ?? 0;
-                            $semCredits += $credits;
-                            $semPoints += ($g->gpa_point ?? 0) * $credits;
-                        @endphp
-                        <tr>
-                            <td>{{ $g->teachingAssign->subject->code }}</td>
-                            <td style="text-align:left">{{ $g->teachingAssign->subject->name_th }}</td>
-                            <td>{{ $credits }}</td>
-                            <td>{{ $g->total_score }}</td>
-                            <td><span style="font-weight:700; font-size:1rem; color:#4479DA">{{ $g->grade }}</span></td>
-                            <td>{{ $g->gpa_point }}</td>
-                            <td><span class="ac-badge {{ $g->remark == 'ผ่าน' ? 'ac-badge-active' : 'ac-badge-inactive' }}">{{ $g->remark }}</span></td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    <tfoot>
-                        <tr style="background:#f0f4ff">
-                            <td colspan="2" style="text-align:right; font-weight:700">GPA เทอมนี้</td>
-                            <td style="font-weight:700">{{ $semCredits }}</td>
-                            <td colspan="2"></td>
-                            <td style="font-weight:700; color:#4479DA; font-size:1.05rem">{{ $semCredits > 0 ? round($semPoints / $semCredits, 2) : 0 }}</td>
-                            <td></td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
+    {{-- Grades by semester --}}
+    @forelse($grades as $semKey => $semGrades)
+    @php
+        [$yearName, $termName] = explode('|', $semKey . '|');
+        $semCredits = 0; $semPoints = 0;
+        foreach($semGrades as $g) {
+            $c = $g->teachingAssign->subject->credits ?? 0;
+            $semCredits += $c;
+            $semPoints += ($g->gpa_point ?? 0) * $c;
+        }
+        $semGPA = $semCredits > 0 ? round($semPoints / $semCredits, 2) : 0;
+    @endphp
+    <div class="tr-card" style="padding-top:0;overflow:hidden">
+        <div class="sem-header" style="margin:-0px -22px 0;padding:12px 22px">
+            <span><i class="bi bi-calendar3"></i> ปีการศึกษา {{ $yearName }} ภาคเรียนที่ {{ $termName }}</span>
+            <span style="font-size:0.82rem;opacity:0.85">GPA เทอมนี้: {{ $semGPA }}</span>
+        </div>
+        <div style="margin-top:16px">
+        <table class="tr-table">
+            <thead>
+                <tr>
+                    <th style="width:100px">รหัสวิชา</th>
+                    <th>ชื่อวิชา</th>
+                    <th style="text-align:center;width:80px">หน่วยกิต</th>
+                    <th style="text-align:center;width:80px">คะแนน%</th>
+                    <th style="text-align:center;width:70px">เกรด</th>
+                    <th style="text-align:center;width:80px">GPA</th>
+                    <th style="text-align:center;width:80px">สถานะ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($semGrades as $g)
+                <tr>
+                    <td><strong>{{ $g->teachingAssign->subject->code ?? '-' }}</strong></td>
+                    <td>{{ $g->teachingAssign->subject->name_th ?? '-' }}</td>
+                    <td style="text-align:center">{{ $g->teachingAssign->subject->credits ?? '-' }}</td>
+                    <td style="text-align:center">{{ $g->total_score ?? '-' }}</td>
+                    <td style="text-align:center">
+                        <span class="grade-chip {{ $g->remark == 'ผ่าน' ? 'grade-pass' : 'grade-fail' }}">
+                            {{ $g->grade }}
+                        </span>
+                    </td>
+                    <td style="text-align:center">{{ $g->gpa_point }}</td>
+                    <td style="text-align:center">
+                        <span class="{{ $g->remark == 'ผ่าน' ? 'badge-pass' : 'badge-fail' }}">{{ $g->remark }}</span>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2" style="text-align:right">รวมภาคเรียนนี้</td>
+                    <td style="text-align:center">{{ $semCredits }}</td>
+                    <td></td>
+                    <td></td>
+                    <td style="text-align:center;color:#1565c0;font-size:1rem">{{ $semGPA }}</td>
+                    <td></td>
+                </tr>
+            </tfoot>
+        </table>
         </div>
     </div>
-    @endforeach
+    @empty
+    <div class="tr-card">
+        <div style="text-align:center;padding:40px;color:#aaa">
+            <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+            ยังไม่มีผลการเรียน
+        </div>
+    </div>
+    @endforelse
 
-    @if($grades->isEmpty())
-    <div class="ac-card"><div class="ac-card-body ac-empty"><i class="bi bi-inbox" style="font-size:2rem; display:block; margin-bottom:8px"></i>ยังไม่มีผลการเรียน</div></div>
-    @endif
 </div>
 @endsection

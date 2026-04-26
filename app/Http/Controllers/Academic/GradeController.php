@@ -31,24 +31,69 @@ class GradeController extends Controller
     public function studentTranscript($studentId)
     {
         $student = Student::findOrFail($studentId);
+        [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
+        return view('academic.transcript', compact('student', 'grades', 'gpa', 'totalCredits'));
+    }
 
-        $grades = FinalGrade::with(['teachingAssign.subject', 'semester.academicYear'])
+    // พิมพ์ใบ Transcript รายคน
+    public function printTranscript($studentId)
+    {
+        $student = Student::findOrFail($studentId);
+        [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
+        return view('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits'));
+    }
+
+    // หน้าแก้ไขเกรดรายคน
+    public function editStudentGrades($studentId)
+    {
+        $student = Student::findOrFail($studentId);
+        [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
+        return view('academic.grades_edit', compact('student', 'grades', 'gpa', 'totalCredits'));
+    }
+
+    // อัปเดตเกรด
+    public function updateGrade(Request $request, $gradeId)
+    {
+        $grade = FinalGrade::findOrFail($gradeId);
+        $score = $request->total_score;
+        $gradeInfo = FinalGrade::calculateGrade($score);
+        $grade->update([
+            'total_score' => $score,
+            'grade'       => $request->grade ?? $gradeInfo['grade'],
+            'gpa_point'   => $gradeInfo['gpa'],
+            'remark'      => $score >= 50 ? 'ผ่าน' : 'ไม่ผ่าน',
+        ]);
+        return redirect()->back()->with('success', 'แก้ไขเกรดสำเร็จ');
+    }
+
+    // ลบเกรด
+    public function destroyGrade($gradeId)
+    {
+        FinalGrade::findOrFail($gradeId)->delete();
+        return redirect()->back()->with('success', 'ลบเกรดสำเร็จ');
+    }
+
+    private function buildTranscriptData($studentId): array
+    {
+        $allGrades = FinalGrade::with(['teachingAssign.subject', 'semester.academicYear'])
             ->where('student_id', $studentId)
             ->orderBy('semester_id')
-            ->get()
-            ->groupBy(fn($g) => $g->semester->academicYear->year_name . ' เทอม ' . $g->semester->semester_name);
+            ->get();
 
-        // คำนวณ GPA รวม
+        $grades = $allGrades->groupBy(fn($g) =>
+            ($g->semester->academicYear->year_name ?? '') . '|' . ($g->semester->semester_name ?? '')
+        );
+
         $totalCredits = 0;
-        $totalPoints = 0;
-        foreach (FinalGrade::with('teachingAssign.subject')->where('student_id', $studentId)->get() as $g) {
+        $totalPoints  = 0;
+        foreach ($allGrades as $g) {
             $credits = $g->teachingAssign->subject->credits ?? 0;
             $totalCredits += $credits;
-            $totalPoints += ($g->gpa_point ?? 0) * $credits;
+            $totalPoints  += ($g->gpa_point ?? 0) * $credits;
         }
         $gpa = $totalCredits > 0 ? round($totalPoints / $totalCredits, 2) : 0;
 
-        return view('academic.transcript', compact('student', 'grades', 'gpa'));
+        return [$grades, $gpa, $totalCredits];
     }
 
     // ผลการเรียนรายห้อง

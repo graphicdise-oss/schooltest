@@ -196,6 +196,10 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(GradeController::class)->prefix('grades')->name('grades.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/student/{studentId}', 'studentTranscript')->name('transcript');
+        Route::get('/student/{studentId}/print', 'printTranscript')->name('transcript.print');
+        Route::get('/student/{studentId}/edit', 'editStudentGrades')->name('student.edit');
+        Route::put('/{gradeId}', 'updateGrade')->name('update');
+        Route::delete('/{gradeId}', 'destroyGrade')->name('destroy');
         Route::get('/section/{sectionId}', 'sectionReport')->name('section');
         Route::get('/gpa-report', 'gpaReport')->name('gpa');
         Route::get('/print/{assignId}', 'printScoreSheet')->name('print');

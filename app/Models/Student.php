@@ -27,10 +27,13 @@ class Student extends Model
         return $this->hasOne(StudentEducation::class, 'student_id', 'student_id');
     }
 
-    // เพิ่มฟังก์ชันนี้ไว้ใน Model Student
     public function families()
     {
-        return $this->hasMany(StudentFamily::class, 'student_id', 'student_id'); 
-        // หมายเหตุ: ตรง 'student_id' อันหลัง คือชื่อ Primary Key ของตาราง students (เปลี่ยนตามที่คุณตั้งไว้ได้เลยครับ)
+        return $this->hasMany(StudentFamily::class, 'student_id', 'student_id');
+    }
+
+    public function studentSections()
+    {
+        return $this->hasMany(\App\Models\Academic\StudentSection::class, 'student_id', 'student_id');
     }
 }
