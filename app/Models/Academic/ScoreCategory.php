@@ -6,7 +6,8 @@ class ScoreCategory extends Model
 {
     protected $table = 'score_categories';
     protected $primaryKey = 'category_id';
-    protected $fillable = ['assign_id', 'name', 'max_score', 'weight_pct', 'sort_order'];
+    protected $fillable = ['assign_id', 'name', 'max_score', 'weight_pct', 'sort_order', 'is_checkbox'];
+    protected $casts = ['is_checkbox' => 'boolean'];
     public function teachingAssign() { return $this->belongsTo(TeachingAssign::class, 'assign_id', 'assign_id'); }
     public function studentScores() { return $this->hasMany(StudentScore::class, 'category_id', 'category_id'); }
 }

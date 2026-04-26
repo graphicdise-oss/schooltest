@@ -89,6 +89,7 @@
                     <thead>
                         <tr>
                             <th>ชื่อหมวด</th>
+                            <th>ประเภท</th>
                             <th>คะแนนเต็ม</th>
                             <th>น้ำหนัก (%)</th>
                             <th>จัดการ</th>
@@ -98,11 +99,18 @@
                         @foreach($categories as $cat)
                         <tr>
                             <td style="text-align:left">{{ $cat->name }}</td>
+                            <td>
+                                @if($cat->is_checkbox)
+                                    <span style="background:#dcfce7; color:#16a34a; border:1px solid #86efac; border-radius:12px; padding:2px 10px; font-size:0.78rem; font-weight:600; white-space:nowrap">✓ ส่งงาน</span>
+                                @else
+                                    <span style="background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd; border-radius:12px; padding:2px 10px; font-size:0.78rem; font-weight:600; white-space:nowrap"># ตัวเลข</span>
+                                @endif
+                            </td>
                             <td>{{ $cat->max_score }}</td>
                             <td>{{ $cat->weight_pct }}%</td>
                             <td>
                                 <button class="ac-action-btn ac-action-edit" title="แก้ไข"
-                                    onclick="openEditModal({{ $cat->category_id }}, '{{ addslashes($cat->name) }}', {{ $cat->max_score }}, {{ $cat->weight_pct }}, {{ $cat->sort_order ?? 0 }})">
+                                    onclick="openEditModal({{ $cat->category_id }}, '{{ addslashes($cat->name) }}', {{ $cat->max_score }}, {{ $cat->weight_pct }}, {{ $cat->sort_order ?? 0 }}, {{ $cat->is_checkbox ? 1 : 0 }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('scores.destroyCategory', $cat->category_id) }}" method="POST" style="display:inline"
@@ -118,7 +126,7 @@
                     </tbody>
                     <tfoot>
                         <tr>
-                            <td colspan="2" style="text-align:right; font-weight:700; font-size:0.82rem; color:#555; background:#f8faff">รวมน้ำหนัก</td>
+                            <td colspan="3" style="text-align:right; font-weight:700; font-size:0.82rem; color:#555; background:#f8faff">รวมน้ำหนัก</td>
                             <td style="font-weight:700; background:{{ $weightBg }}; color:{{ $weightColor }}">
                                 {{ $totalWeight }}%
                                 @if($totalWeight == 100)
@@ -195,6 +203,9 @@
                                 <th style="min-width:80px">
                                     {{ $cat->name }}<br>
                                     <small style="font-weight:400; opacity:0.85">({{ $cat->max_score }} / {{ $cat->weight_pct }}%)</small>
+                                    @if($cat->is_checkbox)
+                                    <br><small style="color:#86efac; font-weight:600">✓ ติก</small>
+                                    @endif
                                 </th>
                                 @endforeach
                                 <th style="min-width:70px">รวม (%)</th>
@@ -209,6 +220,22 @@
                                 <td>{{ $s->student_code }}</td>
                                 <td style="text-align:left; white-space:nowrap">{{ $s->thai_prefix }}{{ $s->thai_firstname }} {{ $s->thai_lastname }}</td>
                                 @foreach($categories as $cat)
+                                @if($cat->is_checkbox)
+                                <td style="text-align:center">
+                                    <label style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center">
+                                        <input type="checkbox" class="cb-score" data-max="{{ $cat->max_score }}"
+                                               data-student="{{ $s->student_id }}"
+                                               {{ isset($scoreMatrix[$s->student_id][$cat->category_id]) && $scoreMatrix[$s->student_id][$cat->category_id] > 0 ? 'checked' : '' }}
+                                               onchange="this.nextElementSibling.value=this.checked?{{ $cat->max_score }}:0; recalcRow({{ $s->student_id }})">
+                                        <input type="hidden" name="scores[{{ $s->student_id }}][{{ $cat->category_id }}]"
+                                               class="score-cell"
+                                               data-max="{{ $cat->max_score }}"
+                                               data-weight="{{ $cat->weight_pct }}"
+                                               data-student="{{ $s->student_id }}"
+                                               value="{{ $scoreMatrix[$s->student_id][$cat->category_id] ?? 0 }}">
+                                    </label>
+                                </td>
+                                @else
                                 <td>
                                     <input type="number"
                                         name="scores[{{ $s->student_id }}][{{ $cat->category_id }}]"
@@ -220,6 +247,7 @@
                                         value="{{ $scoreMatrix[$s->student_id][$cat->category_id] ?? '' }}"
                                         oninput="recalcRow({{ $s->student_id }})">
                                 </td>
+                                @endif
                                 @endforeach
                                 <td class="total-cell" id="total-{{ $s->student_id }}" style="font-weight:700; color:#4479DA">—</td>
                                 <td class="grade-cell" id="grade-{{ $s->student_id }}" style="font-weight:700">—</td>
@@ -278,6 +306,18 @@
                         <input type="number" name="sort_order" id="catOrder" value="{{ $categories->count() + 1 }}" min="1">
                     </div>
                 </div>
+
+                <div style="margin-top:14px">
+                    <label>ประเภทการให้คะแนน</label>
+                    <div style="display:flex; gap:16px; margin-top:6px">
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:6px">
+                            <input type="radio" name="is_checkbox" id="catTypeNumber" value="0" checked> ใส่คะแนนตัวเลข
+                        </label>
+                        <label style="cursor:pointer; display:flex; align-items:center; gap:6px">
+                            <input type="radio" name="is_checkbox" id="catTypeCheckbox" value="1"> ✓ ติกส่งงาน (เต็ม/ศูนย์)
+                        </label>
+                    </div>
+                </div>
             </div>
             <div class="ac-modal-footer">
                 <button type="button" class="ac-btn ac-btn-secondary" onclick="closeCatModal()">ยกเลิก</button>
@@ -286,6 +326,10 @@
         </form>
     </div>
 </div>
+
+<style>
+.cb-score { width: 22px; height: 22px; accent-color: #43a047; cursor: pointer; }
+</style>
 
 <script>
 // ===== Modal helpers =====
@@ -297,10 +341,11 @@ function openCatModal() {
     document.getElementById('catMax').value = 100;
     document.getElementById('catWeight').value = 100;
     document.getElementById('catOrder').value = {{ $categories->count() + 1 }};
+    document.getElementById('catTypeNumber').checked = true;
     document.getElementById('catOverlay').classList.add('active');
 }
 
-function openEditModal(id, name, max, weight, order) {
+function openEditModal(id, name, max, weight, order, isCheckbox) {
     document.getElementById('catModalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>แก้ไขหมวดคะแนน';
     document.getElementById('catForm').action = '/scores/category/' + id;
     document.getElementById('catMethodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
@@ -308,6 +353,11 @@ function openEditModal(id, name, max, weight, order) {
     document.getElementById('catMax').value = max;
     document.getElementById('catWeight').value = weight;
     document.getElementById('catOrder').value = order;
+    if (isCheckbox) {
+        document.getElementById('catTypeCheckbox').checked = true;
+    } else {
+        document.getElementById('catTypeNumber').checked = true;
+    }
     document.getElementById('catOverlay').classList.add('active');
 }
 

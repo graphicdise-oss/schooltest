@@ -56,13 +56,13 @@ class ScoreController extends Controller
     public function storeCategory(Request $request)
     {
         $request->validate(['assign_id' => 'required', 'name' => 'required', 'max_score' => 'required|numeric']);
-        ScoreCategory::create($request->only(['assign_id', 'name', 'max_score', 'weight_pct', 'sort_order']));
+        ScoreCategory::create($request->only(['assign_id', 'name', 'max_score', 'weight_pct', 'sort_order', 'is_checkbox']));
         return redirect()->back()->with('success', 'เพิ่มหมวดคะแนนสำเร็จ');
     }
 
     public function updateCategory(Request $request, $id)
     {
-        ScoreCategory::findOrFail($id)->update($request->only(['name', 'max_score', 'weight_pct', 'sort_order']));
+        ScoreCategory::findOrFail($id)->update($request->only(['name', 'max_score', 'weight_pct', 'sort_order', 'is_checkbox']));
         return redirect()->back()->with('success', 'แก้ไขหมวดคะแนนสำเร็จ');
     }
 
@@ -94,10 +94,11 @@ class ScoreController extends Controller
         $assign = TeachingAssign::findOrFail($assignId);
         if ($assign->scoreCategories()->count() === 0) {
             $defaults = [
-                ['name' => 'คะแนนเก็บก่อนกลางภาค', 'max_score' => 20, 'weight_pct' => 20, 'sort_order' => 1],
-                ['name' => 'กลางภาค',               'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 2],
-                ['name' => 'คะแนนเก็บหลังกลางภาค', 'max_score' => 20, 'weight_pct' => 20, 'sort_order' => 3],
-                ['name' => 'ปลายภาค',               'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 4],
+                ['name' => 'งานชิ้นที่ 1', 'max_score' => 10, 'weight_pct' => 10, 'sort_order' => 1, 'is_checkbox' => true],
+                ['name' => 'งานชิ้นที่ 2', 'max_score' => 10, 'weight_pct' => 10, 'sort_order' => 2, 'is_checkbox' => true],
+                ['name' => 'งานชิ้นที่ 3', 'max_score' => 10, 'weight_pct' => 10, 'sort_order' => 3, 'is_checkbox' => true],
+                ['name' => 'กลางภาค',      'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 4, 'is_checkbox' => false],
+                ['name' => 'ปลายภาค',      'max_score' => 40, 'weight_pct' => 40, 'sort_order' => 5, 'is_checkbox' => false],
             ];
             foreach ($defaults as $d) {
                 $assign->scoreCategories()->create($d);
