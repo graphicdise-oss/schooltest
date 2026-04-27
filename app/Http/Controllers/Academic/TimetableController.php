@@ -92,7 +92,9 @@ class TimetableController extends Controller
 
     public function sectionView($sectionId)
     {
-        $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher'])->findOrFail($sectionId);
+        $section = ClassSection::with([
+    'level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'
+])->findOrFail($sectionId);
 
         $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
             ->where('section_id', $sectionId)
@@ -122,6 +124,15 @@ class TimetableController extends Controller
             'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid', 'curriculums'
         ));
     }
+
+
+public function setCurriculum(Request $request, $sectionId)
+{
+    ClassSection::findOrFail($sectionId)->update([
+        'curriculum_id' => $request->curriculum_id ?: null
+    ]);
+    return redirect()->back()->with('success', 'เปลี่ยนแผนการเรียนสำเร็จ');
+}
 
     public function clearSection($sectionId)
     {
