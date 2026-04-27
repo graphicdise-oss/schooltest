@@ -7,6 +7,7 @@ use App\Models\Academic\TeachingAssign;
 use App\Models\Academic\ScoreCategory;
 use App\Models\Academic\StudentScore;
 use App\Models\Academic\StudentSection;
+use App\Models\Academic\ClassSection;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Semester;
 use Illuminate\Http\Request;
@@ -25,6 +26,24 @@ class ScoreController extends Controller
             ->get();
 
         return view('academic.scores_index', compact('assigns', 'semesters', 'semesterId'));
+    }
+
+    // รายวิชาที่สอนในห้องเรียน
+    public function sectionSubjects($sectionId)
+    {
+        $section = ClassSection::with(['level', 'semester.academicYear'])->findOrFail($sectionId);
+
+        $assigns = TeachingAssign::with(['personnel', 'subject', 'scoreCategories'])
+            ->where('section_id', $sectionId)
+            ->orderBy('assign_id')
+            ->get();
+
+        $students = StudentSection::with('student')
+            ->where('section_id', $sectionId)
+            ->where('status', 'กำลังศึกษา')
+            ->count();
+
+        return view('academic.section_scores', compact('section', 'assigns', 'students'));
     }
 
     // หน้าบันทึกคะแนน (เลือก assign แล้ว)
