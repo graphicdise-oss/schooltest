@@ -102,15 +102,17 @@ class TimetableController extends Controller
         $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
         $subjects = Subject::where('is_active', true)->orderBy('code')->get();
         $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
-        $hours    = range(6, 20);
+        $hours = range(7, 17);
 
-        $slotGrid = [];
-        foreach ($assigns as $assign) {
-            foreach ($assign->timetableSlots as $slot) {
-                $h = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
-                $slotGrid[$slot->day_of_week][$h] = ['slot' => $slot, 'assign' => $assign];
-            }
-        }
+  $slotGrid = [];
+foreach ($assigns as $assign) {
+    foreach ($assign->timetableSlots as $slot) {
+        $startH = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
+        $endH   = (int) \Carbon\Carbon::parse($slot->end_time)->format('H');
+        $span   = max(1, $endH - $startH);
+        $slotGrid[$slot->day_of_week][$startH] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+    }
+}
 
         $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
             ->where('level_id', $section->level_id)

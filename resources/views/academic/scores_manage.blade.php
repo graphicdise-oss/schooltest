@@ -83,6 +83,9 @@
                 $weightBg    = ($totalWeight == 100) ? '#dcfce7' : '#fee2e2';
             @endphp
 
+
+            @php $remainingWeight = max(0, 100 - $totalWeight); @endphp
+
             @if($categories->count() > 0)
             <div class="ac-table-wrap" style="margin-bottom:12px">
                 <table class="ac-table">
@@ -233,11 +236,18 @@
                 </div>
 
                <div class="ac-save-wrap" style="display:flex; justify-content:center; gap:12px">
-    <a href="{{ route('scores.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary">
-        <i class="bi bi-printer"></i> พิมพ์ใบเช็ค/บันทึกคะแนน
+    <a href="{{ route('grades.excel', $assign->assign_id) }}" class="ac-btn" style="background:#1d6f42; color:#fff">
+        <i class="bi bi-file-earmark-excel"></i> Export Excel
     </a>
-    <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-save"></i> บันทึกคะแนน</button>
-    <button type="button" class="ac-btn ac-btn-success" onclick="document.getElementById('calcForm').submit()"><i class="bi bi-calculator"></i> คำนวณเกรด</button>
+    <a href="{{ route('scores.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary">
+        <i class="bi bi-printer"></i> พิมพ์ใบบันทึกคะแนน
+    </a>
+    <button type="submit" class="ac-btn ac-btn-primary">
+        <i class="bi bi-save"></i> บันทึกคะแนน
+    </button>
+    <button type="button" class="ac-btn ac-btn-success" onclick="document.getElementById('calcForm').submit()">
+        <i class="bi bi-calculator"></i> คำนวณเกรด
+    </button>
 </div>
             </form>
 
@@ -268,9 +278,10 @@
                         <label>คะแนนเต็ม *</label>
                         <input type="number" name="max_score" id="catMax" required value="100" step="0.5" min="0">
                     </div>
-                    <div>
+                   <div>
                         <label>น้ำหนัก (%) *</label>
                         <input type="number" name="weight_pct" id="catWeight" required value="100" step="0.5" min="0" max="100">
+                        <small id="weightHint" style="color:#16a34a; font-size:0.78rem"></small>
                     </div>
                     <div>
                         <label>ลำดับ</label>
@@ -314,6 +325,9 @@ function openCatModal() {
     document.getElementById('catOrder').value = {{ $categories->count() + 1 }};
     document.getElementById('catTypeNumber').checked = true;
     document.getElementById('catOverlay').classList.add('active');
+    var remaining = {{ $remainingWeight ?? 100 }};
+    document.getElementById('catWeight').value = remaining;
+    document.getElementById('weightHint').textContent = remaining > 0 ? 'เหลือ ' + remaining + '%' : 'น้ำหนักเต็ม 100% แล้ว';
 }
 
 function openEditModal(id, name, max, weight, order, isCheckbox) {

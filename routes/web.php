@@ -169,18 +169,19 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // === 4. ตารางสอน ===
-    Route::controller(TimetableController::class)->prefix('timetable')->name('timetable.')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/assign', 'storeAssign')->name('storeAssign');
-        Route::delete('/assign/{id}', 'destroyAssign')->name('destroyAssign');
-        Route::post('/slot', 'storeSlot')->name('storeSlot');
-        Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
-        Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
-        Route::get('/view', 'viewTimetable')->name('view');
-        Route::get('/section/{id}', 'sectionView')->name('section');
-        Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
-        Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
-    });
+  Route::controller(TimetableController::class)->prefix('timetable')->name('timetable.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/assign', 'storeAssign')->name('storeAssign');
+    Route::delete('/assign/{id}', 'destroyAssign')->name('destroyAssign');
+    Route::post('/slot', 'storeSlot')->name('storeSlot');
+    Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
+    Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
+    Route::get('/view', 'viewTimetable')->name('view');
+    Route::get('/section/{id}', 'sectionView')->name('section');
+    Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
+    Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
+    Route::post('/section/{id}/set-curriculum', 'setCurriculum')->name('setCurriculum'); // ← เพิ่มตรงนี้
+});
 
     // === 5. บันทึกคะแนน ===
     Route::controller(ScoreController::class)->prefix('scores')->name('scores.')->group(function () {
@@ -255,4 +256,5 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
 
+    
 });

@@ -53,7 +53,8 @@
 .ts-slot {
     height:100%; min-height:58px; padding:5px 6px;
     font-size:0.72rem; line-height:1.35; display:flex; flex-direction:column;
-    justify-content:center; color:#fff; font-weight:600; position:relative;
+    justify-content:center; align-items:center; text-align:center;
+    color:#fff; font-weight:600; position:relative;
 }
 .ts-slot-code { font-size:0.8rem; font-weight:700; }
 .ts-slot-name { font-size:0.68rem; opacity:.9; }
@@ -183,14 +184,28 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                     @endforeach
                 </tr>
             </thead>
-            <tbody>
+                       <tbody>
+                @php
+                $skipCells = [];
+                foreach ($slotGrid as $d => $daySlots) {
+                    foreach ($daySlots as $h => $cell) {
+                        $span = $cell['span'] ?? 1;
+                        for ($s = 1; $s < $span; $s++) {
+                            $skipCells[$d][$h + $s] = true;
+                        }
+                    }
+                }
+                @endphp
                 @foreach($days as $day)
                 <tr>
                     <th class="day-col">{{ $day }}</th>
                     @foreach($hours as $h)
+                    @if(isset($skipCells[$day][$h]))
+                        @continue
+                    @endif
                     @php $cell = $slotGrid[$day][$h] ?? null; @endphp
                     @if($cell)
-                        <td class="occupied">
+                        <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
                             <div class="ts-slot" style="background:{{ $colorMap[$cell['assign']->assign_id] }}">
                                 <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
                                 <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
@@ -265,16 +280,24 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                         @endforeach
                     </select>
                 </div>
-                <div class="mrow">
-                    <div class="mfield">
-                        <label>เวลาเริ่ม *</label>
-                        <input type="time" name="start_time" id="slotStart" required>
-                    </div>
-                    <div class="mfield">
-                        <label>เวลาสิ้นสุด *</label>
-                        <input type="time" name="end_time" id="slotEnd" required>
-                    </div>
-                </div>
+            <div class="mrow">
+    <div class="mfield">
+        <label>เวลาเริ่ม *</label>
+        <select name="start_time" id="slotStart" required>
+            @for($i = 6; $i <= 17; $i++)    {{-- ← แก้ 6 เป็น 7, 20 เป็น 17 --}}
+            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
+            @endfor
+        </select>
+    </div>
+    <div class="mfield">
+               <label>เวลาสิ้นสุด *</label>
+        <select name="end_time" id="slotEnd" required>
+            @for($i = 7; $i <= 18; $i++)    {{-- ← แก้ 7 เป็น 8, 21 เป็น 18 --}}
+            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
+            @endfor
+        </select>
+    </div>
+</div>
                 <div class="mfield">
                     <label>ห้องเรียน</label>
                     <input type="text" name="room" placeholder="เช่น 301, ห้องวิทย์">
