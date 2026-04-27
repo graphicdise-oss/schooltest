@@ -145,6 +145,11 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                 @csrf @method('DELETE')
                 <button type="submit" class="btn-clear"><i class="bi bi-trash3"></i> ล้างข้อมูล</button>
             </form>
+            @if($curriculums->count())
+            <button class="btn-assign" style="background:#7b1fa2" onclick="openImportModal()">
+                <i class="bi bi-journal-bookmark"></i> นำเข้าจากแผนการเรียน
+            </button>
+            @endif
             <button class="btn-add-subject" onclick="openSlotModal()">
                 <i class="bi bi-plus-lg"></i> เพิ่มวิชาเรียน
             </button>
@@ -311,8 +316,119 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
     </div>
 </div>
 
+{{-- Modal นำเข้าแผนการเรียน --}}
+<div class="ts-overlay" id="importModal" onclick="if(event.target===this)closeImportModal()">
+    <div class="ts-modal" style="width:580px">
+        <div class="ts-modal-head" style="background:#7b1fa2;color:#fff;border-radius:14px 14px 0 0">
+            <i class="bi bi-journal-bookmark me-2"></i>นำเข้าวิชาจากแผนการเรียน
+        </div>
+        <form method="POST" action="{{ route('timetable.importCurriculum', $section->section_id) }}" id="importForm">
+            @csrf
+            <div class="ts-modal-body" style="max-height:70vh;overflow-y:auto">
+                <div class="mfield">
+                    <label>เลือกแผนการเรียน *</label>
+                    <select id="curriculumSelect" onchange="loadCurriculumSubjects(this.value)" style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:0.85rem;font-family:inherit">
+                        <option value="">-- เลือกแผนการเรียน --</option>
+                        @foreach($curriculums as $cur)
+                        <option value="{{ $cur->curriculum_id }}">
+                            {{ $cur->name }} (ปี {{ $cur->year_applied }})
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div id="subjectRows" style="display:none;margin-top:8px">
+                    <div style="font-size:0.8rem;font-weight:700;color:#555;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #eee">
+                        รายวิชาในแผน — กำหนดครูผู้สอนแต่ละวิชา (เว้นว่างไว้ = ข้ามวิชานั้น)
+                    </div>
+                    <div id="subjectList"></div>
+                </div>
+                <div id="noCurriculum" style="display:none;text-align:center;padding:24px;color:#aaa">
+                    <i class="bi bi-inbox" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+                    ไม่มีวิชาในแผนการเรียนนี้
+                </div>
+            </div>
+            <div class="ts-modal-foot">
+                <button type="button" class="btn-mcancel" onclick="closeImportModal()">ยกเลิก</button>
+                <button type="submit" id="importBtn" class="btn-msave" style="background:#7b1fa2" disabled>
+                    <i class="bi bi-check-lg me-1"></i>นำเข้าวิชา
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// ข้อมูล curriculum ทั้งหมด
+const curriculumData = @json($curriculums->map(fn($c) => [
+    'id'       => $c->curriculum_id,
+    'subjects' => $c->curriculumSubjects->map(fn($cs) => [
+        'subject_id' => $cs->subject_id,
+        'code'       => $cs->subject->code ?? '',
+        'name_th'    => $cs->subject->name_th ?? '',
+        'sem_type'   => $cs->semester_type ?? '',
+    ])->values()
+])->keyBy('id'));
+
+const teachers = @json($teachers->map(fn($t) => [
+    'id'   => $t->personnel_id,
+    'name' => $t->thai_firstname . ' ' . $t->thai_lastname,
+]));
+
+function loadCurriculumSubjects(curId) {
+    const subjectRows = document.getElementById('subjectRows');
+    const noCur       = document.getElementById('noCurriculum');
+    const importBtn   = document.getElementById('importBtn');
+    const list        = document.getElementById('subjectList');
+
+    if (!curId) {
+        subjectRows.style.display = 'none';
+        noCur.style.display = 'none';
+        importBtn.disabled = true;
+        return;
+    }
+
+    const cur = curriculumData[curId];
+    if (!cur || !cur.subjects.length) {
+        subjectRows.style.display = 'none';
+        noCur.style.display = 'block';
+        importBtn.disabled = true;
+        return;
+    }
+
+    const teacherOptions = teachers.map(t =>
+        `<option value="${t.id}">${t.name}</option>`
+    ).join('');
+
+    list.innerHTML = cur.subjects.map(s => `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;align-items:center">
+            <div>
+                <div style="font-size:0.82rem;font-weight:700;color:#333">${s.code}</div>
+                <div style="font-size:0.78rem;color:#666">${s.name_th}</div>
+            </div>
+            <select name="personnel_ids[${s.subject_id}]"
+                style="height:34px;border:1.5px solid #ddd;border-radius:7px;padding:0 8px;font-size:0.82rem;font-family:inherit;width:100%">
+                <option value="">-- ข้ามวิชานี้ --</option>
+                ${teacherOptions}
+            </select>
+        </div>
+    `).join('');
+
+    subjectRows.style.display = 'block';
+    noCur.style.display = 'none';
+    importBtn.disabled = false;
+}
+
+function openImportModal()  {
+    document.getElementById('curriculumSelect').value = '';
+    document.getElementById('subjectRows').style.display = 'none';
+    document.getElementById('noCurriculum').style.display = 'none';
+    document.getElementById('importBtn').disabled = true;
+    document.getElementById('importModal').classList.add('open');
+}
+function closeImportModal() { document.getElementById('importModal').classList.remove('open'); }
+</script>
 @if(session('success'))
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
