@@ -184,13 +184,27 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                 </tr>
             </thead>
             <tbody>
+                @php
+                $skipCells = [];
+                foreach ($slotGrid as $d => $daySlots) {
+                    foreach ($daySlots as $h => $cell) {
+                        $span = $cell['span'] ?? 1;
+                        for ($s = 1; $s < $span; $s++) {
+                            $skipCells[$d][$h + $s] = true;
+                        }
+                    }
+                }
+                @endphp
                 @foreach($days as $day)
                 <tr>
                     <th class="day-col">{{ $day }}</th>
                     @foreach($hours as $h)
+                    @if(isset($skipCells[$day][$h]))
+                        @continue
+                    @endif
                     @php $cell = $slotGrid[$day][$h] ?? null; @endphp
                     @if($cell)
-                        <td class="occupied">
+                        <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
                             <div class="ts-slot" style="background:{{ $colorMap[$cell['assign']->assign_id] }}">
                                 <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
                                 <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
