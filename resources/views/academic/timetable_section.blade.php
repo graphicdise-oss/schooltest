@@ -363,10 +363,11 @@ $curriculumJson = $curriculums->mapWithKeys(function($c) {
         'id' => $c->curriculum_id,
         'subjects' => $c->curriculumSubjects->map(function($cs) {
             return [
-                'subject_id' => $cs->subject_id,
-                'code'       => $cs->subject->code ?? '',
-                'name_th'    => $cs->subject->name_th ?? '',
-                'sem_type'   => $cs->semester_type ?? '',
+                'subject_id'   => $cs->subject_id,
+                'code'         => $cs->subject->code ?? '',
+                'name_th'      => $cs->subject->name_th ?? '',
+                'sem_type'     => $cs->semester_type ?? '',
+                'personnel_id' => $cs->personnel_id,
             ];
         })->values()
     ]];
@@ -406,7 +407,11 @@ function loadCurriculumSubjects(curId) {
         `<option value="${t.id}">${t.name}</option>`
     ).join('');
 
-    list.innerHTML = cur.subjects.map(s => `
+    list.innerHTML = cur.subjects.map(s => {
+        const opts = teachers.map(t =>
+            `<option value="${t.id}" ${s.personnel_id == t.id ? 'selected' : ''}>${t.name}</option>`
+        ).join('');
+        return `
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;align-items:center">
             <div>
                 <div style="font-size:0.82rem;font-weight:700;color:#333">${s.code}</div>
@@ -415,10 +420,10 @@ function loadCurriculumSubjects(curId) {
             <select name="personnel_ids[${s.subject_id}]"
                 style="height:34px;border:1.5px solid #ddd;border-radius:7px;padding:0 8px;font-size:0.82rem;font-family:inherit;width:100%">
                 <option value="">-- ข้ามวิชานี้ --</option>
-                ${teacherOptions}
+                ${opts}
             </select>
         </div>
-    `).join('');
+    `}).join('');
 
     subjectRows.style.display = 'block';
     noCur.style.display = 'none';

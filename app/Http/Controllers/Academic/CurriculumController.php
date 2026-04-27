@@ -7,6 +7,7 @@ use App\Models\Academic\Curriculum;
 use App\Models\Academic\CurriculumSubject;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Level;
+use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 
 class CurriculumController extends Controller
@@ -61,10 +62,11 @@ class CurriculumController extends Controller
 
     public function edit($id)
     {
-        $curriculum = Curriculum::with(['curriculumSubjects.subject'])->findOrFail($id);
-        $levels = Level::orderBy('sort_order')->get();
-        $subjects = Subject::where('is_active', true)->orderBy('code')->get();
-        return view('academic.curriculum_form', compact('curriculum', 'levels', 'subjects'));
+        $curriculum = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])->findOrFail($id);
+        $levels     = Level::orderBy('sort_order')->get();
+        $subjects   = Subject::where('is_active', true)->orderBy('code')->get();
+        $personnels = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+        return view('academic.curriculum_form', compact('curriculum', 'levels', 'subjects', 'personnels'));
     }
 
     public function update(Request $request, $id)
@@ -85,7 +87,11 @@ class CurriculumController extends Controller
         $request->validate(['subject_id' => 'required|exists:subjects,subject_id']);
         CurriculumSubject::firstOrCreate(
             ['curriculum_id' => $id, 'subject_id' => $request->subject_id],
-            ['semester_type' => $request->semester_type ?? 'both', 'is_required' => $request->boolean('is_required', true)]
+            [
+                'semester_type' => $request->semester_type ?? 'both',
+                'is_required'   => $request->boolean('is_required', true),
+                'personnel_id'  => $request->personnel_id ?: null,
+            ]
         );
         return redirect()->back()->with('success', 'เพิ่มวิชาในหลักสูตรสำเร็จ');
     }
@@ -96,6 +102,7 @@ class CurriculumController extends Controller
             ->update([
                 'semester_type' => $request->semester_type ?? 'both',
                 'is_required'   => $request->boolean('is_required', true),
+                'personnel_id'  => $request->personnel_id ?: null,
             ]);
         return redirect()->back()->with('success', 'แก้ไขวิชาสำเร็จ');
     }

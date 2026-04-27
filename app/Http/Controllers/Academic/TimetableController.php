@@ -112,7 +112,7 @@ class TimetableController extends Controller
             }
         }
 
-        $curriculums = Curriculum::with('curriculumSubjects.subject')
+        $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
             ->where('level_id', $section->level_id)
             ->where('is_active', true)
             ->orderBy('year_applied', 'desc')
