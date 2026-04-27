@@ -107,8 +107,10 @@ class TimetableController extends Controller
         $slotGrid = [];
         foreach ($assigns as $assign) {
             foreach ($assign->timetableSlots as $slot) {
-                $h = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
-                $slotGrid[$slot->day_of_week][$h] = ['slot' => $slot, 'assign' => $assign];
+                $startH = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
+                $endH   = (int) \Carbon\Carbon::parse($slot->end_time)->format('H');
+                $span   = max(1, $endH - $startH);
+                $slotGrid[$slot->day_of_week][$startH] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
             }
         }
 
