@@ -357,24 +357,29 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
     </div>
 </div>
 
+@php
+$curriculumJson = $curriculums->mapWithKeys(function($c) {
+    return [$c->curriculum_id => [
+        'id' => $c->curriculum_id,
+        'subjects' => $c->curriculumSubjects->map(function($cs) {
+            return [
+                'subject_id' => $cs->subject_id,
+                'code'       => $cs->subject->code ?? '',
+                'name_th'    => $cs->subject->name_th ?? '',
+                'sem_type'   => $cs->semester_type ?? '',
+            ];
+        })->values()
+    ]];
+});
+$teacherJson = $teachers->map(function($t) {
+    return ['id' => $t->personnel_id, 'name' => $t->thai_firstname . ' ' . $t->thai_lastname];
+})->values();
+@endphp
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
-// ข้อมูล curriculum ทั้งหมด
-const curriculumData = @json($curriculums->map(fn($c) => [
-    'id'       => $c->curriculum_id,
-    'subjects' => $c->curriculumSubjects->map(fn($cs) => [
-        'subject_id' => $cs->subject_id,
-        'code'       => $cs->subject->code ?? '',
-        'name_th'    => $cs->subject->name_th ?? '',
-        'sem_type'   => $cs->semester_type ?? '',
-    ])->values()
-])->keyBy('id'));
-
-const teachers = @json($teachers->map(fn($t) => [
-    'id'   => $t->personnel_id,
-    'name' => $t->thai_firstname . ' ' . $t->thai_lastname,
-]));
+const curriculumData = @json($curriculumJson);
+const teachers = @json($teacherJson);
 
 function loadCurriculumSubjects(curId) {
     const subjectRows = document.getElementById('subjectRows');
