@@ -92,9 +92,7 @@ class TimetableController extends Controller
 
     public function sectionView($sectionId)
     {
-        $section = ClassSection::with([
-    'level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'
-])->findOrFail($sectionId);
+        $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'])->findOrFail($sectionId);
 
         $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
             ->where('section_id', $sectionId)
@@ -125,15 +123,6 @@ class TimetableController extends Controller
         ));
     }
 
-
-public function setCurriculum(Request $request, $sectionId)
-{
-    ClassSection::findOrFail($sectionId)->update([
-        'curriculum_id' => $request->curriculum_id ?: null
-    ]);
-    return redirect()->back()->with('success', 'เปลี่ยนแผนการเรียนสำเร็จ');
-}
-
     public function clearSection($sectionId)
     {
         $assignIds = TeachingAssign::where('section_id', $sectionId)->pluck('assign_id');
@@ -146,6 +135,10 @@ public function setCurriculum(Request $request, $sectionId)
         $section = ClassSection::findOrFail($sectionId);
         $personnelIds = $request->input('personnel_ids', []);
 
+        if ($request->curriculum_id) {
+            $section->update(['curriculum_id' => $request->curriculum_id]);
+        }
+
         foreach ($personnelIds as $subjectId => $personnelId) {
             if (!$personnelId) continue;
             TeachingAssign::firstOrCreate([
@@ -157,5 +150,13 @@ public function setCurriculum(Request $request, $sectionId)
         }
 
         return redirect()->back()->with('success', 'นำเข้าวิชาจากแผนการเรียนสำเร็จ');
+    }
+
+    public function setCurriculum(Request $request, $sectionId)
+    {
+        ClassSection::findOrFail($sectionId)->update([
+            'curriculum_id' => $request->curriculum_id ?: null
+        ]);
+        return redirect()->back()->with('success', 'เปลี่ยนแผนการเรียนสำเร็จ');
     }
 }
