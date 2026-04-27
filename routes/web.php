@@ -179,6 +179,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/view', 'viewTimetable')->name('view');
         Route::get('/section/{id}', 'sectionView')->name('section');
         Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
+        Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
     });
 
     // === 5. บันทึกคะแนน ===

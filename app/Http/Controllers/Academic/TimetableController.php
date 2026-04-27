@@ -9,6 +9,7 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
+use App\Models\Academic\Curriculum;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 
@@ -111,8 +112,14 @@ class TimetableController extends Controller
             }
         }
 
+        $curriculums = Curriculum::with('curriculumSubjects.subject')
+            ->where('level_id', $section->level_id)
+            ->where('is_active', true)
+            ->orderBy('year_applied', 'desc')
+            ->get();
+
         return view('academic.timetable_section', compact(
-            'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid'
+            'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid', 'curriculums'
         ));
     }
 
@@ -121,5 +128,23 @@ class TimetableController extends Controller
         $assignIds = TeachingAssign::where('section_id', $sectionId)->pluck('assign_id');
         TimetableSlot::whereIn('assign_id', $assignIds)->delete();
         return redirect()->back()->with('success', 'ล้างข้อมูลตารางสอนสำเร็จ');
+    }
+
+    public function importCurriculum(Request $request, $sectionId)
+    {
+        $section = ClassSection::findOrFail($sectionId);
+        $personnelIds = $request->input('personnel_ids', []);
+
+        foreach ($personnelIds as $subjectId => $personnelId) {
+            if (!$personnelId) continue;
+            TeachingAssign::firstOrCreate([
+                'personnel_id' => $personnelId,
+                'subject_id'   => $subjectId,
+                'section_id'   => $sectionId,
+                'semester_id'  => $section->semester_id,
+            ]);
+        }
+
+        return redirect()->back()->with('success', 'นำเข้าวิชาจากแผนการเรียนสำเร็จ');
     }
 }
