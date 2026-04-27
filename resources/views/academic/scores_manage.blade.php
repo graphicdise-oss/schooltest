@@ -155,31 +155,6 @@
         </div>
     </div>
 
-    {{-- ===== Card 3: Grade Scale Reference ===== --}}
-    <div class="ac-card" style="margin-bottom:20px">
-        <div class="ac-card-header">
-            <span><i class="bi bi-bar-chart-steps"></i> เกณฑ์ตัดเกรด</span>
-        </div>
-        <div class="ac-card-body" style="padding:16px 20px">
-            <div class="ac-table-wrap">
-                <table class="ac-table" style="max-width:480px">
-                    <thead>
-                        <tr><th>คะแนน %</th><th>เกรด</th><th>ระดับผลการเรียน</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>80 – 100</td><td style="font-weight:700; color:#16a34a">4</td><td>ดีเยี่ยม</td></tr>
-                        <tr><td>75 – 79</td><td style="font-weight:700; color:#16a34a">3.5</td><td>ดีมาก</td></tr>
-                        <tr><td>70 – 74</td><td style="font-weight:700; color:#4479DA">3</td><td>ดี</td></tr>
-                        <tr><td>65 – 69</td><td style="font-weight:700; color:#4479DA">2.5</td><td>ค่อนข้างดี</td></tr>
-                        <tr><td>60 – 64</td><td style="font-weight:700; color:#d97706">2</td><td>ปานกลาง</td></tr>
-                        <tr><td>55 – 59</td><td style="font-weight:700; color:#d97706">1.5</td><td>พอใช้</td></tr>
-                        <tr><td>50 – 54</td><td style="font-weight:700; color:#ea580c">1</td><td>ผ่านเกณฑ์ขั้นต่ำ</td></tr>
-                        <tr><td>0 – 49</td><td style="font-weight:700; color:#dc2626">0</td><td>ไม่ผ่าน</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
     {{-- ===== Card 4: Score Entry ===== --}}
     @if($categories->count() > 0)
@@ -257,17 +232,13 @@
                     </table>
                 </div>
 
-                <div style="display:flex; justify-content:center; gap:12px; margin-top:20px; flex-wrap:wrap">
-                    <button type="submit" class="ac-btn ac-btn-primary">
-                        <i class="bi bi-save"></i> บันทึกคะแนน
-                    </button>
-                    <button type="button" class="ac-btn ac-btn-success" onclick="document.getElementById('calcForm').submit()">
-                        <i class="bi bi-calculator"></i> คำนวณและบันทึกเกรด
-                    </button>
-                    <a href="{{ route('grades.print', $assign->assign_id) }}" target="_blank" class="ac-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; text-decoration:none">
-                        <i class="bi bi-printer"></i> พิมพ์ใบเกรด
-                    </a>
-                </div>
+               <div class="ac-save-wrap" style="display:flex; justify-content:center; gap:12px">
+    <a href="{{ route('scores.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary">
+        <i class="bi bi-printer"></i> พิมพ์ใบเช็ค/บันทึกคะแนน
+    </a>
+    <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-save"></i> บันทึกคะแนน</button>
+    <button type="button" class="ac-btn ac-btn-success" onclick="document.getElementById('calcForm').submit()"><i class="bi bi-calculator"></i> คำนวณเกรด</button>
+</div>
             </form>
 
             <form id="calcForm" method="POST" action="{{ route('scores.calculate', $assign->assign_id) }}">@csrf</form>
@@ -347,7 +318,10 @@ function openCatModal() {
 
 function openEditModal(id, name, max, weight, order, isCheckbox) {
     document.getElementById('catModalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>แก้ไขหมวดคะแนน';
-    document.getElementById('catForm').action = '/scores/category/' + id;
+    
+    // เปลี่ยนมาใช้ url() ของ Laravel เพื่อให้ path ถูกต้องไม่ว่าจะรันในโฟลเดอร์ไหน
+    document.getElementById('catForm').action = '{{ url("scores/category") }}/' + id;
+    
     document.getElementById('catMethodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
     document.getElementById('catName').value = name;
     document.getElementById('catMax').value = max;
@@ -436,4 +410,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+    // ดับเบิลคลิกที่ช่องกรอกคะแนน เพื่อใส่คะแนนเต็มอัตโนมัติ (เสมือนการติ๊กว่าส่งงานแล้วได้เต็ม)
+    document.querySelectorAll('.score-input').forEach(input => {
+        input.addEventListener('dblclick', function() {
+            if(this.value === '') {
+                this.value = this.max; // ใส่คะแนนเต็ม
+            } else {
+                this.value = ''; // เคลียร์ค่าออก
+            }
+        });
+    });
+</script>
 @endsection

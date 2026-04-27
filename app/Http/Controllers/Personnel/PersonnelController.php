@@ -31,8 +31,12 @@ class PersonnelController extends Controller
         $request->validate([
             'thai_firstname' => 'required',
             'thai_lastname' => 'required',
+            'employee_code' => 'nullable|unique:personnels,employee_code',
+        ], [
+            'thai_firstname.required' => 'กรุณากรอกชื่อภาษาไทย',
+            'thai_lastname.required' => 'กรุณากรอกนามสกุลภาษาไทย',
+            'employee_code.unique' => 'รหัสพนักงานนี้มีในระบบแล้ว กรุณาตรวจสอบอีกครั้ง',
         ]);
-
         $data = $request->except(['_token', 'addresses', 'personnel_image']);
 
         // กรองเอาเฉพาะ scalar
@@ -251,25 +255,26 @@ class PersonnelController extends Controller
     // เปลี่ยนจาก
 
     // เป็น
-    public function index(Request $request)
-    {
-        $query = \App\Models\Personne\Personnel::orderBy('personnel_id', 'desc');
+  public function index(Request $request)
+{
+    $query = \App\Models\Personne\Personnel::orderBy('personnel_id', 'desc');
 
-        if ($request->filled('type')) {
-            $query->where('personnel_type_id', $request->type);
-        }
-        if ($request->filled('search')) {
-            $search = '%' . $request->search . '%';
-            $query->where(function ($q) use ($search) {
-                $q->where('thai_firstname', 'like', $search)
-                  ->orWhere('thai_lastname', 'like', $search)
-                  ->orWhere('employee_code', 'like', $search);
-            });
-        }
-
-        $personnels = $query->paginate(20)->withQueryString();
-        return view('personnel.index', compact('personnels'));
+    if ($request->filled('type')) {
+        $query->where('personnel_type', $request->type);
     }
+
+    if ($request->filled('search')) {
+        $s = $request->search;
+        $query->where(fn($q) =>
+            $q->where('thai_firstname', 'like', "%$s%")
+              ->orWhere('thai_lastname', 'like', "%$s%")
+              ->orWhere('employee_code', 'like', "%$s%")
+        );
+    }
+
+    $personnels = $query->paginate(20);
+    return view('personnel.index', compact('personnels'));
+}
 
 
     // เพิ่มตรงท้ายก่อนปิด class

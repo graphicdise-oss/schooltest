@@ -20,7 +20,7 @@ use App\Http\Controllers\Academic\PromotionController;
 use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
-
+use App\Http\Controllers\Academic\AcademicYearController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -154,6 +154,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
         Route::get('/year/{year}', 'byYear')->name('byYear');
         Route::post('/{id}/copy', 'copy')->name('copy');
+
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===
@@ -190,6 +191,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignId}/save', 'saveScores')->name('save');
         Route::post('/{assignId}/calculate', 'calculateGrades')->name('calculate');
         Route::post('/{assignId}/setup', 'setupCategories')->name('setup');
+        Route::get('/{assignId}/print', 'printScoreSheet')->name('print'); // เพิ่มบรรทัดนี้
     });
 
     // === 6. ผลการเรียน / เกรด ===
@@ -226,12 +228,12 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
-Route::controller(StudentCardController::class)->prefix('student-cards')->name('student-cards.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('/print/{id}', 'printOne')->name('print-one');
-    Route::get('/print-all', 'printAll')->name('print-all');
-    Route::get('/print-selected', 'printSelected')->name('print-selected');
-});
+    Route::controller(StudentCardController::class)->prefix('student-cards')->name('student-cards.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/print/{id}', 'printOne')->name('print-one');
+        Route::get('/print-all', 'printAll')->name('print-all');
+        Route::get('/print-selected', 'printSelected')->name('print-selected');
+    });
 
     // Logout
     Route::post('/logout', function (Request $request) {
@@ -240,4 +242,15 @@ Route::controller(StudentCardController::class)->prefix('student-cards')->name('
         $request->session()->regenerateToken();
         return redirect('/login');
     })->name('logout');
+
+    Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
+        Route::post('/', 'storeYear')->name('storeYear');
+        Route::put('/{id}/current', 'setYearCurrent')->name('setYearCurrent');
+        Route::delete('/{id}', 'destroyYear')->name('destroyYear');
+
+        Route::post('/semester', 'storeSemester')->name('storeSemester');
+        Route::put('/semester/{id}/current', 'setSemesterCurrent')->name('setSemesterCurrent');
+        Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
+    });
+
 });

@@ -28,9 +28,40 @@ class ScoreController extends Controller
     }
 
     // หน้าบันทึกคะแนน (เลือก assign แล้ว)
+    // เปิดหน้าบันทึกคะแนน
     public function manage($assignId)
     {
         $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'classSection.semester.academicYear', 'scoreCategories.studentScores'])
+            ->findOrFail($assignId);
+
+        // 1. จำกัดสิทธิ์: เช็คว่าคนที่ Login เป็นครูผู้สอนวิชานี้ หรือเป็น Admin หรือไม่
+        $user = auth()->user();
+        if ($user->role !== 'admin' && $user->personnel_id !== $assign->personnel_id) {
+            return redirect()->route('scores.index')->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหรือบันทึกคะแนนในรายวิชานี้ (เฉพาะครูประจำวิชาเท่านั้น)');
+        }
+
+        $students = StudentSection::with('student')
+            ->where('section_id', $assign->section_id)
+            ->where('status', 'กำลังศึกษา')
+            ->orderBy('student_number')
+            ->get();
+
+        $categories = $assign->scoreCategories()->orderBy('sort_order')->get();
+
+        $scoreMatrix = [];
+        foreach ($categories as $cat) {
+            foreach ($cat->studentScores as $sc) {
+                $scoreMatrix[$sc->student_id][$cat->category_id] = $sc->score;
+            }
+        }
+
+        return view('academic.scores_manage', compact('assign', 'students', 'categories', 'scoreMatrix'));
+    }
+
+    // 2. ฟังก์ชันสำหรับพิมพ์ใบกรอกคะแนน (แบบในรูป)
+    public function printScoreSheet($assignId)
+    {
+        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'classSection.semester.academicYear', 'scoreCategories.studentScores', 'finalGrades'])
             ->findOrFail($assignId);
 
         $students = StudentSection::with('student')
@@ -41,7 +72,6 @@ class ScoreController extends Controller
 
         $categories = $assign->scoreCategories()->orderBy('sort_order')->get();
 
-        // สร้าง matrix คะแนน [student_id][category_id] = score
         $scoreMatrix = [];
         foreach ($categories as $cat) {
             foreach ($cat->studentScores as $sc) {
@@ -49,7 +79,7 @@ class ScoreController extends Controller
             }
         }
 
-        return view('academic.scores_manage', compact('assign', 'students', 'categories', 'scoreMatrix'));
+        return view('academic.scores_print', compact('assign', 'students', 'categories', 'scoreMatrix'));
     }
 
     // เพิ่มหมวดคะแนน
@@ -97,8 +127,8 @@ class ScoreController extends Controller
                 ['name' => 'งานชิ้นที่ 1', 'max_score' => 10, 'weight_pct' => 10, 'sort_order' => 1, 'is_checkbox' => true],
                 ['name' => 'งานชิ้นที่ 2', 'max_score' => 10, 'weight_pct' => 10, 'sort_order' => 2, 'is_checkbox' => true],
                 ['name' => 'งานชิ้นที่ 3', 'max_score' => 10, 'weight_pct' => 10, 'sort_order' => 3, 'is_checkbox' => true],
-                ['name' => 'กลางภาค',      'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 4, 'is_checkbox' => false],
-                ['name' => 'ปลายภาค',      'max_score' => 40, 'weight_pct' => 40, 'sort_order' => 5, 'is_checkbox' => false],
+                ['name' => 'กลางภาค', 'max_score' => 30, 'weight_pct' => 30, 'sort_order' => 4, 'is_checkbox' => false],
+                ['name' => 'ปลายภาค', 'max_score' => 40, 'weight_pct' => 40, 'sort_order' => 5, 'is_checkbox' => false],
             ];
             foreach ($defaults as $d) {
                 $assign->scoreCategories()->create($d);
