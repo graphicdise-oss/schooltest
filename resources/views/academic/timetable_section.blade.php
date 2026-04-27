@@ -137,6 +137,16 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                     @endif
                 </strong>
             </div>
+            <div class="ts-info-row" style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:4px">
+                แผนการเรียน:
+                @if(isset($section->curriculum) && $section->curriculum)
+                    <span style="background:#f3e5f5;color:#7b1fa2;border-radius:12px;padding:2px 10px;font-size:0.8rem;font-weight:700">
+                        {{ $section->curriculum->name }} (ปี {{ $section->curriculum->year_applied }})
+                    </span>
+                @else
+                    <span style="color:#aaa;font-size:0.82rem">ยังไม่ได้เลือก</span>
+                @endif
+            </div>
         </div>
 
         <div class="ts-actions">
@@ -442,7 +452,7 @@ function closeImportModal() { document.getElementById('importModal').classList.r
 @if(session('success'))
 <script>
 document.addEventListener('DOMContentLoaded',()=>{
-    Swal.fire({icon:'success',title:'สำเร็จ!',text:'{{ session('success') }}',timer:2000,showConfirmButton:false});
+    Swal.fire({icon:'success',title:'สำเร็จ!',text:"{{ session('success') }}",timer:2000,showConfirmButton:false});
 });
 </script>
 @endif
