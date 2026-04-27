@@ -139,9 +139,16 @@ class TimetableController extends Controller
             $section->update(['curriculum_id' => $request->curriculum_id]);
         }
 
+        // ล้างวิชาเก่าทั้งหมดก่อน (slots จะถูกลบตาม FK cascade หรือลบเอง)
+        $oldAssignIds = TeachingAssign::where('section_id', $sectionId)
+            ->where('semester_id', $section->semester_id)
+            ->pluck('assign_id');
+        TimetableSlot::whereIn('assign_id', $oldAssignIds)->delete();
+        TeachingAssign::whereIn('assign_id', $oldAssignIds)->delete();
+
         foreach ($personnelIds as $subjectId => $personnelId) {
             if (!$personnelId) continue;
-            TeachingAssign::firstOrCreate([
+            TeachingAssign::create([
                 'personnel_id' => $personnelId,
                 'subject_id'   => $subjectId,
                 'section_id'   => $sectionId,
