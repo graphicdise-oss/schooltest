@@ -210,6 +210,7 @@
                     <th>ชื่อวิชา</th>
                     <th style="text-align:center">เทอม</th>
                     <th style="text-align:center">ประเภท</th>
+                    <th>ครูผู้สอน</th>
                     <th style="text-align:center">จัดการข้อมูล</th>
                 </tr>
             </thead>
@@ -232,13 +233,20 @@
                             {{ $cs->is_required ? 'บังคับ' : 'เลือก' }}
                         </span>
                     </td>
+                    <td style="font-size:0.82rem;color:#555">
+                        @if($cs->personnel)
+                            {{ $cs->personnel->thai_prefix ?? '' }}{{ $cs->personnel->thai_firstname }} {{ $cs->personnel->thai_lastname }}
+                        @else
+                            <span style="color:#ccc">—</span>
+                        @endif
+                    </td>
                     <td style="text-align:center">
                         <div class="cf-action-wrap">
                             <button class="btn-action" onclick="toggleDd(this)">
                                 จัดการข้อมูล <i class="bi bi-chevron-down"></i>
                             </button>
                             <div class="cf-dropdown">
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }})">
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -295,6 +303,15 @@
                             <option value="0">เลือก</option>
                         </select>
                     </div>
+                    <div>
+                        <label>ครูผู้สอน</label>
+                        <select name="personnel_id">
+                            <option value="">-- ยังไม่กำหนด --</option>
+                            @foreach($personnels ?? [] as $p)
+                            <option value="{{ $p->personnel_id }}">{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                 </div>
                 <div class="cf-modal-footer">
                     <button type="button" class="btn-modal-cancel" onclick="document.getElementById('addSubjOverlay').classList.remove('active')">ยกเลิก</button>
@@ -324,6 +341,15 @@
                         <select name="is_required" id="edit_is_required">
                             <option value="1">บังคับ</option>
                             <option value="0">เลือก</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>ครูผู้สอน</label>
+                        <select name="personnel_id" id="edit_personnel_id">
+                            <option value="">-- ยังไม่กำหนด --</option>
+                            @foreach($personnels ?? [] as $p)
+                            <option value="{{ $p->personnel_id }}">{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -356,13 +382,20 @@ document.addEventListener('keydown', e => {
     }
 });
 
+<<<<<<< HEAD
 function openEditModal(csId, semType, isReq) {
     // เปลี่ยนมาใช้ url() ของ Laravel
     document.getElementById('editSubjForm').action = 
         '{{ url("curriculums") }}/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
         
+=======
+function openEditModal(csId, semType, isReq, personnelId) {
+    document.getElementById('editSubjForm').action =
+        '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
+>>>>>>> origin/claude/clarify-usage-wwKCQ
     document.getElementById('edit_semester_type').value = semType;
     document.getElementById('edit_is_required').value = isReq;
+    document.getElementById('edit_personnel_id').value = personnelId || '';
     document.querySelectorAll('.cf-dropdown.open').forEach(d => d.classList.remove('open'));
     document.getElementById('editSubjOverlay').classList.add('active');
 }
