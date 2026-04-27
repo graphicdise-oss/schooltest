@@ -4,10 +4,12 @@
 <head>
 <meta charset="UTF-8">
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+@verbatim
 <!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet>
 <x:Name>คะแนน</x:Name>
 <x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions>
 </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
+@endverbatim
 <style>
 body { font-family: 'TH Sarabun New', Tahoma, sans-serif; font-size: 13pt; }
 table { border-collapse: collapse; }
