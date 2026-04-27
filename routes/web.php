@@ -183,6 +183,7 @@ Route::middleware(['auth'])->group(function () {
     // === 5. บันทึกคะแนน ===
     Route::controller(ScoreController::class)->prefix('scores')->name('scores.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/section/{sectionId}', 'sectionSubjects')->name('section');
         Route::get('/{assignId}', 'manage')->name('manage');
         Route::post('/category', 'storeCategory')->name('storeCategory');
         Route::put('/category/{id}', 'updateCategory')->name('updateCategory');
