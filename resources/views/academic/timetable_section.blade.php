@@ -337,7 +337,7 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
             <div class="ts-modal-body" style="max-height:70vh;overflow-y:auto">
                 <div class="mfield">
                     <label>เลือกแผนการเรียน *</label>
-                    <select id="curriculumSelect" onchange="loadCurriculumSubjects(this.value)" style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:0.85rem;font-family:inherit">
+                    <select id="curriculumSelect" name="curriculum_id" onchange="loadCurriculumSubjects(this.value)" style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:0.85rem;font-family:inherit">
                         <option value="">-- เลือกแผนการเรียน --</option>
                         @foreach($curriculums as $cur)
                         <option value="{{ $cur->curriculum_id }}">
