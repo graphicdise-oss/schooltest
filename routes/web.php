@@ -244,6 +244,8 @@ Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->grou
     Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
 });
 
+// เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
+    Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');
     // Logout
     Route::post('/logout', function (Request $request) {
         Auth::logout();

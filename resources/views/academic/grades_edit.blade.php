@@ -138,9 +138,9 @@
         <div class="ge-card-header">
             <span class="ge-card-title">แก้ไขเกรด — รายวิชาที่เรียน</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap">
-                <a href="{{ route('grades.transcript.print', $student->student_id) }}" class="btn-print" target="_blank">
-                    <i class="bi bi-printer"></i> พิมพ์ Transcript
-                </a>
+              <button type="button" class="btn-print" onclick="document.getElementById('printSettingsModal').classList.add('active')">
+                <i class="bi bi-printer"></i> พิมพ์ Transcript
+            </button>
                 <a href="javascript:history.back()" class="btn-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
@@ -280,3 +280,103 @@ document.addEventListener('keydown', e => {
 });
 </script>
 @endsection
+
+<div class="modal-overlay" id="printSettingsModal" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <form action="{{ route('grades.transcript.print', $student->student_id) }}" method="GET" target="_blank">
+            <div class="modal-box-body">
+                
+                <div class="opt-row">
+                    <div class="opt-label">ปพ.1 ตัวจริง/สำรอง :</div>
+                    <div class="opt-content">
+                        <label class="opt-checkbox">
+                            <input type="checkbox" name="show_original" value="1"> แสดงเอกสารฉบับจริง
+                        </label>
+                    </div>
+                </div>
+
+                <div class="opt-row">
+                    <div class="opt-label">รูปโปรไฟล์ :</div>
+                    <div class="opt-content">
+                        <label class="opt-checkbox">
+                            <input type="checkbox" name="hide_profile" value="1"> ซ่อนรูปโปรไฟล์
+                        </label>
+                    </div>
+                </div>
+
+                <hr style="border-top:1px solid #eee; margin:20px 0;">
+                <div style="text-align:center; margin-bottom:20px; font-weight:bold; color:#666; font-size:16px;">แสดงเกรดตามเทอม</div>
+
+                <div class="opt-row">
+                    <div class="opt-label" style="text-align: right; padding-right:15px; color:#666;">
+                        เลือกเทอม :
+                    </div>
+                    <div class="opt-content" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                        {{-- วนลูปเทอมทั้งหมดที่เด็กคนนี้มีเกรด ออกมาเป็น Checkbox --}}
+                        @foreach($grades->keys() as $semKey)
+                            @php [$yearName, $termName] = explode('|', $semKey . '|'); @endphp
+                            <label class="opt-checkbox">
+                                <input type="checkbox" name="selected_semesters[]" value="{{ $semKey }}" checked>
+                                ปีการศึกษา {{ $yearName }} / เทอม {{ $termName }}
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <hr style="border-top:1px solid #eee; margin:20px 0;">
+
+                <div class="opt-row">
+                    <div class="opt-label" style="text-align: right; padding-right:15px; color:#666;">หมายเหตุ :</div>
+                    <div class="opt-content">
+                        <label class="opt-checkbox">
+                            <input type="checkbox" name="hide_last_semester" value="1"> ไม่คำนวณ/ไม่แสดงเกรดภาคเรียนสุดท้าย
+                        </label>
+                        <label class="opt-checkbox">
+                            <input type="checkbox" name="show_all_subjects" value="1"> แสดงรายวิชาทั้งหมดจากแผน
+                        </label>
+                        <label class="opt-checkbox">
+                            <input type="checkbox" name="english_report" value="1"> รายงานเป็นภาษาอังกฤษ
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn-submit-print" onclick="document.getElementById('printSettingsModal').classList.remove('active')">
+                    <i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1
+                </button>
+                <button type="button" class="btn-cancel-print" onclick="document.getElementById('printSettingsModal').classList.remove('active')">
+                    ยกเลิก
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+/* CSS สำหรับ Modal ตั้งค่าการพิมพ์ */
+.modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 9999;
+    align-items: center; justify-content: center;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+    background: #fff; border-radius: 8px; width: 650px; max-width: 95vw;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+.modal-box-body { padding: 30px; }
+.modal-footer {
+    display: flex; justify-content: center; gap: 15px; padding: 20px;
+    border-top: 1px solid #eee; background: #fafafa; border-radius: 0 0 8px 8px;
+}
+.opt-row { display: flex; margin-bottom: 12px; font-size: 15px; color: #444; }
+.opt-label { width: 140px; font-weight: normal; color: #444; }
+.opt-content { flex: 1; }
+.opt-checkbox { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; cursor: pointer; color: #555; }
+.opt-checkbox input[type="checkbox"] { width: 18px; height: 18px; cursor: pointer; accent-color: #2196f3; }
+.btn-submit-print { background: #4caf50; color: #fff; border: none; padding: 10px 35px; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 5px;}
+.btn-submit-print:hover { background: #43a047; }
+.btn-cancel-print { background: #ff5252; color: #fff; border: none; padding: 10px 35px; border-radius: 4px; font-size: 15px; font-weight: bold; cursor: pointer; }
+.btn-cancel-print:hover { background: #e53935; }
+</style>

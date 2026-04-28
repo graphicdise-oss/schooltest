@@ -36,12 +36,50 @@ class GradeController extends Controller
     }
 
     // พิมพ์ใบ Transcript รายคน
-    public function printTranscript($studentId)
-    {
-        $student = Student::findOrFail($studentId);
-        [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
-        return view('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits'));
+  public function printTranscript(Request $request, $studentId)
+{
+    $student = Student::findOrFail($studentId);
+    [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
+
+    // ==========================================
+    // จัดการข้อมูลตามเงื่อนไขที่ส่งมาจาก Modal
+    // ==========================================
+
+    // 1. กรองเฉพาะเทอมที่ติ๊กเลือกเอาไว้
+    if ($request->has('selected_semesters')) {
+        $selectedKeys = $request->input('selected_semesters');
+        $grades = $grades->filter(function($value, $key) use ($selectedKeys) {
+            return in_array($key, $selectedKeys);
+        });
     }
+
+    // 2. ถ้าติ๊ก "ไม่คำนวณ/ไม่แสดงเกรดภาคเรียนสุดท้าย" ให้ลบข้อมูลเทอมล่าสุดทิ้ง
+    if ($request->boolean('hide_last_semester') && $grades->count() > 0) {
+        $lastKey = $grades->keys()->last();
+        $grades->forget($lastKey);
+    }
+
+    // 3. คำนวณ GPA และหน่วยกิตสะสมใหม่ (หลังจากการกรองเทอมด้านบนแล้ว)
+    $totalCredits = 0;
+    $totalPoints  = 0;
+    foreach ($grades as $semGrades) {
+        foreach ($semGrades as $g) {
+            $credits = $g->teachingAssign->subject->credits ?? 0;
+            $totalCredits += $credits;
+            $totalPoints  += ($g->gpa_point ?? 0) * $credits;
+        }
+    }
+    $gpa = $totalCredits > 0 ? round($totalPoints / $totalCredits, 2) : 0;
+
+    // 4. รวบรวม option อื่นๆ เพื่อส่งไปจัดการซ่อน/แสดง ในหน้ากระดาษ (Blade)
+    $options = [
+        'show_original' => $request->boolean('show_original'),
+        'hide_profile'  => $request->boolean('hide_profile'),
+        'english_report'=> $request->boolean('english_report'),
+    ];
+
+    return view('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits', 'options'));
+}
 
     // หน้าแก้ไขเกรดรายคน
     public function editStudentGrades($studentId)
@@ -200,5 +238,54 @@ class GradeController extends Controller
             ->get();
 
         return view('academic.gpa_report', compact('gpaData', 'semesters', 'semesterId'));
+    }
+    
+   // ==========================================
+    // พิมพ์ใบ ปพ.1 (และกรองเทอมตามที่ติ๊กเลือก)
+    // ==========================================
+    public function printPor1(Request $request, $studentId)
+    {
+        // 1. ดึงข้อมูล
+        $student = Student::with('education')->findOrFail($studentId);
+        $father = \App\Models\StudentFamily::where('student_id', $studentId)->where('guardian_type', 'บิดา')->first();
+        $mother = \App\Models\StudentFamily::where('student_id', $studentId)->where('guardian_type', 'มารดา')->first();
+        
+        $docNumber = (object)['doc_set' => '', 'doc_number' => '']; 
+
+        // 2. รับค่าเทอมที่ติ๊กมาจาก Modal
+        $filterActive = $request->has('filter_active'); // เช็คว่าส่งมาจากหน้าป๊อปอัปหรือไม่
+        $selectedSemesters = $request->input('semesters', []); 
+        
+        // 3. ดึงเกรดทั้งหมด
+        $allGrades = FinalGrade::with(['teachingAssign.subject', 'teachingAssign.classSection.level', 'semester.academicYear'])
+            ->where('student_id', $studentId)
+            ->orderBy('semester_id')
+            ->get();
+            
+        $yearGroups = [];
+        
+        foreach ($allGrades as $grade) {
+            $year = $grade->semester->academicYear->year_name ?? '';
+            $term = $grade->semester->semester_name ?? '';
+            $level = $grade->teachingAssign->classSection->level->name ?? '';
+            
+            $semKey = $year . '/' . $term;
+            
+            // 🛑 ถ้าเปิดใช้งานตัวกรอง (ผ่าน Modal) และเทอมนี้ไม่อยู่ในรายการที่ติ๊ก -> ข้ามทันที!
+            if ($filterActive && !in_array($semKey, $selectedSemesters)) {
+                continue; 
+            }
+            
+            if (!isset($yearGroups[$year])) {
+                $yearGroups[$year] = ['year' => $year, 'level' => $level, 'semesters' => []];
+            }
+            if (!isset($yearGroups[$year]['semesters'][$term])) {
+                $yearGroups[$year]['semesters'][$term] = [];
+            }
+            
+            $yearGroups[$year]['semesters'][$term][] = $grade;
+        }
+
+        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber'));
     }
 }

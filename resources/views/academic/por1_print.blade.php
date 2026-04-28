@@ -60,25 +60,53 @@ body {
 .info-right { width: 78mm; padding-left: 4mm; }
 .info-photo { width: 32mm; flex-shrink: 0; padding-left: 3mm; padding-top: 1mm; }
 
+
 .info-row {
-    display: flex; align-items: center;
-    margin-bottom: 0.5mm;
+    display: flex;
+    align-items: baseline;
+    margin-bottom: 2mm;
 }
 .info-row .lbl {
     font-size: 15px; font-weight: 300;
-    white-space: nowrap; padding-right: 2mm;
-    flex-shrink: 0; line-height: 1.0;
+    white-space: nowrap; 
+    padding-right: 1mm; /* ลดระยะห่างด้านหลังตัวหนังสือ */
+    flex-shrink: 0; 
+    line-height: 1.0;
 }
+
 .info-row .val {
-    font-size: 15px; line-height: 1.0;
-    flex: 1; min-width: 10mm; padding-left: 1mm;
-    border-bottom: 0.3px solid #bbb;
-}
-.info-row .val-fixed {
-    font-size: 15px; line-height: 1.0;
+    font-size: 15px; 
+    line-height: 1.0; 
+    flex: 1; 
+    min-width: 10mm; 
     padding-left: 1mm;
-    border-bottom: 0.3px solid #bbb;
+    position: relative;
+    z-index: 0;          /* 👈 เพิ่มสิ่งนี้เพื่อกำหนดชั้นของมิติ */
+    border-bottom: none; 
 }
+
+.info-row .val-fixed {
+    font-size: 15px; 
+    line-height: 1.0; 
+    display: inline-block;
+    text-align: center;
+    padding: 0 2px;
+    position: relative;
+    z-index: 0;          /* 👈 เพิ่มสิ่งนี้เพื่อกำหนดชั้นของมิติ */
+    border-bottom: none; 
+}
+/* 2. เสกเส้นจำลองที่สามารถเลื่อนขึ้นลงได้อย่างอิสระ */
+.info-row .val::after, 
+.info-row .val-fixed::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 3px; 
+    border-bottom: 0.3px solid #999; 
+    z-index: -1;         /* 👈 เวทมนตร์ที่ใช้ผลักเส้นไปเป็น Background! */
+}
+
 
 .photo-box {
     width: 28mm; height: 36mm;
@@ -103,16 +131,40 @@ body {
 }
 
 /* ===== GRADES TABLE ===== */
-.grades-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.grades-table { 
+    width: 100%; 
+    border-collapse: collapse; 
+    font-size: 13px; 
+    border-bottom: 1px solid #000; /* ปิดเส้นขอบล่างสุดของตาราง */
+}
+
+.grades-table td {
+    border-left: 1px solid #000; 
+    border-right: 1px solid #000; 
+    border-top: none;    /* เอาเส้นคั่นแนวนอนออก */
+    border-bottom: none; /* เอาเส้นคั่นแนวนอนออก */
+    padding: 2px 4px; 
+    vertical-align: top;
+}
 .grades-table th, .grades-table td {
     border: 1px solid #000; padding: 1px 3px; vertical-align: top;
 }
 .grades-table th { background: #f0f0f0; text-align: center; }
 .year-header { text-align: center; font-weight: 400; font-size: 13px; background: #e8e8e8; }
 .sem-header { font-weight: 400; font-size: 12px; background: #f8f8f8; }
-.col-subject { width: 37%; font-size: 12px; }
-.col-credit  { width: 8%;  text-align: center; }
-.col-grade   { width: 8%;  text-align: center; }
+/* ปรับความกว้างคอลัมน์ให้เหมือนในรูป */
+.col-subject { width: 25%; font-size: 12px; }
+.col-credit  { width: 4%; text-align: center; }
+.col-grade   { width: 4%; text-align: center; }
+
+.vert-header {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    white-space: nowrap;
+    margin: 0 auto;
+    font-size: 12px;
+}
+
 
 /* ===== PAGE 2 ===== */
 .p2-title { font-size: 17px; font-weight: 400; text-align: center; margin: 2mm 0 1.5mm; }
@@ -198,6 +250,7 @@ body {
             </div>
         </div>
     </div>
+    <br>
 
     {{-- Info --}}
     <div class="info-section">
@@ -246,13 +299,14 @@ body {
         </div>
 
         {{-- Right column --}}
+        <div style="display: flex; gap: 4mm;">
         <div class="info-right">
             <div class="info-row">
                 <span class="lbl">ชื่อ</span>
                 <span class="val">{{ $student->thai_prefix }}{{ $student->thai_firstname }}</span>
             </div>
             <div class="info-row">
-                <span class="lbl">ชื่อสกุล</span>
+                <span class="lbl">นามสกุล</span>
                 <span class="val">{{ $student->thai_lastname }}</span>
             </div>
             <div class="info-row">
@@ -263,21 +317,29 @@ body {
                 <span class="lbl">เลขประจำตัวประชาชน</span>
                 <span class="val">{{ $student->id_card_number }}</span>
             </div>
-            <div class="info-row" style="flex-wrap:wrap;gap:4mm">
+         
+         {{-- แถว วันเกิด --}}
+            <div class="info-row" style="display: flex; flex-wrap: nowrap; gap: 0; align-items: baseline;">
                 <span class="lbl">เกิดวันที่</span>
-                <span class="val-fixed" style="min-width:6mm">{{ $dob ? $dob->day : '' }}</span>
-                <span class="lbl">เดือน</span>
-                <span class="val-fixed" style="min-width:20mm">{{ $dob ? $thMonths[$dob->month] : '' }}</span>
-                <span class="lbl">พ.ศ.</span>
-                <span class="val-fixed" style="min-width:10mm">{{ $dob ? ($dob->year + 543) : '' }}</span>
+                <span class="val-fixed" style="min-width: 6mm;">{{ $dob ? $dob->day : '' }}</span>
+                
+                <span class="lbl" style="padding-left: 2mm;">เดือน</span>
+                <span class="val-fixed" style="min-width: 20mm;">{{ $dob ? $thMonths[$dob->month] : '' }}</span>
+                
+                <span class="lbl" style="padding-left: 2mm;">พ.ศ.</span>
+                <span class="val-fixed" style="min-width: 12mm;">{{ $dob ? ($dob->year + 543) : '' }}</span>
             </div>
-            <div class="info-row" style="flex-wrap:wrap;gap:4mm">
+
+            {{-- แถว เพศ สัญชาติ ศาสนา --}}
+            <div class="info-row" style="display: flex; flex-wrap: nowrap; gap: 0; align-items: baseline;">
                 <span class="lbl">เพศ</span>
-                <span class="val-fixed" style="min-width:8mm">{{ $student->gender === 'M' ? 'ชาย' : ($student->gender === 'F' ? 'หญิง' : '') }}</span>
-                <span class="lbl">สัญชาติ</span>
-                <span class="val-fixed" style="min-width:10mm">{{ $student->nationality ?? 'ไทย' }}</span>
-                <span class="lbl">ศาสนา</span>
-                <span class="val-fixed" style="min-width:10mm">{{ $student->religion ?? 'พุทธ' }}</span>
+                <span class="val-fixed" style="min-width: 8mm;">{{ $student->gender === 'M' ? 'ชาย' : ($student->gender === 'F' ? 'หญิง' : '') }}</span>
+                
+                <span class="lbl" style="padding-left: 2mm;">สัญชาติ</span>
+                <span class="val-fixed" style="min-width: 12mm;">{{ $student->nationality ?? 'ไทย' }}</span>
+                
+                <span class="lbl" style="padding-left: 2mm;">ศาสนา</span>
+                <span class="val-fixed" style="min-width: 12mm;">{{ $student->religion ?? 'พุทธ' }}</span>
             </div>
             <div class="info-row">
                 <span class="lbl">ชื่อ-ชื่อสกุลบิดา</span>
@@ -300,20 +362,32 @@ body {
             </div>
         </div>
     </div>
-
-    {{-- Subject results --}}
+</div>
+    
+  {{-- Subject results --}}
     <div class="section-title">ผลการเรียนรายวิชา</div>
 
     @if(count($yearGroups) > 0)
     @php
         $cols    = array_values($yearGroups);
-        $numCols = max(3, count($cols));
+        $numCols = max(3, count($cols)); // อย่างน้อย 3 คอลัมน์หลัก
         $colRows = [];
+        
         foreach ($cols as $ci => $yg) {
             $colRows[$ci] = [];
+            
+            // 1. ใส่บรรทัด "ปีการศึกษา" ลงไปในคอลัมน์
+            $colRows[$ci][] = [
+                'type' => 'year', 
+                'label' => 'ปีการศึกษา ' . $yg['year'] . ' ' . ($yg['level'] ?? '')
+            ];
+            
             foreach ([1, 2] as $sn) {
                 $sk = (string)$sn;
+                // 2. ใส่บรรทัด "ภาคเรียนที่"
                 $colRows[$ci][] = ['type' => 'sem', 'label' => 'ภาคเรียนที่ ' . $sn];
+                
+                // 3. วนลูปรายวิชา
                 foreach ($yg['semesters'][$sk] ?? [] as $g) {
                     $subj = $g->teachingAssign->subject;
                     $colRows[$ci][] = [
@@ -325,30 +399,29 @@ body {
                     ];
                 }
             }
+            
+            // เติมช่องว่างเผื่อความสวยงาม
             if (count($colRows[$ci]) < 3) {
                 $colRows[$ci][] = ['type' => 'empty'];
             }
         }
+        
+        // เติมคอลัมน์ให้ครบ 3 คอลัมน์หลัก (ถ้าเด็กเรียนแค่ปีเดียว)
         for ($ci = count($cols); $ci < $numCols; $ci++) {
-            $colRows[$ci] = [['type'=>'empty'],['type'=>'empty'],['type'=>'empty']];
+            $colRows[$ci] = [['type'=>'empty']];
         }
+        
+        // หาจำนวนแถวที่เยอะที่สุดของทุกคอลัมน์
         $maxRows = max(array_map('count', $colRows));
     @endphp
+
     <table class="grades-table">
         <thead>
             <tr>
-                @foreach($cols as $yg)
-                <th colspan="3" class="year-header">ปีการศึกษา {{ $yg['year'] }} {{ $yg['level'] }}</th>
-                @endforeach
-                @for($i = count($cols); $i < $numCols; $i++)
-                <th colspan="3" class="year-header">&nbsp;</th>
-                @endfor
-            </tr>
-            <tr>
                 @for($c = 0; $c < $numCols; $c++)
                 <th class="col-subject">รหัส/รายวิชา</th>
-                <th class="col-credit">หน่วยกิต</th>
-                <th class="col-grade">ผลการเรียน</th>
+                <th class="col-credit"><div class="vert-header">หน่วยกิต</div></th>
+                <th class="col-grade"><div class="vert-header">ผลการเรียน</div></th>
                 @endfor
             </tr>
         </thead>
@@ -357,14 +430,27 @@ body {
         <tr>
             @for($c = 0; $c < $numCols; $c++)
             @php $row = $colRows[$c][$r] ?? ['type'=>'empty']; @endphp
-            @if($row['type'] === 'sem')
-                <td colspan="3" class="sem-header">{{ $row['label'] }}</td>
+            
+            @if($row['type'] === 'year')
+                {{-- แถวปีการศึกษา --}}
+                <td class="col-subject" style="font-weight: 600;">{{ $row['label'] }}</td>
+                <td class="col-credit"></td>
+                <td class="col-grade"></td>
+            @elseif($row['type'] === 'sem')
+                {{-- แถวภาคเรียน --}}
+                <td class="col-subject" style="font-weight: 600;">{{ $row['label'] }}</td>
+                <td class="col-credit"></td>
+                <td class="col-grade"></td>
             @elseif($row['type'] === 'subject')
+                {{-- แถวรายวิชา --}}
                 <td class="col-subject">{{ $row['code'] }} : {{ $row['name'] }}</td>
-                <td class="col-credit">{{ $row['credits'] }}</td>
+                <td class="col-credit">{{ (float)$row['credits'] == 0 ? '' : number_format((float)$row['credits'], 1) }}</td>
                 <td class="col-grade">{{ $row['grade'] }}</td>
             @else
-                <td class="col-subject">&nbsp;</td><td class="col-credit"></td><td class="col-grade"></td>
+                {{-- ช่องว่าง --}}
+                <td class="col-subject">&nbsp;</td>
+                <td class="col-credit"></td>
+                <td class="col-grade"></td>
             @endif
             @endfor
         </tr>
