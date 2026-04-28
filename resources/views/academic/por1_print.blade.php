@@ -67,22 +67,20 @@ body {
 .info-row .lbl {
     font-size: 15px; font-weight: 300;
     white-space: nowrap; padding-right: 2mm;
-    flex-shrink: 0; line-height: 1.5;
+    flex-shrink: 0; line-height: 1.2;
 }
 .info-row .val {
     font-size: 15px;
     flex: 1; min-width: 10mm; padding-left: 1mm;
     line-height: 1.2;
     border-bottom: 0.3px solid #bbb;
-    padding-bottom: 1px;
-    align-self: flex-end;
+    padding-bottom: 0;
 }
 .info-row .val-fixed {
     font-size: 15px;
     padding-left: 1mm; line-height: 1.2;
     border-bottom: 0.3px solid #bbb;
-    padding-bottom: 1px;
-    align-self: flex-end;
+    padding-bottom: 0;
 }
 
 .photo-box {
