@@ -9,6 +9,7 @@
 body {
     font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif;
     font-size: 15px; color: #000; background: #e0e0e0;
+    line-height: 1.0;
 }
 
 .page {
@@ -59,7 +60,7 @@ body {
 
 /* ===== INFO SECTION ===== */
 .info-section {
-    display: flex; gap: 0; margin: 1mm 0;
+    display: flex; gap: 0; margin: 0.5mm 0;
 }
 .info-left { flex: 1; }
 .info-right { width: 78mm; padding-left: 4mm; }
@@ -67,7 +68,7 @@ body {
 
 .info-row {
     display: flex; align-items: flex-end;
-    margin-bottom: 0.8mm;
+    margin-bottom: 0.3mm;
 }
 .info-row .lbl {
     font-size: 15px; font-weight: 400;
@@ -103,9 +104,9 @@ body {
 /* ===== SECTION TITLE ===== */
 .section-title {
     font-size: 17px; font-weight: 400; text-align: center;
-    margin: 3mm 0 2mm;
+    margin: 1mm 0 1mm;
     border-top: 1px solid #000;
-    padding-top: 2mm;
+    padding-top: 1mm;
 }
 
 /* ===== GRADES TABLE ===== */
@@ -172,10 +173,16 @@ body {
 
     {{-- Header --}}
     @php
-        $logoFile = public_path('img/pp_1/logo.png');
-        $logoSrc  = file_exists($logoFile)
-            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile))
-            : null;
+        $logoSrc = null;
+        $logoExts = ['png','jpg','jpeg','gif','PNG','JPG','JPEG'];
+        foreach ($logoExts as $ext) {
+            $logoFile = public_path('img/pp_1/logo.' . $ext);
+            if (file_exists($logoFile)) {
+                $mime    = in_array(strtolower($ext),['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+                $logoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoFile));
+                break;
+            }
+        }
     @endphp
     <div class="doc-top">
         <div class="doc-logo">
