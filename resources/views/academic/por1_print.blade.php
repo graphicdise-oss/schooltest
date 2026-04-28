@@ -62,7 +62,7 @@ body {
 
 .info-row {
     display: flex; align-items: flex-end;
-    margin-bottom: 0.3mm;
+    margin-bottom: 0.5mm;
 }
 .info-row .lbl {
     font-size: 15px; font-weight: 300;
@@ -71,14 +71,18 @@ body {
 }
 .info-row .val {
     font-size: 15px;
+    flex: 1; min-width: 10mm; padding-left: 1mm;
+    line-height: 1.2;
     border-bottom: 0.3px solid #bbb;
-    flex: 1; padding-bottom: 0; min-width: 10mm;
-    padding-left: 1mm; line-height: 1.4;
+    padding-bottom: 1px;
+    align-self: flex-end;
 }
 .info-row .val-fixed {
     font-size: 15px;
+    padding-left: 1mm; line-height: 1.2;
     border-bottom: 0.3px solid #bbb;
-    padding-bottom: 0; padding-left: 1mm; line-height: 1.4;
+    padding-bottom: 1px;
+    align-self: flex-end;
 }
 
 .photo-box {
