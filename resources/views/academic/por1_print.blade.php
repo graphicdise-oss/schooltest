@@ -58,34 +58,31 @@ body {
 }
 .info-left { flex: 1; }
 .info-right { width: 78mm; padding-left: 4mm; }
-.info-photo { width: 28mm; flex-shrink: 0; }
+.info-photo { width: 32mm; flex-shrink: 0; padding-left: 3mm; padding-top: 1mm; }
 
 .info-row {
-    display: flex; align-items: flex-end;
+    display: flex; align-items: center;
     margin-bottom: 0.5mm;
 }
 .info-row .lbl {
     font-size: 15px; font-weight: 300;
     white-space: nowrap; padding-right: 2mm;
-    flex-shrink: 0; line-height: 1.2;
+    flex-shrink: 0; line-height: 1.0;
 }
 .info-row .val {
-    font-size: 15px;
+    font-size: 15px; line-height: 1.0;
     flex: 1; min-width: 10mm; padding-left: 1mm;
-    line-height: 1.2;
     border-bottom: 0.3px solid #bbb;
-    padding-bottom: 0;
 }
 .info-row .val-fixed {
-    font-size: 15px;
-    padding-left: 1mm; line-height: 1.2;
+    font-size: 15px; line-height: 1.0;
+    padding-left: 1mm;
     border-bottom: 0.3px solid #bbb;
-    padding-bottom: 0;
 }
 
 .photo-box {
     width: 28mm; height: 36mm;
-    border: 1.5px solid #555;
+    border: 0.5px solid #888;
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; color: #aaa; overflow: hidden;
 }
