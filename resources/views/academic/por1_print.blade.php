@@ -13,7 +13,7 @@ body {
 
 .page {
     width: 210mm; min-height: 297mm;
-    margin: 0 auto 10mm; padding: 6mm 14mm 8mm;
+    margin: 0 auto 10mm; padding: 3mm 14mm 6mm;
     background: #fff;
     box-shadow: 0 0 8px rgba(0,0,0,0.15);
     page-break-after: always;
@@ -23,7 +23,7 @@ body {
 /* ===== HEADER ===== */
 .doc-top {
     display: flex; align-items: center; gap: 10px;
-    margin-bottom: 0.5mm;
+    margin-bottom: 0;
 }
 .doc-logo {
     width: 20mm; height: 20mm; flex-shrink: 0;
@@ -45,14 +45,14 @@ body {
 /* ปพ.1 meta row */
 .doc-meta-row {
     display: flex; align-items: baseline; justify-content: center;
-    gap: 8mm; margin: 0.5mm 0;
-    padding: 1px 0;
+    gap: 8mm; margin: 0;
+    padding: 0;
 }
 .doc-meta-row .label { font-size: 20px; font-weight: 400; }
 .doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 400; }
 .doc-meta-row .field-val {
     font-size: 20px; font-weight: 400;
-    border-bottom: 1.5px solid #000;
+    border-bottom: 0.5px solid #888;
     min-width: 28mm; text-align: center;
     padding: 0 4px 0; display: inline-block;
     line-height: 1.1;
@@ -77,13 +77,13 @@ body {
 }
 .info-row .val {
     font-size: 15px;
-    border-bottom: 1px solid #555;
+    border-bottom: 0.5px solid #aaa;
     flex: 1; padding-bottom: 0; min-width: 10mm;
     padding-left: 1mm; line-height: 1.4;
 }
 .info-row .val-fixed {
     font-size: 15px;
-    border-bottom: 1px solid #555;
+    border-bottom: 0.5px solid #aaa;
     padding-bottom: 0; padding-left: 1mm; line-height: 1.4;
 }
 

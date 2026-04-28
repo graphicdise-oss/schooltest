@@ -7,7 +7,7 @@ return [
     'amphoe'         => 'อำเภอ',
     'changwat'       => 'จังหวัด',
     'education_area' => 'สำนักงานเขตพื้นที่การศึกษา',
-    'logo'           => null, // path to logo image e.g. 'images/logo.png'
+    'logo'           => 'img/pp_1/logo.png',
     'registrar_name' => 'ชื่อนายทะเบียน',
     'registrar_position' => 'นายทะเบียน',
     'director_name'  => 'ชื่อผู้อำนวยการ',
