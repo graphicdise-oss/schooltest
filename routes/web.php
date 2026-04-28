@@ -20,6 +20,7 @@ use App\Http\Controllers\Academic\PromotionController;
 use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
+use App\Http\Controllers\Academic\PorPor1Controller;
 
 
 // --- 1. หน้าทั่วไป ---
@@ -234,6 +235,12 @@ Route::controller(StudentCardController::class)->prefix('student-cards')->name('
     Route::get('/print/{id}', 'printOne')->name('print-one');
     Route::get('/print-all', 'printAll')->name('print-all');
     Route::get('/print-selected', 'printSelected')->name('print-selected');
+});
+
+Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/set-doc', 'setDocNumber')->name('setDoc');
+    Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
 });
 
     // Logout
