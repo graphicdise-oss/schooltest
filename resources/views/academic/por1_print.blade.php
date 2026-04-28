@@ -13,7 +13,7 @@ body {
 
 .page {
     width: 210mm; min-height: 297mm;
-    margin: 0 auto 10mm; padding: 10mm 14mm 10mm;
+    margin: 0 auto 10mm; padding: 6mm 14mm 8mm;
     background: #fff;
     box-shadow: 0 0 8px rgba(0,0,0,0.15);
     page-break-after: always;
@@ -23,35 +23,35 @@ body {
 /* ===== HEADER ===== */
 .doc-top {
     display: flex; align-items: center; gap: 10px;
-    margin-bottom: 2mm;
+    margin-bottom: 0.5mm;
 }
 .doc-logo {
-    width: 22mm; height: 22mm; flex-shrink: 0;
+    width: 20mm; height: 20mm; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
 }
 .doc-logo img { width: 100%; height: 100%; object-fit: contain; }
 .doc-logo-placeholder {
-    width: 22mm; height: 22mm; border: 1px solid #ccc;
+    width: 20mm; height: 20mm; border: 1px solid #ccc;
     display: flex; align-items: center; justify-content: center;
     font-size: 9px; color: #aaa; text-align: center;
 }
 .doc-title-block { flex: 1; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
-    font-size: 18px; font-weight: 700; line-height: 1.3;
+    font-size: 20px; font-weight: 400; line-height: 1.2;
     text-align: center;
 }
 
 /* ปพ.1 meta row */
 .doc-meta-row {
     display: flex; align-items: baseline; justify-content: center;
-    gap: 8mm; margin: 1.5mm 0;
-    padding: 2px 0;
+    gap: 8mm; margin: 0.5mm 0;
+    padding: 1px 0;
 }
-.doc-meta-row .label { font-size: 16px; font-weight: 400; }
-.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 16px; font-weight: 400; }
+.doc-meta-row .label { font-size: 20px; font-weight: 400; }
+.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 400; }
 .doc-meta-row .field-val {
-    font-size: 16px; font-weight: 400;
+    font-size: 20px; font-weight: 400;
     border-bottom: 1.5px solid #000;
     min-width: 28mm; text-align: center;
     padding: 0 4px 0; display: inline-block;
@@ -60,7 +60,7 @@ body {
 
 /* ===== INFO SECTION ===== */
 .info-section {
-    display: flex; gap: 0; margin: 2mm 0;
+    display: flex; gap: 0; margin: 1mm 0;
 }
 .info-left { flex: 1; }
 .info-right { width: 78mm; padding-left: 4mm; }
@@ -71,7 +71,7 @@ body {
     margin-bottom: 0.8mm;
 }
 .info-row .lbl {
-    font-size: 15px; font-weight: 600;
+    font-size: 15px; font-weight: 400;
     white-space: nowrap; padding-right: 2mm;
     flex-shrink: 0; line-height: 1.5;
 }
@@ -98,12 +98,12 @@ body {
 /* inline split row */
 .info-row-split { display: flex; gap: 4mm; margin-bottom: 1.5mm; }
 .info-row-split .chunk { display: flex; align-items: flex-end; }
-.info-row-split .chunk .lbl { font-size: 15px; font-weight: 600; white-space: nowrap; padding-right: 1mm; flex-shrink: 0; }
+.info-row-split .chunk .lbl { font-size: 15px; font-weight: 400; white-space: nowrap; padding-right: 1mm; flex-shrink: 0; }
 .info-row-split .chunk .val-fixed { font-size: 15px; border-bottom: 1px solid #555; padding-bottom: 1px; padding-left: 1mm; min-width: 12mm; }
 
 /* ===== SECTION TITLE ===== */
 .section-title {
-    font-size: 17px; font-weight: 700; text-align: center;
+    font-size: 17px; font-weight: 400; text-align: center;
     margin: 3mm 0 2mm;
     border-top: 1px solid #000;
     padding-top: 2mm;
@@ -115,14 +115,14 @@ body {
     border: 1px solid #000; padding: 1px 3px; vertical-align: top;
 }
 .grades-table th { background: #f0f0f0; text-align: center; }
-.year-header { text-align: center; font-weight: 700; font-size: 13px; background: #e8e8e8; }
-.sem-header { font-weight: 700; font-size: 12px; background: #f8f8f8; }
+.year-header { text-align: center; font-weight: 400; font-size: 13px; background: #e8e8e8; }
+.sem-header { font-weight: 400; font-size: 12px; background: #f8f8f8; }
 .col-subject { width: 37%; font-size: 12px; }
 .col-credit  { width: 8%;  text-align: center; }
 .col-grade   { width: 8%;  text-align: center; }
 
 /* ===== PAGE 2 ===== */
-.p2-title { font-size: 17px; font-weight: 700; text-align: center; margin: 2mm 0 1.5mm; }
+.p2-title { font-size: 17px; font-weight: 400; text-align: center; margin: 2mm 0 1.5mm; }
 .p2-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-bottom: 3mm; }
 .p2-table th, .p2-table td { border: 1px solid #000; padding: 2px 4px; }
 .p2-table th { background: #f0f0f0; text-align: center; }
