@@ -171,9 +171,17 @@ body {
 <div class="page">
 
     {{-- Header --}}
+    @php
+        $logoFile = public_path('img/pp_1/logo.png');
+        $logoSrc  = file_exists($logoFile)
+            ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoFile))
+            : null;
+    @endphp
     <div class="doc-top">
         <div class="doc-logo">
-            <img src="/schooltest/public/img/pp_1/logo.png" alt="" onerror="this.style.display='none'">
+            @if($logoSrc)
+                <img src="{{ $logoSrc }}" alt="">
+            @endif
         </div>
         <div class="doc-title-block">
             <h2>ระเบียนแสดงผลการเรียนหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน ระดับมัธยมศึกษาตอนปลาย</h2>
