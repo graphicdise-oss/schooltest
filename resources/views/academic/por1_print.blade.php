@@ -8,8 +8,8 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif;
-    font-size: 15px; color: #000; background: #e0e0e0;
-    line-height: 1.0;
+    font-size: 15px; color: #222; background: #e0e0e0;
+    line-height: 1.0; -webkit-font-smoothing: antialiased;
 }
 
 .page {
@@ -65,7 +65,7 @@ body {
     margin-bottom: 0.3mm;
 }
 .info-row .lbl {
-    font-size: 15px; font-weight: 400;
+    font-size: 15px; font-weight: 300;
     white-space: nowrap; padding-right: 2mm;
     flex-shrink: 0; line-height: 1.5;
 }
