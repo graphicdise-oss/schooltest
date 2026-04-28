@@ -23,30 +23,29 @@ body {
 
 /* ===== HEADER ===== */
 .doc-top {
-    display: flex; align-items: center; gap: 4px;
-    margin-bottom: 0;
+    display: flex; justify-content: center; align-items: center;
+    gap: 3px; margin-bottom: 0;
 }
 .doc-logo {
-    width: 18mm; height: 18mm; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
+    width: 14mm; height: 14mm; flex-shrink: 0;
 }
 .doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.doc-title-block { flex: 1; line-height: 1.0; }
+.doc-title-block { line-height: 1.0; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
-    font-size: 20px; font-weight: 400; line-height: 1.0;
-    text-align: center; margin-bottom: 0;
+    font-size: 20px; font-weight: 700; line-height: 1.0;
+    text-align: left; margin-bottom: 0;
 }
 
 /* ปพ.1 meta row */
 .doc-meta-row {
-    display: flex; align-items: baseline; justify-content: center;
+    display: flex; align-items: baseline; justify-content: flex-start;
     gap: 8mm; margin: 0; padding: 0; line-height: 1.0;
 }
-.doc-meta-row .label { font-size: 20px; font-weight: 400; line-height: 1.0; }
-.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 400; line-height: 1.0; }
+.doc-meta-row .label { font-size: 20px; font-weight: 700; line-height: 1.0; }
+.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 700; line-height: 1.0; }
 .doc-meta-row .field-val {
-    font-size: 20px; font-weight: 400;
+    font-size: 20px; font-weight: 700;
     border-bottom: 0.3px solid #999;
     min-width: 28mm; text-align: center;
     padding: 0 4px 0; display: inline-block;
