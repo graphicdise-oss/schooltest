@@ -22,8 +22,8 @@ body {
 
 /* ===== HEADER ===== */
 .doc-top {
-    display: flex; align-items: center; gap: 10px;
-    margin-bottom: 0;
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-bottom: 1mm;
 }
 .doc-logo {
     width: 20mm; height: 20mm; flex-shrink: 0;
@@ -35,27 +35,26 @@ body {
     display: flex; align-items: center; justify-content: center;
     font-size: 9px; color: #aaa; text-align: center;
 }
-.doc-title-block { flex: 1; }
+.doc-title-block { flex: 1; line-height: 1.0; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
-    font-size: 20px; font-weight: 400; line-height: 1.2;
-    text-align: center;
+    font-size: 20px; font-weight: 400; line-height: 1.0;
+    text-align: center; margin-bottom: 0;
 }
 
 /* ปพ.1 meta row */
 .doc-meta-row {
     display: flex; align-items: baseline; justify-content: center;
-    gap: 8mm; margin: 0;
-    padding: 0;
+    gap: 8mm; margin: 0; padding: 0; line-height: 1.0;
 }
-.doc-meta-row .label { font-size: 20px; font-weight: 400; }
-.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 400; }
+.doc-meta-row .label { font-size: 20px; font-weight: 400; line-height: 1.0; }
+.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 400; line-height: 1.0; }
 .doc-meta-row .field-val {
     font-size: 20px; font-weight: 400;
     border-bottom: 0.5px solid #888;
     min-width: 28mm; text-align: center;
     padding: 0 4px 0; display: inline-block;
-    line-height: 1.1;
+    line-height: 1.0;
 }
 
 /* ===== INFO SECTION ===== */
@@ -174,26 +173,21 @@ body {
     {{-- Header --}}
     <div class="doc-top">
         <div class="doc-logo">
-            @if($school['logo'])
-                <img src="{{ asset($school['logo']) }}" alt="logo">
-            @else
-                <div class="doc-logo-placeholder">ตราโรงเรียน</div>
-            @endif
+            <img src="/schooltest/public/img/pp_1/logo.png" alt="" onerror="this.style.display='none'">
         </div>
         <div class="doc-title-block">
             <h2>ระเบียนแสดงผลการเรียนหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน ระดับมัธยมศึกษาตอนปลาย</h2>
-        </div>
-    </div>
-
-    <div class="doc-meta-row">
-        <div class="label">ปพ.1 : พ</div>
-        <div class="field-group">
-            <span>ชุดที่</span>
-            <span class="field-val">{{ $docNumber->doc_set ?? '' }}</span>
-        </div>
-        <div class="field-group">
-            <span>เลขที่</span>
-            <span class="field-val">{{ $docNumber->doc_number ?? '' }}</span>
+            <div class="doc-meta-row">
+                <div class="label">ปพ.1 : พ</div>
+                <div class="field-group">
+                    <span>ชุดที่</span>
+                    <span class="field-val">{{ $docNumber->doc_set ?? '' }}</span>
+                </div>
+                <div class="field-group">
+                    <span>เลขที่</span>
+                    <span class="field-val">{{ $docNumber->doc_number ?? '' }}</span>
+                </div>
+            </div>
         </div>
     </div>
 
