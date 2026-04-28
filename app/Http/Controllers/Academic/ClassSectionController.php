@@ -83,4 +83,20 @@ class ClassSectionController extends Controller
         StudentSection::where('id', $ssId)->where('section_id', $id)->delete();
         return redirect()->back()->with('success', 'นำนักเรียนออกจากห้องสำเร็จ');
     }
+
+    public function renumberStudents($id)
+    {
+        $students = StudentSection::where('section_id', $id)
+            ->join('students', 'student_sections.student_id', '=', 'students.student_id')
+            ->orderByRaw('students.enroll_date ASC NULLS LAST')
+            ->orderBy('students.created_at')
+            ->select('student_sections.*')
+            ->get();
+
+        foreach ($students as $i => $ss) {
+            $ss->update(['student_number' => $i + 1]);
+        }
+
+        return redirect()->back()->with('success', 'เรียงเลขที่นักเรียนใหม่สำเร็จ');
+    }
 }

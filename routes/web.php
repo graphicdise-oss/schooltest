@@ -165,6 +165,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/students', 'manageStudents')->name('students');
         Route::post('/{id}/students', 'assignStudents')->name('assignStudents');
         Route::delete('/{id}/students/{ssId}', 'removeStudent')->name('removeStudent');
+        Route::post('/{id}/students/renumber', 'renumberStudents')->name('renumberStudents');
     });
 
     // === 4. ตารางสอน ===

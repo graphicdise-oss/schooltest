@@ -12,8 +12,14 @@
     <div class="ac-grid-2" style="gap:20px">
         {{-- ซ้าย: นักเรียนในห้อง --}}
         <div class="ac-card">
-            <div class="ac-card-header">
+            <div class="ac-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
                 <span><i class="bi bi-people-fill"></i> นักเรียนในห้อง {{ $section->level->name }}/{{ $section->section_number }} ({{ $section->studentSections->count() }} คน)</span>
+                <form method="POST" action="{{ route('class-sections.renumberStudents', $section->section_id) }}" onsubmit="return confirm('เรียงเลขที่นักเรียนใหม่ตามวันเข้าเรียน?')">
+                    @csrf
+                    <button type="submit" class="ac-btn ac-btn-primary ac-btn-sm" style="background:#7b1fa2;border-color:#7b1fa2">
+                        <i class="bi bi-sort-numeric-down"></i> เรียงเลขที่ใหม่
+                    </button>
+                </form>
             </div>
             <div class="ac-card-body">
                 <div class="ac-table-wrap">
