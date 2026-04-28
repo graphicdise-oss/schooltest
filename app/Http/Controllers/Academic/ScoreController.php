@@ -10,6 +10,8 @@ use App\Models\Academic\StudentSection;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Semester;
+use App\Models\Academic\Subject;
+use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 
 class ScoreController extends Controller
@@ -17,15 +19,24 @@ class ScoreController extends Controller
     // เลือกวิชา-ห้องที่จะบันทึกคะแนน
     public function index(Request $request)
     {
-        $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesterId  = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
+        $subjectId   = $request->subject_id;
+        $personnelId = $request->personnel_id;
 
-        $assigns = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'scoreCategories'])
+        $semesters  = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $subjects   = Subject::where('is_active', true)->orderBy('code')->get();
+        $teachers   = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+
+        $query = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'scoreCategories'])
             ->where('semester_id', $semesterId)
-            ->orderBy('section_id')
-            ->get();
+            ->orderBy('section_id');
 
-        return view('academic.scores_index', compact('assigns', 'semesters', 'semesterId'));
+        if ($subjectId)   $query->where('subject_id', $subjectId);
+        if ($personnelId) $query->where('personnel_id', $personnelId);
+
+        $assigns = $query->get();
+
+        return view('academic.scores_index', compact('assigns', 'semesters', 'subjects', 'teachers', 'semesterId', 'subjectId', 'personnelId'));
     }
 
     // รายวิชาที่สอนในห้องเรียน

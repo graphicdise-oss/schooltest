@@ -175,22 +175,24 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
             <thead>
                 <tr>
                     <th class="day-col">วัน / เวลา</th>
-                    @foreach($hours as $h)
-                    <th>
-                        {{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00<br>
-                        <span style="color:#aaa;font-weight:400">{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00</span>
-                    </th>
+                    @foreach($slotTimes as $st)
+                    <th style="min-width:42px;font-size:0.7rem">{{ $st }}</th>
                     @endforeach
                 </tr>
             </thead>
             <tbody>
                 @php
+                $slotTimesFlipped = array_flip($slotTimes);
                 $skipCells = [];
                 foreach ($slotGrid as $d => $daySlots) {
-                    foreach ($daySlots as $h => $cell) {
+                    foreach ($daySlots as $startKey => $cell) {
                         $span = $cell['span'] ?? 1;
+                        $pos  = $slotTimesFlipped[$startKey] ?? null;
+                        if ($pos === null) continue;
                         for ($s = 1; $s < $span; $s++) {
-                            $skipCells[$d][$h + $s] = true;
+                            if (isset($slotTimes[$pos + $s])) {
+                                $skipCells[$d][$slotTimes[$pos + $s]] = true;
+                            }
                         }
                     }
                 }
@@ -198,11 +200,14 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                 @foreach($days as $day)
                 <tr>
                     <th class="day-col">{{ $day }}</th>
-                    @foreach($hours as $h)
-                    @if(isset($skipCells[$day][$h]))
+                    @foreach($slotTimes as $stIdx => $st)
+                    @if(isset($skipCells[$day][$st]))
                         @continue
                     @endif
-                    @php $cell = $slotGrid[$day][$h] ?? null; @endphp
+                    @php
+                        $cell   = $slotGrid[$day][$st] ?? null;
+                        $nextSt = $slotTimes[$stIdx + 1] ?? $st;
+                    @endphp
                     @if($cell)
                         <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
                             <div class="ts-slot" style="background:{{ $colorMap[$cell['assign']->assign_id] }}">
@@ -217,7 +222,7 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                             </div>
                         </td>
                     @else
-                        <td onclick="openSlotModal('{{ $day }}','{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00','{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00')"></td>
+                        <td onclick="openSlotModal('{{ $day }}','{{ $st }}','{{ $nextSt }}')"></td>
                     @endif
                     @endforeach
                 </tr>

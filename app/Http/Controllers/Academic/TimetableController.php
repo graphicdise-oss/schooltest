@@ -102,15 +102,21 @@ class TimetableController extends Controller
         $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
         $subjects = Subject::where('is_active', true)->orderBy('code')->get();
         $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
-        $hours    = range(6, 20);
+
+        $slotTimes = [];
+        for ($h = 7; $h < 17; $h++) {
+            $slotTimes[] = str_pad($h, 2, '0', STR_PAD_LEFT) . ':00';
+            $slotTimes[] = str_pad($h, 2, '0', STR_PAD_LEFT) . ':30';
+        }
 
         $slotGrid = [];
         foreach ($assigns as $assign) {
             foreach ($assign->timetableSlots as $slot) {
-                $startH = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
-                $endH   = (int) \Carbon\Carbon::parse($slot->end_time)->format('H');
-                $span   = max(1, $endH - $startH);
-                $slotGrid[$slot->day_of_week][$startH] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+                $start    = \Carbon\Carbon::parse($slot->start_time);
+                $end      = \Carbon\Carbon::parse($slot->end_time);
+                $startKey = $start->format('H:i');
+                $span     = max(1, (int) round($start->diffInMinutes($end) / 30));
+                $slotGrid[$slot->day_of_week][$startKey] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
             }
         }
 
@@ -121,7 +127,7 @@ class TimetableController extends Controller
             ->get();
 
         return view('academic.timetable_section', compact(
-            'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid', 'curriculums'
+            'section', 'assigns', 'teachers', 'subjects', 'days', 'slotTimes', 'slotGrid', 'curriculums'
         ));
     }
 
