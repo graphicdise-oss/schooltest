@@ -23,19 +23,14 @@ body {
 
 /* ===== HEADER ===== */
 .doc-top {
-    display: flex; align-items: flex-start; gap: 10px;
+    display: flex; align-items: center; gap: 4px;
     margin-bottom: 0;
 }
 .doc-logo {
-    width: 20mm; height: 20mm; flex-shrink: 0;
+    width: 18mm; height: 18mm; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
 }
-.doc-logo img { width: 100%; height: 100%; object-fit: contain; }
-.doc-logo-placeholder {
-    width: 20mm; height: 20mm; border: 1px solid #ccc;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 9px; color: #aaa; text-align: center;
-}
+.doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .doc-title-block { flex: 1; line-height: 1.0; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
