@@ -46,17 +46,16 @@ body {
 .doc-meta-row {
     display: flex; align-items: baseline; justify-content: center;
     gap: 8mm; margin: 1.5mm 0;
-    border-top: 1.5px solid #000;
-    border-bottom: 1.5px solid #000;
     padding: 2px 0;
 }
-.doc-meta-row .label { font-size: 16px; font-weight: 700; }
-.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 16px; font-weight: 700; }
+.doc-meta-row .label { font-size: 16px; font-weight: 400; }
+.doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 16px; font-weight: 400; }
 .doc-meta-row .field-val {
-    font-size: 18px; font-weight: 700;
+    font-size: 16px; font-weight: 400;
     border-bottom: 1.5px solid #000;
     min-width: 28mm; text-align: center;
-    padding: 0 4px; display: inline-block;
+    padding: 0 4px 0; display: inline-block;
+    line-height: 1.1;
 }
 
 /* ===== INFO SECTION ===== */
@@ -69,28 +68,28 @@ body {
 
 .info-row {
     display: flex; align-items: flex-end;
-    margin-bottom: 1.5mm; min-height: 6mm;
+    margin-bottom: 0.8mm;
 }
 .info-row .lbl {
     font-size: 15px; font-weight: 600;
     white-space: nowrap; padding-right: 2mm;
-    flex-shrink: 0;
+    flex-shrink: 0; line-height: 1.5;
 }
 .info-row .val {
     font-size: 15px;
     border-bottom: 1px solid #555;
-    flex: 1; padding-bottom: 1px; min-width: 10mm;
-    padding-left: 1mm;
+    flex: 1; padding-bottom: 0; min-width: 10mm;
+    padding-left: 1mm; line-height: 1.4;
 }
 .info-row .val-fixed {
     font-size: 15px;
     border-bottom: 1px solid #555;
-    padding-bottom: 1px; padding-left: 1mm;
+    padding-bottom: 0; padding-left: 1mm; line-height: 1.4;
 }
 
 .photo-box {
-    width: 26mm; height: 33mm;
-    border: 1px solid #888;
+    width: 28mm; height: 36mm;
+    border: 1.5px solid #555;
     display: flex; align-items: center; justify-content: center;
     font-size: 11px; color: #aaa; overflow: hidden;
 }
