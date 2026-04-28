@@ -7,6 +7,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\StudentDocNumber;
+use App\Models\Academic\FinalGrade;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -45,7 +46,6 @@ class PorPor1Controller extends Controller
                 )->orderBy('thai_firstname')->get();
         }
 
-        // โหลด doc numbers ที่มีอยู่แล้ว
         $docNumbers = [];
         if ($students->count() && $semesterId) {
             $ids = $students->pluck('student_id');
@@ -59,6 +59,45 @@ class PorPor1Controller extends Controller
             'semesters', 'sections', 'students', 'docNumbers',
             'semesterId', 'sectionId', 'search', 'currentSection'
         ));
+    }
+
+    public function printOne(Request $request, $studentId)
+    {
+        $student = Student::with(['education', 'families', 'addresses'])->findOrFail($studentId);
+
+        $semesterId = $request->semester_id;
+        $docNumber  = StudentDocNumber::where('student_id', $studentId)
+            ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
+            ->latest()->first();
+
+        $grades = FinalGrade::with([
+            'teachingAssign.subject',
+            'teachingAssign.classSection.level',
+            'semester.academicYear',
+        ])->where('student_id', $studentId)->get();
+
+        $yearGroups = [];
+        foreach ($grades as $grade) {
+            $yearName  = $grade->semester->academicYear->year_name ?? 'ไม่ระบุ';
+            $semName   = $grade->semester->semester_name ?? '1';
+            $levelName = $grade->teachingAssign->classSection->level->name ?? '';
+
+            if (!isset($yearGroups[$yearName])) {
+                $yearGroups[$yearName] = ['year' => $yearName, 'level' => $levelName, 'semesters' => []];
+            }
+            if (!isset($yearGroups[$yearName]['semesters'][$semName])) {
+                $yearGroups[$yearName]['semesters'][$semName] = [];
+            }
+            $yearGroups[$yearName]['semesters'][$semName][] = $grade;
+        }
+        ksort($yearGroups);
+
+        $father = $student->families->firstWhere('guardian_type', 'บิดา')
+            ?? $student->families->firstWhere('family_type', 'บิดา');
+        $mother = $student->families->firstWhere('guardian_type', 'มารดา')
+            ?? $student->families->firstWhere('family_type', 'มารดา');
+
+        return view('academic.por1_print', compact('student', 'docNumber', 'yearGroups', 'father', 'mother'));
     }
 
     public function setDocNumber(Request $request)
@@ -93,8 +132,7 @@ class PorPor1Controller extends Controller
 
         $section = ClassSection::findOrFail($request->section_id);
 
-        $rows = StudentSection::with('student')
-            ->where('section_id', $request->section_id)
+        $rows = StudentSection::where('section_id', $request->section_id)
             ->where('status', 'กำลังศึกษา')
             ->orderBy('student_number')
             ->get();

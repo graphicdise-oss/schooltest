@@ -239,6 +239,7 @@ Route::controller(StudentCardController::class)->prefix('student-cards')->name('
 
 Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->group(function () {
     Route::get('/', 'index')->name('index');
+    Route::get('/print/{studentId}', 'printOne')->name('print');
     Route::post('/set-doc', 'setDocNumber')->name('setDoc');
     Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
 });

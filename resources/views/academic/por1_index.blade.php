@@ -217,7 +217,7 @@
                         )">
                             <i class="bi bi-pencil-square"></i> ตั้งเลขที่เอกสาร
                         </button>
-                        <a href="#" class="btn-print-por1"><i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1</a>
+                        <a href="{{ route('por1.print', $stu->student_id) }}?semester_id={{ $semesterId }}" target="_blank" class="btn-print-por1"><i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1</a>
                     </td>
                 </tr>
                 @endforeach
