@@ -4,6 +4,40 @@
     <link rel="stylesheet" href="{{ asset('css/personnel/detail.css') }}?v={{ time() }}">
 @endpush
 
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+@if(session('success'))
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'success',
+            title: 'สำเร็จ!',
+            text: '{{ session('success') }}',
+            timer: 2500,
+            showConfirmButton: false
+        });
+    });
+</script>
+@endif
+@if($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'error',
+            title: 'ไม่สามารถบันทึกได้',
+            html: '<ul style="text-align:left;margin:0;padding-left:20px">' +
+                @foreach($errors->all() as $error)
+                    '<li>{{ $error }}</li>' +
+                @endforeach
+            '',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#e53935',
+        });
+    });
+</script>
+@endif
+@endpush
+
 @section('content')
 <div class="pn-page" x-data="{ activeTab: 'profile' }">
 

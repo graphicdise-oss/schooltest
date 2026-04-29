@@ -28,17 +28,23 @@
             </script>
         @endif
 
-        @if ($errors->any())
-            <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i> <strong>พบข้อผิดพลาด:</strong>
-                <ul class="mb-0 mt-1">
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        @endif
+       @if ($errors->any())
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        Swal.fire({
+            icon: 'error',
+            title: 'ไม่สามารถบันทึกได้',
+            html: '<ul style="text-align:left;margin:0;padding-left:20px">' +
+                @foreach ($errors->all() as $error)
+                    '<li>{{ $error }}</li>' +
+                @endforeach
+            '',
+            confirmButtonText: 'ตกลง',
+            confirmButtonColor: '#e53935',
+        });
+    });
+</script>
+@endif
 
         <div class="card border-0 shadow-sm mt-4">
             <div class="card-body">
@@ -144,79 +150,88 @@
                                 <i class="bi bi-building me-1"></i> ข้อมูลชั้นเรียน
                             </div>
 
-                            <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
-                                    <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end">ปีการศึกษา :</label>
-                                        <div class="col-sm-8">
-                                            <select id="sel-year" class="form-select" onchange="filterSemesters()">
-                                                <option value="">-- เลือกปีการศึกษา --</option>
-                                                @foreach($academicYears as $y)
-                                                    @php
-                                                        $selYear = isset($currentSection)
-                                                            ? optional($sections->firstWhere('section_id', $currentSection->section_id))?->semester?->year_id
-                                                            : null;
-                                                    @endphp
-                                                    <option value="{{ $y->year_id }}" {{ $selYear == $y->year_id ? 'selected' : '' }}>
-                                                        {{ $y->year_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end">เทอม :</label>
-                                        <div class="col-sm-8">
-                                            <select name="semester_id" id="sel-semester" class="form-select"
-                                                onchange="filterSections()">
-                                                <option value="">-- เลือกเทอม --</option>
-                                                @foreach($semesters as $sm)
-                                                    <option value="{{ $sm->semester_id }}" data-year="{{ $sm->year_id }}" {{ (isset($currentSection) && $sections->firstWhere('section_id', $currentSection->section_id)?->semester_id == $sm->semester_id) ? 'selected' : '' }}>
-                                                        {{ $sm->semester_name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+                          <div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <div class="row">
+            <label class="col-sm-4 col-form-label text-md-end">ปีการศึกษา :</label>
+            <div class="col-sm-8">
+                @php
+                    // ถ้าเป็นนักเรียนใหม่ ให้หาปีการศึกษาปัจจุบันจากฐานข้อมูล
+                    $activeYearId = $academicYears->where('is_current', true)->first()->year_id ?? '';
+                    $selYear = isset($currentSection)
+                        ? optional($sections->firstWhere('section_id', $currentSection->section_id))?->semester?->year_id
+                        : $activeYearId;
+                @endphp
+                <select id="sel-year" class="form-select" onchange="filterSemesters()">
+                    <option value="">-- เลือกปีการศึกษา --</option>
+                    @foreach($academicYears as $y)
+                        <option value="{{ $y->year_id }}" {{ $selYear == $y->year_id ? 'selected' : '' }}>
+                            {{ $y->year_name }} {{ $y->is_current ? '(ปัจจุบัน)' : '' }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <label class="col-sm-4 col-form-label text-md-end">เทอม :</label>
+            <div class="col-sm-8">
+                @php
+                    // ถ้าเป็นนักเรียนใหม่ ให้หาเทอมปัจจุบันจากฐานข้อมูล
+                    $activeSemId = $semesters->where('is_current', true)->first()->semester_id ?? '';
+                    $selSem = isset($currentSection)
+                        ? $sections->firstWhere('section_id', $currentSection->section_id)?->semester_id
+                        : $activeSemId;
+                @endphp
+                <select name="semester_id" id="sel-semester" class="form-select" onchange="filterSections()">
+                    <option value="">-- เลือกเทอม --</option>
+                    @foreach($semesters as $sm)
+                        <option value="{{ $sm->semester_id }}" data-year="{{ $sm->year_id }}" {{ $selSem == $sm->semester_id ? 'selected' : '' }}>
+                            {{ $sm->semester_name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
 
-                            <div class="row mb-3 align-items-center">
-                                <div class="col-md-6">
-                                    <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end">ระดับชั้น :</label>
-                                        <div class="col-sm-8">
-                                            <select id="sel-level" class="form-select" onchange="filterSections()">
-                                                <option value="">-- เลือกระดับชั้น --</option>
-                                                @foreach($levels as $lv)
-                                                    <option value="{{ $lv->level_id }}" {{ (isset($currentSection) && $sections->firstWhere('section_id', $currentSection->section_id)?->level_id == $lv->level_id) ? 'selected' : '' }}>
-                                                        {{ $lv->name }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end">ห้องเรียน :</label>
-                                        <div class="col-sm-8">
-                                            <select name="section_id" id="sel-section" class="form-select">
-                                                <option value="">-- เลือกห้องเรียน --</option>
-                                                @foreach($sections as $sec)
-                                                    <option value="{{ $sec->section_id }}"
-                                                        data-semester="{{ $sec->semester_id }}"
-                                                        data-level="{{ $sec->level_id }}" {{ (isset($currentSection) && $currentSection->section_id == $sec->section_id) ? 'selected' : '' }}>
-                                                        {{ $sec->level->name ?? '' }} / {{ $sec->section_number }}
-                                                    </option>
-                                                @endforeach
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+<div class="row mb-3 align-items-center">
+    <div class="col-md-6">
+        <div class="row">
+            <label class="col-sm-4 col-form-label text-md-end">ระดับชั้น :</label>
+            <div class="col-sm-8">
+                <select id="sel-level" class="form-select" onchange="filterSections()">
+                    <option value="">-- เลือกระดับชั้น --</option>
+                    @foreach($levels as $lv)
+                        <option value="{{ $lv->level_id }}" {{ (isset($currentSection) && $sections->firstWhere('section_id', $currentSection->section_id)?->level_id == $lv->level_id) ? 'selected' : '' }}>
+                            {{ $lv->name }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="row">
+            <label class="col-sm-4 col-form-label text-md-end">ห้องเรียน :</label>
+            <div class="col-sm-8">
+                <select name="section_id" id="sel-section" class="form-select">
+                    <option value="">-- เลือกห้องเรียน --</option>
+                    @foreach($sections as $sec)
+                        <option value="{{ $sec->section_id }}"
+                            data-semester="{{ $sec->semester_id }}"
+                            data-level="{{ $sec->level_id }}" 
+                            {{ (isset($currentSection) && $currentSection->section_id == $sec->section_id) ? 'selected' : '' }}>
+                            {{ $sec->level->name ?? '' }} / {{ $sec->section_number }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
 
 
                             <div class="row mb-3 align-items-center">
@@ -1548,26 +1563,80 @@
         }
     </script>
 
-    @push('scripts')
+   @push('scripts')
         <script>
-            function filterSemesters() {
+            // 1. สร้างตัวแปรเก็บตัวเลือกทั้งหมดไว้ในหน่วยความจำตอนเปิดหน้าเว็บ
+            let allSemesters = [];
+            let allSections = [];
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // ก๊อปปี้ <option> ของเทอมและห้องเรียนเก็บไว้
+                const semSelect = document.getElementById('sel-semester');
+                allSemesters = Array.from(semSelect.querySelectorAll('option[data-year]')).map(opt => opt.cloneNode(true));
+                
+                const secSelect = document.getElementById('sel-section');
+                allSections = Array.from(secSelect.querySelectorAll('option[data-semester]')).map(opt => opt.cloneNode(true));
+
+                // สั่งกรองข้อมูลให้ถูกต้องทันทีที่เปิดหน้าจอขึ้นมา
+                filterSemesters(false);
+            });
+
+            function filterSemesters(resetValue = true) {
                 const yearId = document.getElementById('sel-year').value;
-                document.querySelectorAll('#sel-semester option[data-year]').forEach(opt => {
-                    opt.style.display = (!yearId || opt.dataset.year === yearId) ? '' : 'none';
+                const semSelect = document.getElementById('sel-semester');
+                const currentVal = semSelect.value;
+
+                // 2. เคลียร์ <option> เดิมทิ้งให้หมด (เหลือแค่บรรทัดแรก)
+                semSelect.innerHTML = '<option value="">-- เลือกเทอม --</option>';
+
+                let isCurrentValid = false;
+
+                // 3. วนลูปดึงเทอมเฉพาะของ "ปีการศึกษาที่เลือก" กลับมาใส่ใหม่
+                allSemesters.forEach(opt => {
+                    if (!yearId || opt.dataset.year === yearId) {
+                        semSelect.appendChild(opt.cloneNode(true));
+                        if (opt.value === currentVal) isCurrentValid = true;
+                    }
                 });
-                document.getElementById('sel-semester').value = '';
-                filterSections();
+
+                // จัดการค่าที่ถูกเลือกไว้
+                if (resetValue || !isCurrentValid) {
+                    semSelect.value = '';
+                } else {
+                    semSelect.value = currentVal;
+                }
+
+                filterSections(resetValue);
             }
 
-            function filterSections() {
+            function filterSections(resetValue = true) {
                 const semId = document.getElementById('sel-semester').value;
                 const lvlId = document.getElementById('sel-level').value;
-                document.querySelectorAll('#sel-section option[data-semester]').forEach(opt => {
+                const secSelect = document.getElementById('sel-section');
+                const currentVal = secSelect.value;
+
+                // เคลียร์ <option> ห้องเรียนเดิมทิ้งให้หมด
+                secSelect.innerHTML = '<option value="">-- เลือกห้องเรียน --</option>';
+
+                let isCurrentValid = false;
+
+                // ดึงเฉพาะห้องเรียนที่ตรงกับ "เทอม" และ "ระดับชั้น" กลับมาใส่ใหม่
+                allSections.forEach(opt => {
                     const okSem = !semId || opt.dataset.semester === semId;
                     const okLvl = !lvlId || opt.dataset.level === lvlId;
-                    opt.style.display = (okSem && okLvl) ? '' : 'none';
+                    
+                    if (okSem && okLvl) {
+                        secSelect.appendChild(opt.cloneNode(true));
+                        if (opt.value === currentVal) isCurrentValid = true;
+                    }
                 });
-                document.getElementById('sel-section').value = '';
+
+                // จัดการค่าที่ถูกเลือกไว้
+                if (resetValue || (!isCurrentValid && currentVal !== '')) {
+                    secSelect.value = '';
+                } else {
+                    secSelect.value = currentVal;
+                }
             }
         </script>
     @endpush

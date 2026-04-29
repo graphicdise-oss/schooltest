@@ -54,7 +54,7 @@ class StudentController extends Controller
         ]);
 
         // กรองเอาเฉพาะข้อมูลที่เป็นข้อความหรือตัวเลข (กันพวก Array ขยะหลุดเข้ามา)
-        $rawStudentData = $request->except(['_token', 'addresses', 'student_image']);
+        $rawStudentData = $request->except(['_token', 'addresses', 'student_image', 'semester_id', 'section_id', 'year_id', 'level_id']);
         $studentData = [];
 
         foreach ($rawStudentData as $key => $value) {
@@ -119,18 +119,35 @@ class StudentController extends Controller
         ));
     }
 
-    // 4. อัปเดตข้อมูลนักเรียน + ที่อยู่ (กรณีกดบันทึกซ้ำ)
+// 4. อัปเดตข้อมูลนักเรียน + ที่อยู่ (กรณีกดบันทึกซ้ำ)
     public function update(Request $request, $id)
     {
         $student = Student::where('student_id', $id)->firstOrFail();
 
-        // ตรวจสอบข้อมูล โดยละเว้นการเช็กซ้ำของตัวเอง
+        // ตรวจสอบข้อมูล โดยละเว้นการเช็กซ้ำของตัวเอง (ใส่ .' . $id . ',student_id ต่อท้าย)
         $request->validate([
-            'student_code' => 'nullable|unique:students,student_code,' . $id . ',student_id',
-            'id_card_number' => 'required|size:13|unique:students,id_card_number,' . $id . ',student_id',
-            'thai_firstname' => 'required',
+            'student_code'    => 'nullable|unique:students,student_code,' . $id . ',student_id',
+            'id_card_number'  => 'required|size:13|unique:students,id_card_number,' . $id . ',student_id',
+            'gender'          => 'required',
+            'thai_prefix'     => 'required',
+            'thai_firstname'  => 'required',
+            'thai_lastname'   => 'required',
+            'date_of_birth'   => 'required|date',
+            'nationality'     => 'required',
+            'ethnicity'       => 'required',
+        ], [
+            'student_code.unique'    => 'รหัสนักเรียนนี้มีในระบบแล้ว กรุณาตรวจสอบอีกครั้ง',
+            'id_card_number.required'=> 'กรุณากรอกเลขบัตรประชาชน',
+            'id_card_number.size'    => 'เลขบัตรประชาชนต้องมี 13 หลักเท่านั้น',
+            'id_card_number.unique'  => 'เลขบัตรประชาชนนี้มีในระบบแล้ว กรุณาตรวจสอบอีกครั้ง',
+            'gender.required'        => 'กรุณาเลือกเพศ',
+            'thai_prefix.required'   => 'กรุณาเลือกคำนำหน้า',
+            'thai_firstname.required'=> 'กรุณากรอกชื่อภาษาไทย',
+            'thai_lastname.required' => 'กรุณากรอกนามสกุลภาษาไทย',
+            'date_of_birth.required' => 'กรุณากรอกวันเกิด',
+            'nationality.required'   => 'กรุณากรอกสัญชาติ',
+            'ethnicity.required'     => 'กรุณากรอกเชื้อชาติ',
         ]);
-
         $rawStudentData = $request->except([
             '_token',
             '_method',

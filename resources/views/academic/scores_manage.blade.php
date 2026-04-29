@@ -83,6 +83,9 @@
                 $weightBg    = ($totalWeight == 100) ? '#dcfce7' : '#fee2e2';
             @endphp
 
+
+            @php $remainingWeight = max(0, 100 - $totalWeight); @endphp
+
             @if($categories->count() > 0)
             <div class="ac-table-wrap" style="margin-bottom:12px">
                 <table class="ac-table">
@@ -155,31 +158,6 @@
         </div>
     </div>
 
-    {{-- ===== Card 3: Grade Scale Reference ===== --}}
-    <div class="ac-card" style="margin-bottom:20px">
-        <div class="ac-card-header">
-            <span><i class="bi bi-bar-chart-steps"></i> เกณฑ์ตัดเกรด</span>
-        </div>
-        <div class="ac-card-body" style="padding:16px 20px">
-            <div class="ac-table-wrap">
-                <table class="ac-table" style="max-width:480px">
-                    <thead>
-                        <tr><th>คะแนน %</th><th>เกรด</th><th>ระดับผลการเรียน</th></tr>
-                    </thead>
-                    <tbody>
-                        <tr><td>80 – 100</td><td style="font-weight:700; color:#16a34a">4</td><td>ดีเยี่ยม</td></tr>
-                        <tr><td>75 – 79</td><td style="font-weight:700; color:#16a34a">3.5</td><td>ดีมาก</td></tr>
-                        <tr><td>70 – 74</td><td style="font-weight:700; color:#4479DA">3</td><td>ดี</td></tr>
-                        <tr><td>65 – 69</td><td style="font-weight:700; color:#4479DA">2.5</td><td>ค่อนข้างดี</td></tr>
-                        <tr><td>60 – 64</td><td style="font-weight:700; color:#d97706">2</td><td>ปานกลาง</td></tr>
-                        <tr><td>55 – 59</td><td style="font-weight:700; color:#d97706">1.5</td><td>พอใช้</td></tr>
-                        <tr><td>50 – 54</td><td style="font-weight:700; color:#ea580c">1</td><td>ผ่านเกณฑ์ขั้นต่ำ</td></tr>
-                        <tr><td>0 – 49</td><td style="font-weight:700; color:#dc2626">0</td><td>ไม่ผ่าน</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
     {{-- ===== Card 4: Score Entry ===== --}}
     @if($categories->count() > 0)
@@ -257,17 +235,20 @@
                     </table>
                 </div>
 
-                <div style="display:flex; justify-content:center; gap:12px; margin-top:20px; flex-wrap:wrap">
-                    <button type="submit" class="ac-btn ac-btn-primary">
-                        <i class="bi bi-save"></i> บันทึกคะแนน
-                    </button>
-                    <button type="button" class="ac-btn ac-btn-success" onclick="document.getElementById('calcForm').submit()">
-                        <i class="bi bi-calculator"></i> คำนวณและบันทึกเกรด
-                    </button>
-                    <a href="{{ route('grades.print', $assign->assign_id) }}" target="_blank" class="ac-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7); color:#fff; text-decoration:none">
-                        <i class="bi bi-printer"></i> พิมพ์ใบเกรด
-                    </a>
-                </div>
+               <div class="ac-save-wrap" style="display:flex; justify-content:center; gap:12px">
+    <a href="{{ route('grades.excel', $assign->assign_id) }}" class="ac-btn" style="background:#1d6f42; color:#fff">
+        <i class="bi bi-file-earmark-excel"></i> Export Excel
+    </a>
+    <a href="{{ route('scores.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary">
+        <i class="bi bi-printer"></i> พิมพ์ใบบันทึกคะแนน
+    </a>
+    <button type="submit" class="ac-btn ac-btn-primary">
+        <i class="bi bi-save"></i> บันทึกคะแนน
+    </button>
+    <button type="button" class="ac-btn ac-btn-success" onclick="document.getElementById('calcForm').submit()">
+        <i class="bi bi-calculator"></i> คำนวณเกรด
+    </button>
+</div>
             </form>
 
             <form id="calcForm" method="POST" action="{{ route('scores.calculate', $assign->assign_id) }}">@csrf</form>
@@ -297,9 +278,10 @@
                         <label>คะแนนเต็ม *</label>
                         <input type="number" name="max_score" id="catMax" required value="100" step="0.5" min="0">
                     </div>
-                    <div>
+                   <div>
                         <label>น้ำหนัก (%) *</label>
                         <input type="number" name="weight_pct" id="catWeight" required value="100" step="0.5" min="0" max="100">
+                        <small id="weightHint" style="color:#16a34a; font-size:0.78rem"></small>
                     </div>
                     <div>
                         <label>ลำดับ</label>
@@ -343,11 +325,17 @@ function openCatModal() {
     document.getElementById('catOrder').value = {{ $categories->count() + 1 }};
     document.getElementById('catTypeNumber').checked = true;
     document.getElementById('catOverlay').classList.add('active');
+    var remaining = {{ $remainingWeight ?? 100 }};
+    document.getElementById('catWeight').value = remaining;
+    document.getElementById('weightHint').textContent = remaining > 0 ? 'เหลือ ' + remaining + '%' : 'น้ำหนักเต็ม 100% แล้ว';
 }
 
 function openEditModal(id, name, max, weight, order, isCheckbox) {
     document.getElementById('catModalTitle').innerHTML = '<i class="bi bi-pencil me-2"></i>แก้ไขหมวดคะแนน';
-    document.getElementById('catForm').action = '/scores/category/' + id;
+    
+    // เปลี่ยนมาใช้ url() ของ Laravel เพื่อให้ path ถูกต้องไม่ว่าจะรันในโฟลเดอร์ไหน
+    document.getElementById('catForm').action = '{{ url("scores/category") }}/' + id;
+    
     document.getElementById('catMethodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
     document.getElementById('catName').value = name;
     document.getElementById('catMax').value = max;
@@ -436,4 +424,16 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+    // ดับเบิลคลิกที่ช่องกรอกคะแนน เพื่อใส่คะแนนเต็มอัตโนมัติ (เสมือนการติ๊กว่าส่งงานแล้วได้เต็ม)
+    document.querySelectorAll('.score-input').forEach(input => {
+        input.addEventListener('dblclick', function() {
+            if(this.value === '') {
+                this.value = this.max; // ใส่คะแนนเต็ม
+            } else {
+                this.value = ''; // เคลียร์ค่าออก
+            }
+        });
+    });
+</script>
 @endsection

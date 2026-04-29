@@ -26,7 +26,6 @@
 }
 .cf-card-title { font-weight: 600; }
 
-/* Fields */
 .cf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 28px; }
 @media(max-width:700px){ .cf-grid { grid-template-columns: 1fr; } }
 
@@ -38,7 +37,6 @@
     outline: none; background: transparent; box-sizing: border-box;
 }
 .cf-field input:focus, .cf-field select:focus { border-bottom-color: #00bcd4; }
-.cf-field-full { grid-column: 1 / -1; }
 
 .cf-save-row { margin-top: 24px; display: flex; align-items: center; gap: 10px; }
 .btn-save {
@@ -57,7 +55,6 @@
 }
 .btn-back:hover { background: #3949ab; color: #fff; }
 
-/* Subject table */
 .cf-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .cf-table thead th {
     padding: 11px 14px; background: #43a047; color: #fff;
@@ -73,7 +70,6 @@
 .badge-opt  { display: inline-block; background: #fff3e0; color: #e65100; border-radius: 20px; padding: 2px 12px; font-size: 0.76rem; font-weight: 700; }
 .badge-sem  { display: inline-block; background: #e3f2fd; color: #1565c0; border-radius: 20px; padding: 2px 10px; font-size: 0.76rem; font-weight: 700; }
 
-/* Action dropdown */
 .cf-action-wrap { position: relative; display: inline-block; }
 .btn-action {
     background: #00bcd4; color: #fff; border: none; border-radius: 6px;
@@ -99,7 +95,6 @@
 
 .cf-empty { text-align: center; padding: 36px; color: #bbb; }
 
-/* Add subject button */
 .btn-add-subj {
     background: #43a047; color: #fff; border: none; border-radius: 6px;
     padding: 8px 18px; font-size: 0.82rem; font-weight: 600;
@@ -108,7 +103,6 @@
 }
 .btn-add-subj:hover { background: #2e7d32; }
 
-/* Modal */
 .cf-overlay {
     display: none; position: fixed; inset: 0;
     background: rgba(0,0,0,0.45); z-index: 500;
@@ -152,7 +146,6 @@
 @section('content')
 <div class="cf-page">
 
-    {{-- ===== Card 1: ข้อมูลหลักสูตร ===== --}}
     <div class="cf-card">
         <div class="cf-icon cf-icon-info"><i class="bi bi-search"></i></div>
         <div class="cf-card-header">
@@ -198,7 +191,6 @@
         </form>
     </div>
 
-    {{-- ===== Card 2: วิชาเรียน (เฉพาะตอนแก้ไข) ===== --}}
     @if(isset($curriculum))
     <div class="cf-card">
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
@@ -390,9 +382,17 @@ document.addEventListener('keydown', e => {
     }
 });
 
+<<<<<<< HEAD
+function openEditModal(csId, semType, isReq) {
+    // เปลี่ยนมาใช้ url() ของ Laravel
+    document.getElementById('editSubjForm').action = 
+        '{{ url("curriculums") }}/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
+        
+=======
 function openEditModal(csId, semType, isReq, personnelId) {
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
+>>>>>>> origin/claude/clarify-usage-wwKCQ
     document.getElementById('edit_semester_type').value = semType;
     document.getElementById('edit_is_required').value = isReq;
     document.getElementById('edit_personnel_id').value = personnelId || '';
