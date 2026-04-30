@@ -35,12 +35,38 @@ class GradeController extends Controller
         return view('academic.transcript', compact('student', 'grades', 'gpa', 'totalCredits'));
     }
 
-    // พิมพ์ใบ Transcript รายคน
+    // พิมพ์ใบ Transcript รายคน (ปพ.1)
     public function printTranscript($studentId)
     {
         $student = Student::findOrFail($studentId);
         [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
-        return view('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits'));
+
+        // สร้าง yearGroups สำหรับ view ปพ.1
+        $allGrades = FinalGrade::with(['teachingAssign.subject', 'teachingAssign.classSection.level', 'semester.academicYear'])
+            ->where('student_id', $studentId)
+            ->orderBy('semester_id')
+            ->get();
+
+        $yearGroups = [];
+        foreach ($allGrades as $g) {
+            $yearName  = $g->semester->academicYear->year_name ?? '';
+            $semName   = (string)($g->semester->semester_name ?? '1');
+            $levelName = $g->teachingAssign->classSection->level->name ?? '';
+            if (!isset($yearGroups[$yearName])) {
+                $yearGroups[$yearName] = ['year' => $yearName, 'level' => $levelName, 'semesters' => ['1' => [], '2' => []]];
+            }
+            $yearGroups[$yearName]['semesters'][$semName][] = $g;
+        }
+        ksort($yearGroups);
+
+        // ข้อมูลครอบครัว
+        $families = \App\Models\StudentFamily::where('student_id', $studentId)->get()->keyBy('guardian_type');
+        $father   = $families->get('บิดา');
+        $mother   = $families->get('มารดา');
+
+        $docNumber = null;
+
+        return view('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits', 'yearGroups', 'father', 'mother', 'docNumber'));
     }
 
     // หน้าแก้ไขเกรดรายคน
