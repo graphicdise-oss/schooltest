@@ -169,18 +169,16 @@ class ScoreController extends Controller
 
         foreach ($studentIds as $studentId) {
             $totalWeighted = 0;
-            $totalWeight = 0;
 
             foreach ($categories as $cat) {
                 $score = $cat->studentScores->where('student_id', $studentId)->first();
                 if ($score && $score->score !== null && $cat->max_score > 0) {
                     $pct = ($score->score / $cat->max_score) * 100;
                     $totalWeighted += $pct * ($cat->weight_pct / 100);
-                    $totalWeight += $cat->weight_pct;
                 }
             }
 
-            $finalScore = $totalWeight > 0 ? ($totalWeighted / $totalWeight) * 100 : 0;
+            $finalScore = $totalWeighted;
             $gradeInfo = FinalGrade::calculateGrade($finalScore);
 
             FinalGrade::updateOrCreate(
