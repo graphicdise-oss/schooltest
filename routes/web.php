@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Setting\PersonnelTypeController;
+use App\Http\Controllers\Setting\LeaveSettingController;
 use App\Http\Controllers\Student\StudentTypeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -256,5 +257,30 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
 
-    
+    // === ตั้งค่าการลา ===
+    Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->group(function () {
+        Route::get('/', 'index')->name('index');
+
+        // Section 1: ผู้อนุมัติ
+        Route::post('/general', 'saveGeneral')->name('saveGeneral');
+        Route::post('/dept', 'storeDept')->name('storeDept');
+        Route::put('/dept/{id}', 'updateDept')->name('updateDept');
+        Route::delete('/dept/{id}', 'destroyDept')->name('destroyDept');
+
+        // Section 2: โควตาวันลา
+        Route::post('/quota-group', 'storeQuotaGroup')->name('storeQuotaGroup');
+        Route::put('/quota-group/{id}/toggle', 'toggleQuotaGroup')->name('toggleQuotaGroup');
+        Route::delete('/quota-group/{id}', 'destroyQuotaGroup')->name('destroyQuotaGroup');
+        Route::put('/quota-group/{id}/quotas', 'updateQuotas')->name('updateQuotas');
+
+        // Section 3: วันตัดรอบ
+        Route::post('/cutoff', 'saveCutoff')->name('saveCutoff');
+
+        // Section 4: การแจ้งเตือน
+        Route::post('/notifications', 'saveNotifications')->name('saveNotifications');
+        Route::post('/recipient', 'storeRecipient')->name('storeRecipient');
+        Route::delete('/recipient/{id}', 'destroyRecipient')->name('destroyRecipient');
+    });
+
+
 });

@@ -5,13 +5,17 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void {
-        Schema::table('score_categories', function (Blueprint $table) {
-            $table->boolean('is_checkbox')->default(false)->after('sort_order');
-        });
+        if (Schema::hasTable('score_categories') && !Schema::hasColumn('score_categories', 'is_checkbox')) {
+            Schema::table('score_categories', function (Blueprint $table) {
+                $table->boolean('is_checkbox')->default(false)->after('sort_order');
+            });
+        }
     }
     public function down(): void {
-        Schema::table('score_categories', function (Blueprint $table) {
-            $table->dropColumn('is_checkbox');
-        });
+        if (Schema::hasTable('score_categories') && Schema::hasColumn('score_categories', 'is_checkbox')) {
+            Schema::table('score_categories', function (Blueprint $table) {
+                $table->dropColumn('is_checkbox');
+            });
+        }
     }
 };

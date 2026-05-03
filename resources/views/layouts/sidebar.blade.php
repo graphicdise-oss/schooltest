@@ -261,7 +261,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทการลา</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('leave-settings.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการลา</a>
                                         </li>
                                         <li><a href="#"
