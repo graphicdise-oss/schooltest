@@ -46,19 +46,26 @@ class ClassSectionController extends Controller
     }
 
     // หน้าจัดนักเรียนเข้าห้อง
-    public function manageStudents($id)
-    {
-        $section = ClassSection::with(['level', 'semester.academicYear', 'studentSections.student'])->findOrFail($id);
+  // หน้าจัดนักเรียนเข้าห้อง
+// หน้าจัดนักเรียนเข้าห้อง
+public function manageStudents($id)
+{
+    $section = ClassSection::with(['level', 'semester.academicYear', 'studentSections.student'])->findOrFail($id);
+    $semesterId = $section->semester_id;
 
-        // นักเรียนที่ยังไม่มีห้องในเทอมนี้
-        $assignedIds = StudentSection::where('section_id', $id)->pluck('student_id');
-        $availableStudents = Student::where('status', 'กำลังศึกษา')
-            ->whereNotIn('student_id', $assignedIds)
-            ->orderBy('thai_firstname')
-            ->get();
+    // นักเรียนที่มีห้องในเทอมนี้แล้ว (ทุกห้อง)
+    $alreadyAssignedIds = StudentSection::whereHas('classSection', function ($q) use ($semesterId) {
+        $q->where('semester_id', $semesterId);
+    })->pluck('student_id');
 
-        return view('academic.section_students', compact('section', 'availableStudents'));
-    }
+    // แสดงนักเรียนที่ยังไม่มีห้องในเทอมนี้
+    $availableStudents = Student::where('status', 'กำลังศึกษา')
+        ->whereNotIn('student_id', $alreadyAssignedIds)
+        ->orderBy('thai_firstname')
+        ->get();
+
+    return view('academic.section_students', compact('section', 'availableStudents'));
+}
 
     public function assignStudents(Request $request, $id)
     {
@@ -99,4 +106,63 @@ class ClassSectionController extends Controller
 
         return redirect()->back()->with('success', 'เรียงเลขที่นักเรียนใหม่สำเร็จ');
     }
+
+    public function copyToTerm2(Request $request)
+        {
+            $request->validate([
+                'from_semester_id' => 'required|exists:semesters,semester_id',
+            ]);
+
+            $fromSemester = Semester::with('academicYear')->findOrFail($request->from_semester_id);
+
+            // หาเทอม 2 ของปีเดียวกัน
+            $toSemester = Semester::where('year_id', $fromSemester->year_id)
+                ->where('semester_name', '2')
+                ->first();
+
+            // ถ้ายังไม่มีเทอม 2 ให้สร้างอัตโนมัติ
+            if (!$toSemester) {
+                $toSemester = Semester::create([
+                    'year_id'       => $fromSemester->year_id,
+                    'semester_name' => '2',
+                    'is_current'    => false,
+                ]);
+            }
+
+            $fromSections = ClassSection::with('studentSections')
+                ->where('semester_id', $fromSemester->semester_id)
+                ->get();
+
+            $count = 0;
+            foreach ($fromSections as $sec) {
+                $exists = ClassSection::where('semester_id', $toSemester->semester_id)
+                    ->where('level_id', $sec->level_id)
+                    ->where('section_number', $sec->section_number)
+                    ->exists();
+
+                if (!$exists) {
+                    $newSection = ClassSection::create([
+                        'semester_id'         => $toSemester->semester_id,
+                        'level_id'            => $sec->level_id,
+                        'section_number'      => $sec->section_number,
+                        'homeroom_teacher_id' => $sec->homeroom_teacher_id,
+                        'max_students'        => $sec->max_students,
+                        'curriculum_id'       => $sec->curriculum_id,
+                    ]);
+
+                    // ย้ายนักเรียนเข้าห้องใหม่
+                    foreach ($sec->studentSections->where('status', 'กำลังศึกษา') as $ss) {
+                        StudentSection::firstOrCreate(
+                            ['student_id' => $ss->student_id, 'section_id' => $newSection->section_id],
+                            ['student_number' => $ss->student_number, 'status' => 'กำลังศึกษา']
+                        );
+                    }
+                    $count++;
+                }
+            }
+
+            return redirect()->back()->with('success',
+                "เปิดภาคเรียนที่ 2 ปี {$fromSemester->academicYear->year_name} สำเร็จ สร้าง {$count} ห้องเรียน"
+            );
+        }
 }

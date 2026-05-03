@@ -191,9 +191,7 @@
                                         <li><a href="{{ route('student-types.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ประเภทนักเรียน</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ส่งข้อมูล
-                                                REGIS</a></li>
+                                   
                                         <li><a href="{{ route('promotions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
                                         </li>
@@ -418,14 +416,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div class="mb-4">
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบ REGIS (สช.)</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ส่งข้อมูลเกรด
-                                                REGIS</a></li>
-                                    </ul>
-                                </div>
+                              
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานวิชาการ</h4>
                                     <ul class="space-y-1 pl-2">
@@ -598,8 +589,8 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าประเภทการลา</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าการลา</a>
+                                       <li><a href="{{ route('leave-settings.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการลา</a>
                                         </li>
                                     </ul>
                                 </div>

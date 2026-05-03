@@ -21,7 +21,8 @@ use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\PorPor1Controller;
-
+use App\Http\Controllers\Academic\AcademicYearController;
+use App\Http\Controllers\Setting\LeaveSettingController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -167,6 +168,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/students', 'assignStudents')->name('assignStudents');
         Route::delete('/{id}/students/{ssId}', 'removeStudent')->name('removeStudent');
         Route::post('/{id}/students/renumber', 'renumberStudents')->name('renumberStudents');
+        Route::post('/copy-to-term2', 'copyToTerm2')->name('copy-term2');
     });
 
     // === 4. ตารางสอน ===
@@ -194,6 +196,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignId}/save', 'saveScores')->name('save');
         Route::post('/{assignId}/calculate', 'calculateGrades')->name('calculate');
         Route::post('/{assignId}/setup', 'setupCategories')->name('setup');
+        Route::get('/{assignId}/print', 'printScoreSheet')->name('print');
     });
 
     // === 6. ผลการเรียน / เกรด ===
@@ -230,19 +233,55 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
-Route::controller(StudentCardController::class)->prefix('student-cards')->name('student-cards.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('/print/{id}', 'printOne')->name('print-one');
-    Route::get('/print-all', 'printAll')->name('print-all');
-    Route::get('/print-selected', 'printSelected')->name('print-selected');
-});
+    Route::controller(StudentCardController::class)->prefix('student-cards')->name('student-cards.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/print/{id}', 'printOne')->name('print-one');
+        Route::get('/print-all', 'printAll')->name('print-all');
+        Route::get('/print-selected', 'printSelected')->name('print-selected');
+    });
 
-Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::get('/print/{studentId}', 'printOne')->name('print');
-    Route::post('/set-doc', 'setDocNumber')->name('setDoc');
-    Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
-});
+    Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/print/{studentId}', 'printOne')->name('print');
+        Route::post('/set-doc', 'setDocNumber')->name('setDoc');
+        Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
+    });
+
+    Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
+        Route::post('/', 'storeYear')->name('storeYear');
+        Route::put('/{id}/current', 'setYearCurrent')->name('setYearCurrent');
+        Route::delete('/{id}', 'destroyYear')->name('destroyYear');
+
+        Route::post('/semester', 'storeSemester')->name('storeSemester');
+        Route::put('/semester/{id}/current', 'setSemesterCurrent')->name('setSemesterCurrent');
+        Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
+    });
+    
+ // === ตั้งค่าการลา ===
+    Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->group(function () {
+        Route::get('/', 'index')->name('index');
+
+        // Section 1: ผู้อนุมัติ
+        Route::post('/general', 'saveGeneral')->name('saveGeneral');
+        Route::post('/dept', 'storeDept')->name('storeDept');
+        Route::put('/dept/{id}', 'updateDept')->name('updateDept');
+        Route::delete('/dept/{id}', 'destroyDept')->name('destroyDept');
+
+        // Section 2: โควตาวันลา
+        Route::post('/quota-group', 'storeQuotaGroup')->name('storeQuotaGroup');
+        Route::put('/quota-group/{id}/toggle', 'toggleQuotaGroup')->name('toggleQuotaGroup');
+        Route::delete('/quota-group/{id}', 'destroyQuotaGroup')->name('destroyQuotaGroup');
+        Route::put('/quota-group/{id}/quotas', 'updateQuotas')->name('updateQuotas');
+
+        // Section 3: วันตัดรอบ
+        Route::post('/cutoff', 'saveCutoff')->name('saveCutoff');
+
+        // Section 4: การแจ้งเตือน
+        Route::post('/notifications', 'saveNotifications')->name('saveNotifications');
+        Route::post('/recipient', 'storeRecipient')->name('storeRecipient');
+        Route::delete('/recipient/{id}', 'destroyRecipient')->name('destroyRecipient');
+    });
+
 
 // เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
     Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');
@@ -253,4 +292,7 @@ Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->grou
         $request->session()->regenerateToken();
         return redirect('/login');
     })->name('logout');
+
+   
 });
+

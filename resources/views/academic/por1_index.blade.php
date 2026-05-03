@@ -21,8 +21,14 @@
 .p1-card-title  { margin-left: 90px; font-size: 1.05rem; color: #555; margin-top: -8px; }
 
 .p1-search-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 14px 24px; margin-top: 20px; align-items: end;
+}
+.p1-search-row2 {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px 24px; margin-top: 14px; align-items: end;
 }
 .p1-field label { font-size: 0.82rem; font-weight: 600; color: #444; margin-bottom: 3px; display: block; }
 .p1-field select, .p1-field input[type=text] {
@@ -36,6 +42,7 @@
     padding: 9px 28px; font-size: 0.88rem; font-weight: 600;
     cursor: pointer; font-family: inherit; white-space: nowrap;
     display: inline-flex; align-items: center; gap: 6px;
+    height: 36px;
 }
 
 /* Table */
@@ -123,14 +130,33 @@
     <div class="p1-card">
         <div class="p1-icon p1-icon-search"><i class="bi bi-search"></i></div>
         <div class="p1-card-title">ค้นหานักเรียน</div>
-        <form method="GET" action="{{ route('por1.index') }}">
+        <form method="GET" action="{{ route('por1.index') }}" id="searchForm">
+            {{-- แถว 1: ปี | เทอม | ระดับ | ชั้นเรียน --}}
             <div class="p1-search-grid">
                 <div class="p1-field">
-                    <label>ปีการศึกษา / เทอม</label>
-                    <select name="semester_id" onchange="this.form.submit()">
-                        @foreach($semesters as $sem)
-                        <option value="{{ $sem->semester_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>
-                            {{ $sem->academicYear->year_name ?? '' }} เทอม {{ $sem->semester_name }}
+                    <label>ปีการศึกษา</label>
+                    <select name="year_id" onchange="this.form.submit()">
+                        @foreach($academicYears as $ay)
+                        <option value="{{ $ay->year_id }}" {{ $yearId == $ay->year_id ? 'selected' : '' }}>
+                            {{ $ay->year_name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="p1-field">
+                    <label>เทอม</label>
+                    <select name="term" onchange="this.form.submit()">
+                        <option value="1" {{ $term == '1' ? 'selected' : '' }}>เทอม 1</option>
+                        <option value="2" {{ $term == '2' ? 'selected' : '' }}>เทอม 2</option>
+                    </select>
+                </div>
+                <div class="p1-field">
+                    <label>ระดับชั้น</label>
+                    <select name="level_id" onchange="this.form.submit()">
+                        <option value="">-- ทุกระดับ --</option>
+                        @foreach($levels as $lv)
+                        <option value="{{ $lv->level_id }}" {{ $levelId == $lv->level_id ? 'selected' : '' }}>
+                            {{ $lv->name }}
                         </option>
                         @endforeach
                     </select>
@@ -138,14 +164,18 @@
                 <div class="p1-field">
                     <label>ชั้นเรียน</label>
                     <select name="section_id">
-                        <option value="">-- เลือกห้อง --</option>
+                        <option value="all" {{ $sectionId == 'all' ? 'selected' : '' }}>-- ทุกชั้นเรียน --</option>
                         @foreach($sections as $sec)
-                        <option value="{{ $sec->section_id }}" {{ $sectionId==$sec->section_id?'selected':'' }}>
+                        <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
                             {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
                         </option>
                         @endforeach
                     </select>
                 </div>
+            </div>
+
+            {{-- แถว 2: ค้นหาชื่อ + ปุ่ม --}}
+            <div class="p1-search-row2">
                 <div class="p1-field">
                     <label>ค้นหาชื่อ / รหัส</label>
                     <input type="text" name="search" placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..." value="{{ $search }}">
@@ -209,7 +239,7 @@
                     <td style="text-align:center">
                         <button class="btn-set-doc" onclick="openDocModal(
                             {{ $stu->student_id }},
-                            {{ $semesterId }},
+                            {{ $semesterId ?? 0 }},
                             {{ $currentSection->level_id ?? 0 }},
                             '{{ $currentSection->level->name ?? '' }}',
                             '{{ $doc->doc_set ?? '' }}',
@@ -217,10 +247,9 @@
                         )">
                             <i class="bi bi-pencil-square"></i> ตั้งเลขที่เอกสาร
                         </button>
-                    {{-- ใส่ไว้ในลูปที่สร้างตารางของเจ้า --}}
-<button type="button" class="btn-print-por1" onclick="openPrintModal({{ $stu->student_id }})">
-    <i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1
-</button>
+                        <button type="button" class="btn-print-por1" onclick="openPrintModal({{ $stu->student_id }})">
+                            <i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1
+                        </button>
                     </td>
                 </tr>
                 @endforeach
@@ -237,106 +266,69 @@
 </div>
 
 {{-- Modal: ตั้งเลขที่เอกสาร (รายคน) --}}
-{{-- Modal: เลือกการตั้งค่าก่อนพิมพ์ ปพ.1 --}}
-<div class="p1-modal-overlay" id="printSettingsModal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="p1-modal" style="width: 580px; max-width: 95vw;" onclick="event.stopPropagation()">
+<div class="p1-modal-overlay" id="docModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="p1-modal" onclick="event.stopPropagation()">
+        <h3><i class="bi bi-pencil-square"></i> ตั้งเลขที่เอกสาร</h3>
+        <form method="POST" action="{{ route('por1.setDoc') }}">
+            @csrf
+            <input type="hidden" name="student_id"  id="doc_student_id">
+            <input type="hidden" name="semester_id" id="doc_semester_id">
+            <input type="hidden" name="level_id"    id="doc_level_id">
+            <div class="p1-modal-field">
+                <label>ระดับชั้น</label>
+                <input type="text" id="doc_level_name" disabled style="background:#f5f5f5">
+            </div>
+            <div class="p1-modal-field">
+                <label>ชุดที่</label>
+                <input type="text" name="doc_set" id="doc_set_input" placeholder="เช่น 00008" maxlength="20">
+            </div>
+            <div class="p1-modal-field">
+                <label>เลขที่</label>
+                <input type="text" name="doc_number" id="doc_number_input" placeholder="เช่น 00001" maxlength="20">
+            </div>
+            <div class="p1-modal-actions">
+                <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> บันทึก</button>
+                <button type="button" class="btn-cancel" onclick="closeDocModal()">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal: ตั้งค่าก่อนพิมพ์ ปพ.1 --}}
+<div class="p1-modal-overlay" id="printSettingsModal"
+     onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="p1-modal" style="width:580px;max-width:95vw;" onclick="event.stopPropagation()">
         <h3><i class="bi bi-printer"></i> ตั้งค่าการพิมพ์ ปพ.1</h3>
-        
         <form id="printForm" action="" method="GET" target="_blank">
-            
-            <div style="display:flex; gap:30px; margin-bottom: 20px;">
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="show_original" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
+            <input type="hidden" name="filter_active" value="1">
+            <div style="display:flex;gap:30px;margin-bottom:20px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal;">
+                    <input type="checkbox" name="show_original" value="1" style="width:auto;margin:0;accent-color:#00bcd4;">
                     แสดงเอกสารฉบับจริง
                 </label>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="hide_profile" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal;">
+                    <input type="checkbox" name="hide_profile" value="1" style="width:auto;margin:0;accent-color:#00bcd4;">
                     ซ่อนรูปโปรไฟล์
                 </label>
             </div>
-
-            <hr style="border-top:1px solid #eee; margin:20px 0;">
-            <div style="text-align:center; margin-bottom:20px; font-weight:bold; color:#555; font-size:16px;">
-                แสดงเกรดตามเทอม
-            </div>
-
-            {{-- ไม่แสดงสรุปผลการประเมิน --}}
-            <div style="margin-bottom: 16px;">
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="hide_summary" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
+            <hr style="border-top:1px solid #eee;margin:16px 0;">
+            <div style="margin-bottom:14px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal;">
+                    <input type="checkbox" name="hide_summary" value="1" style="width:auto;margin:0;accent-color:#00bcd4;">
                     ไม่แสดงสรุปผลการประเมิน
                 </label>
             </div>
-
-            {{-- ชั้น ม.4 --}}
-            <div style="display:flex; align-items:center; margin-bottom: 12px;">
-                <span style="width:80px; font-weight:bold; color:#555;">ชั้น : ม.4</span>
-                <div style="display:flex; gap:20px; flex:1;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2566/1" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2566 / เทอม 1
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2566/2" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2566 / เทอม 2
-                    </label>
-                </div>
+            <div style="text-align:center;margin-bottom:16px;font-weight:bold;color:#555;font-size:15px;">
+                แสดงเกรดตามเทอม
             </div>
-
-            {{-- ชั้น ม.5 --}}
-            <div style="display:flex; align-items:center; margin-bottom: 12px;">
-                <span style="width:80px; font-weight:bold; color:#555;">ชั้น : ม.5</span>
-                <div style="display:flex; gap:20px; flex:1;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2567/1" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2567 / เทอม 1
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2567/2" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2567 / เทอม 2
-                    </label>
-                </div>
-            </div>
-
-            {{-- ชั้น ม.6 --}}
-            <div style="display:flex; align-items:center; margin-bottom: 20px;">
-                <span style="width:80px; font-weight:bold; color:#555;">ชั้น : ม.6</span>
-                <div style="display:flex; gap:20px; flex:1;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2568/1" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2568 / เทอม 1
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2568/2" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2568 / เทอม 2
-                    </label>
-                </div>
-            </div>
-
-            <hr style="border-top:1px solid #eee; margin:20px 0;">
-
-            {{-- หมายเหตุ --}}
-            <div style="display:flex; flex-direction:column; gap:10px;">
-                <span style="font-weight:bold; color:#555;">หมายเหตุ</span>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="hide_last_semester" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
-                    ไม่คำนวณ/ไม่แสดงเกรดภาคเรียนสุดท้าย
-                </label>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="show_all_subjects" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
-                    แสดงรายวิชาทั้งหมดจากแผน
-                </label>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="english_report" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
-                    รายงานเป็นภาษาอังกฤษ
-                </label>
-            </div>
-
-            <div class="p1-modal-actions" style="margin-top: 30px;">
-                <button type="submit" class="btn-save" style="background:#4caf50;" onclick="document.getElementById('printSettingsModal').classList.remove('open')">
+            <div id="semesterCheckboxes" style="margin-bottom:8px;"></div>
+            <hr style="border-top:1px solid #eee;margin:16px 0;">
+            <div class="p1-modal-actions" style="margin-top:20px;">
+                <button type="submit" class="btn-save">
                     <i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1
                 </button>
-                <button type="button" class="btn-cancel" style="background:#ff5252;" onclick="document.getElementById('printSettingsModal').classList.remove('open')">
+                <button type="button" class="btn-cancel"
+                    onclick="document.getElementById('printSettingsModal').classList.remove('open')">
                     ยกเลิก
                 </button>
             </div>
@@ -345,14 +337,13 @@
 </div>
 
 {{-- Modal: นำชั้นเลขที่เอกสาร (ทั้งห้อง) --}}
-<div class="p1-modal-overlay" id="bulkModal">
+<div class="p1-modal-overlay" id="bulkModal" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="p1-modal">
         <h3><i class="bi bi-layers"></i> ตั้งเลขชุดทั้งห้อง</h3>
         <form method="POST" action="{{ route('por1.bulkSet') }}">
             @csrf
             <input type="hidden" name="section_id" value="{{ $sectionId }}">
             <input type="hidden" name="semester_id" value="{{ $semesterId }}">
-
             <div class="p1-modal-field">
                 <label>ชุดที่ (ใช้กับทุกคนในห้อง)</label>
                 <input type="text" name="doc_set" placeholder="เช่น 00008" maxlength="20" required>
@@ -369,12 +360,48 @@
 </div>
 
 <script>
+const studentSemesters = @json($studentSemesters);
+
+function openPrintModal(studentId) {
+    const data = studentSemesters[studentId] || { levels: {}, currentLevelOrder: 0 };
+    let html = '';
+
+    for (const [levelName, lvl] of Object.entries(data.levels)) {
+        const locked = lvl.sort_order > data.currentLevelOrder;
+        const opacity = locked ? '0.4' : '1';
+        const cursor  = locked ? 'not-allowed' : 'pointer';
+
+        html += `<div style="display:flex;align-items:flex-start;margin-bottom:12px;">`;
+        html += `<span style="width:80px;font-weight:bold;color:#555;padding-top:2px;flex-shrink:0;">ชั้น : ${levelName}</span>`;
+        html += `<div style="display:flex;gap:16px;flex-wrap:wrap;flex:1;">`;
+
+        for (const sem of Object.values(lvl.semesters)) {
+            html += `<label style="display:flex;align-items:center;gap:8px;cursor:${cursor};font-weight:normal;opacity:${opacity};">
+                <input type="checkbox" name="semesters[]" value="${sem.key}"
+                    ${locked ? 'disabled' : 'checked'}
+                    style="width:auto;margin:0;accent-color:#00bcd4;">
+                ปีการศึกษา ${sem.year} / เทอม ${sem.term}
+            </label>`;
+        }
+
+        html += `</div></div>`;
+    }
+
+    if (!html) {
+        html = '<div style="color:#aaa;text-align:center;padding:12px 0;font-size:0.9rem;">ไม่พบข้อมูลการลงทะเบียนเรียน</div>';
+    }
+
+    document.getElementById('semesterCheckboxes').innerHTML = html;
+    document.getElementById('printForm').action = "{{ url('por1/print') }}/" + studentId;
+    document.getElementById('printSettingsModal').classList.add('open');
+}
+
 function openDocModal(studentId, semesterId, levelId, levelName, docSet, docNumber) {
-    document.getElementById('doc_student_id').value  = studentId;
-    document.getElementById('doc_semester_id').value = semesterId;
-    document.getElementById('doc_level_id').value    = levelId;
-    document.getElementById('doc_level_name').value  = levelName;
-    document.getElementById('doc_set_input').value   = docSet;
+    document.getElementById('doc_student_id').value   = studentId;
+    document.getElementById('doc_semester_id').value  = semesterId;
+    document.getElementById('doc_level_id').value     = levelId;
+    document.getElementById('doc_level_name').value   = levelName;
+    document.getElementById('doc_set_input').value    = docSet;
     document.getElementById('doc_number_input').value = docNumber;
     document.getElementById('docModal').classList.add('open');
 }
@@ -382,114 +409,5 @@ function closeDocModal() { document.getElementById('docModal').classList.remove(
 
 function openBulkModal() { document.getElementById('bulkModal').classList.add('open'); }
 function closeBulkModal() { document.getElementById('bulkModal').classList.remove('open'); }
-
-document.querySelectorAll('.p1-modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e) {
-        if (e.target === this) this.classList.remove('open');
-    });
-});
-</script>
-
-<script>
-function openPrintModal(studentId) {
-    // 1. ปรับ baseUrl ให้เป็น /por1/print ตามลิงก์เก่าของเจ้า
-    let baseUrl = "{{ url('por1/print') }}"; 
-    
-    // 2. กำหนด action ให้เป็น /por1/print/{id}
-    document.getElementById('printForm').action = baseUrl + '/' + studentId;
-
-    // 3. เปิดป๊อปอัป
-    document.getElementById('printSettingsModal').classList.add('open');
-}
-</script>
-
-{{-- Modal: เลือกการตั้งค่าก่อนพิมพ์ ปพ.1 --}}
-<div class="p1-modal-overlay" id="printSettingsModal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="p1-modal" style="width: 580px; max-width: 95vw;" onclick="event.stopPropagation()">
-        <h3><i class="bi bi-printer"></i> ตั้งค่าการพิมพ์ ปพ.1</h3>
-        
-        <form id="printForm" action="" method="GET" target="_blank">
-            <input type="hidden" name="filter_active" value="1">
-            
-            <div style="display:flex; gap:30px; margin-bottom: 20px;">
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="show_original" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
-                    แสดงเอกสารฉบับจริง
-                </label>
-                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                    <input type="checkbox" name="hide_profile" value="1" style="width:auto; margin:0; accent-color:#00bcd4;">
-                    ซ่อนรูปโปรไฟล์
-                </label>
-            </div>
-
-            <hr style="border-top:1px solid #eee; margin:20px 0;">
-            <div style="text-align:center; margin-bottom:20px; font-weight:bold; color:#555; font-size:16px;">
-                แสดงเกรดตามเทอม
-            </div>
-
-            {{-- ชั้น ม.4 --}}
-            <div style="display:flex; align-items:center; margin-bottom: 12px;">
-                <span style="width:80px; font-weight:bold; color:#555;">ชั้น : ม.4</span>
-                <div style="display:flex; gap:20px; flex:1;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2566/1" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2566 / เทอม 1
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2566/2" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2566 / เทอม 2
-                    </label>
-                </div>
-            </div>
-
-            {{-- ชั้น ม.5 --}}
-            <div style="display:flex; align-items:center; margin-bottom: 12px;">
-                <span style="width:80px; font-weight:bold; color:#555;">ชั้น : ม.5</span>
-                <div style="display:flex; gap:20px; flex:1;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2567/1" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2567 / เทอม 1
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2567/2" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2567 / เทอม 2
-                    </label>
-                </div>
-            </div>
-
-            {{-- ชั้น ม.6 --}}
-            <div style="display:flex; align-items:center; margin-bottom: 20px;">
-                <span style="width:80px; font-weight:bold; color:#555;">ชั้น : ม.6</span>
-                <div style="display:flex; gap:20px; flex:1;">
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2568/1" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2568 / เทอม 1
-                    </label>
-                    <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:normal;">
-                        <input type="checkbox" name="semesters[]" value="2568/2" checked style="width:auto; margin:0; accent-color:#00bcd4;">
-                        ปีการศึกษา 2568 / เทอม 2
-                    </label>
-                </div>
-            </div>
-
-            <div class="p1-modal-actions" style="margin-top: 30px;">
-                <button type="submit" class="btn-save" style="background:#4caf50;" onclick="document.getElementById('printSettingsModal').classList.remove('open')">
-                    <i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1
-                </button>
-                <button type="button" class="btn-cancel" style="background:#ff5252;" onclick="document.getElementById('printSettingsModal').classList.remove('open')">
-                    ยกเลิก
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<script>
-function openPrintModal(studentId) {
-    // กำหนดเส้นทางให้ชี้ไปที่ Route ปพ.1 ที่เพิ่งสร้างใหม่
-    let baseUrl = "{{ url('por1/print') }}"; 
-    document.getElementById('printForm').action = baseUrl + '/' + studentId;
-    document.getElementById('printSettingsModal').classList.add('open');
-}
 </script>
 @endsection
