@@ -21,6 +21,8 @@ use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\AcademicYearController;
+use App\Http\Controllers\Leave\LeavePersonnelController;
+use App\Http\Controllers\Leave\LeaveRequestController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -256,5 +258,20 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
 
-    
+    // === ข้อมูลการลา ===
+    Route::prefix('leave')->name('leave.')->group(function () {
+        // สรุปการลารายบุคลากร
+        Route::get('/personnel', [LeavePersonnelController::class, 'index'])->name('personnel.index');
+        Route::get('/personnel/{personnelId}', [LeavePersonnelController::class, 'show'])->name('personnel.show');
+
+        // รายการลา (CRUD)
+        Route::get('/requests/create', [LeaveRequestController::class, 'create'])->name('requests.create');
+        Route::post('/requests', [LeaveRequestController::class, 'store'])->name('requests.store');
+        Route::get('/requests/{id}', [LeaveRequestController::class, 'show'])->name('requests.show');
+        Route::get('/requests/{id}/print', [LeaveRequestController::class, 'print'])->name('requests.print');
+        Route::patch('/requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('requests.updateStatus');
+        Route::delete('/requests/{id}', [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
+    });
+
+
 });
