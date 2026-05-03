@@ -21,6 +21,7 @@ use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\AcademicYearController;
+use App\Http\Controllers\Leave\LeavePersonnelController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -236,6 +237,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{id}', 'printOne')->name('print-one');
         Route::get('/print-all', 'printAll')->name('print-all');
         Route::get('/print-selected', 'printSelected')->name('print-selected');
+    });
+
+    // === ข้อมูลการลาของบุคลากร ===
+    Route::controller(LeavePersonnelController::class)->prefix('leave/personnel')->name('leave.personnel.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/{personnelId}', 'show')->name('show');
     });
 
     // Logout
