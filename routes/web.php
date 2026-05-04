@@ -23,6 +23,7 @@ use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\AcademicYearController;
 use App\Http\Controllers\Leave\LeavePersonnelController;
 use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Student\StudentStatController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -224,6 +225,8 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
+
+    Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
 
     Route::controller(PositionController::class)->prefix('positions')->name('positions.')->group(function () {
         Route::get('/', 'index')->name('index');
