@@ -23,6 +23,10 @@ use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\PorPor1Controller;
 use App\Http\Controllers\Academic\AcademicYearController;
 use App\Http\Controllers\Setting\LeaveSettingController;
+use App\Http\Controllers\Leave\LeavePersonnelController;
+use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Setting\DepartmentController;
+
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -224,6 +228,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
+    // ในกลุ่ม auth ที่มีอยู่แล้ว
+    Route::get('/student-alumni/import',  [StudentAlumniController::class, 'importIndex'])->name('student-alumni.import');
+    Route::post('/student-alumni/import', [StudentAlumniController::class, 'importStore'])->name('student-alumni.import.store');
 
     Route::controller(PositionController::class)->prefix('positions')->name('positions.')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -282,6 +289,28 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/recipient/{id}', 'destroyRecipient')->name('destroyRecipient');
     });
 
+    // === ข้อมูลการลา ===
+  Route::prefix('leave')->name('leave.')->group(function () {
+    Route::get('/personnel',              [LeavePersonnelController::class, 'index'])->name('personnel.index');
+    Route::get('/personnel/{personnelId}',[LeavePersonnelController::class, 'show'])->name('personnel.show');
+
+    // ⚠️ create ต้องอยู่ก่อน {id} เสมอ
+    Route::get('/requests/create',        [LeaveRequestController::class, 'create'])->name('requests.create');
+    Route::post('/requests',              [LeaveRequestController::class, 'store'])->name('requests.store');
+
+    Route::get('/requests/{id}',          [LeaveRequestController::class, 'show'])->name('requests.show');
+    Route::get('/requests/{id}/print',    [LeaveRequestController::class, 'print'])->name('requests.print');
+    Route::patch('/requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('requests.updateStatus');
+    Route::delete('/requests/{id}',       [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
+});
+
+// ใน group middleware auth
+Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+    Route::get('/',        'index')->name('index');
+    Route::post('/',       'store')->name('store');
+    Route::put('/{id}',    'update')->name('update');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+});
 
 // เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
     Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');
