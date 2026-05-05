@@ -191,33 +191,31 @@
                                         <li><a href="{{ route('student-types.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ประเภทนักเรียน</a>
                                         </li>
-                                   
+
                                         <li><a href="{{ route('promotions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
                                         </li>
                                         <a href="{{ route('student-alumni.index') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('student-alumni.import') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">นำเข้าข้อมูลศิษย์เก่า</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">อนุมัติการกรอกข้อมูลของนักเรียน</a>
-                                        </li>
+                                      
                                     </ul>
                                 </div>
                                 <div class="mb-5">
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงานนักเรียน</h4>
                                     <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
+                                        <li><a href="{{ route('class-roster.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายชื่อนักเรียน</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('student-stat.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานสถิตินักเรียน</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('student-alumni.withdrawal') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานลาออก</a>
-                                        </li>
+                                        </li>   
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานชื่อนักเรียนใหม่</a>
                                         </li>
@@ -259,7 +257,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทการลา</a>
                                         </li>
-                                         <li><a href="{{ route('leave-settings.index') }}"
+                                        <li><a href="{{ route('leave-settings.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการลา</a>
                                         </li>
                                         <li><a href="{{ route('leave.personnel.index') }}"
@@ -416,7 +414,7 @@
                                         </li>
                                     </ul>
                                 </div>
-                              
+
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานวิชาการ</h4>
                                     <ul class="space-y-1 pl-2">
@@ -589,7 +587,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าประเภทการลา</a>
                                         </li>
-                                       <li><a href="{{ route('leave-settings.index') }}"
+                                        <li><a href="{{ route('leave-settings.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการลา</a>
                                         </li>
                                     </ul>

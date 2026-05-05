@@ -26,7 +26,10 @@ use App\Http\Controllers\Setting\LeaveSettingController;
 use App\Http\Controllers\Leave\LeavePersonnelController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Setting\DepartmentController;
-
+use App\Http\Controllers\Student\ClassRosterController;
+use App\Http\Controllers\Student\StudentStatController;
+use App\Models\Academic\AcademicYear;
+use App\Models\Academic\Semester;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -228,8 +231,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
+    Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
     // ในกลุ่ม auth ที่มีอยู่แล้ว
-    Route::get('/student-alumni/import',  [StudentAlumniController::class, 'importIndex'])->name('student-alumni.import');
+    Route::get('/student-alumni/import', [StudentAlumniController::class, 'importIndex'])->name('student-alumni.import');
     Route::post('/student-alumni/import', [StudentAlumniController::class, 'importStore'])->name('student-alumni.import.store');
 
     Route::controller(PositionController::class)->prefix('positions')->name('positions.')->group(function () {
@@ -263,8 +267,8 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/semester/{id}/current', 'setSemesterCurrent')->name('setSemesterCurrent');
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
-    
- // === ตั้งค่าการลา ===
+
+    // === ตั้งค่าการลา ===
     Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->group(function () {
         Route::get('/', 'index')->name('index');
 
@@ -289,30 +293,40 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/recipient/{id}', 'destroyRecipient')->name('destroyRecipient');
     });
 
+
+    // ใน group middleware auth
+    Route::get('/class-roster', [ClassRosterController::class, 'index'])->name('class-roster.index');
+
     // === ข้อมูลการลา ===
-  Route::prefix('leave')->name('leave.')->group(function () {
-    Route::get('/personnel',              [LeavePersonnelController::class, 'index'])->name('personnel.index');
-    Route::get('/personnel/{personnelId}',[LeavePersonnelController::class, 'show'])->name('personnel.show');
+    Route::prefix('leave')->name('leave.')->group(function () {
+        Route::get('/personnel', [LeavePersonnelController::class, 'index'])->name('personnel.index');
+        Route::get('/personnel/{personnelId}', [LeavePersonnelController::class, 'show'])->name('personnel.show');
 
-    // ⚠️ create ต้องอยู่ก่อน {id} เสมอ
-    Route::get('/requests/create',        [LeaveRequestController::class, 'create'])->name('requests.create');
-    Route::post('/requests',              [LeaveRequestController::class, 'store'])->name('requests.store');
+        // ⚠️ create ต้องอยู่ก่อน {id} เสมอ
+        Route::get('/requests/create', [LeaveRequestController::class, 'create'])->name('requests.create');
+        Route::post('/requests', [LeaveRequestController::class, 'store'])->name('requests.store');
 
-    Route::get('/requests/{id}',          [LeaveRequestController::class, 'show'])->name('requests.show');
-    Route::get('/requests/{id}/print',    [LeaveRequestController::class, 'print'])->name('requests.print');
-    Route::patch('/requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('requests.updateStatus');
-    Route::delete('/requests/{id}',       [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
-});
+        Route::get('/requests/{id}', [LeaveRequestController::class, 'show'])->name('requests.show');
+        Route::get('/requests/{id}/print', [LeaveRequestController::class, 'print'])->name('requests.print');
+        Route::patch('/requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('requests.updateStatus');
+        Route::delete('/requests/{id}', [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
+    });
 
-// ใน group middleware auth
-Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
-    Route::get('/',        'index')->name('index');
-    Route::post('/',       'store')->name('store');
-    Route::put('/{id}',    'update')->name('update');
-    Route::delete('/{id}', 'destroy')->name('destroy');
-});
+    // ใน group middleware auth
+    Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
 
-// เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
+Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
+
+
+    Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
+
+
+    // เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
     Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');
     // Logout
     Route::post('/logout', function (Request $request) {
@@ -322,6 +336,6 @@ Route::controller(DepartmentController::class)->prefix('departments')->name('dep
         return redirect('/login');
     })->name('logout');
 
-   
+
 });
 

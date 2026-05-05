@@ -255,26 +255,40 @@ class PersonnelController extends Controller
     // เปลี่ยนจาก
 
     // เป็น
-  public function index(Request $request)
-{
-    $query = \App\Models\Personne\Personnel::orderBy('personnel_id', 'desc');
+    public function index(Request $request)
+    {
+        $query = \App\Models\Personne\Personnel::orderBy('personnel_id', 'desc');
 
-    if ($request->filled('type')) {
-        $query->where('personnel_type', $request->type);
+        if ($request->filled('type')) {
+            $query->where('personnel_type', $request->type);
+        }
+
+        if ($request->filled('department')) {
+            $query->where('department', $request->department);
+        }
+
+        if ($request->filled('search')) {
+            $s = $request->search;
+            $query->where(
+                fn($q) =>
+                $q->where('thai_firstname', 'like', "%$s%")
+                    ->orWhere('thai_lastname', 'like', "%$s%")
+                    ->orWhere('employee_code', 'like', "%$s%")
+            );
+        }
+
+        $departments = \App\Models\Personne\Personnel::whereNotNull('department')
+            ->where('department', '!=', '')
+            ->distinct()
+            ->pluck('department')
+            ->sort()
+            ->values();
+
+        $personnels = $query->paginate(20);
+        return view('personnel.index', compact('personnels', 'departments'));
+
+
     }
-
-    if ($request->filled('search')) {
-        $s = $request->search;
-        $query->where(fn($q) =>
-            $q->where('thai_firstname', 'like', "%$s%")
-              ->orWhere('thai_lastname', 'like', "%$s%")
-              ->orWhere('employee_code', 'like', "%$s%")
-        );
-    }
-
-    $personnels = $query->paginate(20);
-    return view('personnel.index', compact('personnels'));
-}
 
 
     // เพิ่มตรงท้ายก่อนปิด class

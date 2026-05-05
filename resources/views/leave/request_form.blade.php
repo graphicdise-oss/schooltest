@@ -171,15 +171,14 @@
         {{-- ประเภทการลา --}}
         <div class="lf-section">ประเภทการลา</div>
             <div class="leave-type-tabs">
-                    @foreach ($leaveTypes as $index => $lt)
-                        <div class="leave-type-tab">
-                            <input type="radio" name="leave_type_key" id="lt_{{ $lt->leave_type_key }}"
-                                value="{{ $lt->leave_type_key }}"
-                                {{ old('leave_type_key') === $lt->leave_type_key ? 'checked' : '' }}
-                                {{ $index === 0 ? 'required' : '' }}>
-                            <label for="lt_{{ $lt->leave_type_key }}">{{ $lt->leave_type_name }}</label>
-                        </div>
-                    @endforeach
+             @foreach ($leaveTypes as $index => $lt)
+                <div class="leave-type-tab">
+                    <input type="radio" name="leave_type_key" id="lt_{{ $lt->leave_type_key }}"
+                        value="{{ $lt->leave_type_key }}"
+                        {{ old('leave_type_key') === $lt->leave_type_key ? 'checked' : '' }}>
+                    <label for="lt_{{ $lt->leave_type_key }}">{{ $lt->leave_type_name }}</label>
+                </div>
+            @endforeach
             </div>
                 @error('leave_type_key')
                     <div style="color:#dc2626; font-size:0.82rem; margin-top:4px;"><i class="fas fa-exclamation-circle"></i> {{ $message }}</div>
@@ -254,33 +253,43 @@
 
 @push('scripts')
 <script>
-    // แสดงตำแหน่งอัตโนมัติเมื่อเลือกบุคลากร
     function fillPosition(sel) {
         const opt = sel.options[sel.selectedIndex];
         document.getElementById('position_display').value = opt.dataset.position || '';
     }
 
-    // คำนวณวันลาอัตโนมัติ
     function calcDays() {
         const start  = document.getElementById('start_date').value;
         const end    = document.getElementById('end_date').value;
         const period = document.querySelector('input[name=leave_period]:checked')?.value || 'ทั้งวัน';
-
         if (!start || !end) return;
-
         const s = new Date(start), e = new Date(end);
         if (e < s) { document.getElementById('num_days').value = 0; return; }
-
         let days = Math.round((e - s) / 86400000) + 1;
         if (period !== 'ทั้งวัน') days = days === 1 ? 0.5 : days - 0.5;
-
         document.getElementById('num_days').value = days;
     }
 
-    // init ตำแหน่งถ้ามีค่าเดิม
     window.addEventListener('DOMContentLoaded', () => {
         const sel = document.getElementById('requester_id');
         if (sel && sel.value) fillPosition(sel);
+    });
+
+    {{-- ⬇️ เพิ่มตรงนี้ --}}
+    document.getElementById('leaveForm').addEventListener('submit', function(e) {
+        const selected = document.querySelector('input[name=leave_type_key]:checked');
+        if (!selected) {
+            e.preventDefault();
+            let err = document.getElementById('leave_type_error');
+            if (!err) {
+                err = document.createElement('div');
+                err.id = 'leave_type_error';
+                err.style = 'color:#dc2626; font-size:0.85rem; margin-top:6px;';
+                err.innerHTML = '<i class="fas fa-exclamation-circle"></i> กรุณาเลือกประเภทการลา';
+                document.querySelector('.leave-type-tabs').after(err);
+            }
+            document.querySelector('.leave-type-tabs').scrollIntoView({ behavior: 'smooth' });
+        }
     });
 </script>
 @endpush
