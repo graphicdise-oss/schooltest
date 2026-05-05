@@ -225,6 +225,7 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
+    Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
 
