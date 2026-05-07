@@ -30,11 +30,10 @@
 
         .page {
             width: 21cm;
-            height: 14.5cm;
-            margin: 0.8cm auto;
+            height: 29.7cm;
+            margin: 0 auto;
             background: white;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
-            position: relative;
             display: table;
         }
         .page-inner {
@@ -108,13 +107,12 @@
                 border: none;
                 box-shadow: none;
                 width: 21cm;
-                height: 14.5cm;
+                height: 29.7cm;
                 display: table;
             }
             @page {
-                size: 21cm 14.5cm;
+                size: A4 portrait;
                 margin: 0;
-                padding: 0;
             }
             .no-print-me { display: none !important; }
         }
