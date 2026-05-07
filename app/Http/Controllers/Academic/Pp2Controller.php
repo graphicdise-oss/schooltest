@@ -7,13 +7,13 @@ use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\Level;
 use App\Models\Academic\Pp2Document;
+use App\Models\Academic\Pp2Setting;
 use App\Models\Academic\Semester;
 use App\Models\Academic\StudentSection;
 use Illuminate\Http\Request;
 
 class Pp2Controller extends Controller
 {
-    // ระดับที่ออก ป.พ.2 ได้
     private $graduatingLevels = ['ป.6', 'ม.3', 'ม.6'];
 
     public function index(Request $request)
@@ -40,7 +40,6 @@ class Pp2Controller extends Controller
             $semesterId = $defaultSem?->semester_id;
         }
 
-        // เฉพาะระดับ ป.6 ม.3 ม.6
         $levels = Level::whereIn('name', $this->graduatingLevels)
             ->orderBy('sort_order')->get();
 
@@ -68,7 +67,6 @@ class Pp2Controller extends Controller
 
             $students = $query->orderBy('student_number')->get();
 
-            // โหลด pp2 documents
             $studentIds = $students->pluck('student_id');
             $docs = Pp2Document::whereIn('student_id', $studentIds)
                 ->where('section_id', $sectionId)
@@ -77,11 +75,32 @@ class Pp2Controller extends Controller
             $docs = collect();
         }
 
+        $setting = Pp2Setting::getInstance();
+
         return view('academic.pp2_index', compact(
             'academicYears', 'semesters', 'levels', 'sections',
             'yearId', 'semesterId', 'levelId', 'sectionId', 'search',
-            'students', 'docs'
+            'students', 'docs', 'setting'
         ));
+    }
+
+    public function saveSetting(Request $request)
+    {
+        $request->validate([
+            'school_name'   => 'nullable|string|max:255',
+            'province'      => 'nullable|string|max:100',
+            'affiliation'   => 'nullable|string|max:255',
+            'director_name' => 'nullable|string|max:100',
+        ]);
+
+        $setting = Pp2Setting::first();
+        if ($setting) {
+            $setting->update($request->only(['school_name', 'province', 'affiliation', 'director_name']));
+        } else {
+            Pp2Setting::create($request->only(['school_name', 'province', 'affiliation', 'director_name']));
+        }
+
+        return back()->with('success', 'บันทึกการตั้งค่าสำเร็จ');
     }
 
     public function setDocNumber(Request $request)
@@ -110,6 +129,8 @@ class Pp2Controller extends Controller
         $doc = Pp2Document::where('student_id', $studentId)
             ->where('section_id', $sectionId)->first();
 
-        return view('academic.pp2_print', compact('studentSection', 'doc'));
+        $setting = Pp2Setting::getInstance();
+
+        return view('academic.pp2_print', compact('studentSection', 'doc', 'setting'));
     }
 }

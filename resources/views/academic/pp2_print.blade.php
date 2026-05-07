@@ -189,6 +189,11 @@
         }
 
         $fullName = ($student?->thai_prefix ?? '') . ($student?->thai_firstname ?? '') . ' ' . ($student?->thai_lastname ?? '');
+
+        $schoolName   = $setting->school_name   ?? 'โรงเรียนสาธิตมหาวิทยาลัยราชภัฏวไลยอลงกรณ์ ในพระบรมราชูปถัมภ์';
+        $province     = $setting->province       ?? 'ปทุมธานี';
+        $affiliation  = $setting->affiliation    ?? 'สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม';
+        $directorName = $setting->director_name  ?? 'นางสาววรานิษฐ์ ธนชัยวรพันธ์';
     @endphp
 
     <div class="no-print-me" style="position:fixed;top:10%;right:10px;">
@@ -265,7 +270,7 @@
                 <div class="col-12 text-center" style="height:26pt;">
                     <span class="font-tfarluck font-size-24em spn-label">จาก</span>
                     <p style="display:inline-block; margin:-2pt 8pt 2pt -1pt; width:70%; height:25pt; vertical-align:top;">
-                        <span class="font-tfarluck-data font-size-20em-data input-data" style="width:100%;height:100%;text-align:center;">โรงเรียนสาธิตมหาวิทยาลัยราชภัฏวไลยอลงกรณ์ ในพระบรมราชูปถัมภ์</span>
+                        <span class="font-tfarluck-data font-size-20em-data input-data" style="width:100%;height:100%;text-align:center;">{{ $schoolName }}</span>
                     </p>
                 </div>
             </div>
@@ -274,11 +279,11 @@
                 <div class="col-12 text-center" style="height:26pt;">
                     <span class="font-tfarluck font-size-24em spn-label">จังหวัด</span>
                     <p style="display:inline-block; margin:0; width:18%; height:23pt; vertical-align:top;">
-                        <span class="font-tfarluck-data font-size-18em-data input-data" style="width:100%;height:100%;">ปทุมธานี</span>
+                        <span class="font-tfarluck-data font-size-18em-data input-data" style="width:100%;height:100%;">{{ $province }}</span>
                     </p>
                     <span class="font-tfarluck font-size-24em spn-label">สังกัด</span>
                     <p style="display:inline-block; margin:0 -60pt 0 0; width:50%; height:23pt; vertical-align:top;">
-                        <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;padding-left:3pt;">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม</span>
+                        <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;padding-left:3pt;">{{ $affiliation }}</span>
                     </p>
                 </div>
             </div>
@@ -310,7 +315,7 @@
 
             <div class="row">
                 <div class="col-12 text-center">
-                    <span class="font-tfarluck-data font-size-17em-data spn-label">(นางสาววรานิษฐ์ ธนชัยวรพันธ์)</span>
+                    <span class="font-tfarluck-data font-size-17em-data spn-label">({{ $directorName }})</span>
                 </div>
             </div>
             <div class="row">

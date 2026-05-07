@@ -329,6 +329,7 @@ Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withd
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
     Route::get('/', 'index')->name('index');
     Route::post('/set-doc-number', 'setDocNumber')->name('setDocNumber');
+    Route::post('/save-setting', 'saveSetting')->name('saveSetting');
     Route::get('/print/{studentId}/{sectionId}', 'print')->name('print');
 });
 

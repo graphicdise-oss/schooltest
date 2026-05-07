@@ -27,18 +27,22 @@
     .btn-doc:hover { background: #e68900; }
     .btn-print-pp2 { background: #00bcd4; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
     .btn-print-pp2:hover { background: #00a5bb; color: #fff; text-decoration: none; }
+    .btn-setting { background: #607d8b; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
+    .btn-setting:hover { background: #455a64; color: #fff; }
 
     .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9999; justify-content: center; align-items: center; }
     .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: 12px; width: 440px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
+    .modal-box { background: #fff; border-radius: 12px; width: 480px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
     .modal-header { background: #ff9800; color: #fff; padding: 16px 20px; font-size: 1rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header.setting-header { background: #607d8b; }
     .modal-body { padding: 24px; }
     .field-group { margin-bottom: 16px; }
     .field-group label { font-size: 0.85rem; font-weight: 600; color: #555; display: block; margin-bottom: 6px; }
     .field-group input { width: 100%; border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 9px 12px; font-size: 0.88rem; font-family: inherit; outline: none; box-sizing: border-box; }
-    .field-group input:focus { border-color: #ff9800; }
+    .field-group input:focus { border-color: #607d8b; }
     .modal-footer { padding: 12px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; }
     .btn-orange { background: #ff9800; color: #fff; border: none; border-radius: 8px; padding: 9px 28px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-slate { background: #607d8b; color: #fff; border: none; border-radius: 8px; padding: 9px 28px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-cancel { background: #eee; color: #555; border: none; border-radius: 8px; padding: 9px 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
 </style>
 @endpush
@@ -107,12 +111,17 @@
         <div class="floating-icon" style="background:#4caf50;"><i class="bi bi-file-earmark-text"></i></div>
         <div class="d-flex justify-content-between align-items-center card-header-text mb-4">
             <div>ระเบียนใบประกาศนียบัตร (ปว.2)</div>
-            @if ($sectionId && $students->isNotEmpty())
-                <a href="#" onclick="window.print()" class="btn text-white px-3 py-2 rounded-1"
-                    style="background:#ff9800; margin-top:-15px; font-size:0.88rem;">
-                    <i class="bi bi-printer me-1"></i> สรุปรายงาน ป.พ.2
-                </a>
-            @endif
+            <div class="d-flex gap-2" style="margin-top:-15px;">
+                <button class="btn-setting" onclick="openSettingModal()">
+                    <i class="bi bi-gear"></i> ตั้งค่าใบ ป.พ.2
+                </button>
+                @if ($sectionId && $students->isNotEmpty())
+                    <a href="#" onclick="window.print()" class="btn text-white px-3 py-2 rounded-1"
+                        style="background:#ff9800; font-size:0.88rem;">
+                        <i class="bi bi-printer me-1"></i> สรุปรายงาน ป.พ.2
+                    </a>
+                @endif
+            </div>
         </div>
 
         @if (!$sectionId)
@@ -198,6 +207,45 @@
     </div>
 </div>
 
+{{-- Modal ตั้งค่าใบ ป.พ.2 --}}
+<div class="modal-overlay" id="settingModal" onclick="closeSettingModal(event)">
+    <div class="modal-box" onclick="event.stopPropagation()">
+        <div class="modal-header setting-header">
+            <span><i class="bi bi-gear me-1"></i> ตั้งค่าใบ ป.พ.2</span>
+            <button onclick="closeSettingModal()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;">✕</button>
+        </div>
+        <form action="{{ route('pp2.saveSetting') }}" method="POST">
+            @csrf
+            <div class="modal-body">
+                <div class="field-group">
+                    <label>ชื่อโรงเรียน</label>
+                    <input type="text" name="school_name" value="{{ $setting->school_name ?? '' }}"
+                        placeholder="เช่น โรงเรียนสาธิตมหาวิทยาลัยราชภัฏวไลยอลงกรณ์ ในพระบรมราชูปถัมภ์">
+                </div>
+                <div class="field-group">
+                    <label>จังหวัด</label>
+                    <input type="text" name="province" value="{{ $setting->province ?? '' }}"
+                        placeholder="เช่น ปทุมธานี">
+                </div>
+                <div class="field-group">
+                    <label>สังกัด</label>
+                    <input type="text" name="affiliation" value="{{ $setting->affiliation ?? '' }}"
+                        placeholder="เช่น สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม">
+                </div>
+                <div class="field-group">
+                    <label>ชื่อผู้อำนวยการ</label>
+                    <input type="text" name="director_name" value="{{ $setting->director_name ?? '' }}"
+                        placeholder="เช่น นางสาววรานิษฐ์ ธนชัยวรพันธ์">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" onclick="closeSettingModal()">ยกเลิก</button>
+                <button type="submit" class="btn-slate">บันทึก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function openDocModal(studentId, sectionId, docNumber, issuedDate) {
         document.getElementById('docStudentId').value = studentId;
@@ -210,6 +258,18 @@
         if (e && e.target !== e.currentTarget) return;
         document.getElementById('docModal').classList.remove('active');
     }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDocModal(); });
+    function openSettingModal() {
+        document.getElementById('settingModal').classList.add('active');
+    }
+    function closeSettingModal(e) {
+        if (e && e.target !== e.currentTarget) return;
+        document.getElementById('settingModal').classList.remove('active');
+    }
+    document.addEventListener('keydown', e => {
+        if (e.key === 'Escape') {
+            closeDocModal();
+            closeSettingModal();
+        }
+    });
 </script>
 @endsection
