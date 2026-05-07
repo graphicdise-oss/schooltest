@@ -242,6 +242,7 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/settings', 'saveSettings')->name('saveSettings');
+        Route::post('/section/{sectionId}/date', 'saveSectionDate')->name('saveSectionDate');
         Route::get('/print/{studentSectionId}', 'print')->name('print');
     });
 
