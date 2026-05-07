@@ -16,7 +16,7 @@
         }
         @font-face {
             font-family: TFArluckData;
-            src: url('{{ asset("fonts/TF Arluck Bol.ttf") }}') format('truetype');
+            src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
         }
 
         * { box-sizing: border-box; -moz-box-sizing: border-box; margin: 0; padding: 0; }
@@ -74,9 +74,9 @@
         .font-size-20em { font-size: 2.0em; }
         .font-size-20em-data { font-size: 2.0em; }
         .font-size-18em { font-size: 1.8em; }
-        .font-size-18em-data { font-size: 1.8em; font-weight: bold; }
+        .font-size-18em-data { font-size: 1.8em; }
         .font-size-17em-data { font-size: 1.7em; }
-        .font-size-16em-data { font-size: 1.6em; font-weight: bold; }
+        .font-size-16em-data { font-size: 1.6em; }
         .font-size-14em-data { font-size: 1.4em; }
         .font-size-10em-bold { font-size: 1.0em; font-weight: bold; }
         .font-size-08em { font-size: 0.8em; }
