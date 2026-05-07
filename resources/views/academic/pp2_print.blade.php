@@ -53,7 +53,7 @@
         .text-left { text-align: left; }
 
         .spn-label { font-family: TFArluck; letter-spacing: -0.8pt; }
-        .back .spn-label { letter-spacing: 0.6pt; }
+        .back .spn-label { font-family: 'TH Sarabun New', 'THSarabunNew', sans-serif; letter-spacing: 0.6pt; }
 
         .input-data {
             white-space: nowrap;
