@@ -71,6 +71,7 @@
         .font-size-28em { font-size: 2.8em; }
         .font-size-25em-data { font-size: 2.5em; }
         .font-size-24em { font-size: 2.4em; }
+        .font-size-20em { font-size: 2.0em; }
         .font-size-20em-data { font-size: 2.0em; }
         .font-size-18em { font-size: 1.8em; }
         .font-size-18em-data { font-size: 1.8em; font-weight: bold; }
@@ -226,7 +227,7 @@
 
     <div class="row">
         <div class="col-12 text-center" style="height:25pt;">
-            <span class="font-tfarluck font-size-24em spn-label">{{ $certText }}</span>
+            <span class="font-tfarluck font-size-20em spn-label">{{ $certText }}</span>
         </div>
     </div>
 
@@ -247,7 +248,7 @@
             </p>
             <span class="font-tfarluck font-size-24em spn-label">สังกัด</span>
             <p style="display:inline-block; margin:0 -60pt 0 0; width:50%; height:23pt; vertical-align:top;">
-                <span class="font-tfarluck-data font-size-18em-data input-data" style="width:100%;height:100%;padding-left:3pt;">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม</span>
+                <span class="font-tfarluck-data font-size-16em-data input-data" style="width:100%;height:100%;padding-left:3pt;">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม</span>
             </p>
         </div>
     </div>
