@@ -194,7 +194,7 @@
         </div>
     </div>
 
-    <div style="height:20pt;"></div>
+    <div style="height:38pt;"></div>
 
     <div class="row">
         <div class="col-12 text-center" style="height:38pt;">
