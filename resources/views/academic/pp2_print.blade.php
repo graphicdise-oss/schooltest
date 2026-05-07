@@ -42,38 +42,40 @@
             font-family: 'TF Arluck', 'TH Sarabun New', serif;
             background: #fff;
             font-size: 16pt;
+            line-height: 1.0;
         }
 
         .page {
             width: 29.7cm;
             min-height: 21cm;
             margin: 0 auto;
-            padding: 1.2cm 2cm 1cm;
+            padding: 0.8cm 2cm 0.8cm;
             position: relative;
         }
 
         .doc-ref {
             position: absolute;
-            top: 1.2cm;
+            top: 0.8cm;
             right: 2cm;
             text-align: right;
             font-size: 14pt;
             color: #c00;
-            line-height: 1.8;
+            line-height: 1.0;
         }
 
         .title-main {
             text-align: center;
             font-size: 26pt;
             font-weight: 700;
-            margin-bottom: 2px;
+            margin-bottom: 0;
+            line-height: 1.0;
         }
 
         .title-sub {
             text-align: center;
             font-size: 17pt;
-            color: #1a56db;
-            margin-bottom: 14px;
+            margin-bottom: 6px;
+            line-height: 1.0;
         }
 
         .student-name {
@@ -82,17 +84,18 @@
             font-weight: 600;
             border-bottom: 1px dotted #333;
             width: 80%;
-            margin: 8px auto 14px;
-            padding-bottom: 2px;
+            margin: 4px auto 6px;
+            padding-bottom: 0;
+            line-height: 1.0;
         }
 
         /* แถวข้อมูล */
         .row {
             display: flex;
             align-items: flex-end;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             font-size: 15pt;
-            line-height: 1.8;
+            line-height: 1.0;
         }
 
         .row .lbl {
@@ -126,30 +129,33 @@
 
         .row-center {
             text-align: center;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
             font-size: 15pt;
+            line-height: 1.0;
         }
 
         /* ลงชื่อ */
         .sig-block {
             text-align: center;
-            margin-top: 28px;
+            margin-top: 16px;
         }
 
         .sig-line {
             border-bottom: 1px solid #333;
             width: 7cm;
-            margin: 0 auto 4px;
-            height: 28px;
+            margin: 0 auto 2px;
+            height: 24px;
         }
 
         .sig-name {
             font-size: 14pt;
+            line-height: 1.0;
         }
 
         .sig-role {
             font-size: 13pt;
             color: #555;
+            line-height: 1.0;
         }
 
         /* หน้า 2 */
@@ -289,7 +295,7 @@
             <span class="val sm">{{ $dobYear }}</span>
         </div>
 
-        <div class="row-center" style="margin: 8px 0;">
+        <div class="row-center" style="margin: 2px 0;">
             เป็นผู้สำเร็จการศึกษา{{ $certText }}
         </div>
 
@@ -305,7 +311,7 @@
             <span class="val">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม</span>
         </div>
 
-        <div class="row" style="justify-content:center; gap:12px; margin-top:4px;">
+        <div class="row" style="justify-content:center; gap:12px; margin-top:2px;">
             <span class="lbl">เมื่อวันที่</span>
             <span class="val sm">{{ $issDay }}</span>
             <span class="lbl">เดือน</span>
@@ -314,7 +320,7 @@
             <span class="val sm">{{ $issYear }}</span>
         </div>
 
-        <div class="row-center" style="margin-top: 14px;">ขอให้มีความสุขสวัสดิ์เจริญเทอญ</div>
+        <div class="row-center" style="margin-top: 8px;">ขอให้มีความสุขสวัสดิ์เจริญเทอญ</div>
 
         <div class="sig-block">
             <div class="sig-line"></div>
