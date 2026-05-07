@@ -108,6 +108,8 @@
         .font-size-17em-data { font-size: 1.7em; }
         .font-size-16em-data { font-size: 1.6em; }
         .font-size-14em-data { font-size: 1.4em; }
+        .font-size-18em-bold { font-size: 1.8em; font-weight: bold; }
+        .font-size-16em { font-size: 1.6em; }
         .font-size-10em-bold { font-size: 1.0em; font-weight: bold; }
         .font-size-08em { font-size: 0.8em; }
         .font-size-08em-bold { font-size: 0.8em; font-weight: bold; }
@@ -325,7 +327,7 @@
 
             <div class="row">
                 <div class="col-12 text-center" style="height:41pt;">
-                    <span class="font-size-10em-bold spn-label">ลงลายมือชื่อ</span>
+                    <span class="font-size-18em-bold spn-label">ลงลายมือชื่อ</span>
                 </div>
             </div>
 
@@ -334,7 +336,7 @@
                     <p style="display:inline-block; margin:-6pt -2pt 2pt 44pt; width:53%; height:17pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;text-align:center;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">ผู้เขียน/ผู้พิมพ์</span>
+                    <span class="font-size-16em spn-label">ผู้เขียน/ผู้พิมพ์</span>
                 </div>
                 <div class="col-6 text-left">
                     <p style="display:inline-block; margin:-6pt -2pt 2pt 0; width:53%; height:17pt; vertical-align:top;">
@@ -348,14 +350,14 @@
                     <p style="display:inline-block; margin:-6pt -2pt 2pt 44pt; width:53%; height:17pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;text-align:center;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">ผู้ทาน</span>
+                    <span class="font-size-16em spn-label">ผู้ทาน</span>
                 </div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em spn-label">(</span>
+                    <span class="font-size-16em spn-label">(</span>
                     <p style="display:inline-block; margin:-6pt 0 2pt 0; width:auto; height:17pt; vertical-align:top; text-align:center; padding:0 10px;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="text-align:center;height:100%;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">)</span>
+                    <span class="font-size-16em spn-label">)</span>
                 </div>
             </div>
 
@@ -364,10 +366,10 @@
                     <p style="display:inline-block; margin:-6pt -2pt 2pt 44pt; width:53%; height:17pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;text-align:center;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">ผู้ตรวจ</span>
+                    <span class="font-size-16em spn-label">ผู้ตรวจ</span>
                 </div>
                 <div class="col-6 text-left" style="padding-bottom:10pt;">
-                    <span class="font-size-08em-bold spn-label">นายทะเบียน</span>
+                    <span class="font-size-16em spn-label">นายทะเบียน</span>
                 </div>
             </div>
 
@@ -383,33 +385,33 @@
             <div class="row custom-section">
                 <div class="col-6" style="height:23pt;"></div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em spn-label">(</span>
+                    <span class="font-size-16em spn-label">(</span>
                     <p style="display:inline-block; margin:-6pt 0 2pt 0; width:47%; height:17pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;text-align:center;">{{ $fullName }}</span>
                     </p>
-                    <span class="font-size-08em spn-label">)</span>
+                    <span class="font-size-16em spn-label">)</span>
                 </div>
             </div>
 
             <div class="row custom-section">
                 <div class="col-6" style="height:23pt;"></div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em-bold spn-label">ผู้รับประกาศนียบัตร</span>
+                    <span class="font-size-16em spn-label">ผู้รับประกาศนียบัตร</span>
                 </div>
             </div>
 
             <div class="row custom-section">
                 <div class="col-6" style="height:23pt;"></div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em spn-label">วันที่</span>
+                    <span class="font-size-16em spn-label">วันที่</span>
                     <p style="display:inline-block; margin:-7pt -3pt 2pt -4pt; width:19%; height:18pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;padding-left:2pt;">{{ $issDay }}</span>
                     </p>
-                    <span class="font-size-08em spn-label">เดือน</span>
+                    <span class="font-size-16em spn-label">เดือน</span>
                     <p style="display:inline-block; margin:-7pt -2pt 2pt -4pt; width:31%; height:18pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;padding-left:2pt;">{{ $issMonth }}</span>
                     </p>
-                    <span class="font-size-08em spn-label">พ.ศ.</span>
+                    <span class="font-size-16em spn-label">พ.ศ.</span>
                     <p style="display:inline-block; margin:-7pt 0 2pt -4pt; width:27%; height:18pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;padding-left:8pt;">{{ $issYear }}</span>
                     </p>
