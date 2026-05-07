@@ -175,16 +175,25 @@
 
 {{-- ===== หน้า 1 (หน้าหลัก) ===== --}}
 <div class="page front">
-    {{-- เลขที่ อยู่มุมขวาบนตายตัว --}}
-    <div style="position:absolute; top:1cm; right:1.6cm; text-align:right;">
-        <div><span class="font-tfarluck font-size-18em spn-label">ปพ.๒ : </span><span class="font-tfarluck font-size-18em spn-label" style="color:#c00;">พ</span></div>
-        <div style="margin-top:4pt;">
-            <span class="font-tfarluck font-size-18em spn-label" style="color:#c00;">เลขที่</span>
-            <span class="font-tfarluck-data font-size-16em-data input-data" style="min-width:4cm; color:#c00; padding-right:6pt;">{{ $docNum }}</span>
+<div class="page-inner">
+    <div class="row">
+        <div class="col-12 text-right" style="height:18pt;">
+            <span class="font-tfarluck font-size-18em spn-label">ปพ.๒ : </span><span class="font-tfarluck font-size-18em spn-label" style="color:#c00;">พ</span>
         </div>
     </div>
 
-<div class="page-inner">
+    <div class="row">
+        <div class="col-12 text-right" style="height:23pt;">
+            <span class="font-tfarluck font-size-18em spn-label" style="padding-right:6pt; color:#c00;">เลขที่</span>
+            <p style="display:inline-block; margin:-2pt 0 2pt 0; width:12%; height:20pt; vertical-align:top;">
+                <span class="font-tfarluck-data font-size-16em-data input-data" style="width:100%;height:100%;padding-right:10pt; color:#c00;">{{ $docNum }}</span>
+            </p>
+        </div>
+    </div>
+
+    {{-- spacer 2 บรรทัด --}}
+    <div style="height:50pt;"></div>
+
     <div class="row">
         <div class="col-12 text-center" style="height:35pt;">
             <span class="font-tfarluck font-size-38em spn-label">กระทรวงศึกษาธิการ</span>
