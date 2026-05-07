@@ -201,7 +201,7 @@
                                         <li><a href="{{ route('student-alumni.import') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">นำเข้าข้อมูลศิษย์เก่า</a>
                                         </li>
-                                      
+
                                     </ul>
                                 </div>
                                 <div class="mb-5">
@@ -215,7 +215,7 @@
                                         </li>
                                         <li><a href="{{ route('student-alumni.withdrawal') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานลาออก</a>
-                                        </li>   
+                                        </li>
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานชื่อนักเรียนใหม่</a>
                                         </li>
@@ -301,7 +301,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าแผนหลักสูตร</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('exam-rooms.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าห้องสอบ</a>
                                         </li>
                                         <li><a href="#"
@@ -472,7 +472,7 @@
                                         <li><a href="{{ route('por1.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ระเบียนแสดงผลการเรียน
                                                 (ปพ.1)</a></li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('pp2.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบประกาศนียบัตร
                                                 (ปพ.2)</a></li>
                                         <li><a href="#"

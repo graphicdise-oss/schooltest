@@ -11,6 +11,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\StudentSection;
 use Illuminate\Http\Request;
 
+
 class StudentAlumniController extends Controller
 {
     public function index(Request $request)
@@ -184,6 +185,13 @@ class StudentAlumniController extends Controller
             ->orWhere('thai_lastname', 'like', "%$s%")
         );
     }
+
+    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/', 'store')->name('store');
+    Route::put('/{id}', 'update')->name('update');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+});
 
     $withdrawals = $query->get();
     $grouped = $withdrawals->groupBy('from_section_id');

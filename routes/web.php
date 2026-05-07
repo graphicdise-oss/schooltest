@@ -28,8 +28,8 @@ use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Setting\DepartmentController;
 use App\Http\Controllers\Student\ClassRosterController;
 use App\Http\Controllers\Student\StudentStatController;
-use App\Models\Academic\AcademicYear;
-use App\Models\Academic\Semester;
+use App\Http\Controllers\Academic\Pp2Controller;
+use App\Http\Controllers\Academic\ExamRoomController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -65,6 +65,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/students/health', 'storeHealth')->name('students.storeHealth');
     });
 
+    
     // === บุคลากร ===
     Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->group(function () {
 
@@ -325,6 +326,19 @@ Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withd
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
 
+    Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/set-doc-number', 'setDocNumber')->name('setDocNumber');
+    Route::get('/print/{studentId}/{sectionId}', 'print')->name('print');
+});
+
+
+Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/', 'store')->name('store');
+    Route::put('/{id}', 'update')->name('update');
+    Route::delete('/{id}', 'destroy')->name('destroy');
+});
 
     // เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
     Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');

@@ -22,7 +22,7 @@ class StudentStatController extends Controller
 
         $academicYears = AcademicYear::orderByDesc('year_name')->get();
 
-        // auto-default เฉพาะตอนโหลดหน้าแรก (ไม่มี year_id ใน URL)
+        // auto-default เฉพาะตอนโหลดหน้าแรก ไม่มี year_id ใน URL
         if (!$request->has('year_id')) {
             $currentYear = AcademicYear::where('is_current', true)->first() ?? $academicYears->first();
             $yearId      = $currentYear?->year_id;
@@ -40,7 +40,6 @@ class StudentStatController extends Controller
         $stats = collect();
 
         if ($yearId) {
-            // filter ห้องเรียนตามปี (และเทอมถ้าเลือก)
             $sectionQuery = ClassSection::with('level')
                 ->whereHas('semester', fn($q) => $q->where('year_id', $yearId))
                 ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
