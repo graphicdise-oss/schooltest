@@ -153,11 +153,11 @@
 
     $levelName = $level?->name ?? '';
     if (str_contains($levelName, 'ป.6')) {
-        $certText = 'เป็นผู้สำเร็จการศึกษาขั้นพื้นฐานตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน';
+        $certText = 'ผู้สำเร็จการศึกษาขั้นพื้นฐานตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน';
     } elseif (str_contains($levelName, 'ม.3')) {
-        $certText = 'เป็นผู้สำเร็จการศึกษาชั้นมัธยมศึกษาตอนต้นตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน';
+        $certText = 'ผู้สำเร็จการศึกษาชั้นมัธยมศึกษาตอนต้นตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน';
     } else {
-        $certText = 'เป็นผู้สำเร็จการศึกษาชั้นมัธยมศึกษาตอนปลายตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน';
+        $certText = 'ผู้สำเร็จการศึกษาชั้นมัธยมศึกษาตอนปลายตามหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน';
     }
 
     $fullName = ($student?->thai_prefix ?? '') . ($student?->thai_firstname ?? '') . ' ' . ($student?->thai_lastname ?? '');
@@ -172,15 +172,15 @@
 <div class="page-inner">
     <div class="row">
         <div class="col-12 text-right" style="height:18pt;">
-            <span class="font-tfarluck font-size-18em spn-label">ปพ.๒ : </span><span class="font-tfarluck font-size-18em spn-label" style="color:#c00;">พ</span>
+            <span class="font-tfarluck font-size-18em spn-label">ปพ.๒ : พ</span>
         </div>
     </div>
 
     <div class="row">
         <div class="col-12 text-right" style="height:23pt;">
-            <span class="font-tfarluck font-size-18em spn-label" style="padding-right:6pt; color:#c00;">เลขที่</span>
+            <span class="font-tfarluck font-size-18em spn-label" style="padding-right:6pt;">เลขที่</span>
             <p style="display:inline-block; margin:-2pt 0 2pt 0; width:12%; height:20pt; vertical-align:top;">
-                <span class="font-tfarluck-data font-size-16em-data input-data" style="width:100%;height:100%;padding-right:10pt; color:#c00;">{{ $docNum }}</span>
+                <span class="font-tfarluck-data font-size-16em-data input-data" style="width:100%;height:100%;padding-right:10pt;">{{ $docNum }}</span>
             </p>
         </div>
     </div>
@@ -193,6 +193,8 @@
             <span class="font-tfarluck font-size-38em spn-label">กระทรวงศึกษาธิการ</span>
         </div>
     </div>
+
+    <div style="height:20pt;"></div>
 
     <div class="row">
         <div class="col-12 text-center" style="height:38pt;">
@@ -227,7 +229,7 @@
 
     <div class="row">
         <div class="col-12 text-center" style="height:25pt;">
-            <span class="font-tfarluck font-size-20em spn-label">{{ $certText }}</span>
+            <span class="font-tfarluck font-size-24em spn-label">{{ $certText }}</span>
         </div>
     </div>
 
@@ -276,6 +278,8 @@
         </div>
     </div>
 
+    <div style="height:40pt;"></div>
+
     <div class="row">
         <div class="col-12 text-center">
             <span class="font-tfarluck-data font-size-17em-data spn-label">(นางสาววรานิษฐ์ ธนชัยวรพันธ์)</span>
@@ -291,7 +295,7 @@
 
 {{-- ===== หน้า 2 (ลงลายมือชื่อ) ===== --}}
 <div class="page back" style="page-break-before:always;">
-<div class="page-inner">
+<div class="page-inner" style="padding-top:5cm;">
 
     <div class="row">
         <div class="col-12 text-center" style="height:41pt;">
