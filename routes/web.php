@@ -20,6 +20,7 @@ use App\Http\Controllers\Academic\PromotionController;
 use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
+use App\Http\Controllers\Student\Pp2Controller;
 use App\Http\Controllers\Academic\AcademicYearController;
 
 // --- 1. หน้าทั่วไป ---
@@ -236,6 +237,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{id}', 'printOne')->name('print-one');
         Route::get('/print-all', 'printAll')->name('print-all');
         Route::get('/print-selected', 'printSelected')->name('print-selected');
+    });
+
+    Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/settings', 'saveSettings')->name('saveSettings');
+        Route::get('/print/{studentSectionId}', 'print')->name('print');
     });
 
     // Logout
