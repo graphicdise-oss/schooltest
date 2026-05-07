@@ -29,8 +29,8 @@
         }
 
         .page {
-            width: 21cm;
-            height: 29.7cm;
+            width: 29.7cm;
+            height: 21cm;
             margin: 0 auto;
             background: white;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
@@ -106,12 +106,12 @@
                 margin: 0;
                 border: none;
                 box-shadow: none;
-                width: 21cm;
-                height: 29.7cm;
+                width: 29.7cm;
+                height: 21cm;
                 display: table;
             }
             @page {
-                size: A4 portrait;
+                size: A4 landscape;
                 margin: 0;
             }
             .no-print-me { display: none !important; }
