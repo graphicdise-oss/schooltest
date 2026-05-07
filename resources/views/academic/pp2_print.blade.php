@@ -30,12 +30,15 @@
 
         .page {
             width: 21cm;
-            min-height: 14.5cm;
-            padding: 0cm 1.6cm 0cm 1.6cm;
+            height: 14.5cm;
+            padding: 0cm 1.6cm;
             margin: 0.8cm auto;
             background: white;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
             position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .page.front {
@@ -103,7 +106,7 @@
                 border: none;
                 box-shadow: none;
                 width: 21cm;
-                min-height: 14.5cm;
+                height: 14.5cm;
             }
             @page {
                 size: 21cm 14.5cm;
@@ -171,8 +174,6 @@
 
 {{-- ===== หน้า 1 (หน้าหลัก) ===== --}}
 <div class="page front">
-    <div style="height:15pt;">&nbsp;</div>
-
     <div class="row">
         <div class="col-12 text-right" style="height:18pt;">
             <span class="font-tfarluck font-size-18em spn-label">ปพ.๒ : </span><span class="font-tfarluck font-size-18em spn-label" style="color:#c00;">พ</span>
@@ -275,8 +276,6 @@
             <span class="font-tfarluck font-size-24em spn-label">ขอให้มีความสุขสวัสดิ์เจริญเทอญ</span>
         </div>
     </div>
-
-    <div style="height:21pt;">&nbsp;</div>
 
     <div class="row">
         <div class="col-12 text-center">
