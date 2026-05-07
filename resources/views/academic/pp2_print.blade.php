@@ -30,15 +30,11 @@
 
         .page {
             width: 29.7cm;
-            height: 21cm;
             margin: 0 auto;
             background: white;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
-            display: table;
         }
         .page-inner {
-            display: table-cell;
-            vertical-align: middle;
             padding: 0 1.6cm;
         }
 
@@ -106,11 +102,7 @@
                 margin: 0;
                 border: none;
                 box-shadow: none;
-                width: 29.7cm;
-                height: 21cm;
-                display: table;
-                overflow: hidden;
-                page-break-inside: avoid;
+                width: 100%;
             }
             @page {
                 size: A4 landscape;
