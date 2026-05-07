@@ -109,6 +109,9 @@
                 width: 29.7cm;
                 height: 21cm;
                 display: table;
+                overflow: hidden;
+                page-break-inside: avoid;
+                page-break-after: always;
             }
             @page {
                 size: A4 landscape;
