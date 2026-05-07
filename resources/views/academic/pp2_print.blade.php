@@ -249,7 +249,7 @@
             </p>
             <span class="font-tfarluck font-size-24em spn-label">สังกัด</span>
             <p style="display:inline-block; margin:0 -60pt 0 0; width:50%; height:23pt; vertical-align:top;">
-                <span class="font-tfarluck-data font-size-16em-data input-data" style="width:100%;height:100%;padding-left:3pt;">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม</span>
+                <span class="font-tfarluck-data font-size-14em-data input-data" style="width:100%;height:100%;padding-left:3pt;">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม</span>
             </p>
         </div>
     </div>
