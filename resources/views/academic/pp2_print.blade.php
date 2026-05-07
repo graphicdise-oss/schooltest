@@ -31,14 +31,16 @@
         .page {
             width: 21cm;
             height: 14.5cm;
-            padding: 0cm 1.6cm;
             margin: 0.8cm auto;
             background: white;
             box-shadow: 0 0 5px rgba(0,0,0,0.1);
             position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
+            display: table;
+        }
+        .page-inner {
+            display: table-cell;
+            vertical-align: middle;
+            padding: 0 1.6cm;
         }
 
         .page.front {
@@ -107,6 +109,7 @@
                 box-shadow: none;
                 width: 21cm;
                 height: 14.5cm;
+                display: table;
             }
             @page {
                 size: 21cm 14.5cm;
@@ -174,6 +177,7 @@
 
 {{-- ===== หน้า 1 (หน้าหลัก) ===== --}}
 <div class="page front">
+<div class="page-inner">
     <div class="row">
         <div class="col-12 text-right" style="height:18pt;">
             <span class="font-tfarluck font-size-18em spn-label">ปพ.๒ : </span><span class="font-tfarluck font-size-18em spn-label" style="color:#c00;">พ</span>
@@ -288,10 +292,11 @@
         </div>
     </div>
 </div>
+</div>
 
 {{-- ===== หน้า 2 (ลงลายมือชื่อ) ===== --}}
 <div class="page back" style="page-break-before:always;">
-    <div style="height:167pt;">&nbsp;</div>
+<div class="page-inner">
 
     <div class="row">
         <div class="col-12 text-center" style="height:41pt;">
@@ -385,6 +390,7 @@
             </p>
         </div>
     </div>
+</div>
 </div>
 
 </body>
