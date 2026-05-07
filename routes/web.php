@@ -24,6 +24,8 @@ use App\Http\Controllers\Academic\AcademicYearController;
 use App\Http\Controllers\Leave\LeavePersonnelController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Student\StudentStatController;
+use App\Http\Controllers\Academic\ExamRoomController;
+use App\Http\Controllers\Academic\Pp2Controller;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -260,6 +262,21 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/semester', 'storeSemester')->name('storeSemester');
         Route::put('/semester/{id}/current', 'setSemesterCurrent')->name('setSemesterCurrent');
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
+    });
+
+    // === ห้องสอบ ===
+    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    // === ใบ ป.พ.2 ===
+    Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/doc-number', 'setDocNumber')->name('setDocNumber');
+        Route::get('/print/{studentId}/{sectionId}', 'print')->name('print');
     });
 
     // === ข้อมูลการลา ===
