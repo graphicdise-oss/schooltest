@@ -15,7 +15,27 @@
 
         @font-face {
             font-family: 'TF Arluck';
-            src: url('/schooltest/public/fonts/TFArluck.ttf') format('truetype');
+            src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'TF Arluck';
+            src: url('{{ asset("fonts/TF Arluck Bol.ttf") }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'TF Arluck';
+            src: url('{{ asset("fonts/TF Arluck Ita.ttf") }}') format('truetype');
+            font-weight: normal;
+            font-style: italic;
+        }
+        @font-face {
+            font-family: 'TF Arluck';
+            src: url('{{ asset("fonts/TF Arluck Bol Ita.ttf") }}') format('truetype');
+            font-weight: bold;
+            font-style: italic;
         }
 
         body {
