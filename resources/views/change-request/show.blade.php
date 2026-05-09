@@ -14,7 +14,6 @@
             padding: 30px 20px;
         }
 
-        /* ---- Action Bar (ไม่แสดงตอนพิมพ์) ---- */
         .action-bar {
             max-width: 794px;
             margin: 0 auto 20px auto;
@@ -51,7 +50,6 @@
             color: #fff;
         }
 
-        /* ---- เอกสาร ---- */
         .document {
             max-width: 794px;
             margin: 0 auto;
@@ -76,11 +74,11 @@
             margin-top: 28px;
         }
 
+        /* ---- dots line ---- */
         .field-row {
             display: flex;
             align-items: baseline;
             margin-bottom: 14px;
-            gap: 0;
         }
 
         .field-label {
@@ -89,20 +87,27 @@
             flex-shrink: 0;
         }
 
-        .field-line {
+        .dot-line {
             flex: 1;
-            border-bottom: 1px dotted #555;
             min-width: 60px;
             margin-left: 6px;
-            padding-bottom: 2px;
             font-size: 14px;
             color: #111;
+            position: relative;
+            padding-bottom: 3px;
+            /* dots pattern */
+            background-image: radial-gradient(circle, #777 1px, transparent 1px);
+            background-size: 5px 5px;
+            background-repeat: repeat-x;
+            background-position: bottom center;
         }
 
-        .field-line.filled {
-            border-bottom-style: solid;
-            border-color: #111;
-            font-weight: 600;
+        .dot-line .val {
+            font-weight: 700;
+            position: relative;
+            z-index: 1;
+            background: #fff;
+            padding-right: 4px;
         }
 
         .field-bracket {
@@ -112,11 +117,11 @@
             margin-left: 4px;
         }
 
-        /* Priority inline */
+        /* Priority */
         .priority-row {
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 8px;
             font-size: 14px;
             margin-bottom: 14px;
             flex-wrap: wrap;
@@ -145,11 +150,7 @@
             color: #111;
         }
 
-        /* ประเภทการดำเนินงาน */
-        .op-list {
-            margin-top: 6px;
-            margin-bottom: 14px;
-        }
+        .op-list { margin-top: 6px; margin-bottom: 14px; }
 
         .op-item {
             display: flex;
@@ -160,27 +161,35 @@
         }
 
         /* วัตถุประสงค์ */
-        .objective-lines {
-            margin-top: 8px;
-        }
-
         .obj-line {
-            border-bottom: 1px dashed #888;
-            min-height: 24px;
-            margin-bottom: 8px;
             font-size: 14px;
-            padding-bottom: 2px;
+            padding-bottom: 3px;
+            min-height: 26px;
+            margin-bottom: 10px;
             line-height: 1.6;
             color: #111;
+            background-image: radial-gradient(circle, #777 1px, transparent 1px);
+            background-size: 5px 5px;
+            background-repeat: repeat-x;
+            background-position: bottom center;
         }
 
-        .obj-text {
+        .obj-line .val {
+            font-weight: 700;
+        }
+
+        /* ลิ้ง */
+        .link-line {
             font-size: 14px;
+            padding-bottom: 3px;
+            min-height: 26px;
+            background-image: radial-gradient(circle, #777 1px, transparent 1px);
+            background-size: 5px 5px;
+            background-repeat: repeat-x;
+            background-position: bottom center;
+            word-break: break-all;
+            font-weight: 700;
             color: #111;
-            line-height: 1.8;
-            border-bottom: 1px dashed #888;
-            padding-bottom: 4px;
-            font-weight: 600;
         }
 
         .divider {
@@ -189,72 +198,62 @@
             margin: 24px 0;
         }
 
-        /* ---- Print ---- */
         @media print {
-            body {
-                background: #fff;
-                padding: 0;
-            }
-
+            body { background: #fff; padding: 0; }
             .action-bar { display: none !important; }
-
-            .document {
-                box-shadow: none;
-                border-radius: 0;
-                padding: 20mm 20mm;
-                max-width: 100%;
-            }
-
-            @page {
-                size: A4;
-                margin: 0;
-            }
+            .document { box-shadow: none; border-radius: 0; padding: 15mm 18mm; max-width: 100%; }
+            @page { size: A4; margin: 0; }
         }
     </style>
 </head>
 <body>
 
-    {{-- Action Bar --}}
     <div class="action-bar">
-        <a href="{{ route('change-request.create') }}" class="btn btn-back">
-            &#8592; กลับแก้ไขฟอร์ม
-        </a>
-        <button onclick="window.print()" class="btn btn-print">
-            &#128438; พิมพ์ / บันทึก PDF
-        </button>
+        <a href="{{ route('change-request.create') }}" class="btn btn-back">&#8592; กลับแก้ไขฟอร์ม</a>
+        <button onclick="window.print()" class="btn btn-print">&#128438; พิมพ์ / บันทึก PDF</button>
     </div>
 
-    {{-- เอกสาร --}}
     <div class="document">
 
         <div class="doc-title">
             แบบฟอร์มคำร้องขอปรับปรุงแก้ไขระบบ (System Change Request Form)
         </div>
 
+        @php
+            $thaiMonths = [
+                1=>'มกราคม',2=>'กุมภาพันธ์',3=>'มีนาคม',4=>'เมษายน',
+                5=>'พฤษภาคม',6=>'มิถุนายน',7=>'กรกฎาคม',8=>'สิงหาคม',
+                9=>'กันยายน',10=>'ตุลาคม',11=>'พฤศจิกายน',12=>'ธันวาคม',
+            ];
+            $dateObj   = \Carbon\Carbon::parse($data['request_date'] ?? $data->request_date);
+            $thaiDate  = $dateObj->day . ' ' . $thaiMonths[$dateObj->month] . ' ' . ($dateObj->year + 543);
+
+            $reqName   = $data['requester_name']  ?? $data->requester_name;
+            $dept      = $data['department']       ?? $data->department;
+            $priority  = $data['priority']         ?? $data->priority;
+            $modName   = $data['module_name']      ?? $data->module_name;
+            $ops       = $data['operation_types']  ?? $data->operation_types ?? [];
+            $objective = $data['objective']        ?? $data->objective;
+            $fixLink   = $data['fix_link']         ?? $data->fix_link ?? '';
+        @endphp
+
         {{-- ส่วนที่ 1 --}}
         <div class="section-heading">1. ข้อมูลทั่วไป (General Information)</div>
 
         <div class="field-row">
-            <span class="field-label">ชื่อผู้ขอปรับปรุง:</span>
-            <span class="field-line {{ $data['requester_name'] ? 'filled' : '' }}">
-                &nbsp;{{ $data['requester_name'] }}
-            </span>
+            <span class="field-label">ชื่อผู้ขอปรับปรุง:&nbsp;</span>
+            <span class="dot-line"><span class="val">{{ $reqName }}</span></span>
         </div>
 
         <div class="field-row">
-            <span class="field-label">หน่วยงาน/แผนก:</span>
-            <span class="field-line {{ $data['department'] ? 'filled' : '' }}">
-                &nbsp;{{ $data['department'] }}
-            </span>
+            <span class="field-label">หน่วยงาน/แผนก:&nbsp;</span>
+            <span class="dot-line"><span class="val">{{ $dept }}</span></span>
         </div>
 
         <div class="field-row">
-            <span class="field-label">วันที่ยื่นคำร้อง:</span>
-            <span class="field-bracket">[</span>
-            <span class="field-line {{ $data['request_date'] ? 'filled' : '' }}" style="text-align:center;">
-                {{ $data['request_date']
-                    ? \Carbon\Carbon::parse($data['request_date'])->format('d/m/Y')
-                    : '' }}
+            <span class="field-label">วันที่ยื่นคำร้อง:&nbsp;[</span>
+            <span class="dot-line" style="text-align:center;">
+                <span class="val">{{ $thaiDate }}</span>
             </span>
             <span class="field-bracket">]</span>
         </div>
@@ -271,8 +270,8 @@
             <span>ระดับความสำคัญ:</span>
             @foreach ($priorityMap as $key => $label)
                 <span class="priority-box">
-                    <span class="check-box {{ $data['priority'] === $key ? 'checked' : '' }}">
-                        {{ $data['priority'] === $key ? '✓' : '&nbsp;' }}
+                    <span class="check-box {{ $priority === $key ? 'checked' : '' }}">
+                        {!! $priority === $key ? '✓' : '&nbsp;' !!}
                     </span>
                     {{ $label }}
                 </span>
@@ -285,11 +284,11 @@
         <div class="section-heading">2. รายละเอียดการแก้ไข (Change Details)</div>
 
         <div class="field-row">
-            <span class="field-label" style="flex-shrink:0;">ชื่อโมดูล/ส่วนงานที่แก้ไข:</span>
-            <span class="field-line filled">&nbsp;{{ $data['module_name'] }}</span>
+            <span class="field-label" style="flex-shrink:0;">ชื่อโมดูล/ส่วนงานที่แก้ไข:&nbsp;</span>
+            <span class="dot-line"><span class="val">{{ $modName }}</span></span>
         </div>
 
-        <div style="font-size:14px; margin-bottom:8px;">ประเภทการดำเนินงาน:</div>
+        <div style="font-size:14px; margin-bottom:10px;">ประเภทการดำเนินงาน:</div>
 
         @php
             $opMap = [
@@ -303,41 +302,34 @@
         <div class="op-list">
             @foreach ($opMap as $key => $label)
                 <div class="op-item">
-                    <span class="check-box {{ in_array($key, $data['operation_types']) ? 'checked' : '' }}">
-                        {{ in_array($key, $data['operation_types']) ? '✓' : '&nbsp;' }}
+                    <span class="check-box {{ in_array($key, (array)$ops) ? 'checked' : '' }}">
+                        {!! in_array($key, (array)$ops) ? '✓' : '&nbsp;' !!}
                     </span>
                     {{ $label }}
                 </div>
             @endforeach
         </div>
 
-        <div style="font-size:14px; margin-bottom:8px;">วัตถุประสงค์และเหตุผลการแก้ไข:</div>
+        <div style="font-size:14px; margin-bottom:10px;">วัตถุประสงค์และเหตุผลการแก้ไข:</div>
 
-        <div class="objective-lines">
-            @php
-                $lines = array_filter(explode("\n", $data['objective']));
-                $filled = array_values($lines);
-                $total  = max(count($filled), 4);
-            @endphp
-            @for ($i = 0; $i < $total; $i++)
-                <div class="obj-line">
-                    @if (isset($filled[$i]))
-                        <span style="font-weight:600;">{{ $filled[$i] }}</span>
-                    @else
-                        &nbsp;
-                    @endif
-                </div>
-            @endfor
-        </div>
+        @php
+            $lines = array_values(array_filter(explode("\n", $objective)));
+            $total = max(count($lines), 4);
+        @endphp
 
-        {{-- ลิ้งที่ต้องการแก้ไข --}}
-        <div style="margin-top:20px;">
-            <div style="font-size:14px; margin-bottom:6px;">ลิ้งที่ต้องการแก้ไข:</div>
-            <div class="field-row">
-                <span class="field-line {{ $data['fix_link'] ? 'filled' : '' }}" style="word-break:break-all;">
-                    &nbsp;{{ $data['fix_link'] ?: '' }}
-                </span>
+        @for ($i = 0; $i < $total; $i++)
+            <div class="obj-line">
+                @if (isset($lines[$i]))
+                    <span class="val">{{ $lines[$i] }}</span>
+                @else
+                    &nbsp;
+                @endif
             </div>
+        @endfor
+
+        <div style="margin-top: 20px;">
+            <div style="font-size:14px; margin-bottom:10px;">ลิ้งที่ต้องการแก้ไข:</div>
+            <div class="link-line">{{ $fixLink ?: '&nbsp;' }}</div>
         </div>
 
     </div>
