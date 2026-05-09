@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Setting\PersonnelTypeController;
+use App\Http\Controllers\ChangeRequestController;
 use App\Http\Controllers\Student\StudentTypeController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
@@ -25,6 +26,13 @@ use App\Http\Controllers\Academic\AcademicYearController;
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
 Route::view('/rp_overview', 'pege.rp_overview');
+
+// --- แบบฟอร์มคำร้องขอปรับปรุงแก้ไขระบบ ---
+Route::controller(ChangeRequestController::class)->prefix('change-request')->name('change-request.')->group(function () {
+    Route::get('/', 'create')->name('create');
+    Route::post('/', 'store')->name('store');
+    Route::get('/preview', 'show')->name('show');
+});
 
 // --- 2. ส่วนของคนทั่วไป (Guest) ---
 Route::view('/login', 'auth.login')->name('login');
