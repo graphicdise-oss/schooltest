@@ -62,9 +62,7 @@
             white-space: nowrap;
         }
 
-        .btn-setting:hover {
-            background: #303f9f;
-        }
+        .btn-setting:hover { background: #303f9f; }
 
         .btn-save {
             background: #3f51b5;
@@ -76,9 +74,7 @@
             cursor: pointer;
         }
 
-        .btn-save:hover {
-            background: #303f9f;
-        }
+        .btn-save:hover { background: #303f9f; }
 
         .btn-search {
             background: #3f51b5;
@@ -90,20 +86,16 @@
             cursor: pointer;
         }
 
-        .btn-search:hover {
-            background: #303f9f;
-        }
+        .btn-search:hover { background: #303f9f; }
 
-        .form-control,
-        .form-select {
+        .form-control, .form-select {
             border-radius: 4px;
             border: 1px solid #ccc;
             padding: 7px 10px;
             width: 100%;
         }
 
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus, .form-select:focus {
             border-color: #3f51b5;
             outline: none;
             box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.15);
@@ -117,7 +109,6 @@
             font-size: 0.9rem;
         }
 
-        /* date section bar */
         .date-section-bar {
             background: #fff8e1;
             border: 1px solid #ffe082;
@@ -148,9 +139,7 @@
             white-space: nowrap;
         }
 
-        .btn-date-save:hover {
-            background: #2e7d32;
-        }
+        .btn-date-save:hover { background: #2e7d32; }
 
         .btn-bulk-number {
             background: #7b1fa2;
@@ -163,11 +152,8 @@
             white-space: nowrap;
         }
 
-        .btn-bulk-number:hover {
-            background: #4a148c;
-        }
+        .btn-bulk-number:hover { background: #4a148c; }
 
-        /* table */
         .student-table {
             width: 100%;
             border-collapse: collapse;
@@ -197,10 +183,7 @@
             font-size: 0.9rem;
         }
 
-        .btn-print:hover {
-            background: #43a047;
-            color: #fff;
-        }
+        .btn-print:hover { background: #43a047; color: #fff; }
 
         .btn-set-number {
             background: #ff9800;
@@ -213,9 +196,7 @@
             white-space: nowrap;
         }
 
-        .btn-set-number:hover {
-            background: #e65100;
-        }
+        .btn-set-number:hover { background: #e65100; }
 
         .doc-number-badge {
             display: inline-block;
@@ -238,7 +219,6 @@
             margin-bottom: 16px;
         }
 
-        /* Modal */
         .modal-overlay {
             display: none;
             position: fixed;
@@ -249,9 +229,7 @@
             justify-content: center;
         }
 
-        .modal-overlay.show {
-            display: flex;
-        }
+        .modal-overlay.show { display: flex; }
 
         .modal-box {
             background: #fff;
@@ -281,9 +259,7 @@
             border: none;
         }
 
-        .modal-close:hover {
-            color: #333;
-        }
+        .modal-close:hover { color: #333; }
 
         .modal-footer {
             margin-top: 20px;
@@ -301,48 +277,22 @@
             cursor: pointer;
         }
 
-        .btn-cancel:hover {
-            background: #ddd;
-        }
+        .btn-cancel:hover { background: #ddd; }
 
-        .row {
-            display: flex;
-            flex-wrap: wrap;
-            margin: 0 -8px;
-        }
+        .row { display: flex; flex-wrap: wrap; margin: 0 -8px; }
 
-        .col-md-3,
-        .col-md-4,
-        .col-md-6,
-        .col-md-12 {
+        .col-md-3, .col-md-4, .col-md-6, .col-md-12 {
             padding: 0 8px;
             margin-bottom: 12px;
         }
 
-        .col-md-3 {
-            width: 25%;
-        }
-
-        .col-md-4 {
-            width: 33.33%;
-        }
-
-        .col-md-6 {
-            width: 50%;
-        }
-
-        .col-md-12 {
-            width: 100%;
-        }
+        .col-md-3  { width: 25%; }
+        .col-md-4  { width: 33.33%; }
+        .col-md-6  { width: 50%; }
+        .col-md-12 { width: 100%; }
 
         @media (max-width: 768px) {
-
-            .col-md-3,
-            .col-md-4,
-            .col-md-6,
-            .col-md-12 {
-                width: 100%;
-            }
+            .col-md-3, .col-md-4, .col-md-6, .col-md-12 { width: 100%; }
         }
     </style>
 @endpush
@@ -350,7 +300,6 @@
 @section('content')
     <div class="pp2-page">
 
-        {{-- ===== Card หลัก ===== --}}
         <div class="pp2-card">
             <div class="pp2-icon">🎓</div>
             <div class="pp2-header">
@@ -408,8 +357,7 @@
                     <div class="col-md-3">
                         <label class="form-label">ค้นหา</label>
                         <div style="display:flex;gap:6px;">
-                            <input type="text" name="search" class="form-control" value="{{ $search }}"
-                                placeholder="ชื่อ / รหัส">
+                            <input type="text" name="search" class="form-control" value="{{ $search }}" placeholder="ชื่อ / รหัส">
                             <button type="submit" class="btn-search">🔍</button>
                         </div>
                     </div>
@@ -417,7 +365,6 @@
                 <input type="hidden" name="semester_id" value="{{ $semesterId }}">
             </form>
 
-            {{-- ตั้งค่าวันออกเอกสารของห้องที่เลือก --}}
             @if($sectionId)
                 @php
                     $selectedSection = $sections->firstWhere('section_id', $sectionId);
@@ -430,13 +377,10 @@
                     <input type="hidden" name="semester_id" value="{{ $semesterId }}">
                     <div class="date-section-bar">
                         <label>📅 วันจบการศึกษาของห้องนี้ :</label>
-                        <input type="date" name="issued_date" class="form-control" style="max-width:200px;"
-                            value="{{ $currentDate }}">
+                        <input type="date" name="issued_date" class="form-control" style="max-width:200px;" value="{{ $currentDate }}">
                         <button type="submit" class="btn-date-save">บันทึกวันที่</button>
                         @if($currentDate)
-                            <span style="color:#2e7d32;font-size:0.85rem;font-weight:600;">
-                                ✅ ตั้งค่าแล้ว
-                            </span>
+                            <span style="color:#2e7d32;font-size:0.85rem;font-weight:600;">✅ ตั้งค่าแล้ว</span>
                         @else
                             <span style="color:#aaa;font-size:0.85rem;">ยังไม่ได้ตั้งค่า (ใช้วันปัจจุบัน)</span>
                         @endif
@@ -445,7 +389,6 @@
                 </form>
             @endif
 
-            {{-- ตารางนักเรียน --}}
             @if($students->count() > 0)
                 <table class="student-table">
                     <thead>
@@ -471,8 +414,7 @@
                                         @if($doc?->doc_number)
                                             <span class="doc-number-badge">เลขที่ {{ $doc->doc_number }}</span>
                                         @endif
-                                        <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" target="_blank"
-                                            class="btn-print">🖨️ พิมพ์</a>
+                                        <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" target="_blank" class="btn-print">🖨️ พิมพ์</a>
                                         <button type="button" class="btn-set-number"
                                             onclick="openDocNumberModal({{ $ss->student_id }}, {{ $ss->section_id }}, {{ json_encode($fullName) }}, {{ json_encode($doc?->doc_number ?? '') }})">🔢 ตั้งเลขที่ ปพ.</button>
                                     </div>
@@ -489,12 +431,11 @@
         </div>
     </div>
 
-    {{-- ===== Modal ตั้งค่าโรงเรียน ===== --}}
+    {{-- Modal ตั้งค่าโรงเรียน --}}
     <div class="modal-overlay" id="settingModal">
         <div class="modal-box">
             <button class="modal-close" onclick="closeSettingModal()">✕</button>
             <div class="modal-title">⚙️ ตั้งค่าข้อมูลโรงเรียน</div>
-
             <form method="POST" action="{{ route('pp2.saveSetting') }}">
                 @csrf
                 <div class="row">
@@ -538,7 +479,7 @@
         </div>
     </div>
 
-    {{-- ===== Modal ตั้งเลขที่ ปพ. รายคน ===== --}}
+    {{-- Modal ตั้งเลขที่ ปพ. รายคน --}}
     <div class="modal-overlay" id="docNumberModal">
         <div class="modal-box" style="width:420px;">
             <button class="modal-close" onclick="closeDocNumberModal()">✕</button>
@@ -563,12 +504,12 @@
         </div>
     </div>
 
-    {{-- ===== Modal ตั้งเลขปพ. ทั้งห้อง ===== --}}
+    {{-- Modal ตั้งเลขปพ. ทั้งห้อง --}}
     <div class="modal-overlay" id="bulkDocModal">
         <div class="modal-box" style="width:440px;">
             <button class="modal-close" onclick="closeBulkDocModal()">✕</button>
             <div class="modal-title">🔢 ตั้งเลขปพ. ชั้นเรียนนี้ทั้งหมด</div>
-            <p style="color:#666;font-size:0.9rem;margin-bottom:16px;">ระบบจะกำหนดเลขที่ ปพ.2 ต่อเนื่องให้นักเรียนทุกคนในห้อง โดยเรียงตามลำดับที่นักเรียน</p>
+            <p style="color:#666;font-size:0.9rem;margin-bottom:16px;">เลขที่ที่กรอกจะใช้เหมือนกันทุกคนในห้องนี้</p>
             <form method="POST" action="{{ route('pp2.bulkSetDocNumber') }}">
                 @csrf
                 <input type="hidden" name="section_id" value="{{ $sectionId }}">
@@ -576,8 +517,8 @@
                 <input type="hidden" name="level_id" value="{{ $levelId }}">
                 <input type="hidden" name="semester_id" value="{{ $semesterId }}">
                 <div style="margin-bottom:16px;">
-                    <label class="form-label">เลขที่เริ่มต้น</label>
-                    <input type="number" name="start_number" class="form-control" value="1" min="1" placeholder="เช่น 1, 101, 201">
+                    <label class="form-label">เลขที่ ปพ.2 (ใช้เหมือนกันทุกคน)</label>
+                    <input type="text" name="doc_number" class="form-control" placeholder="เช่น 2568/001">
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn-cancel" onclick="closeBulkDocModal()">ยกเลิก</button>
