@@ -84,7 +84,6 @@ class Pp2Controller extends Controller
             ->orderBy('thai_firstname')
             ->get();
 
-
         return view('academic.pp2_index', compact(
             'academicYears',
             'semesters',
@@ -141,19 +140,16 @@ class Pp2Controller extends Controller
     public function bulkSetDocNumber(Request $request)
     {
         $request->validate([
-            'section_id' => 'required',
-            'start_number' => 'required|integer|min:1',
+            'section_id'  => 'required',
+            'doc_number'  => 'required',
         ]);
 
-        $students = StudentSection::where('section_id', $request->section_id)
-            ->orderBy('student_number')
-            ->get();
+        $students = StudentSection::where('section_id', $request->section_id)->get();
 
-        $num = (int) $request->start_number;
         foreach ($students as $ss) {
             Pp2Document::updateOrCreate(
                 ['student_id' => $ss->student_id, 'section_id' => $ss->section_id],
-                ['doc_number' => $num++]
+                ['doc_number' => $request->doc_number]
             );
         }
 
