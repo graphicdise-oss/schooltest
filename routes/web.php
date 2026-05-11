@@ -30,6 +30,7 @@ use App\Http\Controllers\Student\ClassRosterController;
 use App\Http\Controllers\Student\StudentStatController;
 use App\Http\Controllers\Academic\Pp2Controller;
 use App\Http\Controllers\Academic\ExamRoomController;
+use App\Http\Controllers\ChangeRequestController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -65,7 +66,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/students/health', 'storeHealth')->name('students.storeHealth');
     });
 
-    
+
     // === บุคลากร ===
     Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->group(function () {
 
@@ -321,22 +322,35 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
-Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
+    Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
 
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
 
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::post('/set-doc-number', 'setDocNumber')->name('setDocNumber');
-    Route::get('/print/{studentId}/{sectionId}', 'print')->name('print');
-});
+        Route::get('/', 'index')->name('index');
+        Route::post('/set-doc-number', 'setDocNumber')->name('setDocNumber');
+        Route::post('/save-setting', 'saveSetting')->name('saveSetting');
+        Route::post('/settings', 'saveSettings')->name('saveSettings');
+        Route::post('/section/{sectionId}/date', 'saveSectionDate')->name('saveSectionDate');
+        Route::get('/print/{studentId}/{sectionId}', 'print')->name('print');
+    });
 
 
-Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
-    Route::get('/', 'index')->name('index');
+    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    // แบบฟอร์มคำร้องขอปรับปรุงแก้ไขระบบ
+   Route::controller(ChangeRequestController::class)->prefix('change-request')->name('change-request.')->group(function () {
+    Route::get('/', 'create')->name('create');
     Route::post('/', 'store')->name('store');
-    Route::put('/{id}', 'update')->name('update');
+    Route::get('/preview', 'preview')->name('preview');
+    Route::get('/history', 'history')->name('history');
+    Route::get('/{id}', 'show')->name('show');
     Route::delete('/{id}', 'destroy')->name('destroy');
 });
 
@@ -349,6 +363,8 @@ Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-r
         $request->session()->regenerateToken();
         return redirect('/login');
     })->name('logout');
+
+
 
 
 });

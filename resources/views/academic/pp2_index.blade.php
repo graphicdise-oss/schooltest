@@ -1,215 +1,504 @@
 @extends('layouts.sidebar')
 
 @push('styles')
-<style>
-    body { background: #f4f6f9; }
-    .floating-card {
-        background: #fff; border-radius: 6px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        padding: 30px 20px 20px; position: relative;
-        margin-top: 50px; margin-bottom: 28px;
-    }
-    .floating-icon {
-        position: absolute; top: -25px; left: 20px;
-        width: 70px; height: 70px; border-radius: 4px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 32px; color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-    }
-    .card-header-text { margin-left: 90px; font-size: 1.1rem; color: #555; margin-top: -10px; }
-    .input-material {
-        border: none; border-bottom: 1px solid #ccc; border-radius: 0;
-        padding-left: 0; box-shadow: none !important; background: transparent;
-    }
-    .input-material:focus { border-bottom-color: #00bcd4; border-bottom-width: 2px; }
-    .table > thead > tr > th { border-bottom: 2px solid #eee; color: #333; font-weight: 500; padding-bottom: 15px; }
-    .table > tbody > tr > td { vertical-align: middle; color: #555; border-bottom: 1px solid #f5f5f5; padding: 12px 10px; }
-    .btn-doc { background: #ff9800; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; white-space: nowrap; }
-    .btn-doc:hover { background: #e68900; }
-    .btn-print-pp2 { background: #00bcd4; color: #fff; border: none; border-radius: 4px; padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer; font-family: inherit; text-decoration: none; white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; }
-    .btn-print-pp2:hover { background: #00a5bb; color: #fff; text-decoration: none; }
+    <style>
+        .pp2-page {
+            padding: 24px 28px;
+            min-height: 100%;
+        }
 
-    .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9999; justify-content: center; align-items: center; }
-    .modal-overlay.active { display: flex; }
-    .modal-box { background: #fff; border-radius: 12px; width: 440px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden; }
-    .modal-header { background: #ff9800; color: #fff; padding: 16px 20px; font-size: 1rem; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 24px; }
-    .field-group { margin-bottom: 16px; }
-    .field-group label { font-size: 0.85rem; font-weight: 600; color: #555; display: block; margin-bottom: 6px; }
-    .field-group input { width: 100%; border: 1.5px solid #e0e0e0; border-radius: 8px; padding: 9px 12px; font-size: 0.88rem; font-family: inherit; outline: none; box-sizing: border-box; }
-    .field-group input:focus { border-color: #ff9800; }
-    .modal-footer { padding: 12px 24px 20px; display: flex; justify-content: flex-end; gap: 10px; }
-    .btn-orange { background: #ff9800; color: #fff; border: none; border-radius: 8px; padding: 9px 28px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
-    .btn-cancel { background: #eee; color: #555; border: none; border-radius: 8px; padding: 9px 20px; font-size: 0.88rem; font-weight: 600; cursor: pointer; font-family: inherit; }
-</style>
+        .pp2-card {
+            background: #fff;
+            border-radius: 6px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            padding: 30px 20px 20px;
+            position: relative;
+            margin-top: 50px;
+            border: none;
+            margin-bottom: 28px;
+        }
+
+        .pp2-icon {
+            position: absolute;
+            top: -25px;
+            left: 20px;
+            width: 70px;
+            height: 70px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: #fff;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+            background: #3f51b5;
+        }
+
+        .pp2-header {
+            margin-left: 90px;
+            font-size: 1.15rem;
+            color: #555;
+            margin-top: -10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pp2-header h5 {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 2px;
+        }
+
+        .btn-setting {
+            background: #3f51b5;
+            color: #fff;
+            border: none;
+            padding: 7px 18px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-setting:hover {
+            background: #303f9f;
+        }
+
+        .btn-save {
+            background: #3f51b5;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .btn-save:hover {
+            background: #303f9f;
+        }
+
+        .btn-search {
+            background: #3f51b5;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            cursor: pointer;
+        }
+
+        .btn-search:hover {
+            background: #303f9f;
+        }
+
+        .form-control,
+        .form-select {
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            padding: 7px 10px;
+            width: 100%;
+        }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #3f51b5;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(63, 81, 181, 0.15);
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #444;
+            margin-bottom: 4px;
+            display: block;
+            font-size: 0.9rem;
+        }
+
+        /* date section bar */
+        .date-section-bar {
+            background: #fff8e1;
+            border: 1px solid #ffe082;
+            border-radius: 6px;
+            padding: 12px 18px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .date-section-bar label {
+            font-weight: 600;
+            color: #555;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+
+        .btn-date-save {
+            background: #43a047;
+            color: #fff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-date-save:hover {
+            background: #2e7d32;
+        }
+
+        /* table */
+        .student-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .student-table th {
+            padding: 10px;
+            border-bottom: 2px solid #ddd;
+            text-align: left;
+            background: #3f51b5;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .student-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .btn-print {
+            background: #66bb6a;
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-print:hover {
+            background: #43a047;
+            color: #fff;
+        }
+
+        .alert-success {
+            background: #e8f5e9;
+            border: 1px solid #a5d6a7;
+            color: #2e7d32;
+            border-radius: 4px;
+            padding: 10px 16px;
+            margin-bottom: 16px;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 8px;
+            padding: 28px;
+            width: 560px;
+            max-width: 95vw;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            font-size: 1.4rem;
+            cursor: pointer;
+            color: #999;
+            background: none;
+            border: none;
+        }
+
+        .modal-close:hover {
+            color: #333;
+        }
+
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .btn-cancel {
+            background: #eee;
+            color: #555;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-cancel:hover {
+            background: #ddd;
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            margin: 0 -8px;
+        }
+
+        .col-md-3,
+        .col-md-4,
+        .col-md-6,
+        .col-md-12 {
+            padding: 0 8px;
+            margin-bottom: 12px;
+        }
+
+        .col-md-3 {
+            width: 25%;
+        }
+
+        .col-md-4 {
+            width: 33.33%;
+        }
+
+        .col-md-6 {
+            width: 50%;
+        }
+
+        .col-md-12 {
+            width: 100%;
+        }
+
+        @media (max-width: 768px) {
+
+            .col-md-3,
+            .col-md-4,
+            .col-md-6,
+            .col-md-12 {
+                width: 100%;
+            }
+        }
+    </style>
 @endpush
 
 @section('content')
-<div class="container-fluid px-4 py-3">
+    <div class="pp2-page">
 
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    @endif
-
-    {{-- ค้นหา --}}
-    <div class="floating-card">
-        <div class="floating-icon" style="background:#00bcd4;"><i class="bi bi-search"></i></div>
-        <div class="card-header-text mb-4">ค้นหา</div>
-
-        <form action="{{ route('pp2.index') }}" method="GET">
-            <div class="row px-md-3 mt-4 g-3">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold text-dark mb-0">ปีการศึกษา</label>
-                    <select name="year_id" class="form-select input-material mt-2" onchange="this.form.submit()">
-                        @foreach ($academicYears as $yr)
-                            <option value="{{ $yr->year_id }}" {{ $yearId == $yr->year_id ? 'selected' : '' }}>{{ $yr->year_name }}</option>
-                        @endforeach
-                    </select>
+        {{-- ===== Card หลัก ===== --}}
+        <div class="pp2-card">
+            <div class="pp2-icon">🎓</div>
+            <div class="pp2-header">
+                <div>
+                    <h5>ออกใบ ปพ.2</h5>
+                    <span style="color:#888;font-size:0.9rem;">เลือกห้องเรียนและพิมพ์ประกาศนียบัตร</span>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold text-dark mb-0">ระดับชั้น</label>
-                    <select name="level_id" class="form-select input-material mt-2" onchange="this.form.submit()">
-                        <option value="">-- เลือกระดับชั้น --</option>
-                        @foreach ($levels as $lv)
-                            <option value="{{ $lv->level_id }}" {{ $levelId == $lv->level_id ? 'selected' : '' }}>{{ $lv->name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold text-dark mb-0">ชั้นเรียน</label>
-                    <select name="section_id" class="form-select input-material mt-2" onchange="this.form.submit()">
-                        <option value="">-- เลือกชั้นเรียน --</option>
-                        @foreach ($sections as $sec)
-                            <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                                {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold text-dark mb-0">ชื่อ-นามสกุล</label>
-                    <input type="text" name="search" class="form-control input-material mt-2"
-                        placeholder="ชื่อ-นามสกุล/รหัสนักเรียน" value="{{ $search }}">
-                </div>
+                <button class="btn-setting" onclick="openSettingModal()">⚙️ ตั้งค่าข้อมูลโรงเรียน</button>
             </div>
-            <div class="text-center mt-3">
-                <button type="submit" class="btn text-white px-4 py-2 rounded-1" style="background:#00bcd4;">
-                    <i class="bi bi-search me-1"></i> ค้นหา
-                </button>
-            </div>
-        </form>
-    </div>
 
-    {{-- ตาราง --}}
-    <div class="floating-card mb-5">
-        <div class="floating-icon" style="background:#4caf50;"><i class="bi bi-file-earmark-text"></i></div>
-        <div class="d-flex justify-content-between align-items-center card-header-text mb-4">
-            <div>ระเบียนใบประกาศนียบัตร (ปว.2)</div>
-            @if ($sectionId && $students->isNotEmpty())
-                <a href="#" onclick="window.print()" class="btn text-white px-3 py-2 rounded-1"
-                    style="background:#ff9800; margin-top:-15px; font-size:0.88rem;">
-                    <i class="bi bi-printer me-1"></i> สรุปรายงาน ป.พ.2
-                </a>
+            <hr style="margin:20px 0 20px;">
+
+            @if(session('success'))
+                <div class="alert-success">{{ session('success') }}</div>
             @endif
-        </div>
+            @if(session('success_section'))
+                <div class="alert-success">{{ session('success_section') }}</div>
+            @endif
 
-        @if (!$sectionId)
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-arrow-up-circle fs-1 d-block mb-2"></i>
-                กรุณาเลือก <strong>ระดับชั้น</strong> และ <strong>ชั้นเรียน</strong> เพื่อดูรายชื่อ
-            </div>
-        @elseif ($students->isEmpty())
-            <div class="text-center text-muted py-5">
-                <i class="bi bi-folder-x fs-1 d-block mb-2"></i>
-                ไม่พบนักเรียนในชั้นเรียนนี้
-            </div>
-        @else
-            <div class="table-responsive px-2">
-                <table class="table table-hover align-middle">
+            {{-- Filter --}}
+            <form method="GET" action="{{ route('pp2.index') }}">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">ปีการศึกษา</label>
+                        <select name="year_id" class="form-select" onchange="this.form.submit()">
+                            @foreach($academicYears as $year)
+                                <option value="{{ $year->year_id }}" {{ $yearId == $year->year_id ? 'selected' : '' }}>
+                                    {{ $year->year_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">ระดับชั้น</label>
+                        <select name="level_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- เลือกระดับ --</option>
+                            @foreach($levels as $level)
+                                <option value="{{ $level->level_id }}" {{ $levelId == $level->level_id ? 'selected' : '' }}>
+                                    {{ $level->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">ห้องเรียน</label>
+                        <select name="section_id" class="form-select" onchange="this.form.submit()">
+                            <option value="">-- เลือกห้อง --</option>
+                            @foreach($sections as $sec)
+                                <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
+                                    {{ $sec->level?->name }}/{{ $sec->section_number }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">ค้นหา</label>
+                        <div style="display:flex;gap:6px;">
+                            <input type="text" name="search" class="form-control" value="{{ $search }}"
+                                placeholder="ชื่อ / รหัส">
+                            <button type="submit" class="btn-search">🔍</button>
+                        </div>
+                    </div>
+                </div>
+                <input type="hidden" name="semester_id" value="{{ $semesterId }}">
+            </form>
+
+            {{-- ตั้งค่าวันออกเอกสารของห้องที่เลือก --}}
+            @if($sectionId)
+                @php
+                    $selectedSection = $sections->firstWhere('section_id', $sectionId);
+                    $currentDate = $selectedSection?->pp2SectionSetting?->issued_date?->format('Y-m-d');
+                @endphp
+                <form method="POST" action="{{ route('pp2.saveSectionDate', $sectionId) }}">
+                    @csrf
+                    <input type="hidden" name="year_id" value="{{ $yearId }}">
+                    <input type="hidden" name="level_id" value="{{ $levelId }}">
+                    <input type="hidden" name="semester_id" value="{{ $semesterId }}">
+                    <div class="date-section-bar">
+                        <label>📅 วันจบการศึกษาของห้องนี้ :</label>
+                        <input type="date" name="issued_date" class="form-control" style="max-width:200px;"
+                            value="{{ $currentDate }}">
+                        <button type="submit" class="btn-date-save">บันทึกวันที่</button>
+                        @if($currentDate)
+                            <span style="color:#2e7d32;font-size:0.85rem;font-weight:600;">
+                                ✅ ตั้งค่าแล้ว
+                            </span>
+                        @else
+                            <span style="color:#aaa;font-size:0.85rem;">ยังไม่ได้ตั้งค่า (ใช้วันปัจจุบัน)</span>
+                        @endif
+                    </div>
+                </form>
+            @endif
+
+            {{-- ตารางนักเรียน --}}
+            @if($students->count() > 0)
+                <table class="student-table">
                     <thead>
                         <tr>
-                            <th class="text-center">ลำดับ</th>
-                            <th class="text-center">รหัสนักเรียน</th>
+                            <th>ลำดับ</th>
+                            <th>รหัส</th>
                             <th>ชื่อ-สกุล</th>
-                            <th class="text-center">เลขที่เอกสาร</th>
-                            <th class="text-center"></th>
+                            <th style="text-align:center;">พิมพ์</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($students as $i => $ss)
-                            @php $doc = $docs->get($ss->student_id); @endphp
+                        @foreach($students as $i => $ss)
                             <tr>
-                                <td class="text-center">{{ $i + 1 }}</td>
-                                <td class="text-center">{{ $ss->student?->student_code ?? '-' }}</td>
-                                <td>
-                                    {{ $ss->student?->thai_prefix ?? '' }}{{ $ss->student?->thai_firstname ?? '-' }}
-                                    {{ $ss->student?->thai_lastname ?? '' }}
+                                <td>{{ $i + 1 }}</td>
+                                <td>{{ $ss->student?->student_code }}</td>
+                                <td>{{ ($ss->student?->thai_prefix ?? '') . ($ss->student?->thai_firstname ?? '') . ' ' . ($ss->student?->thai_lastname ?? '') }}
                                 </td>
-                                <td class="text-center">
-                                    {{ $doc?->doc_number ?? '-' }}
-                                </td>
-                                <td class="text-center" style="white-space:nowrap;">
-                                    <button class="btn-doc me-1"
-                                        onclick="openDocModal({{ $ss->student_id }}, {{ $sectionId }}, '{{ $doc?->doc_number ?? '' }}', '{{ $doc?->issued_date?->format('Y-m-d') ?? '' }}')">
-                                        <i class="bi bi-hash"></i> ตั้งเลขที่เอกสาร
-                                    </button>
-                                    <a href="{{ route('pp2.print', [$ss->student_id, $sectionId]) }}"
-                                        target="_blank" class="btn-print-pp2">
-                                        <i class="bi bi-printer"></i> พิมพ์ใบ ป.พ.2
-                                    </a>
+                                <td style="text-align:center;">
+                                    <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" target="_blank"
+                                        class="btn-print">🖨️ พิมพ์</a>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                 </table>
-            </div>
-        @endif
-    </div>
-</div>
-
-{{-- Modal ตั้งเลขที่เอกสาร --}}
-<div class="modal-overlay" id="docModal" onclick="closeDocModal(event)">
-    <div class="modal-box" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <span>ตั้งเลขที่เอกสาร ป.พ.2</span>
-            <button onclick="closeDocModal()" style="background:none;border:none;color:#fff;font-size:1.2rem;cursor:pointer;">✕</button>
+            @elseif($sectionId)
+                <p style="color:#aaa;margin-top:12px;">ไม่มีนักเรียนในห้องนี้</p>
+            @else
+                <p style="color:#aaa;margin-top:12px;">เลือกห้องเรียนเพื่อแสดงรายชื่อ</p>
+            @endif
         </div>
-        <form action="{{ route('pp2.setDocNumber') }}" method="POST">
-            @csrf
-            <input type="hidden" name="student_id" id="docStudentId">
-            <input type="hidden" name="section_id" id="docSectionId">
-            <div class="modal-body">
-                <div class="field-group">
-                    <label>เลขที่เอกสาร <span style="color:red;">*</span></label>
-                    <input type="text" name="doc_number" id="docNumber" placeholder="เช่น ปพ.2-001" required>
-                </div>
-                <div class="field-group">
-                    <label>วันที่ออกเอกสาร</label>
-                    <input type="date" name="issued_date" id="docIssuedDate">
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn-cancel" onclick="closeDocModal()">ยกเลิก</button>
-                <button type="submit" class="btn-orange">บันทึก</button>
-            </div>
-        </form>
     </div>
-</div>
 
-<script>
-    function openDocModal(studentId, sectionId, docNumber, issuedDate) {
-        document.getElementById('docStudentId').value = studentId;
-        document.getElementById('docSectionId').value = sectionId;
-        document.getElementById('docNumber').value = docNumber;
-        document.getElementById('docIssuedDate').value = issuedDate;
-        document.getElementById('docModal').classList.add('active');
-    }
-    function closeDocModal(e) {
-        if (e && e.target !== e.currentTarget) return;
-        document.getElementById('docModal').classList.remove('active');
-    }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDocModal(); });
-</script>
+    {{-- ===== Modal ตั้งค่าโรงเรียน ===== --}}
+    <div class="modal-overlay" id="settingModal">
+        <div class="modal-box">
+            <button class="modal-close" onclick="closeSettingModal()">✕</button>
+            <div class="modal-title">⚙️ ตั้งค่าข้อมูลโรงเรียน</div>
+
+            <form method="POST" action="{{ route('pp2.saveSetting') }}">
+                @csrf
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="form-label">ชื่อโรงเรียน</label>
+                        <input type="text" name="school_name" class="form-control"
+                            value="{{ old('school_name', $setting?->school_name) }}"
+                            placeholder="เช่น โรงเรียนสาธิตมหาวิทยาลัยราชภัฏวไลยอลงกรณ์ ในพระบรมราชูปถัมภ์">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">จังหวัด</label>
+                        <input type="text" name="province" class="form-control"
+                            value="{{ old('province', $setting?->province) }}" placeholder="เช่น ปทุมธานี">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อผู้อำนวยการ</label>
+                        <select name="director_name" class="form-select">
+                            <option value="">-- เลือกบุคลากร --</option>
+                            @foreach($directors as $p)
+                                @php
+                                    $fullName = ($p->thai_prefix ?? '') . ($p->thai_firstname ?? '') . ' ' . ($p->thai_lastname ?? '');
+                                @endphp
+                                <option value="{{ $fullName }}" {{ $setting?->director_name === $fullName ? 'selected' : '' }}>
+                                    {{ $fullName }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label">สังกัด</label>
+                        <input type="text" name="affiliation" class="form-control"
+                            value="{{ old('affiliation', $setting?->affiliation) }}"
+                            placeholder="เช่น สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeSettingModal()">ยกเลิก</button>
+                    <button type="submit" class="btn-save">💾 บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openSettingModal() {
+            document.getElementById('settingModal').classList.add('show');
+        }
+        function closeSettingModal() {
+            document.getElementById('settingModal').classList.remove('show');
+        }
+        // คลิกนอก modal ปิด
+        document.getElementById('settingModal').addEventListener('click', function (e) {
+            if (e.target === this) closeSettingModal();
+        });
+        // เปิด modal อัตโนมัติถ้า session success จาก save setting
+        @if(session('success'))
+            // ไม่ต้องเปิด modal หลัง save
+        @endif
+    </script>
 @endsection

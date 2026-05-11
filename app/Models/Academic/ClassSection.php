@@ -14,5 +14,6 @@ class ClassSection extends Model
     public function studentSections() { return $this->hasMany(StudentSection::class, 'section_id', 'section_id'); }
     public function teachingAssigns() { return $this->hasMany(TeachingAssign::class, 'section_id', 'section_id'); }
     public function curriculum() { return $this->belongsTo(Curriculum::class, 'curriculum_id', 'curriculum_id'); }
+    public function pp2SectionSetting() { return $this->hasOne(\App\Models\Pp2SectionSetting::class, 'section_id', 'section_id'); }
     public function getFullNameAttribute() { return ($this->level->name ?? '') . '/' . $this->section_number; }
 }

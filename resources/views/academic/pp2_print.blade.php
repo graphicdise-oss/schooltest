@@ -22,6 +22,18 @@
             src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
         }
 
+        @font-face {
+            font-family: THDanViVek;
+            src: url('{{ asset("fonts/TH Dan Vi Vek ver 1.03.ttf") }}') format('truetype');
+            font-weight: normal;
+        }
+
+        @font-face {
+            font-family: THDanViVek;
+            src: url('{{ asset("fonts/TH Dan Vi Vek Bold ver 1.03.ttf") }}') format('truetype');
+            font-weight: bold;
+        }
+
         * {
             box-sizing: border-box;
             -moz-box-sizing: border-box;
@@ -34,7 +46,7 @@
             width: 100%;
             height: 100%;
             background-color: #FAFAFA;
-            line-height: 1.5;
+            line-height: 1.3;
         }
 
         .page {
@@ -90,7 +102,7 @@
 
         .back .spn-label {
             font-family: 'TH Sarabun New', 'THSarabunNew', sans-serif;
-            letter-spacing: 0.6pt;
+            letter-spacing: -0.5pt;
         }
 
         .input-data {
@@ -150,8 +162,21 @@
             font-size: 1.6em;
         }
 
+      .font-size-15em-data {
+            font-size: 1.5em;
+        }
+
         .font-size-14em-data {
             font-size: 1.4em;
+        }
+
+        .font-size-18em-bold {
+            font-size: 1.8em;
+            font-weight: bold;
+        }
+
+        .font-size-16em {
+            font-size: 1.6em;
         }
 
         .font-size-10em-bold {
@@ -183,8 +208,6 @@
         .custom-section .col-6 p {
             white-space: nowrap;
         }
-
-        .no-print-me {}
 
         @media print {
 
@@ -280,13 +303,17 @@
         }
 
         $fullName = ($student?->thai_prefix ?? '') . ($student?->thai_firstname ?? '') . ' ' . ($student?->thai_lastname ?? '');
+        $schoolName = $settings?->school_name ?? '';
+        $province = $settings?->province ?? '';
+        $affiliation = $settings?->affiliation ?? '';
+        $directorName = $settings?->director_name ?? '';
     @endphp
 
     <div class="no-print-me" style="position:fixed;top:10%;right:10px;">
         <button class="print-btn" onclick="window.print()">🖨️ พิมพ์</button>
     </div>
 
-    {{-- ===== หน้า 1 (หน้าหลัก) ===== --}}
+    {{-- ===== หน้า 1 ===== --}}
     <div class="page front">
         <div class="page-inner">
             <div class="row">
@@ -305,7 +332,6 @@
                 </div>
             </div>
 
-            {{-- spacer 2 บรรทัด --}}
             <div style="height:50pt;"></div>
 
             <div class="row">
@@ -314,14 +340,13 @@
                 </div>
             </div>
 
+            <div style="height:20pt;"></div>
 
             <div class="row">
                 <div class="col-12 text-center" style="height:38pt;">
                     <span class="font-tfarluck font-size-28em spn-label">ประกาศนียบัตรฉบับนี้ให้ไว้เพื่อแสดงว่า</span>
                 </div>
             </div>
-
-            <div style="height:5pt;"></div>
 
             <div class="row" style="margin-bottom:5pt;">
                 <div class="col-12 text-center">
@@ -364,8 +389,8 @@
                     <p
                         style="display:inline-block; margin:-2pt 8pt 2pt -1pt; width:70%; height:25pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-20em-data input-data"
-                            style="width:100%;height:100%;text-align:center;">โรงเรียนสาธิตมหาวิทยาลัยราชภัฏวไลยอลงกรณ์
-                            ในพระบรมราชูปถัมภ์</span>
+                            style="width:100%;height:100%;text-align:center;">{{ $schoolName }}</span>
+
                     </p>
                 </div>
             </div>
@@ -375,13 +400,12 @@
                     <span class="font-tfarluck font-size-24em spn-label">จังหวัด</span>
                     <p style="display:inline-block; margin:0; width:18%; height:23pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-18em-data input-data"
-                            style="width:100%;height:100%;">ปทุมธานี</span>
+                            style="width:100%;height:100%;">{{ $province }}</span>
                     </p>
                     <span class="font-tfarluck font-size-24em spn-label">สังกัด</span>
                     <p style="display:inline-block; margin:0 -60pt 0 0; width:50%; height:23pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
-                            style="width:100%;height:100%;padding-left:3pt;">สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์
-                            วิจัยและนวัตกรรม</span>
+                            style="width:100%;height:100%;padding-left:3pt;">{{ $affiliation }}</span>
                     </p>
                 </div>
             </div>
@@ -416,7 +440,7 @@
 
             <div class="row">
                 <div class="col-12 text-center">
-                    <span class="font-tfarluck-data font-size-17em-data spn-label">(นางสาววรานิษฐ์ ธนชัยวรพันธ์)</span>
+                    <span class="font-tfarluck-data font-size-17em-data spn-label">({{ $directorName }})</span>
                 </div>
             </div>
             <div class="row">
@@ -427,13 +451,13 @@
         </div>
     </div>
 
-    {{-- ===== หน้า 2 (ลงลายมือชื่อ) ===== --}}
+    {{-- ===== หน้า 2 ===== --}}
     <div class="page back" style="page-break-before:always;">
         <div class="page-inner" style="padding-top:5cm;">
 
             <div class="row">
-                <div class="col-12 text-center" style="height:41pt;">
-                    <span class="font-size-10em-bold spn-label">ลงลายมือชื่อ</span>
+                <div class="col-12 text-center" style="height:70pt;">
+                    <span class="font-size-18em-bold spn-label">ลงลายมือชื่อ</span>
                 </div>
             </div>
 
@@ -444,7 +468,7 @@
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="width:100%;height:100%;text-align:center;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">ผู้เขียน/ผู้พิมพ์</span>
+                    <span class="font-size-14em spn-label">ผู้เขียน/ผู้พิมพ์</span>
                 </div>
                 <div class="col-6 text-left">
                     <p
@@ -462,16 +486,16 @@
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="width:100%;height:100%;text-align:center;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">ผู้ทาน</span>
+                    <span class="font-size-14em spn-label">ผู้ทาน</span>
                 </div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em spn-label">(</span>
+                    <span class="font-size-14em spn-label">(</span>
                     <p
                         style="display:inline-block; margin:-6pt 0 2pt 0; width:auto; height:17pt; vertical-align:top; text-align:center; padding:0 10px;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="text-align:center;height:100%;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">)</span>
+                    <span class="font-size-14em spn-label">)</span>
                 </div>
             </div>
 
@@ -482,10 +506,10 @@
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="width:100%;height:100%;text-align:center;"></span>
                     </p>
-                    <span class="font-size-08em spn-label">ผู้ตรวจ</span>
+                    <span class="font-size-14em spn-label">ผู้ตรวจ</span>
                 </div>
                 <div class="col-6 text-left" style="padding-bottom:10pt;">
-                    <span class="font-size-08em-bold spn-label">นายทะเบียน</span>
+                    <span class="spn-label" style="font-size:1.3em; font-weight:bold; letter-spacing:-0.8pt;">นายทะเบียน</span>
                 </div>
             </div>
 
@@ -502,38 +526,38 @@
             <div class="row custom-section">
                 <div class="col-6" style="height:23pt;"></div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em spn-label">(</span>
+                    <span class="font-size-14em spn-label">(</span>
                     <p style="display:inline-block; margin:-6pt 0 2pt 0; width:47%; height:17pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="width:100%;height:100%;text-align:center;">{{ $fullName }}</span>
                     </p>
-                    <span class="font-size-08em spn-label">)</span>
+                    <span class="font-size-14em spn-label">)</span>
                 </div>
             </div>
 
             <div class="row custom-section">
                 <div class="col-6" style="height:23pt;"></div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em-bold spn-label">ผู้รับประกาศนียบัตร</span>
+                    <span class="spn-label" style="font-size:1.3em; font-weight:bold; letter-spacing:-0.8pt;">ผู้รับประกาศนียบัตร</span>
                 </div>
             </div>
 
             <div class="row custom-section">
                 <div class="col-6" style="height:23pt;"></div>
                 <div class="col-6 text-left">
-                    <span class="font-size-08em spn-label">วันที่</span>
+                    <span class="font-size-14em spn-label">วันที่</span>
                     <p
                         style="display:inline-block; margin:-7pt -3pt 2pt -4pt; width:19%; height:18pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="width:100%;height:100%;padding-left:2pt;">{{ $issDay }}</span>
                     </p>
-                    <span class="font-size-08em spn-label">เดือน</span>
+                    <span class="font-size-14em spn-label">เดือน</span>
                     <p
                         style="display:inline-block; margin:-7pt -2pt 2pt -4pt; width:31%; height:18pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="width:100%;height:100%;padding-left:2pt;">{{ $issMonth }}</span>
                     </p>
-                    <span class="font-size-08em spn-label">พ.ศ.</span>
+                    <span class="font-size-14em spn-label">พ.ศ.</span>
                     <p
                         style="display:inline-block; margin:-7pt 0 2pt -4pt; width:27%; height:18pt; vertical-align:top;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
