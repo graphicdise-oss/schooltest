@@ -76,9 +76,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
-        Route::put('/{id}/credentials', 'updateCredentials')->name('updateCredentials');  // ← เพิ่มบรรทัดนี้
-        // เพิ่มใน group personnels ที่มีอยู่แล้ว
-
+        Route::put('/{id}/credentials', 'updateCredentials')->name('updateCredentials');
 
         // ข้อมูลการศึกษา
         Route::post('/education', 'storeEducation')->name('education.store');
@@ -234,7 +232,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
     Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
-    // ในกลุ่ม auth ที่มีอยู่แล้ว
     Route::get('/student-alumni/import', [StudentAlumniController::class, 'importIndex'])->name('student-alumni.import');
     Route::post('/student-alumni/import', [StudentAlumniController::class, 'importStore'])->name('student-alumni.import.store');
 
@@ -274,29 +271,24 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->group(function () {
         Route::get('/', 'index')->name('index');
 
-        // Section 1: ผู้อนุมัติ
         Route::post('/general', 'saveGeneral')->name('saveGeneral');
         Route::post('/dept', 'storeDept')->name('storeDept');
         Route::put('/dept/{id}', 'updateDept')->name('updateDept');
         Route::delete('/dept/{id}', 'destroyDept')->name('destroyDept');
 
-        // Section 2: โควตาวันลา
         Route::post('/quota-group', 'storeQuotaGroup')->name('storeQuotaGroup');
         Route::put('/quota-group/{id}/toggle', 'toggleQuotaGroup')->name('toggleQuotaGroup');
         Route::delete('/quota-group/{id}', 'destroyQuotaGroup')->name('destroyQuotaGroup');
         Route::put('/quota-group/{id}/quotas', 'updateQuotas')->name('updateQuotas');
 
-        // Section 3: วันตัดรอบ
         Route::post('/cutoff', 'saveCutoff')->name('saveCutoff');
 
-        // Section 4: การแจ้งเตือน
         Route::post('/notifications', 'saveNotifications')->name('saveNotifications');
         Route::post('/recipient', 'storeRecipient')->name('storeRecipient');
         Route::delete('/recipient/{id}', 'destroyRecipient')->name('destroyRecipient');
     });
 
 
-    // ใน group middleware auth
     Route::get('/class-roster', [ClassRosterController::class, 'index'])->name('class-roster.index');
 
     // === ข้อมูลการลา ===
@@ -304,7 +296,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/personnel', [LeavePersonnelController::class, 'index'])->name('personnel.index');
         Route::get('/personnel/{personnelId}', [LeavePersonnelController::class, 'show'])->name('personnel.show');
 
-        // ⚠️ create ต้องอยู่ก่อน {id} เสมอ
         Route::get('/requests/create', [LeaveRequestController::class, 'create'])->name('requests.create');
         Route::post('/requests', [LeaveRequestController::class, 'store'])->name('requests.store');
 
@@ -314,7 +305,6 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/requests/{id}', [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
     });
 
-    // ใน group middleware auth
     Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
@@ -322,14 +312,12 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
-    Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
-
-
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
 
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/set-doc-number', 'setDocNumber')->name('setDocNumber');
+        Route::post('/bulk-set-doc-number', 'bulkSetDocNumber')->name('bulkSetDocNumber');
         Route::post('/save-setting', 'saveSetting')->name('saveSetting');
         Route::post('/settings', 'saveSettings')->name('saveSettings');
         Route::post('/section/{sectionId}/date', 'saveSectionDate')->name('saveSectionDate');
@@ -344,19 +332,17 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
-    // แบบฟอร์มคำร้องขอปรับปรุงแก้ไขระบบ
-   Route::controller(ChangeRequestController::class)->prefix('change-request')->name('change-request.')->group(function () {
-    Route::get('/', 'create')->name('create');
-    Route::post('/', 'store')->name('store');
-    Route::get('/preview', 'preview')->name('preview');
-    Route::get('/history', 'history')->name('history');
-    Route::get('/{id}', 'show')->name('show');
-    Route::delete('/{id}', 'destroy')->name('destroy');
-});
+    Route::controller(ChangeRequestController::class)->prefix('change-request')->name('change-request.')->group(function () {
+        Route::get('/', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/preview', 'preview')->name('preview');
+        Route::get('/history', 'history')->name('history');
+        Route::get('/{id}', 'show')->name('show');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
 
-    // เพิ่มเส้นทางสำหรับพิมพ์ ปพ.1 โดยเฉพาะ
     Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');
-    // Logout
+
     Route::post('/logout', function (Request $request) {
         Auth::logout();
         $request->session()->invalidate();
@@ -364,8 +350,4 @@ Route::middleware(['auth'])->group(function () {
         return redirect('/login');
     })->name('logout');
 
-
-
-
 });
-

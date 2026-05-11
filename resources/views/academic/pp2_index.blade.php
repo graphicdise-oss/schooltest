@@ -152,6 +152,21 @@
             background: #2e7d32;
         }
 
+        .btn-bulk-number {
+            background: #7b1fa2;
+            color: #fff;
+            border: none;
+            padding: 7px 16px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-bulk-number:hover {
+            background: #4a148c;
+        }
+
         /* table */
         .student-table {
             width: 100%;
@@ -185,6 +200,33 @@
         .btn-print:hover {
             background: #43a047;
             color: #fff;
+        }
+
+        .btn-set-number {
+            background: #ff9800;
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 4px;
+            border: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-set-number:hover {
+            background: #e65100;
+        }
+
+        .doc-number-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            border: 1px solid #90caf9;
+            border-radius: 4px;
+            padding: 2px 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-right: 4px;
         }
 
         .alert-success {
@@ -398,6 +440,7 @@
                         @else
                             <span style="color:#aaa;font-size:0.85rem;">ยังไม่ได้ตั้งค่า (ใช้วันปัจจุบัน)</span>
                         @endif
+                        <button type="button" class="btn-bulk-number" onclick="openBulkDocModal()">🔢 ตั้งเลขปพ. ชั้นเรียนนี้ทั้งหมด</button>
                     </div>
                 </form>
             @endif
@@ -410,19 +453,29 @@
                             <th>ลำดับ</th>
                             <th>รหัส</th>
                             <th>ชื่อ-สกุล</th>
-                            <th style="text-align:center;">พิมพ์</th>
+                            <th style="text-align:center;">การดำเนินการ</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach($students as $i => $ss)
+                            @php
+                                $doc = $docs->get($ss->student_id);
+                                $fullName = ($ss->student?->thai_prefix ?? '') . ($ss->student?->thai_firstname ?? '') . ' ' . ($ss->student?->thai_lastname ?? '');
+                            @endphp
                             <tr>
                                 <td>{{ $i + 1 }}</td>
                                 <td>{{ $ss->student?->student_code }}</td>
-                                <td>{{ ($ss->student?->thai_prefix ?? '') . ($ss->student?->thai_firstname ?? '') . ' ' . ($ss->student?->thai_lastname ?? '') }}
-                                </td>
+                                <td>{{ $fullName }}</td>
                                 <td style="text-align:center;">
-                                    <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" target="_blank"
-                                        class="btn-print">🖨️ พิมพ์</a>
+                                    <div style="display:inline-flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;">
+                                        @if($doc?->doc_number)
+                                            <span class="doc-number-badge">เลขที่ {{ $doc->doc_number }}</span>
+                                        @endif
+                                        <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" target="_blank"
+                                            class="btn-print">🖨️ พิมพ์</a>
+                                        <button type="button" class="btn-set-number"
+                                            onclick="openDocNumberModal({{ $ss->student_id }}, {{ $ss->section_id }}, {{ json_encode($fullName) }}, {{ json_encode($doc?->doc_number ?? '') }})">🔢 ตั้งเลขที่ ปพ.</button>
+                                    </div>
                                 </td>
                             </tr>
                         @endforeach
@@ -485,6 +538,55 @@
         </div>
     </div>
 
+    {{-- ===== Modal ตั้งเลขที่ ปพ. รายคน ===== --}}
+    <div class="modal-overlay" id="docNumberModal">
+        <div class="modal-box" style="width:420px;">
+            <button class="modal-close" onclick="closeDocNumberModal()">✕</button>
+            <div class="modal-title">🔢 ตั้งเลขที่ ปพ.2</div>
+            <form method="POST" action="{{ route('pp2.setDocNumber') }}">
+                @csrf
+                <input type="hidden" name="student_id" id="modalStudentId">
+                <input type="hidden" name="section_id" id="modalSectionId">
+                <div style="margin-bottom:12px;">
+                    <label class="form-label">นักเรียน</label>
+                    <div id="modalStudentName" style="font-weight:600;color:#333;padding:6px 0;"></div>
+                </div>
+                <div style="margin-bottom:4px;">
+                    <label class="form-label">เลขที่ ปพ.2</label>
+                    <input type="text" name="doc_number" id="modalDocNumber" class="form-control" placeholder="กรอกเลขที่เอกสาร">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeDocNumberModal()">ยกเลิก</button>
+                    <button type="submit" class="btn-save">💾 บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ===== Modal ตั้งเลขปพ. ทั้งห้อง ===== --}}
+    <div class="modal-overlay" id="bulkDocModal">
+        <div class="modal-box" style="width:440px;">
+            <button class="modal-close" onclick="closeBulkDocModal()">✕</button>
+            <div class="modal-title">🔢 ตั้งเลขปพ. ชั้นเรียนนี้ทั้งหมด</div>
+            <p style="color:#666;font-size:0.9rem;margin-bottom:16px;">ระบบจะกำหนดเลขที่ ปพ.2 ต่อเนื่องให้นักเรียนทุกคนในห้อง โดยเรียงตามลำดับที่นักเรียน</p>
+            <form method="POST" action="{{ route('pp2.bulkSetDocNumber') }}">
+                @csrf
+                <input type="hidden" name="section_id" value="{{ $sectionId }}">
+                <input type="hidden" name="year_id" value="{{ $yearId }}">
+                <input type="hidden" name="level_id" value="{{ $levelId }}">
+                <input type="hidden" name="semester_id" value="{{ $semesterId }}">
+                <div style="margin-bottom:16px;">
+                    <label class="form-label">เลขที่เริ่มต้น</label>
+                    <input type="number" name="start_number" class="form-control" value="1" min="1" placeholder="เช่น 1, 101, 201">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn-cancel" onclick="closeBulkDocModal()">ยกเลิก</button>
+                    <button type="submit" class="btn-save">🔢 ตั้งเลขทั้งหมด</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         function openSettingModal() {
             document.getElementById('settingModal').classList.add('show');
@@ -492,13 +594,32 @@
         function closeSettingModal() {
             document.getElementById('settingModal').classList.remove('show');
         }
-        // คลิกนอก modal ปิด
-        document.getElementById('settingModal').addEventListener('click', function (e) {
+        document.getElementById('settingModal').addEventListener('click', function(e) {
             if (e.target === this) closeSettingModal();
         });
-        // เปิด modal อัตโนมัติถ้า session success จาก save setting
-        @if(session('success'))
-            // ไม่ต้องเปิด modal หลัง save
-        @endif
+
+        function openDocNumberModal(studentId, sectionId, studentName, currentDocNumber) {
+            document.getElementById('modalStudentId').value = studentId;
+            document.getElementById('modalSectionId').value = sectionId;
+            document.getElementById('modalStudentName').textContent = studentName;
+            document.getElementById('modalDocNumber').value = currentDocNumber;
+            document.getElementById('docNumberModal').classList.add('show');
+        }
+        function closeDocNumberModal() {
+            document.getElementById('docNumberModal').classList.remove('show');
+        }
+        document.getElementById('docNumberModal').addEventListener('click', function(e) {
+            if (e.target === this) closeDocNumberModal();
+        });
+
+        function openBulkDocModal() {
+            document.getElementById('bulkDocModal').classList.add('show');
+        }
+        function closeBulkDocModal() {
+            document.getElementById('bulkDocModal').classList.remove('show');
+        }
+        document.getElementById('bulkDocModal').addEventListener('click', function(e) {
+            if (e.target === this) closeBulkDocModal();
+        });
     </script>
 @endsection

@@ -79,7 +79,7 @@ class Pp2Controller extends Controller
         }
 
         $setting = Pp2Setting::getInstance();
-        $settings = $setting; // ✅ เพิ่มบรรทัดนี้
+        $settings = $setting;
         $directors = Personnel::where('position', 'ผู้อำนวยการโรงเรียน')
             ->orderBy('thai_firstname')
             ->get();
@@ -99,7 +99,7 @@ class Pp2Controller extends Controller
             'docs',
             'setting',
             'settings',
-            'directors' // ✅ เพิ่มตรงนี้
+            'directors'
         ));
     }
 
@@ -138,13 +138,40 @@ class Pp2Controller extends Controller
         return back()->with('success', 'บันทึกเลขที่เอกสารสำเร็จ');
     }
 
+    public function bulkSetDocNumber(Request $request)
+    {
+        $request->validate([
+            'section_id' => 'required',
+            'start_number' => 'required|integer|min:1',
+        ]);
+
+        $students = StudentSection::where('section_id', $request->section_id)
+            ->orderBy('student_number')
+            ->get();
+
+        $num = (int) $request->start_number;
+        foreach ($students as $ss) {
+            Pp2Document::updateOrCreate(
+                ['student_id' => $ss->student_id, 'section_id' => $ss->section_id],
+                ['doc_number' => $num++]
+            );
+        }
+
+        return redirect()->route('pp2.index', [
+            'year_id'     => $request->get('year_id'),
+            'level_id'    => $request->get('level_id'),
+            'section_id'  => $request->section_id,
+            'semester_id' => $request->get('semester_id'),
+        ])->with('success', 'ตั้งเลขที่ ปพ.2 ให้ทั้งห้องเรียบร้อย');
+    }
+
     public function print($studentId, $sectionId)
     {
         $studentSection = StudentSection::with([
             'student',
             'classSection.level',
             'classSection.semester.academicYear',
-            'classSection.pp2SectionSetting', // ✅ เพิ่ม
+            'classSection.pp2SectionSetting',
         ])
             ->where('student_id', $studentId)
             ->where('section_id', $sectionId)
@@ -153,7 +180,6 @@ class Pp2Controller extends Controller
         $doc = Pp2Document::where('student_id', $studentId)
             ->where('section_id', $sectionId)->first();
 
-        // ✅ ถ้า doc ไม่มีวัน ให้ใช้วันจาก section setting
         if (!$doc?->issued_date) {
             $sectionDate = $studentSection->classSection?->pp2SectionSetting?->issued_date;
             if ($sectionDate) {
