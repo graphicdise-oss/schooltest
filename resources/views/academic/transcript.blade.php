@@ -129,7 +129,7 @@
     {{-- Grades by semester --}}
     @forelse($grades as $semKey => $semGrades)
     @php
-        [$yearName, $termName] = explode('|', $semKey . '|');
+        [$yearName, $levelName, $termName] = array_pad(explode('|', $semKey), 3, '');
         $semCredits = 0; $semPoints = 0;
         foreach($semGrades as $g) {
             $c = $g->teachingAssign->subject->credits ?? 0;
@@ -140,7 +140,7 @@
     @endphp
     <div class="tr-card" style="padding-top:0;overflow:hidden">
         <div class="sem-header" style="margin:-0px -22px 0;padding:12px 22px">
-            <span><i class="bi bi-calendar3"></i> ปีการศึกษา {{ $yearName }} ภาคเรียนที่ {{ $termName }}</span>
+            <span><i class="bi bi-calendar3"></i> ปีการศึกษา {{ $yearName }} {{ $levelName ? '— '.$levelName : '' }} ภาคเรียนที่ {{ $termName }}</span>
             <span style="font-size:0.82rem;opacity:0.85">GPA เทอมนี้: {{ $semGPA }}</span>
         </div>
         <div style="margin-top:16px">
@@ -231,10 +231,10 @@
                     <div class="opt-content" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                         {{-- วนลูปเทอมทั้งหมดที่เด็กคนนี้มีเกรด ออกมาเป็น Checkbox --}}
                         @foreach($grades->keys() as $semKey)
-                            @php [$yearName, $termName] = explode('|', $semKey . '|'); @endphp
+                            @php [$yearName, $levelName, $termName] = array_pad(explode('|', $semKey), 3, ''); @endphp
                             <label class="opt-checkbox">
                                 <input type="checkbox" name="selected_semesters[]" value="{{ $semKey }}" checked>
-                                ปีการศึกษา {{ $yearName }} / เทอม {{ $termName }}
+                                ปีการศึกษา {{ $yearName }} {{ $levelName ? $levelName.' ' : '' }}/ เทอม {{ $termName }}
                             </label>
                         @endforeach
                     </div>
