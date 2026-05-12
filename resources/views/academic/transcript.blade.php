@@ -129,7 +129,7 @@
     {{-- Grades by semester --}}
     @forelse($grades as $semKey => $semGrades)
     @php
-        [$yearName, $termName] = explode('|', $semKey . '|');
+        [$yearName, $levelName, $termName] = array_pad(explode('|', $semKey), 3, '');
         $semCredits = 0; $semPoints = 0;
         foreach($semGrades as $g) {
             $c = $g->teachingAssign->subject->credits ?? 0;
@@ -140,7 +140,7 @@
     @endphp
     <div class="tr-card" style="padding-top:0;overflow:hidden">
         <div class="sem-header" style="margin:-0px -22px 0;padding:12px 22px">
-            <span><i class="bi bi-calendar3"></i> ปีการศึกษา {{ $yearName }} ภาคเรียนที่ {{ $termName }}</span>
+            <span><i class="bi bi-calendar3"></i> ปีการศึกษา {{ $yearName }} {{ $levelName ? '— '.$levelName : '' }} ภาคเรียนที่ {{ $termName }}</span>
             <span style="font-size:0.82rem;opacity:0.85">GPA เทอมนี้: {{ $semGPA }}</span>
         </div>
         <div style="margin-top:16px">

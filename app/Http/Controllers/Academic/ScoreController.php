@@ -180,7 +180,8 @@ class ScoreController extends Controller
                 }
             }
 
-            $finalScore = $totalWeight > 0 ? ($totalWeighted / $totalWeight) * 100 : 0;
+            // หาร 100 เสมอ (ไม่ใช่ totalWeight) เพราะหมวดที่ไม่มีคะแนนนับเป็น 0
+            $finalScore = round($totalWeighted, 2);
             $gradeInfo = FinalGrade::calculateGrade($finalScore);
 
             FinalGrade::updateOrCreate(

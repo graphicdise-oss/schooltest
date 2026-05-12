@@ -148,7 +148,7 @@ table.course-table tr.sem-total td {
         @foreach($leftSems as $idx => $semGrades)
         @php
             $key = $leftKeys->values()[$idx] ?? '';
-            [$yearName, $termName] = explode('|', $key . '|');
+            [$yearName, $levelName, $termName] = array_pad(explode('|', $key), 3, '');
             $semCredits = 0; $semPoints = 0;
             foreach($semGrades as $g) {
                 $c = $g->teachingAssign->subject->credits ?? 0;
@@ -158,7 +158,9 @@ table.course-table tr.sem-total td {
             $semGPA = $semCredits > 0 ? round($semPoints / $semCredits, 2) : 0;
         @endphp
         <div class="semester-block">
-            <div class="semester-title">ภาคเรียนที่ {{ $termName }} / {{ $yearName }}</div>
+            <div class="semester-title">
+                ปีการศึกษา {{ $yearName }}{{ $levelName ? ' '.$levelName : '' }}<br>ภาคเรียนที่ {{ $termName }}
+            </div>
             <table class="course-table">
                 <thead>
                     <tr>
@@ -201,7 +203,7 @@ table.course-table tr.sem-total td {
         @foreach($rightSems as $idx => $semGrades)
         @php
             $key = $rightKeys->values()[$idx] ?? '';
-            [$yearName, $termName] = explode('|', $key . '|');
+            [$yearName, $levelName, $termName] = array_pad(explode('|', $key), 3, '');
             $semCredits = 0; $semPoints = 0;
             foreach($semGrades as $g) {
                 $c = $g->teachingAssign->subject->credits ?? 0;
@@ -211,7 +213,9 @@ table.course-table tr.sem-total td {
             $semGPA = $semCredits > 0 ? round($semPoints / $semCredits, 2) : 0;
         @endphp
         <div class="semester-block">
-            <div class="semester-title">ภาคเรียนที่ {{ $termName }} / {{ $yearName }}</div>
+            <div class="semester-title">
+                ปีการศึกษา {{ $yearName }}{{ $levelName ? ' '.$levelName : '' }}<br>ภาคเรียนที่ {{ $termName }}
+            </div>
             <table class="course-table">
                 <thead>
                     <tr>

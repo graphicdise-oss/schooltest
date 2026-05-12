@@ -57,10 +57,17 @@ class GradeController extends Controller
         $grade = FinalGrade::findOrFail($gradeId);
         $score = $request->total_score;
         $gradeInfo = FinalGrade::calculateGrade($score);
+
+        // ถ้าตั้ง grade เอง ให้หา gpa_point จาก grade นั้นตรงๆ แทนที่จะคำนวณจากคะแนน
+        $manualGrade = $request->grade !== '' ? $request->grade : null;
+        $gradeMap = ['4'=>4.0,'3.5'=>3.5,'3'=>3.0,'2.5'=>2.5,'2'=>2.0,'1.5'=>1.5,'1'=>1.0,'0'=>0.0,'I'=>0.0,'W'=>0.0,'S'=>4.0,'U'=>0.0];
+        $finalGrade   = $manualGrade ?? $gradeInfo['grade'];
+        $finalGpaPoint = $manualGrade !== null ? ($gradeMap[$manualGrade] ?? $gradeInfo['gpa']) : $gradeInfo['gpa'];
+
         $grade->update([
             'total_score' => $score,
-            'grade'       => $request->grade ?? $gradeInfo['grade'],
-            'gpa_point'   => $gradeInfo['gpa'],
+            'grade'       => $finalGrade,
+            'gpa_point'   => $finalGpaPoint,
             'remark'      => $score >= 50 ? 'ผ่าน' : 'ไม่ผ่าน',
         ]);
         return redirect()->back()->with('success', 'แก้ไขเกรดสำเร็จ');
@@ -107,13 +114,20 @@ class GradeController extends Controller
 
     private function buildTranscriptData($studentId): array
     {
-        $allGrades = FinalGrade::with(['teachingAssign.subject', 'semester.academicYear'])
+        $allGrades = FinalGrade::with([
+                'teachingAssign.subject',
+                'teachingAssign.classSection.level',
+                'semester.academicYear',
+            ])
             ->where('student_id', $studentId)
             ->orderBy('semester_id')
             ->get();
 
+        // Key = "ปีการศึกษา|ชื่อชั้น|ภาคเรียน" เพื่อแยกแต่ละชั้นปี/เทอมออกจากกัน
         $grades = $allGrades->groupBy(fn($g) =>
-            ($g->semester->academicYear->year_name ?? '') . '|' . ($g->semester->semester_name ?? '')
+            ($g->semester->academicYear->year_name ?? '') . '|' .
+            ($g->teachingAssign->classSection->level->name ?? '') . '|' .
+            ($g->semester->semester_name ?? '')
         );
 
         $totalCredits = 0;
