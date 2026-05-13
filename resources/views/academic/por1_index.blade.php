@@ -323,6 +323,12 @@
             </div>
             <div id="semesterCheckboxes" style="margin-bottom:8px;"></div>
             <hr style="border-top:1px solid #eee;margin:16px 0;">
+            <div style="margin-bottom:14px;">
+                <label style="display:block;font-weight:bold;margin-bottom:6px;color:#555;">วันอนุมัติการจบการศึกษา</label>
+                <input type="date" name="approve_date" id="modal_approve_date"
+                    style="width:100%;padding:6px 10px;border:1px solid #ccc;border-radius:6px;font-size:14px;">
+            </div>
+            <hr style="border-top:1px solid #eee;margin:16px 0;">
             <div class="p1-modal-actions" style="margin-top:20px;">
                 <button type="submit" class="btn-save">
                     <i class="bi bi-printer"></i> พิมพ์ใบ ปพ.1
@@ -361,9 +367,11 @@
 
 <script>
 const studentSemesters = @json($studentSemesters);
+const studentApproveDates = @json($studentApproveDates ?? []);
 
 function openPrintModal(studentId) {
     const data = studentSemesters[studentId] || { levels: {}, currentLevelOrder: 0 };
+    document.getElementById('modal_approve_date').value = studentApproveDates[studentId] || '';
     let html = '';
 
     for (const [levelName, lvl] of Object.entries(data.levels)) {

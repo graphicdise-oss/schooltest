@@ -10,6 +10,8 @@ use App\Models\Academic\Level;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\FinalGrade;
+use App\Models\Academic\Promotion;
+use App\Models\Pp2SectionSetting;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -47,6 +49,7 @@ class PorPor1Controller extends Controller
 
         $students = collect();
         $currentSection = null;
+        $rows = collect();
 
       if ($sectionId === 'all') {
         $sectionIds = $sections->pluck('section_id');
@@ -66,6 +69,18 @@ class PorPor1Controller extends Controller
         $students = $rows->map(fn($ss) => $ss->student)->filter();
         }
 
+        // หา issued_date จาก Pp2SectionSetting สำหรับแต่ละนักเรียน
+        $studentApproveDates = [];
+        if ($rows->count()) {
+            $secIds = $rows->pluck('section_id')->unique();
+            $sectionDates = Pp2SectionSetting::whereIn('section_id', $secIds)
+                ->pluck('issued_date', 'section_id');
+            foreach ($rows as $ss) {
+                $d = $sectionDates[$ss->section_id] ?? null;
+                $studentApproveDates[$ss->student_id] = $d ? \Carbon\Carbon::parse($d)->format('Y-m-d') : '';
+            }
+        }
+
         $docNumbers = [];
         if ($students->count() && $semesterId) {
             $ids = $students->pluck('student_id');
@@ -83,7 +98,7 @@ class PorPor1Controller extends Controller
         return view('academic.por1_index', compact(
             'academicYears', 'levels', 'sections', 'students', 'docNumbers',
             'yearId', 'term', 'levelId', 'semesterId', 'sectionId', 'search',
-            'currentSection', 'studentSemesters'
+            'currentSection', 'studentSemesters', 'studentApproveDates'
         ));
     }
 
@@ -115,7 +130,6 @@ class PorPor1Controller extends Controller
                 continue;
             }
 
-            // ใช้ year+level เป็น key เพื่อแยกชั้นปีที่ต่างกันแม้ปีการศึกษาเดียวกัน
             $groupKey = $yearName . '|' . $levelName;
             if (!isset($yearGroups[$groupKey])) {
                 $yearGroups[$groupKey] = ['year' => $yearName, 'level' => $levelName, 'semesters' => []];
@@ -133,7 +147,38 @@ class PorPor1Controller extends Controller
         $mother = $student->families->firstWhere('guardian_type', 'มารดา')
             ?? $student->families->firstWhere('family_type', 'มารดา');
 
-        return view('academic.por1_print', compact('student', 'docNumber', 'yearGroups', 'father', 'mother'));
+        // วันอนุมัติการจบ: รับจาก request (ตั้งค่าใน modal) หรือดึงจาก Pp2SectionSetting
+        $approveDate = '';
+        if ($request->filled('approve_date')) {
+            $approveDate = $this->formatThaiDate($request->input('approve_date'));
+        } else {
+            $lastSection = StudentSection::where('student_id', $studentId)
+                ->orderByDesc('section_id')->first();
+            if ($lastSection) {
+                $setting = Pp2SectionSetting::where('section_id', $lastSection->section_id)->first();
+                $approveDate = $setting?->issued_date
+                    ? $this->formatThaiDate($setting->issued_date->format('Y-m-d'))
+                    : '';
+            }
+        }
+
+        // วันออกจากโรงเรียน และ สาเหตุ จาก Promotion
+        $promotion = Promotion::where('student_id', $studentId)->latest('promo_date')->first();
+        $leaveDate   = $promotion?->promo_date ? $this->formatThaiDate($promotion->promo_date->format('Y-m-d')) : '';
+        $leaveReason = $promotion?->remark ?? '';
+
+        return view('academic.por1_print', compact(
+            'student', 'docNumber', 'yearGroups', 'father', 'mother',
+            'approveDate', 'leaveDate', 'leaveReason'
+        ));
+    }
+
+    private function formatThaiDate(string $dateStr): string
+    {
+        $months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                   'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        $d = \Carbon\Carbon::parse($dateStr);
+        return $d->day . ' ' . $months[$d->month] . ' ' . ($d->year + 543);
     }
 
     public function setDocNumber(Request $request)
