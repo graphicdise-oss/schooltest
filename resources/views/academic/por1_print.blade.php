@@ -536,13 +536,13 @@ body {
                                 <tr>
                                     <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px; line-height: 1.6;">
                                         <div style="display:flex; align-items: flex-end; margin-bottom: 3px;">
-                                            <span style="white-space: nowrap;">วันอนุมัติการจบ</span><span style="flex:1; border-bottom: 0.5px solid #999; margin-bottom: 2px;">{{ $approveDate ?? '' }}</span>
+                                            <span style="white-space: nowrap;">วันอนุมัติการจบ</span><span style="flex:1; border-bottom: 0.5px solid #999; min-height: 1em; padding-left: 6px;">{{ $approveDate ?? '' }}</span>
                                         </div>
                                         <div style="display:flex; align-items: flex-end; margin-bottom: 3px;">
-                                            <span style="white-space: nowrap;">วันออกจากโรงเรียน</span><span style="flex:1; border-bottom: 0.5px solid #999; margin-bottom: 2px;">{{ $leaveDate ?? '' }}</span>
+                                            <span style="white-space: nowrap;">วันออกจากโรงเรียน</span><span style="flex:1; border-bottom: 0.5px solid #999; min-height: 1em; padding-left: 6px;">{{ $leaveDate ?? '' }}</span>
                                         </div>
                                         <div style="display:flex; align-items: flex-end;">
-                                            <span style="white-space: nowrap;">สาเหตุที่ออกจากโรงเรียน</span><span style="flex:1; border-bottom: 0.5px solid #999; margin-bottom: 2px;">{{ $leaveReason ?? '' }}</span>
+                                            <span style="white-space: nowrap;">สาเหตุที่ออกจากโรงเรียน</span><span style="flex:1; border-bottom: 0.5px solid #999; min-height: 1em; padding-left: 6px;">{{ $leaveReason ?? '' }}</span>
                                         </div>
                                     </td>
                                 </tr>
