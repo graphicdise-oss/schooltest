@@ -506,8 +506,8 @@ body {
                     <td colspan="2" style="vertical-align: top; padding: 0; border-right: 1px solid #000;">
                         <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
                             <colgroup>
-                                <col style="width: 50%;">
-                                <col style="width: 50%;">
+                                <col style="width: 72%;">
+                                <col style="width: 28%;">
                             </colgroup>
                             <tbody>
                                 {{-- หัวข้อ สรุปผลการประเมิน | ผลการตัดสิน --}}
