@@ -466,7 +466,7 @@ body {
         </table>
 
         {{-- ตารางกรอบใหญ่ด้านล่าง (ออกแบบโครงสร้างตารางย่อยเพื่อให้เส้นแนวตั้งตรงกัน 100%) --}}
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; border-top: none;">
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; margin-top: 4px;">
             <colgroup>
                 <col style="width: 33.333333%;">
                 <col style="width: 33.333333%;">
