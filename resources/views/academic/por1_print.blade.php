@@ -267,6 +267,7 @@ body {
                         $colRows[$ci][] = ['type'=>'sem','label'=>'ภาคเรียนที่ '.$sn];
                         foreach ($yg['semesters'][$sk] as $g) {
                             $subj = $g->teachingAssign->subject;
+                            if (($subj->subject_group ?? '') === 'กิจกรรมพัฒนาผู้เรียน') continue;
                             $colRows[$ci][] = [
                                 'type' => 'subject',
                                 'code' => $subj->code ?? '',
@@ -374,6 +375,34 @@ body {
             ผลการประเมินกิจกรรมพัฒนาผู้เรียน
         </div>
 
+        @php
+        $actCols = [];
+        foreach (array_values($yearGroups) as $ci => $yg) {
+            if ($ci >= 3) break;
+            $lvlD = preg_replace('/^ม\.(\d+)$/', 'มัธยมศึกษาปีที่ $1', $yg['level'] ?? '');
+            $actCols[$ci] = [
+                'label' => 'ปีการศึกษา '.$yg['year'].' '.$lvlD,
+                'sem1' => [], 'sem2' => [],
+            ];
+            foreach ([1, 2] as $sn) {
+                $sk = (string)$sn;
+                if (isset($yg['semesters'][$sk])) {
+                    foreach ($yg['semesters'][$sk] as $g) {
+                        $subj = $g->teachingAssign->subject ?? null;
+                        if ($subj && ($subj->subject_group ?? '') === 'กิจกรรมพัฒนาผู้เรียน') {
+                            $actCols[$ci]['sem'.$sn][] = ['name' => $subj->name_th ?? '', 'grade' => $g->grade ?? ''];
+                        }
+                    }
+                }
+            }
+        }
+        for ($ci = count($actCols); $ci < 3; $ci++) {
+            $actCols[$ci] = ['label' => '', 'sem1' => [], 'sem2' => []];
+        }
+        $maxActSem1 = max(array_map(fn($c) => count($c['sem1']), $actCols) ?: [1]);
+        $maxActSem2 = max(array_map(fn($c) => count($c['sem2']), $actCols) ?: [1]);
+        @endphp
+
         {{-- ตารางกิจกรรมพัฒนาผู้เรียน (เส้นยาวต่อเนื่อง, มีเส้นใต้หัวข้อ, จัดความกว้างเป๊ะๆ ให้ตรงกับตารางล่าง) --}}
         <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000;">
             <colgroup>
@@ -401,55 +430,49 @@ body {
                 </tr>
             </thead>
             <tbody>
+                {{-- ภาคเรียนที่ 1 header --}}
                 <tr style="font-weight: bold;">
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
+                    @for($ci = 0; $ci < 3; $ci++)
+                    <td style="text-align: left; padding: 2px 6px; {{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}">
+                        @if($actCols[$ci]['label']){{ $actCols[$ci]['label'] }}<br>@endif
+                        ภาคเรียนที่ 1
+                    </td>
+                    <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
                     <td style="border-right: 1px solid #000;"></td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td></td>
+                    @endfor
                 </tr>
-                @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
+                {{-- รายชื่อกิจกรรมภาคเรียนที่ 1 --}}
+                @for($r = 0; $r < $maxActSem1; $r++)
                 <tr>
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    @for($ci = 0; $ci < 3; $ci++)
+                    @php $act = $actCols[$ci]['sem1'][$r] ?? null; @endphp
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act ? $act['name'] : '' }}</td>
                     <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="text-align: center;"></td>
+                    <td style="text-align: center; {{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}">{{ $act ? $act['grade'] : '' }}</td>
+                    @endfor
                 </tr>
-                @endforeach
-                
+                @endfor
+
+                {{-- ภาคเรียนที่ 2 header --}}
                 <tr style="font-weight: bold;">
+                    @for($ci = 0; $ci < 3; $ci++)
                     <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
                     <td style="border-right: 1px solid #000;"></td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
-                    <td style="border-right: 1px solid #000;"></td>
-                    <td></td>
+                    <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
+                    @endfor
                 </tr>
-                @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
+                {{-- รายชื่อกิจกรรมภาคเรียนที่ 2 --}}
+                @for($r = 0; $r < $maxActSem2; $r++)
                 <tr>
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    @for($ci = 0; $ci < 3; $ci++)
+                    @php $act = $actCols[$ci]['sem2'][$r] ?? null; @endphp
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act ? $act['name'] : '' }}</td>
                     <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
-                    <td style="text-align: center;"></td>
+                    <td style="text-align: center; {{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}">{{ $act ? $act['grade'] : '' }}</td>
+                    @endfor
                 </tr>
-                @endforeach
+                @endfor
+
                 {{-- แถวว่างดันท้ายให้ตารางกว้างพอดี --}}
                 <tr>
                     <td style="border-right: 1px solid #000; padding: 4px;">&nbsp;</td>
