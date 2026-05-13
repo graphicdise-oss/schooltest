@@ -389,15 +389,15 @@ body {
             </colgroup>
             <thead>
                 <tr>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
                 </tr>
             </thead>
             <tbody>
