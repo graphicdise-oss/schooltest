@@ -98,14 +98,14 @@ body {
 
 .grades-table {
     width: 100%; height: 100%; border-collapse: collapse;
-    font-size: 13px; border: 0.5px solid #aaa;
+    font-size: 13px; border: 1px solid #000; 
 }
 .grades-table th {
-    border: 0.5px solid #aaa; padding: 2px 3px; vertical-align: middle;
+    border: 1px solid #000; padding: 2px 3px; vertical-align: middle;
     background: #fff; text-align: center; font-weight: normal;
 }
 .grades-table td {
-    border-left: 0.5px solid #aaa; border-right: 0.5px solid #aaa;
+    border-left: 1px solid #000; border-right: 1px solid #000;
     border-top: none; border-bottom: none; padding: 2px 4px; vertical-align: top;
 }
 .grades-table tbody tr.stretch-row td { height: 100%; }
@@ -259,15 +259,11 @@ body {
                 $lvlDisplay = preg_replace('/^ม\.(\d+)$/', 'มัธยมศึกษาปีที่ $1', $yg['level'] ?? '');
                 $yearLabel  = 'ปีการศึกษา '.$yg['year'].' '.$lvlDisplay;
 
-                $yearShown = false;
                 foreach ([1, 2] as $sn) {
                     $sk = (string)$sn;
                     if (isset($yg['semesters'][$sk]) && count($yg['semesters'][$sk]) > 0) {
-                        // แสดงหัวปีการศึกษา+ชั้นปีเฉพาะเทอมแรก
-                        if (!$yearShown) {
-                            $colRows[$ci][] = ['type'=>'year','label'=>$yearLabel];
-                            $yearShown = true;
-                        }
+                        // แสดงหัวปีการศึกษา+ชั้นปีซ้ำก่อนทุกเทอม
+                        $colRows[$ci][] = ['type'=>'year','label'=>$yearLabel];
                         $colRows[$ci][] = ['type'=>'sem','label'=>'ภาคเรียนที่ '.$sn];
                         foreach ($yg['semesters'][$sk] as $g) {
                             $subj = $g->teachingAssign->subject;
