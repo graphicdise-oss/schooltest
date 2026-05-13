@@ -607,6 +607,29 @@ body {
 
                     {{-- ฝั่งขวา (กินพื้นที่ 1 คอลัมน์) กลุ่มสาระฯ และ ลายเซ็น --}}
                     <td colspan="1" style="vertical-align: top; padding: 0;">
+                        @php
+                        $groupStats = [];
+                        $overallCredits = 0;
+                        $overallWeighted = 0;
+                        foreach ($yearGroups as $yg) {
+                            foreach ($yg['semesters'] as $semGrades) {
+                                foreach ($semGrades as $g) {
+                                    $subj = $g->teachingAssign->subject ?? null;
+                                    if (!$subj) continue;
+                                    $grp = $subj->subject_group ?? '';
+                                    if ($grp === 'กิจกรรมพัฒนาผู้เรียน') continue;
+                                    $cr = (float)($subj->credits ?? 0);
+                                    $gv = is_numeric($g->grade) ? (float)$g->grade : null;
+                                    if (!isset($groupStats[$grp])) $groupStats[$grp] = ['credits' => 0, 'weighted' => 0];
+                                    $groupStats[$grp]['credits'] += $cr;
+                                    if ($gv !== null && $cr > 0) $groupStats[$grp]['weighted'] += $gv * $cr;
+                                    $overallCredits += $cr;
+                                    if ($gv !== null && $cr > 0) $overallWeighted += $gv * $cr;
+                                }
+                            }
+                        }
+                        $overallGpa = $overallCredits > 0 ? round($overallWeighted / $overallCredits, 2) : null;
+                        @endphp
                         <table style="width: 100%; table-layout: fixed; border-collapse: collapse; height: 100%;">
                             <colgroup>
                                 <col style="width: 75%;">
@@ -622,17 +645,22 @@ body {
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
+                                @php
+                                    $gc = $groupStats[$group]['credits'] ?? 0;
+                                    $gw = $groupStats[$group]['weighted'] ?? 0;
+                                    $gg = ($gc > 0) ? number_format($gw / $gc, 2) : '';
+                                @endphp
                                 <tr>
                                     <td style="border-right: 1px solid #000; padding: 2px 6px;">{{ $group }}</td>
-                                    <td style="border-right: 1px solid #000; text-align: center;"></td>
-                                    <td style="text-align: center;"></td>
+                                    <td style="border-right: 1px solid #000; text-align: center;">{{ $gc > 0 ? number_format($gc, 1) : '' }}</td>
+                                    <td style="text-align: center;">{{ $gg }}</td>
                                 </tr>
                                 @endforeach
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
                                 <tr>
                                     <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
-                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;">{{ $totalCredits ?? '89.0' }}</td>
-                                    <td style="border-bottom: 1px solid #000; text-align: center;">{{ $gpa ?? '3.58' }}</td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;">{{ $overallCredits > 0 ? number_format($overallCredits, 1) : '' }}</td>
+                                    <td style="border-bottom: 1px solid #000; text-align: center;">{{ $overallGpa !== null ? number_format($overallGpa, 2) : '' }}</td>
                                 </tr>
                                 {{-- ช่องว่างด้านล่างเพื่อดันลายเซ็น --}}
                                 <tr>
