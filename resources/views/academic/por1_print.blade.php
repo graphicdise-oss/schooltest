@@ -534,18 +534,15 @@ body {
                                 </tr>
                                 {{-- วันที่จบ --}}
                                 <tr>
-                                    <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px; line-height: 1.4;">
-                                        <div style="display:flex; border-bottom: 0.5px solid #999; margin-bottom: 4px;">
-                                            <span style="width:140px;">วันอนุมัติการจบ</span>
-                                            <span style="flex:1;">{{ $student->approve_date ?? '' }}</span>
+                                    <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px; line-height: 1.6;">
+                                        <div style="display:flex; align-items: flex-end; margin-bottom: 3px;">
+                                            <span style="white-space: nowrap;">วันอนุมัติการจบ</span><span style="flex:1; border-bottom: 0.5px solid #999; margin-bottom: 2px;">{{ $student->approve_date ?? '' }}</span>
                                         </div>
-                                        <div style="display:flex; border-bottom: 0.5px solid #999; margin-bottom: 4px;">
-                                            <span style="width:140px;">วันออกจากโรงเรียน</span>
-                                            <span style="flex:1;">{{ $student->leave_date ?? '' }}</span>
+                                        <div style="display:flex; align-items: flex-end; margin-bottom: 3px;">
+                                            <span style="white-space: nowrap;">วันออกจากโรงเรียน</span><span style="flex:1; border-bottom: 0.5px solid #999; margin-bottom: 2px;">{{ $student->leave_date ?? '' }}</span>
                                         </div>
-                                        <div style="display:flex; border-bottom: 0.5px solid #999;">
-                                            <span style="width:140px;">สาเหตุที่ออกจากโรงเรียน</span>
-                                            <span style="flex:1;">{{ $student->leave_reason ?? '' }}</span>
+                                        <div style="display:flex; align-items: flex-end;">
+                                            <span style="white-space: nowrap;">สาเหตุที่ออกจากโรงเรียน</span><span style="flex:1; border-bottom: 0.5px solid #999; margin-bottom: 2px;">{{ $student->leave_reason ?? '' }}</span>
                                         </div>
                                     </td>
                                 </tr>
