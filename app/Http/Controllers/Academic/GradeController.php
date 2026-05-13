@@ -298,6 +298,29 @@ class GradeController extends Controller
             $yearGroups[$year]['semesters'][$term][] = $grade;
         }
 
-        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber'));
+        // วันอนุมัติการจบ
+        $studentSectionIds = \App\Models\Academic\StudentSection::where('student_id', $studentId)->pluck('section_id');
+        $pp2Setting = \App\Models\Pp2SectionSetting::whereIn('section_id', $studentSectionIds)->first();
+        $approveDate = '';
+        if ($request->filled('approve_date')) {
+            $approveDate = $this->formatThaiDate($request->input('approve_date'));
+        } elseif ($pp2Setting?->issued_date) {
+            $approveDate = $this->formatThaiDate($pp2Setting->issued_date->format('Y-m-d'));
+        }
+
+        // วันออกจากโรงเรียน และ สาเหตุ
+        $promotion = \App\Models\Academic\Promotion::where('student_id', $studentId)->latest('promo_date')->first();
+        $leaveDate   = $promotion?->promo_date ? $this->formatThaiDate($promotion->promo_date->format('Y-m-d')) : '';
+        $leaveReason = $promotion?->remark ?? '';
+
+        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason'));
+    }
+
+    private function formatThaiDate(string $dateStr): string
+    {
+        $months = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+                   'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'];
+        $d = \Carbon\Carbon::parse($dateStr);
+        return $d->day . ' ' . $months[$d->month] . ' ' . ($d->year + 543);
     }
 }

@@ -152,14 +152,11 @@ class PorPor1Controller extends Controller
         if ($request->filled('approve_date')) {
             $approveDate = $this->formatThaiDate($request->input('approve_date'));
         } else {
-            $lastSection = StudentSection::where('student_id', $studentId)
-                ->orderByDesc('section_id')->first();
-            if ($lastSection) {
-                $setting = Pp2SectionSetting::where('section_id', $lastSection->section_id)->first();
-                $approveDate = $setting?->issued_date
-                    ? $this->formatThaiDate($setting->issued_date->format('Y-m-d'))
-                    : '';
-            }
+            $studentSectionIds = StudentSection::where('student_id', $studentId)->pluck('section_id');
+            $setting = Pp2SectionSetting::whereIn('section_id', $studentSectionIds)->first();
+            $approveDate = $setting?->issued_date
+                ? $this->formatThaiDate($setting->issued_date->format('Y-m-d'))
+                : '';
         }
 
         // วันออกจากโรงเรียน และ สาเหตุ จาก Promotion
