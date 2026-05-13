@@ -151,7 +151,7 @@ body {
     $edu    = $student->education ?? null;
     $dob    = $student->date_of_birth ? \Carbon\Carbon::parse($student->date_of_birth) : null;
     $enroll = $student->enroll_date   ? \Carbon\Carbon::parse($student->enroll_date)   : null;
-    $school = config('school');
+    $school = array_merge(config('school'), $school ?? []);
     $thMonths = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน',
                  'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 @endphp

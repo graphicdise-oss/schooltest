@@ -255,6 +255,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{studentId}', 'printOne')->name('print');
         Route::post('/set-doc', 'setDocNumber')->name('setDoc');
         Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
+        Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
     });
 
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {

@@ -13,6 +13,9 @@ class Pp2Setting extends Model
         'province',
         'affiliation',
         'director_name',
+        'registrar_name',
+        'registrar_personnel_id',
+        'director_personnel_id',
     ];
 
     public static function getInstance(): self

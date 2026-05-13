@@ -11,6 +11,8 @@ use App\Models\Academic\StudentSection;
 use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Promotion;
+use App\Models\Academic\Pp2Setting;
+use App\Models\Personne\Personnel;
 use App\Models\Pp2SectionSetting;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -95,10 +97,16 @@ class PorPor1Controller extends Controller
             $studentSemesters[$stu->student_id] = $this->buildStudentSemesters($stu->student_id);
         }
 
+        $personnels = Personnel::where('status', 'ปฏิบัติงาน')
+            ->orderBy('thai_firstname')
+            ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
+        $signSettings = Pp2Setting::getInstance();
+
         return view('academic.por1_index', compact(
             'academicYears', 'levels', 'sections', 'students', 'docNumbers',
             'yearId', 'term', 'levelId', 'semesterId', 'sectionId', 'search',
-            'currentSection', 'studentSemesters', 'studentApproveDates'
+            'currentSection', 'studentSemesters', 'studentApproveDates',
+            'personnels', 'signSettings'
         ));
     }
 
@@ -164,10 +172,53 @@ class PorPor1Controller extends Controller
         $leaveDate   = $promotion?->promo_date ? $this->formatThaiDate($promotion->promo_date->format('Y-m-d')) : '';
         $leaveReason = $promotion?->remark ?? '';
 
+        // ข้อมูลลายเซ็น: ดึงจาก Pp2Setting (DB) ก่อน ถ้าไม่มีใช้ config
+        $signSettings = Pp2Setting::getInstance();
+        $school = config('school');
+        if ($signSettings->registrar_name) {
+            $school['registrar_name'] = $signSettings->registrar_name;
+        }
+        if ($signSettings->director_name) {
+            $school['director_name'] = $signSettings->director_name;
+        }
+
         return view('academic.por1_print', compact(
             'student', 'docNumber', 'yearGroups', 'father', 'mother',
-            'approveDate', 'leaveDate', 'leaveReason'
+            'approveDate', 'leaveDate', 'leaveReason', 'school'
         ));
+    }
+
+    public function saveSignSettings(Request $request)
+    {
+        $request->validate([
+            'registrar_personnel_id' => 'nullable|integer',
+            'director_personnel_id'  => 'nullable|integer',
+        ]);
+
+        $setting = Pp2Setting::getInstance();
+        if (!$setting->exists) {
+            $setting->save();
+        }
+
+        $registrar = $request->registrar_personnel_id
+            ? Personnel::find($request->registrar_personnel_id)
+            : null;
+        $director  = $request->director_personnel_id
+            ? Personnel::find($request->director_personnel_id)
+            : null;
+
+        $setting->update([
+            'registrar_personnel_id' => $registrar?->personnel_id,
+            'director_personnel_id'  => $director?->personnel_id,
+            'registrar_name' => $registrar
+                ? trim(($registrar->thai_prefix ?? '') . $registrar->thai_firstname . ' ' . $registrar->thai_lastname)
+                : $request->registrar_name_manual,
+            'director_name'  => $director
+                ? trim(($director->thai_prefix ?? '') . $director->thai_firstname . ' ' . $director->thai_lastname)
+                : $request->director_name_manual,
+        ]);
+
+        return redirect()->back()->with('success', 'บันทึกชื่อผู้ลงนามสำเร็จ');
     }
 
     private function formatThaiDate(string $dateStr): string

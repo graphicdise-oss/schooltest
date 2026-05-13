@@ -180,8 +180,11 @@
                     <label>ค้นหาชื่อ / รหัส</label>
                     <input type="text" name="search" placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..." value="{{ $search }}">
                 </div>
-                <div class="p1-field">
+                <div class="p1-field" style="display:flex;gap:8px;">
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
+                    <button type="button" class="btn-search" style="background:#5c6bc0;" onclick="openSignSettingsModal()">
+                        <i class="bi bi-pen"></i> ตั้งค่าผู้ลงนาม
+                    </button>
                 </div>
             </div>
         </form>
@@ -417,5 +420,77 @@ function closeDocModal() { document.getElementById('docModal').classList.remove(
 
 function openBulkModal() { document.getElementById('bulkModal').classList.add('open'); }
 function closeBulkModal() { document.getElementById('bulkModal').classList.remove('open'); }
+
+function openSignSettingsModal() { document.getElementById('signSettingsModal').classList.add('open'); }
+function closeSignSettingsModal() { document.getElementById('signSettingsModal').classList.remove('open'); }
+
+// เมื่อเลือกบุคคลจาก dropdown ให้ซ่อน/แสดง manual input
+function onPersonnelChange(role) {
+    const sel = document.getElementById(role + '_personnel_id');
+    const manualRow = document.getElementById(role + '_manual_row');
+    manualRow.style.display = sel.value === '__manual__' ? '' : 'none';
+}
 </script>
+
+{{-- Modal: ตั้งค่าผู้ลงนาม (นายทะเบียน / ผู้อำนวยการ) --}}
+<div class="p1-modal-overlay" id="signSettingsModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="p1-modal" style="width:540px;max-width:95vw;" onclick="event.stopPropagation()">
+        <h3><i class="bi bi-pen"></i> ตั้งค่าผู้ลงนามในใบ ปพ.1</h3>
+        <form method="POST" action="{{ route('por1.saveSignSettings') }}">
+            @csrf
+            {{-- นายทะเบียน --}}
+            <div class="p1-modal-field">
+                <label>นายทะเบียน</label>
+                <select id="registrar_personnel_id" name="registrar_personnel_id"
+                        onchange="onPersonnelChange('registrar')"
+                        style="width:100%;height:36px;border:1px solid #ccc;border-radius:4px;padding:0 8px;font-size:0.88rem;font-family:inherit;">
+                    <option value="">-- เลือกจากบุคลากร --</option>
+                    @foreach($personnels as $p)
+                    <option value="{{ $p->personnel_id }}"
+                        {{ ($signSettings->registrar_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
+                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                        @if($p->position) ({{ $p->position }}) @endif
+                    </option>
+                    @endforeach
+                    <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
+                </select>
+            </div>
+            <div class="p1-modal-field" id="registrar_manual_row"
+                 style="display:{{ ($signSettings->registrar_personnel_id ?? null) ? 'none' : '' }}">
+                <label>ชื่อนายทะเบียน (พิมพ์เอง)</label>
+                <input type="text" name="registrar_name_manual"
+                       value="{{ $signSettings->registrar_name ?? config('school.registrar_name') }}"
+                       placeholder="ชื่อ-นามสกุล นายทะเบียน">
+            </div>
+            {{-- ผู้อำนวยการ --}}
+            <div class="p1-modal-field" style="margin-top:16px;">
+                <label>ผู้อำนวยการโรงเรียน</label>
+                <select id="director_personnel_id" name="director_personnel_id"
+                        onchange="onPersonnelChange('director')"
+                        style="width:100%;height:36px;border:1px solid #ccc;border-radius:4px;padding:0 8px;font-size:0.88rem;font-family:inherit;">
+                    <option value="">-- เลือกจากบุคลากร --</option>
+                    @foreach($personnels as $p)
+                    <option value="{{ $p->personnel_id }}"
+                        {{ ($signSettings->director_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
+                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                        @if($p->position) ({{ $p->position }}) @endif
+                    </option>
+                    @endforeach
+                    <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
+                </select>
+            </div>
+            <div class="p1-modal-field" id="director_manual_row"
+                 style="display:{{ ($signSettings->director_personnel_id ?? null) ? 'none' : '' }}">
+                <label>ชื่อผู้อำนวยการ (พิมพ์เอง)</label>
+                <input type="text" name="director_name_manual"
+                       value="{{ $signSettings->director_name ?? config('school.director_name') }}"
+                       placeholder="ชื่อ-นามสกุล ผู้อำนวยการ">
+            </div>
+            <div class="p1-modal-actions">
+                <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> บันทึก</button>
+                <button type="button" class="btn-cancel" onclick="closeSignSettingsModal()">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

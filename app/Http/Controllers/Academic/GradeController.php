@@ -313,7 +313,12 @@ class GradeController extends Controller
         $leaveDate   = $promotion?->promo_date ? $this->formatThaiDate($promotion->promo_date->format('Y-m-d')) : '';
         $leaveReason = $promotion?->remark ?? '';
 
-        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason'));
+        $signSettings = \App\Models\Academic\Pp2Setting::getInstance();
+        $school = config('school');
+        if ($signSettings->registrar_name) $school['registrar_name'] = $signSettings->registrar_name;
+        if ($signSettings->director_name)  $school['director_name']  = $signSettings->director_name;
+
+        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school'));
     }
 
     private function formatThaiDate(string $dateStr): string
