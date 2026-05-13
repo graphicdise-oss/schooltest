@@ -660,7 +660,7 @@ body {
                                 @endforeach
                                 {{-- filler rows เพื่อล็อคความสูงให้ครบ 9 แถวเสมอ --}}
                                 @php $shownCount = count(array_filter(array_map(fn($g) => ($groupStats[$g]['credits'] ?? 0) > 0, ['ภาษาไทย','คณิตศาสตร์','วิทยาศาสตร์และเทคโนโลยี','สังคมศึกษา ศาสนา และวัฒนธรรม','สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','ภาษาต่างประเทศ','การศึกษาค้นคว้าด้วยตนเอง']))); @endphp
-                                @for($fi = $shownCount; $fi < 9; $fi++)
+                                @for($fi = $shownCount; $fi < 12; $fi++)
                                 <tr style="height: 24px;">
                                     <td style="border-right: 1px solid #000;"></td>
                                     <td style="border-right: 1px solid #000;"></td>
