@@ -493,8 +493,9 @@ body {
             </tbody>
         </table>
 
-        {{-- ตารางกรอบใหญ่ด้านล่าง (ออกแบบโครงสร้างตารางย่อยเพื่อให้เส้นแนวตั้งตรงกัน 100%) --}}
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; margin-top: 4px;">
+        {{-- ตารางกรอบใหญ่ด้านล่าง --}}
+        <div style="flex: 1; display: flex; flex-direction: column; margin-top: 4px;">
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; height: 100%;">
             <colgroup>
                 <col style="width: 33.333333%;">
                 <col style="width: 33.333333%;">
@@ -673,9 +674,9 @@ body {
                                     <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;">{{ $overallCredits > 0 ? number_format($overallCredits, 1) : '' }}</td>
                                     <td style="border-bottom: 1px solid #000; text-align: center;">{{ $overallGpa !== null ? number_format($overallGpa, 2) : '' }}</td>
                                 </tr>
-                                {{-- ช่องว่างด้านล่างเพื่อดันลายเซ็น --}}
-                                <tr>
-                                    <td colspan="3" style="border-bottom: none; height: 120px;"></td>
+                                {{-- ช่องว่างดันลายเซ็น --}}
+                                <tr style="height: 100%;">
+                                    <td colspan="3" style="border-bottom: none;"></td>
                                 </tr>
                                 {{-- ลายเซ็น --}}
                                 <tr>
@@ -700,12 +701,22 @@ body {
                                         </div>
                                     </td>
                                 </tr>
+                                {{-- หมายเหตุ --}}
+                                <tr>
+                                    <td colspan="3" style="border-top: 1px solid #000; padding: 4px 6px; vertical-align: top;">
+                                        <div style="font-weight: bold; margin-bottom: 4px;">หมายเหตุ</div>
+                                        <div style="border-bottom: 0.5px solid #999; min-height: 16px; margin-bottom: 4px;"></div>
+                                        <div style="border-bottom: 0.5px solid #999; min-height: 16px; margin-bottom: 4px;"></div>
+                                        <div style="border-bottom: 0.5px solid #999; min-height: 16px;"></div>
+                                    </td>
+                                </tr>
                             </tbody>
                         </table>
                     </td>
                 </tr>
             </tbody>
         </table>
+        </div>
 
     </div>
 </div>
