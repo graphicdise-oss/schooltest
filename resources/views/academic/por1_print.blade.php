@@ -705,11 +705,8 @@ body {
                                 </tr>
                                 {{-- หมายเหตุ --}}
                                 <tr>
-                                    <td colspan="3" style="border-top: 1px solid #000; padding: 4px 6px; vertical-align: top;">
-                                        <div style="font-weight: bold; margin-bottom: 4px;">หมายเหตุ</div>
-                                        <div style="border-bottom: 0.5px solid #999; min-height: 16px; margin-bottom: 4px;"></div>
-                                        <div style="border-bottom: 0.5px solid #999; min-height: 16px; margin-bottom: 4px;"></div>
-                                        <div style="border-bottom: 0.5px solid #999; min-height: 16px;"></div>
+                                    <td colspan="3" style="border-top: 1px solid #000; padding: 6px 6px 10px; vertical-align: top; height: 80px;">
+                                        <div style="font-weight: bold; margin-bottom: 6px;">หมายเหตุ</div>
                                     </td>
                                 </tr>
                             </tbody>
