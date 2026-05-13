@@ -677,13 +677,13 @@ body {
                                     <td style="border-bottom: 1px solid #000; text-align: center;">{{ $overallGpa !== null ? number_format($overallGpa, 2) : '' }}</td>
                                 </tr>
                                 {{-- ช่องว่างดันลายเซ็น --}}
-                                <tr style="height: 100%;">
+                                <tr style="height: 30px;">
                                     <td colspan="3" style="border-bottom: none;"></td>
                                 </tr>
                                 {{-- ลายเซ็น --}}
                                 <tr>
-                                    <td colspan="3" style="border-bottom: none; padding-bottom: 20px;">
-                                        <div style="text-align: center; margin-bottom: 50px;">
+                                    <td colspan="3" style="border-bottom: none; padding-bottom: 10px;">
+                                        <div style="text-align: center; margin-bottom: 25px;">
                                             <div style="display: flex; justify-content: center; align-items: baseline; gap: 5px;">
                                                 <span>(</span>
                                                 <span style="border-bottom: 1px dotted #000; width: 140px; display: inline-block;">{{ $school['registrar_name'] ?? 'นายทะเบียน' }}</span>
@@ -705,7 +705,7 @@ body {
                                 </tr>
                                 {{-- หมายเหตุ --}}
                                 <tr>
-                                    <td colspan="3" style="border-top: 1px solid #000; padding: 6px 6px 10px; vertical-align: top; height: 80px;">
+                                    <td colspan="3" style="border-top: 1px solid #000; padding: 6px 6px 10px; vertical-align: top; height: 150px;">
                                         <div style="font-weight: bold; margin-bottom: 6px;">หมายเหตุ</div>
                                     </td>
                                 </tr>
