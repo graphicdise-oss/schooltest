@@ -301,8 +301,10 @@ body {
             <tr>
                 @for($c = 0; $c < $numCols; $c++)
                 @php $row = $colRows[$c][$r] ?? ['type'=>'empty']; @endphp
-                @if($row['type'] === 'year' || $row['type'] === 'sem')
-                    <td class="col-subject" style="text-align:center;">{{ $row['label'] }}</td>
+                @if($row['type'] === 'year')
+                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:16px;">{{ $row['label'] }}</td>
+                @elseif($row['type'] === 'sem')
+                    <td class="col-subject" style="text-align:left;">{{ $row['label'] }}</td>
                     <td class="col-credit"></td>
                     <td class="col-grade"></td>
                 @elseif($row['type'] === 'subject')
