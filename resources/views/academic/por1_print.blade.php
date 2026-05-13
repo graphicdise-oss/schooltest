@@ -375,7 +375,7 @@ body {
         </div>
 
         {{-- ตารางกิจกรรมพัฒนาผู้เรียน (เส้นยาวต่อเนื่อง, มีเส้นใต้หัวข้อ, จัดความกว้างเป๊ะๆ ให้ตรงกับตารางล่าง) --}}
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 0.5px solid #000;">
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000;">
             <colgroup>
                 <col style="width: 25%;">
                 <col style="width: 4.166667%;">
@@ -389,77 +389,72 @@ body {
             </colgroup>
             <thead>
                 <tr>
-                    <th style="border: 0.5px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
-                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
-                    <th style="border: 0.5px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
-                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
-                    <th style="border: 0.5px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
-                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 50px;">ผลการ<br>ประเมิน</div></th>
                 </tr>
             </thead>
             <tbody>
-                {{-- ภาคเรียนที่ 1 header --}}
                 <tr style="font-weight: bold;">
-                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
-                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
-                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
+                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
+                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
+                    <td colspan="3" style="text-align: left; padding: 2px 6px;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
                 </tr>
-                {{-- 3 ช่องว่างสำหรับกิจกรรมภาคเรียนที่ 1 --}}
-                @for($i = 0; $i < 3; $i++)
-                <tr style="height: 22px;">
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
+                @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
+                <tr>
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="text-align: center;"></td>
                 </tr>
-                @endfor
-
-                {{-- ภาคเรียนที่ 2 header --}}
+                @endforeach
+                
                 <tr style="font-weight: bold;">
-                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
-                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
-                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
+                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
+                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
+                    <td colspan="3" style="text-align: left; padding: 2px 6px;">ภาคเรียนที่ 2</td>
                 </tr>
-                {{-- 3 ช่องว่างสำหรับกิจกรรมภาคเรียนที่ 2 --}}
-                @for($i = 0; $i < 3; $i++)
-                <tr style="height: 22px;">
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
+                @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
+                <tr>
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="text-align: center;"></td>
                 </tr>
-                @endfor
-
-                {{-- แถวว่างเพิ่มเติมด้านล่าง --}}
-                <tr style="height: 22px;">
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
-                    <td style="border: 0.5px solid #000;"></td>
+                @endforeach
+                {{-- แถวว่างดันท้ายให้ตารางกว้างพอดี --}}
+                <tr>
+                    <td style="border-right: 1px solid #000; padding: 4px;">&nbsp;</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td></td>
                 </tr>
             </tbody>
         </table>
 
         {{-- ตารางกรอบใหญ่ด้านล่าง (ออกแบบโครงสร้างตารางย่อยเพื่อให้เส้นแนวตั้งตรงกัน 100%) --}}
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 0.5px solid #000; border-top: none;">
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; border-top: none;">
             <colgroup>
                 <col style="width: 33.333333%;">
                 <col style="width: 33.333333%;">
@@ -468,7 +463,7 @@ body {
             <tbody>
                 <tr>
                     {{-- ฝั่งซ้าย (กินพื้นที่ 2 คอลัมน์) สรุปผล + ผลการตัดสิน --}}
-                    <td colspan="2" style="vertical-align: top; padding: 0; border-right: 0.5px solid #000;">
+                    <td colspan="2" style="vertical-align: top; padding: 0; border-right: 1px solid #000;">
                         <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
                             <colgroup>
                                 <col style="width: 50%;">
@@ -477,12 +472,12 @@ body {
                             <tbody>
                                 {{-- หัวข้อ สรุปผลการประเมิน | ผลการตัดสิน --}}
                                 <tr>
-                                    <th style="border: 0.5px solid #000; padding: 6px; text-align: center; font-weight: normal;">สรุปผลการประเมิน</th>
-                                    <th style="border: 0.5px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการตัดสิน</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สรุปผลการประเมิน</th>
+                                    <th style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการตัดสิน</th>
                                 </tr>
                                 {{-- ข้อมูลคะแนน --}}
                                 <tr>
-                                    <td style="border: 0.5px solid #000; padding: 8px 10px; vertical-align: top; line-height: 1.8;">
+                                    <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; line-height: 1.8;">
                                         <div style="display:flex; justify-content:space-between;"><span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ $totalCredits ?? '41.0' }}</span> <span>ได้</span> <span>{{ $totalCredits ?? '41.0' }}</span></div></div>
                                         <div style="display:flex; justify-content:space-between; padding-left:12px;"><span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span> <div style="display:flex;gap:15px"><span>48.0</span> <span>ได้</span> <span>48.0</span></div></div>
                                         <div style="display:flex; justify-content:space-between;"><span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
@@ -499,7 +494,7 @@ body {
                                 </tr>
                                 {{-- วันที่จบ --}}
                                 <tr>
-                                    <td colspan="2" style="border-left: 0.5px solid #000; border-right: 0.5px solid #000; border-top: 0.5px solid #000; border-bottom: 0.5px solid #000; padding: 6px 10px; line-height: 1.8;">
+                                    <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px; line-height: 1.8;">
                                         <div style="display:flex;">
                                             <span style="width:140px;">วันอนุมัติการจบ</span>
                                             <span>{{ $student->approve_date ?? '31 มีนาคม 2569' }}</span>
@@ -516,14 +511,14 @@ body {
                                 </tr>
                                 {{-- ผลการทดสอบระดับชาติ --}}
                                 <tr>
-                                    <th colspan="2" style="border: 0.5px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการทดสอบระดับชาติ</th>
+                                    <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการทดสอบระดับชาติ</th>
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 20px; text-align: center; color: #555;">-</td>
                                 </tr>
                                 {{-- สัดส่วนผลการเรียน... --}}
                                 <tr>
-                                    <th colspan="2" style="border: 0.5px solid #000; padding: 6px; text-align: center; font-weight: normal;">สัดส่วนผลการเรียนและผลการทดสอบระดับชาติ</th>
+                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สัดส่วนผลการเรียนและผลการทดสอบระดับชาติ</th>
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 8px 12px; line-height: 1.8;">
@@ -543,7 +538,7 @@ body {
                                 </tr>
                                 {{-- เกณฑ์การประเมิน... --}}
                                 <tr>
-                                    <th colspan="2" style="border: 0.5px solid #000; padding: 6px; text-align: center; font-weight: normal;">เกณฑ์การประเมินของสถานศึกษา</th>
+                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">เกณฑ์การประเมินของสถานศึกษา</th>
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 8px 10px;">
@@ -584,23 +579,23 @@ body {
                             <tbody>
                                 {{-- หัวข้อ กลุ่มสาระ --}}
                                 <tr>
-                                    <th style="border: 0.5px solid #000; padding: 4px; text-align: center; font-weight: normal;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
-                                    <th style="border: 0.5px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
                                 <tr>
-                                    <td style="border: 0.5px solid #000; padding: 3px 6px;">{{ $group }}</td>
-                                    <td style="border: 0.5px solid #000; text-align: center;"></td>
-                                    <td style="border: 0.5px solid #000; text-align: center;"></td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 6px;">{{ $group }}</td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;"></td>
+                                    <td style="border-bottom: 1px solid #000; text-align: center;"></td>
                                 </tr>
                                 @endforeach
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
                                 <tr>
-                                    <td style="border: 0.5px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
-                                    <td style="border: 0.5px solid #000; text-align: center;">{{ $totalCredits ?? '89.0' }}</td>
-                                    <td style="border: 0.5px solid #000; text-align: center;">{{ $gpa ?? '3.58' }}</td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;">{{ $totalCredits ?? '89.0' }}</td>
+                                    <td style="border-bottom: 1px solid #000; text-align: center;">{{ $gpa ?? '3.58' }}</td>
                                 </tr>
                                 {{-- ช่องว่างด้านล่างเพื่อดันลายเซ็น --}}
                                 <tr>
