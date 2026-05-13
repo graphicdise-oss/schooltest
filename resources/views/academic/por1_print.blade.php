@@ -650,11 +650,13 @@ body {
                                     $gw = $groupStats[$group]['weighted'] ?? 0;
                                     $gg = ($gc > 0) ? number_format($gw / $gc, 2) : '';
                                 @endphp
+                                @if($gc > 0)
                                 <tr>
                                     <td style="border-right: 1px solid #000; padding: 2px 6px;">{{ $group }}</td>
-                                    <td style="border-right: 1px solid #000; text-align: center;">{{ $gc > 0 ? number_format($gc, 1) : '' }}</td>
+                                    <td style="border-right: 1px solid #000; text-align: center;">{{ number_format($gc, 1) }}</td>
                                     <td style="text-align: center;">{{ $gg }}</td>
                                 </tr>
+                                @endif
                                 @endforeach
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
                                 <tr>
