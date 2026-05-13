@@ -494,7 +494,7 @@ body {
         </table>
 
         {{-- ตารางกรอบใหญ่ด้านล่าง --}}
-        <div style="flex: 1; display: flex; flex-direction: column; margin-top: 4px;">
+        <div style="flex: 1; display: flex; flex-direction: column; margin-top: 4px; margin-bottom: 4mm;">
         <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; height: 100%;">
             <colgroup>
                 <col style="width: 33.333333%;">
