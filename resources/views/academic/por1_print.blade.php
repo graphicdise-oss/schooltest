@@ -434,7 +434,9 @@ body {
                 <tr style="font-weight: bold;">
                     @for($ci = 0; $ci < 3; $ci++)
                     <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">
-                        @if($actCols[$ci]['label']){{ $actCols[$ci]['label'] }}<br>ภาคเรียนที่ 1@endif
+                        @if($actCols[$ci]['label'])
+                            {{ $actCols[$ci]['label'] }}<br>ภาคเรียนที่ 1
+                        @endif
                     </td>
                     <td style="border-right: 1px solid #000;"></td>
                     <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
@@ -456,7 +458,9 @@ body {
                 <tr style="font-weight: bold;">
                     @for($ci = 0; $ci < 3; $ci++)
                     <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">
-                        @if($actCols[$ci]['label'])ภาคเรียนที่ 2@endif
+                        @if($actCols[$ci]['label'])
+                            ภาคเรียนที่ 2
+                        @endif
                     </td>
                     <td style="border-right: 1px solid #000;"></td>
                     <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
