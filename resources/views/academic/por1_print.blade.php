@@ -256,14 +256,14 @@ body {
             foreach ($cols as $ci => $yg) {
                 if ($ci >= $numCols) break;
                 $colRows[$ci] = [];
-                // แปลง "ม.X" → "มัธยมศึกษาปีที่ X" ถ้ายังเป็นรูปสั้น
                 $lvlDisplay = preg_replace('/^ม\.(\d+)$/', 'มัธยมศึกษาปีที่ $1', $yg['level'] ?? '');
-                $colRows[$ci][] = ['type'=>'year','label'=>'ปีการศึกษา '.$yg['year'].' '.$lvlDisplay];
+                $yearLabel  = 'ปีการศึกษา '.$yg['year'].' '.$lvlDisplay;
 
                 foreach ([1, 2] as $sn) {
                     $sk = (string)$sn;
                     if (isset($yg['semesters'][$sk]) && count($yg['semesters'][$sk]) > 0) {
-                        // เพิ่มหัว "ภาคเรียนที่ X" คั่นก่อนวิชาของแต่ละเทอม
+                        // แสดงหัวปีการศึกษา+ชั้นปีซ้ำก่อนทุกเทอม
+                        $colRows[$ci][] = ['type'=>'year','label'=>$yearLabel];
                         $colRows[$ci][] = ['type'=>'sem','label'=>'ภาคเรียนที่ '.$sn];
                         foreach ($yg['semesters'][$sk] as $g) {
                             $subj = $g->teachingAssign->subject;
@@ -302,7 +302,7 @@ body {
                 @for($c = 0; $c < $numCols; $c++)
                 @php $row = $colRows[$c][$r] ?? ['type'=>'empty']; @endphp
                 @if($row['type'] === 'year')
-                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:16px;">{{ $row['label'] }}</td>
+                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:13px;">{{ $row['label'] }}</td>
                 @elseif($row['type'] === 'sem')
                     <td class="col-subject" style="text-align:left;">{{ $row['label'] }}</td>
                     <td class="col-credit"></td>
