@@ -366,8 +366,8 @@ body {
         {{-- Header ชุดที่ / เลขที่ --}}
         <div style="display: flex; justify-content: center; align-items: baseline; gap: 30px; margin-top: 10px; font-weight: bold; font-size: 16px;">
             <div>ปพ.1 : พ</div>
-            <div>ชุดที่ <span style="display: inline-block; width: 60px; text-align: center;">{{ $docNumber->doc_set ?? '' }}</span></div>
-            <div>เลขที่ <span style="display: inline-block; width: 80px; text-align: center;">{{ $docNumber->doc_number ?? '' }}</span></div>
+            <div>ชุดที่ <span style="display: inline-block; width: 60px; text-align: center; border-bottom: 0.5px solid #000;">{{ $docNumber->doc_set ?? '' }}</span></div>
+            <div>เลขที่ <span style="display: inline-block; width: 80px; text-align: center; border-bottom: 0.5px solid #000;">{{ $docNumber->doc_number ?? '' }}</span></div>
         </div>
 
         <div style="text-align: center; font-weight: bold; font-size: 16px; margin-top: 15px; margin-bottom: 5px;">
