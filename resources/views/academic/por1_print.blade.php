@@ -401,46 +401,51 @@ body {
                 </tr>
             </thead>
             <tbody>
+                {{-- ภาคเรียนที่ 1 header --}}
                 <tr style="font-weight: bold;">
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
+                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
+                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
+                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
                 </tr>
-                @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
-                <tr>
-                    <td style="padding: 2px 6px; text-align: left; border: 0.5px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border: 0.5px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border: 0.5px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
+                {{-- 3 ช่องว่างสำหรับกิจกรรมภาคเรียนที่ 1 --}}
+                @for($i = 0; $i < 3; $i++)
+                <tr style="height: 22px;">
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
                 </tr>
-                @endforeach
+                @endfor
 
+                {{-- ภาคเรียนที่ 2 header --}}
                 <tr style="font-weight: bold;">
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
+                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
+                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
+                    <td colspan="3" style="padding: 3px 6px; border: 0.5px solid #000;">ภาคเรียนที่ 2</td>
                 </tr>
-                @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
-                <tr>
-                    <td style="padding: 2px 6px; text-align: left; border: 0.5px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border: 0.5px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="padding: 2px 6px; text-align: left; border: 0.5px solid #000;">{{ $act }}</td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
-                    <td style="text-align: center; border: 0.5px solid #000;"></td>
+                {{-- 3 ช่องว่างสำหรับกิจกรรมภาคเรียนที่ 2 --}}
+                @for($i = 0; $i < 3; $i++)
+                <tr style="height: 22px;">
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
+                    <td style="border: 0.5px solid #000;"></td>
                 </tr>
-                @endforeach
-                {{-- แถวว่างดันท้ายให้ตารางกว้างพอดี --}}
-                <tr>
-                    <td style="border: 0.5px solid #000; padding: 4px;">&nbsp;</td>
+                @endfor
+
+                {{-- แถวว่างเพิ่มเติมด้านล่าง --}}
+                <tr style="height: 22px;">
+                    <td style="border: 0.5px solid #000;"></td>
                     <td style="border: 0.5px solid #000;"></td>
                     <td style="border: 0.5px solid #000;"></td>
                     <td style="border: 0.5px solid #000;"></td>
