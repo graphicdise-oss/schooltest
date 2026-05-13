@@ -220,11 +220,11 @@ body {
                     </div>
                     <div class="info-row" style="display:flex;flex-wrap:nowrap;gap:0;align-items:baseline;">
                         <span class="lbl">เพศ</span>
-                        <span class="val-fixed" style="min-width:8mm;">{{ $student->gender === 'M' ? 'ชาย' : ($student->gender === 'F' ? 'หญิง' : '') }}</span>
+                        <span class="val-fixed" style="min-width:14mm;width:14mm;">{{ $student->gender === 'M' ? 'ชาย' : ($student->gender === 'F' ? 'หญิง' : '') }}</span>
                         <span class="lbl" style="padding-left:2mm;">สัญชาติ</span>
-                        <span class="val-fixed" style="min-width:12mm;">{{ $student->nationality ?? 'ไทย' }}</span>
+                        <span class="val-fixed" style="min-width:14mm;width:14mm;">{{ $student->nationality ?? 'ไทย' }}</span>
                         <span class="lbl" style="padding-left:2mm;">ศาสนา</span>
-                        <span class="val" style="min-width:12mm;">{{ $student->religion ?? 'พุทธ' }}</span>
+                        <span class="val" style="min-width:14mm;">{{ $student->religion ?? 'พุทธ' }}</span>
                     </div>
                     <div class="info-row"><span class="lbl">ชื่อ-ชื่อสกุลบิดา</span><span class="val">{{ $father ? ($father->prefix_th . $father->first_name_th . ' ' . $father->last_name_th) : '' }}</span></div>
                     <div class="info-row"><span class="lbl">ชื่อ-ชื่อสกุลมารดา</span><span class="val">{{ $mother ? ($mother->prefix_th . $mother->first_name_th . ' ' . $mother->last_name_th) : '' }}</span></div>
