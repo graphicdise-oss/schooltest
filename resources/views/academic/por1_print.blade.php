@@ -650,12 +650,23 @@ body {
                                     $gw = $groupStats[$group]['weighted'] ?? 0;
                                     $gg = ($gc > 0) ? number_format($gw / $gc, 2) : '';
                                 @endphp
+                                @if($gc > 0)
                                 <tr style="height: 22px;">
                                     <td style="border-right: 1px solid #000; padding: 0 6px;">{{ $group }}</td>
-                                    <td style="border-right: 1px solid #000; text-align: center;">{{ $gc > 0 ? number_format($gc, 1) : '' }}</td>
+                                    <td style="border-right: 1px solid #000; text-align: center;">{{ number_format($gc, 1) }}</td>
                                     <td style="text-align: center;">{{ $gg }}</td>
                                 </tr>
+                                @endif
                                 @endforeach
+                                {{-- filler rows เพื่อล็อคความสูงให้ครบ 9 แถวเสมอ --}}
+                                @php $shownCount = count(array_filter(array_map(fn($g) => ($groupStats[$g]['credits'] ?? 0) > 0, ['ภาษาไทย','คณิตศาสตร์','วิทยาศาสตร์และเทคโนโลยี','สังคมศึกษา ศาสนา และวัฒนธรรม','สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','ภาษาต่างประเทศ','การศึกษาค้นคว้าด้วยตนเอง']))); @endphp
+                                @for($fi = $shownCount; $fi < 9; $fi++)
+                                <tr style="height: 22px;">
+                                    <td style="border-right: 1px solid #000;"></td>
+                                    <td style="border-right: 1px solid #000;"></td>
+                                    <td></td>
+                                </tr>
+                                @endfor
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
                                 <tr>
                                     <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
