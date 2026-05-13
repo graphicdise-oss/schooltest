@@ -512,8 +512,8 @@ body {
                             <tbody>
                                 {{-- หัวข้อ สรุปผลการประเมิน | ผลการตัดสิน --}}
                                 <tr>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สรุปผลการประเมิน</th>
-                                    <th style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการตัดสิน</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">สรุปผลการประเมิน</th>
+                                    <th style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">ผลการตัดสิน</th>
                                 </tr>
                                 {{-- ข้อมูลคะแนน --}}
                                 <tr>
@@ -551,14 +551,14 @@ body {
                                 </tr>
                                 {{-- ผลการทดสอบระดับชาติ --}}
                                 <tr>
-                                    <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการทดสอบระดับชาติ</th>
+                                    <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">ผลการทดสอบระดับชาติ</th>
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 20px; text-align: center; color: #555;">-</td>
                                 </tr>
                                 {{-- สัดส่วนผลการเรียน... --}}
                                 <tr>
-                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สัดส่วนผลการเรียนและผลการทดสอบระดับชาติ</th>
+                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">สัดส่วนผลการเรียนและผลการทดสอบระดับชาติ</th>
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 8px 12px; line-height: 1.8;">
@@ -578,11 +578,11 @@ body {
                                 </tr>
                                 {{-- เกณฑ์การประเมิน... --}}
                                 <tr>
-                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">เกณฑ์การประเมินของสถานศึกษา</th>
+                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">เกณฑ์การประเมินของสถานศึกษา</th>
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 8px 10px;">
-                                        <div style="font-weight: normal; font-size: 12px; margin-bottom: 2px;">เกณฑ์การจบการศึกษาระดับมัธยมศึกษาตอนปลาย</div>
+                                        <div style="font-weight: bold; font-size: 12px; margin-bottom: 2px;">เกณฑ์การจบการศึกษาระดับมัธยมศึกษาตอนปลาย</div>
                                         <div style="font-size: 11.5px; line-height: 1.4; padding-left: 10px; text-indent: -10px;">
                                             1. ผู้เรียนเรียนรายวิชาพื้นฐานและเพิ่มเติมวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมตามที่สถานศึกษากำหนด หน่วยกิต<br>
                                             2. ผู้เรียนต้องได้หน่วยกิตตลอดหลักสูตรไม่น้อยกว่า 77 หน่วยกิต โดยเป็นรายวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมไม่น้อยกว่า 36 หน่วยกิต<br>
@@ -591,7 +591,7 @@ body {
                                             5. ผู้เรียนเข้าร่วมกิจกรรมพัฒนาผู้เรียนและมีผลการประเมิน ผ่าน ทุกกิจกรรม ตามเกณฑ์การประเมินของสถานศึกษากำหนด
                                         </div>
                                         
-                                        <div style="font-weight: normal; font-size: 12px; margin-top: 8px; margin-bottom: 2px;">คำอธิบายเกณฑ์ ผลการประเมินรายวิชา</div>
+                                        <div style="font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 2px;">คำอธิบายเกณฑ์ ผลการประเมินรายวิชา</div>
                                         <table style="width: 100%; font-size: 11.5px; text-align: center; border-collapse: collapse;">
                                             <tr>
                                                 <td style="border: none;">คะแนน</td><td style="border: none;">ระดับผลการเรียน</td><td style="border: none; text-align:left;">ความหมาย</td>
@@ -619,9 +619,9 @@ body {
                             <tbody>
                                 {{-- หัวข้อ กลุ่มสาระ --}}
                                 <tr>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
-                                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
