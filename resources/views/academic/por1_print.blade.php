@@ -654,17 +654,17 @@ body {
                                     $gg = ($gc > 0) ? number_format($gw / $gc, 2) : '';
                                 @endphp
                                 @if($gc > 0)
-                                <tr>
-                                    <td style="border-right: 1px solid #000; padding: 2px 6px;">{{ $group }}</td>
-                                    <td style="border-right: 1px solid #000; text-align: center;">{{ number_format($gc, 1) }}</td>
-                                    <td style="text-align: center;">{{ $gg }}</td>
+                                <tr style="height: 20px;">
+                                    <td style="border-right: 1px solid #000; padding: 1px 6px;">{{ $group }}</td>
+                                    <td style="border-right: 1px solid #000; text-align: center; padding: 1px 2px;">{{ number_format($gc, 1) }}</td>
+                                    <td style="text-align: center; padding: 1px 2px;">{{ $gg }}</td>
                                 </tr>
                                 @endif
                                 @endforeach
                                 {{-- filler rows เพื่อล็อคความสูงให้ครบ 9 แถวเสมอ --}}
                                 @php $shownCount = count(array_filter(array_map(fn($g) => ($groupStats[$g]['credits'] ?? 0) > 0, ['ภาษาไทย','คณิตศาสตร์','วิทยาศาสตร์และเทคโนโลยี','สังคมศึกษา ศาสนา และวัฒนธรรม','สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','ภาษาต่างประเทศ','การศึกษาค้นคว้าด้วยตนเอง']))); @endphp
                                 @for($fi = $shownCount; $fi < 12; $fi++)
-                                <tr style="height: 24px;">
+                                <tr style="height: 20px;">
                                     <td style="border-right: 1px solid #000;"></td>
                                     <td style="border-right: 1px solid #000;"></td>
                                     <td></td>
