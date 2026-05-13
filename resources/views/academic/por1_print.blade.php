@@ -534,7 +534,7 @@ body {
                                 </tr>
                                 {{-- วันที่จบ --}}
                                 <tr>
-                                    <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px;">
+                                    <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 14px 10px;">
                                         <div style="display:flex; align-items: flex-end; margin-bottom: 5px;">
                                             <span style="white-space: nowrap;">วันอนุมัติการจบ</span><span style="flex:1; border-bottom: 0.5px solid #999; padding-left: 6px; line-height: 1.1;">{{ $approveDate ?? '' }}</span>
                                         </div>
