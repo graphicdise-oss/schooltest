@@ -582,7 +582,7 @@ body {
                                 </tr>
                                 <tr>
                                     <td colspan="2" style="padding: 8px 10px;">
-                                        <div style="font-weight: bold; font-size: 12px; margin-bottom: 2px;">เกณฑ์การจบการศึกษาระดับมัธยมศึกษาตอนปลาย</div>
+                                        <div style="font-size: 12px; margin-bottom: 2px;">เกณฑ์การจบการศึกษาระดับมัธยมศึกษาตอนปลาย</div>
                                         <div style="font-size: 11.5px; line-height: 1.4; padding-left: 10px; text-indent: -10px;">
                                             1. ผู้เรียนเรียนรายวิชาพื้นฐานและเพิ่มเติมวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมตามที่สถานศึกษากำหนด หน่วยกิต<br>
                                             2. ผู้เรียนต้องได้หน่วยกิตตลอดหลักสูตรไม่น้อยกว่า 77 หน่วยกิต โดยเป็นรายวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมไม่น้อยกว่า 36 หน่วยกิต<br>
@@ -591,7 +591,7 @@ body {
                                             5. ผู้เรียนเข้าร่วมกิจกรรมพัฒนาผู้เรียนและมีผลการประเมิน ผ่าน ทุกกิจกรรม ตามเกณฑ์การประเมินของสถานศึกษากำหนด
                                         </div>
                                         
-                                        <div style="font-weight: bold; font-size: 12px; margin-top: 8px; margin-bottom: 2px;">คำอธิบายเกณฑ์ ผลการประเมินรายวิชา</div>
+                                        <div style="font-size: 12px; margin-top: 8px; margin-bottom: 2px;">คำอธิบายเกณฑ์ ผลการประเมินรายวิชา</div>
                                         <table style="width: 100%; font-size: 11.5px; text-align: center; border-collapse: collapse;">
                                             <tr>
                                                 <td style="border: none;">คะแนน</td><td style="border: none;">ระดับผลการเรียน</td><td style="border: none; text-align:left;">ความหมาย</td>
