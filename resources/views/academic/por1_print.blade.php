@@ -465,147 +465,183 @@ body {
             </tbody>
         </table>
 
-        {{-- ตารางส่วนล่าง: แยก 2 ตารางเคียงกัน --}}
-        <div style="display: flex; gap: 4px; align-items: stretch;">
+        {{-- ตารางกรอบใหญ่ด้านล่าง (ออกแบบโครงสร้างตารางย่อยเพื่อให้เส้นแนวตั้งตรงกัน 100%) --}}
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; border-top: none;">
+            <colgroup>
+                <col style="width: 33.333333%;">
+                <col style="width: 33.333333%;">
+                <col style="width: 33.333333%;">
+            </colgroup>
+            <tbody>
+                <tr>
+                    {{-- ฝั่งซ้าย (กินพื้นที่ 2 คอลัมน์) สรุปผล + ผลการตัดสิน --}}
+                    <td colspan="2" style="vertical-align: top; padding: 0; border-right: 1px solid #000;">
+                        <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
+                            <colgroup>
+                                <col style="width: 50%;">
+                                <col style="width: 50%;">
+                            </colgroup>
+                            <tbody>
+                                {{-- หัวข้อ สรุปผลการประเมิน | ผลการตัดสิน --}}
+                                <tr>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สรุปผลการประเมิน</th>
+                                    <th style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการตัดสิน</th>
+                                </tr>
+                                {{-- ข้อมูลคะแนน --}}
+                                <tr>
+                                    <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; line-height: 1.8;">
+                                        <div style="display:flex; justify-content:space-between;"><span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ $totalCredits ?? '41.0' }}</span> <span>ได้</span> <span>{{ $totalCredits ?? '41.0' }}</span></div></div>
+                                        <div style="display:flex; justify-content:space-between; padding-left:12px;"><span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span> <div style="display:flex;gap:15px"><span>48.0</span> <span>ได้</span> <span>48.0</span></div></div>
+                                        <div style="display:flex; justify-content:space-between;"><span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
+                                        <div style="display:flex; justify-content:space-between;"><span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
+                                        <div style="display:flex; justify-content:space-between;"><span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ผ่าน</span></div></div>
+                                    </td>
+                                    <td style="padding: 8px 10px; vertical-align: top; text-align: center; line-height: 1.8;">
+                                        <div style="margin-top:2px">ผ่าน</div>
+                                        <div>ผ่าน</div>
+                                        <div>ผ่าน</div>
+                                        <div>ผ่าน</div>
+                                        <div>ผ่าน</div>
+                                    </td>
+                                </tr>
+                                {{-- วันที่จบ --}}
+                                <tr>
+                                    <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px; line-height: 1.8;">
+                                        <div style="display:flex;">
+                                            <span style="width:140px;">วันอนุมัติการจบ</span>
+                                            <span>{{ $student->approve_date ?? '31 มีนาคม 2569' }}</span>
+                                        </div>
+                                        <div style="display:flex;">
+                                            <span style="width:140px;">วันออกจากโรงเรียน</span>
+                                            <span>{{ $student->leave_date ?? '31 มีนาคม 2569' }}</span>
+                                        </div>
+                                        <div style="display:flex;">
+                                            <span style="width:140px;">สาเหตุที่ออกจากโรงเรียน</span>
+                                            <span>{{ $student->leave_reason ?? '-' }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{-- ผลการทดสอบระดับชาติ --}}
+                                <tr>
+                                    <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการทดสอบระดับชาติ</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding: 20px; text-align: center; color: #555;">-</td>
+                                </tr>
+                                {{-- สัดส่วนผลการเรียน... --}}
+                                <tr>
+                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สัดส่วนผลการเรียนและผลการทดสอบระดับชาติ</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding: 8px 12px; line-height: 1.8;">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>1. ร้อยละ - ของผลการเรียนเฉลี่ยตลอดหลักสูตร</span>
+                                            <span>= &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>2. ร้อยละ - ของผลการทดสอบทางการศึกษาระดับชาติขั้นพื้นฐาน</span>
+                                            <span>= &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -</span>
+                                        </div>
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <span>3. ผลการเรียนเฉลี่ย</span>
+                                            <span>= &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {{-- เกณฑ์การประเมิน... --}}
+                                <tr>
+                                    <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">เกณฑ์การประเมินของสถานศึกษา</th>
+                                </tr>
+                                <tr>
+                                    <td colspan="2" style="padding: 8px 10px;">
+                                        <div style="font-weight: normal; font-size: 12px; margin-bottom: 2px;">เกณฑ์การจบการศึกษาระดับมัธยมศึกษาตอนปลาย</div>
+                                        <div style="font-size: 11.5px; line-height: 1.4; padding-left: 10px; text-indent: -10px;">
+                                            1. ผู้เรียนเรียนรายวิชาพื้นฐานและเพิ่มเติมวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมตามที่สถานศึกษากำหนด หน่วยกิต<br>
+                                            2. ผู้เรียนต้องได้หน่วยกิตตลอดหลักสูตรไม่น้อยกว่า 77 หน่วยกิต โดยเป็นรายวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมไม่น้อยกว่า 36 หน่วยกิต<br>
+                                            3. ผู้เรียนมีผลการประเมินการอ่าน คิดวิเคราะห์ และเขียน ในระดับ ผ่าน ตามเกณฑ์การประเมินของสถานศึกษากำหนด<br>
+                                            4. ผู้เรียนมีผลการประเมินคุณลักษณะอันพึงประสงค์ ในระดับ ผ่าน ตามเกณฑ์การประเมินของสถานศึกษากำหนด<br>
+                                            5. ผู้เรียนเข้าร่วมกิจกรรมพัฒนาผู้เรียนและมีผลการประเมิน ผ่าน ทุกกิจกรรม ตามเกณฑ์การประเมินของสถานศึกษากำหนด
+                                        </div>
+                                        
+                                        <div style="font-weight: normal; font-size: 12px; margin-top: 8px; margin-bottom: 2px;">คำอธิบายเกณฑ์ ผลการประเมินรายวิชา</div>
+                                        <table style="width: 100%; font-size: 11.5px; text-align: center; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="border: none;">คะแนน</td><td style="border: none;">ระดับผลการเรียน</td><td style="border: none; text-align:left;">ความหมาย</td>
+                                                <td style="border: none;">คะแนน</td><td style="border: none;">ระดับผลการเรียน</td><td style="border: none; text-align:left;">ความหมาย</td>
+                                            </tr>
+                                            <tr><td style="border: none;">80-100</td><td style="border: none;">4</td><td style="border: none; text-align:left;">ดีเยี่ยม</td><td style="border: none;">60-64</td><td style="border: none;">2</td><td style="border: none; text-align:left;">ปานกลาง</td></tr>
+                                            <tr><td style="border: none;">75-79</td><td style="border: none;">3.5</td><td style="border: none; text-align:left;">ดีมาก</td><td style="border: none;">55-59</td><td style="border: none;">1.5</td><td style="border: none; text-align:left;">พอใช้</td></tr>
+                                            <tr><td style="border: none;">70-74</td><td style="border: none;">3</td><td style="border: none; text-align:left;">ดี</td><td style="border: none;">50-54</td><td style="border: none;">1</td><td style="border: none; text-align:left;">ผ่านเกณฑ์ขั้นต่ำ</td></tr>
+                                            <tr><td style="border: none;">65-69</td><td style="border: none;">2.5</td><td style="border: none; text-align:left;">ค่อนข้างดี</td><td style="border: none;">0-49</td><td style="border: none;">0</td><td style="border: none; text-align:left;">ต่ำกว่าเกณฑ์</td></tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
 
-            {{-- ซ้าย 2/3: สรุปผลการประเมิน + ผลการตัดสิน --}}
-            <div style="flex: 2; min-width: 0;">
-                <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; border-top: none;">
-                    <colgroup>
-                        <col style="width: 50%;">
-                        <col style="width: 50%;">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สรุปผลการประเมิน</th>
-                            <th style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการตัดสิน</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; line-height: 1.8;">
-                                <div style="display:flex; justify-content:space-between;"><span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ $totalCredits ?? '41.0' }}</span> <span>ได้</span> <span>{{ $totalCredits ?? '41.0' }}</span></div></div>
-                                <div style="display:flex; justify-content:space-between; padding-left:12px;"><span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span> <div style="display:flex;gap:15px"><span>48.0</span> <span>ได้</span> <span>48.0</span></div></div>
-                                <div style="display:flex; justify-content:space-between;"><span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
-                                <div style="display:flex; justify-content:space-between;"><span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
-                                <div style="display:flex; justify-content:space-between;"><span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ผ่าน</span></div></div>
-                            </td>
-                            <td style="padding: 8px 10px; vertical-align: top; text-align: center; line-height: 1.8;">
-                                <div style="margin-top:2px">ผ่าน</div>
-                                <div>ผ่าน</div>
-                                <div>ผ่าน</div>
-                                <div>ผ่าน</div>
-                                <div>ผ่าน</div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px 10px; line-height: 1.8;">
-                                <div style="display:flex;"><span style="width:140px;">วันอนุมัติการจบ</span><span>{{ $student->approve_date ?? '31 มีนาคม 2569' }}</span></div>
-                                <div style="display:flex;"><span style="width:140px;">วันออกจากโรงเรียน</span><span>{{ $student->leave_date ?? '31 มีนาคม 2569' }}</span></div>
-                                <div style="display:flex;"><span style="width:140px;">สาเหตุที่ออกจากโรงเรียน</span><span>{{ $student->leave_reason ?? '-' }}</span></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">ผลการทดสอบระดับชาติ</th>
-                        </tr>
-                        <tr>
-                            <td colspan="2" style="padding: 20px; text-align: center; color: #555;">-</td>
-                        </tr>
-                        <tr>
-                            <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">สัดส่วนผลการเรียนและผลการทดสอบระดับชาติ</th>
-                        </tr>
-                        <tr>
-                            <td colspan="2" style="padding: 8px 12px; line-height: 1.8;">
-                                <div style="display:flex;justify-content:space-between;"><span>1. ร้อยละ - ของผลการเรียนเฉลี่ยตลอดหลักสูตร</span><span>= &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -</span></div>
-                                <div style="display:flex;justify-content:space-between;"><span>2. ร้อยละ - ของผลการทดสอบทางการศึกษาระดับชาติขั้นพื้นฐาน</span><span>= &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -</span></div>
-                                <div style="display:flex;justify-content:space-between;"><span>3. ผลการเรียนเฉลี่ย</span><span>= &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; -</span></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <th colspan="2" style="border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: normal;">เกณฑ์การประเมินของสถานศึกษา</th>
-                        </tr>
-                        <tr>
-                            <td colspan="2" style="padding: 8px 10px;">
-                                <div style="font-weight: normal; font-size: 12px; margin-bottom: 2px;">เกณฑ์การจบการศึกษาระดับมัธยมศึกษาตอนปลาย</div>
-                                <div style="font-size: 11.5px; line-height: 1.4; padding-left: 10px; text-indent: -10px;">
-                                    1. ผู้เรียนเรียนรายวิชาพื้นฐานและเพิ่มเติมวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมตามที่สถานศึกษากำหนด หน่วยกิต<br>
-                                    2. ผู้เรียนต้องได้หน่วยกิตตลอดหลักสูตรไม่น้อยกว่า 77 หน่วยกิต โดยเป็นรายวิชาพื้นฐาน 41 หน่วยกิต และรายวิชาเพิ่มเติมไม่น้อยกว่า 36 หน่วยกิต<br>
-                                    3. ผู้เรียนมีผลการประเมินการอ่าน คิดวิเคราะห์ และเขียน ในระดับ ผ่าน ตามเกณฑ์การประเมินของสถานศึกษากำหนด<br>
-                                    4. ผู้เรียนมีผลการประเมินคุณลักษณะอันพึงประสงค์ ในระดับ ผ่าน ตามเกณฑ์การประเมินของสถานศึกษากำหนด<br>
-                                    5. ผู้เรียนเข้าร่วมกิจกรรมพัฒนาผู้เรียนและมีผลการประเมิน ผ่าน ทุกกิจกรรม ตามเกณฑ์การประเมินของสถานศึกษากำหนด
-                                </div>
-                                <div style="font-weight: normal; font-size: 12px; margin-top: 8px; margin-bottom: 2px;">คำอธิบายเกณฑ์ ผลการประเมินรายวิชา</div>
-                                <table style="width: 100%; font-size: 11.5px; text-align: center; border-collapse: collapse;">
-                                    <tr>
-                                        <td style="border:none;">คะแนน</td><td style="border:none;">ระดับผลการเรียน</td><td style="border:none;text-align:left;">ความหมาย</td>
-                                        <td style="border:none;">คะแนน</td><td style="border:none;">ระดับผลการเรียน</td><td style="border:none;text-align:left;">ความหมาย</td>
-                                    </tr>
-                                    <tr><td style="border:none;">80-100</td><td style="border:none;">4</td><td style="border:none;text-align:left;">ดีเยี่ยม</td><td style="border:none;">60-64</td><td style="border:none;">2</td><td style="border:none;text-align:left;">ปานกลาง</td></tr>
-                                    <tr><td style="border:none;">75-79</td><td style="border:none;">3.5</td><td style="border:none;text-align:left;">ดีมาก</td><td style="border:none;">55-59</td><td style="border:none;">1.5</td><td style="border:none;text-align:left;">พอใช้</td></tr>
-                                    <tr><td style="border:none;">70-74</td><td style="border:none;">3</td><td style="border:none;text-align:left;">ดี</td><td style="border:none;">50-54</td><td style="border:none;">1</td><td style="border:none;text-align:left;">ผ่านเกณฑ์ขั้นต่ำ</td></tr>
-                                    <tr><td style="border:none;">65-69</td><td style="border:none;">2.5</td><td style="border:none;text-align:left;">ค่อนข้างดี</td><td style="border:none;">0-49</td><td style="border:none;">0</td><td style="border:none;text-align:left;">ต่ำกว่าเกณฑ์</td></tr>
-                                </table>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            {{-- ขวา 1/3: กลุ่มสาระ + ลายเซ็น --}}
-            <div style="flex: 1; min-width: 0;">
-                <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; border-top: none;">
-                    <colgroup>
-                        <col style="width: 75%;">
-                        <col style="width: 12.5%;">
-                        <col style="width: 12.5%;">
-                    </colgroup>
-                    <thead>
-                        <tr>
-                            <th style="border: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                            <th style="border: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
-                            <th style="border: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach(['ภาษาไทย','คณิตศาสตร์','วิทยาศาสตร์และเทคโนโลยี','สังคมศึกษา ศาสนา และวัฒนธรรม','สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','ภาษาต่างประเทศ','การศึกษาค้นคว้าด้วยตนเอง'] as $group)
-                        <tr>
-                            <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 6px;">{{ $group }}</td>
-                            <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;"></td>
-                            <td style="border-bottom: 1px solid #000; text-align: center;"></td>
-                        </tr>
-                        @endforeach
-                        <tr>
-                            <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
-                            <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;">{{ $totalCredits ?? '89.0' }}</td>
-                            <td style="border-bottom: 1px solid #000; text-align: center;">{{ $gpa ?? '3.58' }}</td>
-                        </tr>
-                        <tr><td colspan="3" style="height: 120px;"></td></tr>
-                        <tr>
-                            <td colspan="3" style="padding-bottom: 20px;">
-                                <div style="text-align: center; margin-bottom: 50px;">
-                                    <div style="display:flex;justify-content:center;align-items:baseline;gap:5px;">
-                                        <span>(</span>
-                                        <span style="border-bottom: 1px dotted #000; width: 140px; display: inline-block;">{{ $school['registrar_name'] ?? 'นายทะเบียน' }}</span>
-                                        <span>)</span>
-                                    </div>
-                                    <div style="margin-top: 3px;">นายทะเบียน</div>
-                                </div>
-                                <div style="text-align: center;">
-                                    <div style="display:flex;justify-content:center;align-items:baseline;gap:5px;">
-                                        <span>(</span>
-                                        <span style="border-bottom: 1px dotted #000; width: 140px; display: inline-block;">{{ $school['director_name'] ?? 'ผู้อำนวยการโรงเรียน' }}</span>
-                                        <span>)</span>
-                                    </div>
-                                    <div style="margin-top: 3px;">ผู้อำนวยการโรงเรียน</div>
-                                    <div style="margin-top: 15px; text-align: left; padding-left: 20px;">วันที่ ..............................................................</div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-        </div>
+                    {{-- ฝั่งขวา (กินพื้นที่ 1 คอลัมน์) กลุ่มสาระฯ และ ลายเซ็น --}}
+                    <td colspan="1" style="vertical-align: top; padding: 0;">
+                        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; height: 100%;">
+                            <colgroup>
+                                <col style="width: 75%;">
+                                <col style="width: 12.5%;">
+                                <col style="width: 12.5%;">
+                            </colgroup>
+                            <tbody>
+                                {{-- หัวข้อ กลุ่มสาระ --}}
+                                <tr>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: normal;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: normal;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
+                                </tr>
+                                {{-- รายวิชา --}}
+                                @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
+                                <tr>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 6px;">{{ $group }}</td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;"></td>
+                                    <td style="border-bottom: 1px solid #000; text-align: center;"></td>
+                                </tr>
+                                @endforeach
+                                {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
+                                <tr>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
+                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;">{{ $totalCredits ?? '89.0' }}</td>
+                                    <td style="border-bottom: 1px solid #000; text-align: center;">{{ $gpa ?? '3.58' }}</td>
+                                </tr>
+                                {{-- ช่องว่างด้านล่างเพื่อดันลายเซ็น --}}
+                                <tr>
+                                    <td colspan="3" style="border-bottom: none; height: 120px;"></td>
+                                </tr>
+                                {{-- ลายเซ็น --}}
+                                <tr>
+                                    <td colspan="3" style="border-bottom: none; padding-bottom: 20px;">
+                                        <div style="text-align: center; margin-bottom: 50px;">
+                                            <div style="display: flex; justify-content: center; align-items: baseline; gap: 5px;">
+                                                <span>(</span>
+                                                <span style="border-bottom: 1px dotted #000; width: 140px; display: inline-block;">{{ $school['registrar_name'] ?? 'นายทะเบียน' }}</span>
+                                                <span>)</span>
+                                            </div>
+                                            <div style="margin-top: 3px;">นายทะเบียน</div>
+                                        </div>
+                                        
+                                        <div style="text-align: center;">
+                                            <div style="display: flex; justify-content: center; align-items: baseline; gap: 5px;">
+                                                <span>(</span>
+                                                <span style="border-bottom: 1px dotted #000; width: 140px; display: inline-block;">{{ $school['director_name'] ?? 'ผู้อำนวยการโรงเรียน' }}</span>
+                                                <span>)</span>
+                                            </div>
+                                            <div style="margin-top: 3px;">ผู้อำนวยการโรงเรียน</div>
+                                            <div style="margin-top: 15px; text-align: left; padding-left: 20px;">วันที่ ..............................................................</div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
 
     </div>
 </div>
