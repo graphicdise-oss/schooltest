@@ -623,9 +623,9 @@ body {
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
                                 <tr>
-                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 6px;">{{ $group }}</td>
-                                    <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; text-align: center;"></td>
-                                    <td style="border-bottom: 1px solid #000; text-align: center;"></td>
+                                    <td style="border-right: 1px solid #000; padding: 2px 6px;">{{ $group }}</td>
+                                    <td style="border-right: 1px solid #000; text-align: center;"></td>
+                                    <td style="text-align: center;"></td>
                                 </tr>
                                 @endforeach
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
