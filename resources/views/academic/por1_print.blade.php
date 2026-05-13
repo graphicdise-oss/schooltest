@@ -256,11 +256,15 @@ body {
             foreach ($cols as $ci => $yg) {
                 if ($ci >= $numCols) break;
                 $colRows[$ci] = [];
-                $colRows[$ci][] = ['type'=>'year','label'=>'ปีการศึกษา '.$yg['year'].' '.($yg['level']??'')];
-                
+                // แปลง "ม.X" → "มัธยมศึกษาปีที่ X" ถ้ายังเป็นรูปสั้น
+                $lvlDisplay = preg_replace('/^ม\.(\d+)$/', 'มัธยมศึกษาปีที่ $1', $yg['level'] ?? '');
+                $colRows[$ci][] = ['type'=>'year','label'=>'ปีการศึกษา '.$yg['year'].' '.$lvlDisplay];
+
                 foreach ([1, 2] as $sn) {
                     $sk = (string)$sn;
                     if (isset($yg['semesters'][$sk]) && count($yg['semesters'][$sk]) > 0) {
+                        // เพิ่มหัว "ภาคเรียนที่ X" คั่นก่อนวิชาของแต่ละเทอม
+                        $colRows[$ci][] = ['type'=>'sem','label'=>'ภาคเรียนที่ '.$sn];
                         foreach ($yg['semesters'][$sk] as $g) {
                             $subj = $g->teachingAssign->subject;
                             $colRows[$ci][] = [

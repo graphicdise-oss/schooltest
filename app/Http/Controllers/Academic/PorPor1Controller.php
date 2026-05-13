@@ -115,13 +115,15 @@ class PorPor1Controller extends Controller
                 continue;
             }
 
-            if (!isset($yearGroups[$yearName])) {
-                $yearGroups[$yearName] = ['year' => $yearName, 'level' => $levelName, 'semesters' => []];
+            // ใช้ year+level เป็น key เพื่อแยกชั้นปีที่ต่างกันแม้ปีการศึกษาเดียวกัน
+            $groupKey = $yearName . '|' . $levelName;
+            if (!isset($yearGroups[$groupKey])) {
+                $yearGroups[$groupKey] = ['year' => $yearName, 'level' => $levelName, 'semesters' => []];
             }
-            if (!isset($yearGroups[$yearName]['semesters'][$semName])) {
-                $yearGroups[$yearName]['semesters'][$semName] = [];
+            if (!isset($yearGroups[$groupKey]['semesters'][$semName])) {
+                $yearGroups[$groupKey]['semesters'][$semName] = [];
             }
-            $yearGroups[$yearName]['semesters'][$semName][] = $grade;
+            $yearGroups[$groupKey]['semesters'][$semName][] = $grade;
         }
 
         ksort($yearGroups);
