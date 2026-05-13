@@ -433,12 +433,11 @@ body {
                 {{-- ภาคเรียนที่ 1 header --}}
                 <tr style="font-weight: bold;">
                     @for($ci = 0; $ci < 3; $ci++)
-                    <td style="text-align: left; padding: 2px 6px; {{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}">
-                        @if($actCols[$ci]['label']){{ $actCols[$ci]['label'] }}<br>@endif
-                        ภาคเรียนที่ 1
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">
+                        @if($actCols[$ci]['label']){{ $actCols[$ci]['label'] }}<br>ภาคเรียนที่ 1@endif
                     </td>
-                    <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
                     <td style="border-right: 1px solid #000;"></td>
+                    <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
                     @endfor
                 </tr>
                 {{-- รายชื่อกิจกรรมภาคเรียนที่ 1 --}}
@@ -456,7 +455,9 @@ body {
                 {{-- ภาคเรียนที่ 2 header --}}
                 <tr style="font-weight: bold;">
                     @for($ci = 0; $ci < 3; $ci++)
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">
+                        @if($actCols[$ci]['label'])ภาคเรียนที่ 2@endif
+                    </td>
                     <td style="border-right: 1px solid #000;"></td>
                     <td style="{{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}"></td>
                     @endfor
