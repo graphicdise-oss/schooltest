@@ -402,9 +402,15 @@ body {
             </thead>
             <tbody>
                 <tr style="font-weight: bold;">
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 4<br>ภาคเรียนที่ 1</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 5<br>ภาคเรียนที่ 1</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ปีการศึกษา ...... มัธยมศึกษาปีที่ 6<br>ภาคเรียนที่ 1</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td></td>
                 </tr>
                 @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
                 <tr>
@@ -421,9 +427,15 @@ body {
                 @endforeach
                 
                 <tr style="font-weight: bold;">
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
-                    <td colspan="3" style="text-align: left; padding: 2px 6px;">ภาคเรียนที่ 2</td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">ภาคเรียนที่ 2</td>
+                    <td style="border-right: 1px solid #000;"></td>
+                    <td></td>
                 </tr>
                 @foreach(['แนะแนว','ชุมนุม','กิจกรรมเพื่อสังคมและสาธารณประโยชน์'] as $act)
                 <tr>
