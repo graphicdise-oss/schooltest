@@ -518,8 +518,8 @@ body {
                                     if (($subj->subject_group ?? '') === 'กิจกรรมพัฒนาผู้เรียน') continue;
                                     $cr = (float)($subj->credits ?? 0);
                                     $type = $subj->subject_type ?? '';
-                                    if ($type === 'พื้นฐาน') $basicCredits += $cr;
-                                    else $extraCredits += $cr;
+                                    if ($type === 'เพิ่มเติม') $extraCredits += $cr;
+                                    else $basicCredits += $cr;
                                 }
                             }
                         }
