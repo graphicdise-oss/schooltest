@@ -642,9 +642,9 @@ body {
                             <tbody>
                                 {{-- หัวข้อ กลุ่มสาระ --}}
                                 <tr>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; text-align: center; font-weight: bold;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 60px;">หน่วยกิตรวม</div></th>
-                                    <th style="border-bottom: 1px solid #000; padding: 4px; font-weight: bold;"><div class="vert-header" style="height: 60px;">ผลการเรียนเฉลี่ย</div></th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 38px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 38px;">ผลการเรียนเฉลี่ย</div></th>
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
