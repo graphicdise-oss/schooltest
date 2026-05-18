@@ -45,8 +45,8 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .main-table tbody td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 14px; }
 .main-table tr.row-top td { border-bottom: 0.5px dotted #aaa; padding-top: 1px; padding-bottom: 0; }
 .main-table tr.row-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; padding-top: 0; padding-bottom: 1px; }
-.main-table tr.empty-top td { border-bottom: 0.5px dotted #aaa; }
-.main-table tr.empty-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; }
+.main-table tr.empty-top td { border-bottom: 0.5px dotted #aaa !important; }
+.main-table tr.empty-bot td { border-top: none !important; border-bottom: 0.5px dotted #aaa !important; }
 .main-table td.no-dot,
 .main-table tr.row-top td.no-dot,
 .main-table tr.row-bot td.no-dot {
