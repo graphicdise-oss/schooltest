@@ -22,7 +22,7 @@
 
 .p3-search-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr 1fr;
     gap: 14px 24px; margin-top: 20px; align-items: end;
 }
 .p3-search-row2 {
@@ -106,7 +106,7 @@
         <div class="p3-icon p3-icon-search"><i class="bi bi-search"></i></div>
         <div class="p3-card-title">ค้นหานักเรียน</div>
         <form method="GET" action="{{ route('por3.index') }}" id="searchForm">
-            {{-- แถว 1: ปี | เทอม | ระดับ | ห้องเรียน --}}
+            {{-- แถว 1: ปีการศึกษา | ระดับชั้น | ห้องเรียน --}}
             <div class="p3-search-grid">
                 <div class="p3-field">
                     <label>ปีการศึกษา</label>
@@ -116,13 +116,6 @@
                             {{ $ay->year_name }}
                         </option>
                         @endforeach
-                    </select>
-                </div>
-                <div class="p3-field">
-                    <label>เทอม</label>
-                    <select name="term" onchange="this.form.submit()">
-                        <option value="1" {{ $term == '1' ? 'selected' : '' }}>เทอม 1</option>
-                        <option value="2" {{ $term == '2' ? 'selected' : '' }}>เทอม 2</option>
                     </select>
                 </div>
                 <div class="p3-field">
