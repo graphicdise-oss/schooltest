@@ -537,18 +537,44 @@ body {
                                 </tr>
                                 {{-- ข้อมูลคะแนน --}}
                                 <tr>
-                                    <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; line-height: 1.8;">
-                                        <div style="display:flex; justify-content:space-between;"><span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ number_format($basicCredits, 1) }}</span> <span>ได้</span> <span>{{ number_format($basicCredits, 1) }}</span></div></div>
-                                        <div style="display:flex; justify-content:space-between; padding-left:12px;"><span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ number_format($extraCredits, 1) }}</span> <span>ได้</span> <span>{{ number_format($extraCredits, 1) }}</span></div></div>
-                                        <div style="display:flex; justify-content:space-between;"><span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
-                                        <div style="display:flex; justify-content:space-between;"><span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
-                                        <div style="display:flex; justify-content:space-between;"><span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ผ่าน</span></div></div>
+                                    <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; font-size: 13px;">
+                                        @php $colW = 'style="width:38px;text-align:right;flex-shrink:0;"'; $midW = 'style="width:24px;text-align:center;flex-shrink:0;"'; @endphp
+                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;">
+                                            <span style="flex:1;">1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span>
+                                            <span {!! $colW !!}>{{ number_format($basicCredits, 1) }}</span>
+                                            <span {!! $midW !!}>ได้</span>
+                                            <span {!! $colW !!}>{{ number_format($basicCredits, 1) }}</span>
+                                        </div>
+                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;padding-left:14px;">
+                                            <span style="flex:1;">จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span>
+                                            <span {!! $colW !!}>{{ number_format($extraCredits, 1) }}</span>
+                                            <span {!! $midW !!}>ได้</span>
+                                            <span {!! $colW !!}>{{ number_format($extraCredits, 1) }}</span>
+                                        </div>
+                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;">
+                                            <span style="flex:1;">2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span>
+                                            <span {!! $colW !!}></span>
+                                            <span {!! $midW !!}>ได้</span>
+                                            <span style="width:50px;text-align:center;flex-shrink:0;">ดีเยี่ยม</span>
+                                        </div>
+                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;">
+                                            <span style="flex:1;">3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span>
+                                            <span {!! $colW !!}></span>
+                                            <span {!! $midW !!}>ได้</span>
+                                            <span style="width:50px;text-align:center;flex-shrink:0;">ดีเยี่ยม</span>
+                                        </div>
+                                        <div style="display:flex;align-items:baseline;">
+                                            <span style="flex:1;">4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span>
+                                            <span {!! $colW !!}></span>
+                                            <span {!! $midW !!}>ได้</span>
+                                            <span style="width:50px;text-align:center;flex-shrink:0;">ผ่าน</span>
+                                        </div>
                                     </td>
-                                    <td style="padding: 8px 10px; vertical-align: top; text-align: center; line-height: 1.8;">
-                                        <div style="margin-top:2px">ผ่าน</div>
-                                        <div>ผ่าน</div>
-                                        <div>ผ่าน</div>
-                                        <div>ผ่าน</div>
+                                    <td style="padding: 8px 10px; vertical-align: top; text-align: center; font-size: 13px;">
+                                        <div style="margin-bottom:6px;">ผ่าน</div>
+                                        <div style="margin-bottom:6px;">ผ่าน</div>
+                                        <div style="margin-bottom:6px;">ผ่าน</div>
+                                        <div style="margin-bottom:6px;">ผ่าน</div>
                                         <div>ผ่าน</div>
                                     </td>
                                 </tr>
