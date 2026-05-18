@@ -211,7 +211,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
-                <td rowspan="2" class="no-dot"></td>
+                <td rowspan="2"></td>
             </tr>
             <tr class="row-bot">
                 <td style="font-size:10px;color:#555;border-top:0.5px dotted #999;">{{ $stu?->id_card_number }}</td>
@@ -224,11 +224,11 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             {{-- แถวว่าง --}}
             <tr class="empty-top">
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
             </tr>
             <tr class="empty-bot">
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
             </tr>
             @endif
             @endforeach
