@@ -670,6 +670,10 @@ body {
                                     <td></td>
                                 </tr>
                                 @endfor
+                                {{-- spacer ดันผลการเรียนเฉลี่ยลงด้านล่าง --}}
+                                <tr style="height: 100%;">
+                                    <td colspan="3" style="border-bottom: none;"></td>
+                                </tr>
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
                                 <tr>
                                     <td style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 5px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
