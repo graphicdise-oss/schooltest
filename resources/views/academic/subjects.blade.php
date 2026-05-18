@@ -19,12 +19,12 @@
 
             <div class="ac-table-wrap">
                 <table class="ac-table">
-                    <thead><tr><th>#</th><th>รหัสวิชา</th><th>ชื่อวิชา (ไทย)</th><th>ชื่อวิชา (อังกฤษ)</th><th>กลุ่มสาระ</th><th>หน่วยกิต</th><th>ชม./สัปดาห์</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
+                    <thead><tr><th>#</th><th>รหัสวิชา</th><th>ชื่อวิชา (ไทย)</th><th>ชื่อวิชา (อังกฤษ)</th><th>กลุ่มสาระ</th><th>ประเภทรายวิชา</th><th>หน่วยกิต</th><th>ชม./สัปดาห์</th><th>สถานะ</th><th>จัดการ</th></tr></thead>
                     <tbody>
                         @forelse($subjects as $i => $s)
                         <tr>
                             <td>{{ $subjects->firstItem() + $i }}</td><td>{{ $s->code }}</td><td>{{ $s->name_th }}</td><td>{{ $s->name_en ?? '-' }}</td>
-                            <td>{{ $s->subject_group ?? '-' }}</td><td>{{ $s->credits }}</td><td>{{ $s->hours_per_week ?? '-' }}</td>
+                            <td>{{ $s->subject_group ?? '-' }}</td><td>{{ $s->subject_type ?? '-' }}</td><td>{{ $s->credits }}</td><td>{{ $s->hours_per_week ?? '-' }}</td>
                             <td><span class="ac-badge {{ $s->is_active ? 'ac-badge-active' : 'ac-badge-inactive' }}">{{ $s->is_active ? 'ใช้งาน' : 'ปิด' }}</span></td>
                             <td>
                                 <form action="{{ route('subjects.toggle', $s->subject_id) }}" method="POST" style="display:inline">@csrf @method('PUT')<button class="ac-action-btn {{ $s->is_active ? 'ac-action-delete' : 'ac-action-view' }}" title="{{ $s->is_active ? 'ปิด' : 'เปิด' }}"><i class="bi {{ $s->is_active ? 'bi-x' : 'bi-check' }}"></i></button></form>
@@ -32,7 +32,7 @@
                                 <form action="{{ route('subjects.destroy', $s->subject_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบ?')">@csrf @method('DELETE')<button class="ac-action-btn ac-action-delete"><i class="bi bi-trash"></i></button></form>
                             </td>
                         </tr>
-                        @empty<tr><td colspan="9" class="ac-empty">ไม่มีข้อมูล</td></tr>@endforelse
+                        @empty<tr><td colspan="10" class="ac-empty">ไม่มีข้อมูล</td></tr>@endforelse
                     </tbody>
                 </table>
             </div>
