@@ -1,228 +1,222 @@
 @extends('layouts.sidebar')
-
 @push('styles')
 <style>
-    .pp3-page {
-        padding: 24px 28px;
-        min-height: 100%;
-    }
-    .pp3-card {
-        background: #fff;
-        border-radius: 6px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        padding: 30px 20px 20px;
-        position: relative;
-        margin-top: 50px;
-        margin-bottom: 28px;
-    }
-    .pp3-icon {
-        position: absolute;
-        top: -25px; left: 20px;
-        width: 70px; height: 70px;
-        border-radius: 4px;
-        display: flex; align-items: center; justify-content: center;
-        font-size: 32px; color: #fff;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.15);
-        background: #43a047;
-    }
-    .pp3-header {
-        margin-left: 90px;
-        font-size: 1.15rem;
-        color: #555;
-        margin-top: -10px;
-    }
-    .pp3-header h5 {
-        font-size: 1.3rem;
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 2px;
-    }
-    .form-label {
-        font-weight: 600;
-        color: #444;
-        margin-bottom: 4px;
-        display: block;
-        font-size: 0.9rem;
-    }
-    .form-control, .form-select {
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        padding: 7px 10px;
-        width: 100%;
-    }
-    .form-control:focus, .form-select:focus {
-        border-color: #43a047;
-        outline: none;
-        box-shadow: 0 0 0 2px rgba(67,160,71,0.15);
-    }
-    .btn-search {
-        background: #43a047;
-        color: #fff;
-        border: none;
-        padding: 8px 20px;
-        border-radius: 4px;
-        font-size: 0.95rem;
-        cursor: pointer;
-        white-space: nowrap;
-    }
-    .btn-search:hover { background: #2e7d32; }
-    .row { display: flex; flex-wrap: wrap; margin: 0 -8px; }
-    .col-md-3, .col-md-4 { padding: 0 8px; margin-bottom: 12px; }
-    .col-md-3 { width: 25%; }
-    .col-md-4 { width: 33.33%; }
-    @media (max-width: 768px) {
-        .col-md-3, .col-md-4 { width: 100%; }
-    }
-    .student-table {
-        width: 100%;
-        border-collapse: collapse;
-        font-size: 0.95rem;
-        margin-top: 12px;
-    }
-    .student-table th {
-        padding: 10px 12px;
-        border-bottom: 2px solid #ddd;
-        text-align: left;
-        background: #43a047;
-        color: #fff;
-        font-weight: 600;
-    }
-    .student-table td {
-        padding: 10px 12px;
-        border-bottom: 1px solid #eee;
-        vertical-align: middle;
-    }
-    .student-table tbody tr:hover { background: #f9fbff; }
+.p3-page { padding: 24px 28px; }
 
-    /* Print dropdown */
-    .btn-print-wrap { position: relative; display: inline-block; }
-    .btn-print-main {
-        background: #00bcd4; color: #fff; border: none; border-radius: 6px 0 0 6px;
-        padding: 6px 14px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
-        font-family: inherit; display: inline-flex; align-items: center; gap: 5px;
-    }
-    .btn-print-caret {
-        background: #0097a7; color: #fff; border: none; border-radius: 0 6px 6px 0;
-        padding: 6px 10px; font-size: 0.82rem; cursor: pointer;
-        border-left: 1px solid rgba(255,255,255,0.3);
-    }
-    .btn-print-dropdown {
-        display: none; position: absolute; top: 100%; right: 0;
-        background: #fff; border-radius: 6px; min-width: 140px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 100; margin-top: 4px;
-    }
-    .btn-print-dropdown.open { display: block; }
-    .btn-print-dropdown a {
-        display: block; padding: 10px 16px; font-size: 0.88rem; color: #333;
-        text-decoration: none;
-    }
-    .btn-print-dropdown a:hover { background: #f5f5f5; }
-    .alert-success {
-        background: #e8f5e9; border: 1px solid #a5d6a7; color: #2e7d32;
-        border-radius: 4px; padding: 10px 16px; margin-bottom: 16px;
-    }
+.p3-card {
+    background: #fff; border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    padding: 30px 24px 24px; position: relative;
+    margin-top: 50px; margin-bottom: 28px;
+}
+.p3-icon {
+    position: absolute; top: -25px; left: 20px;
+    width: 70px; height: 70px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 28px; color: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+}
+.p3-icon-search { background: #00bcd4; }
+.p3-icon-list   { background: #43a047; }
+.p3-card-title  { margin-left: 90px; font-size: 1.05rem; color: #555; margin-top: -8px; }
+
+.p3-search-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 14px 24px; margin-top: 20px; align-items: end;
+}
+.p3-search-row2 {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 14px 24px; margin-top: 14px; align-items: end;
+}
+.p3-field label { font-size: 0.82rem; font-weight: 600; color: #444; margin-bottom: 3px; display: block; }
+.p3-field select, .p3-field input[type=text] {
+    width: 100%; height: 36px; border: none; border-bottom: 1.5px solid #bbb;
+    padding: 0 8px; font-size: 0.88rem; font-family: inherit; outline: none;
+    background: transparent; box-sizing: border-box;
+}
+.p3-field select:focus, .p3-field input:focus { border-bottom-color: #00bcd4; }
+.btn-search {
+    background: #00bcd4; color: #fff; border: none; border-radius: 6px;
+    padding: 9px 28px; font-size: 0.88rem; font-weight: 600;
+    cursor: pointer; font-family: inherit; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 36px;
+}
+
+/* Table */
+.p3-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; margin-top: 8px; }
+.p3-table thead th {
+    padding: 11px 12px; border-bottom: 2px solid #eee;
+    color: #333; font-weight: 600; text-align: left; font-size: 0.83rem;
+}
+.p3-table tbody tr { border-bottom: 1px solid #f0f0f0; }
+.p3-table tbody tr:hover { background: #f9fbff; }
+.p3-table tbody td { padding: 10px 12px; color: #555; vertical-align: middle; }
+.p3-table tbody td.center { text-align: center; }
+
+/* Print dropdown button */
+.btn-print-wrap { position: relative; display: inline-block; }
+.btn-print-main {
+    background: #00bcd4; color: #fff; border: none; border-radius: 6px 0 0 6px;
+    padding: 6px 14px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-print-caret {
+    background: #0097a7; color: #fff; border: none; border-radius: 0 6px 6px 0;
+    padding: 6px 10px; font-size: 0.8rem; cursor: pointer;
+    border-left: 1px solid rgba(255,255,255,0.3);
+}
+.btn-print-dropdown {
+    display: none; position: absolute; top: 100%; right: 0;
+    background: #fff; border-radius: 6px; min-width: 140px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15); z-index: 100; margin-top: 4px;
+}
+.btn-print-dropdown.open { display: block; }
+.btn-print-dropdown a {
+    display: block; padding: 10px 16px; font-size: 0.88rem; color: #333;
+    text-decoration: none; font-family: inherit;
+}
+.btn-print-dropdown a:hover { background: #f5f5f5; }
+
+.btn-print-all {
+    background: #00bcd4; color: #fff; border: none; border-radius: 6px;
+    padding: 7px 18px; font-size: 0.82rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 6px;
+    text-decoration: none;
+}
+.btn-print-all:hover { background: #0097a7; color: #fff; }
+
+.p3-empty { text-align: center; padding: 40px; color: #aaa; }
 </style>
 @endpush
 
 @section('content')
-<div class="pp3-page">
-    <div class="pp3-card">
-        <div class="pp3-icon">🎓</div>
-        <div class="pp3-header">
-            <h5>แบบรายงานผู้สำเร็จการศึกษา (ปพ.3)</h5>
-            <span style="color:#888;font-size:0.9rem;">เลือกปีการศึกษา ระดับชั้น และห้องเรียนที่ต้องการ</span>
-        </div>
+<div class="p3-page">
 
-        <hr style="margin:20px 0;">
+    @if(session('success'))
+    <div style="background:#e8f5e9;color:#2e7d32;padding:10px 18px;border-radius:6px;margin-bottom:16px;font-size:0.88rem">
+        <i class="bi bi-check-circle"></i> {{ session('success') }}
+    </div>
+    @endif
 
-        @if(session('success'))
-        <div class="alert-success">{{ session('success') }}</div>
-        @endif
-
-        {{-- Filter --}}
-        <form method="GET" action="{{ route('por3.index') }}">
-            <div class="row">
-                <div class="col-md-3">
-                    <label class="form-label">ปีการศึกษา</label>
-                    <select name="year_id" class="form-select" onchange="this.form.submit()">
-                        @foreach($academicYears as $year)
-                        <option value="{{ $year->year_id }}" {{ $yearId == $year->year_id ? 'selected' : '' }}>
-                            {{ $year->year_name }}
+    {{-- ค้นหา --}}
+    <div class="p3-card">
+        <div class="p3-icon p3-icon-search"><i class="bi bi-search"></i></div>
+        <div class="p3-card-title">ค้นหานักเรียน</div>
+        <form method="GET" action="{{ route('por3.index') }}" id="searchForm">
+            {{-- แถว 1: ปี | เทอม | ระดับ | ห้องเรียน --}}
+            <div class="p3-search-grid">
+                <div class="p3-field">
+                    <label>ปีการศึกษา</label>
+                    <select name="year_id" onchange="this.form.submit()">
+                        @foreach($academicYears as $ay)
+                        <option value="{{ $ay->year_id }}" {{ $yearId == $ay->year_id ? 'selected' : '' }}>
+                            {{ $ay->year_name }}
                         </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">ระดับชั้น</label>
-                    <select name="level_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- เลือกระดับ --</option>
-                        @foreach($levels as $level)
-                        <option value="{{ $level->level_id }}" {{ $levelId == $level->level_id ? 'selected' : '' }}>
-                            {{ $level->name }}
+                <div class="p3-field">
+                    <label>เทอม</label>
+                    <select name="term" onchange="this.form.submit()">
+                        <option value="1" {{ $term == '1' ? 'selected' : '' }}>เทอม 1</option>
+                        <option value="2" {{ $term == '2' ? 'selected' : '' }}>เทอม 2</option>
+                    </select>
+                </div>
+                <div class="p3-field">
+                    <label>ระดับชั้น</label>
+                    <select name="level_id" onchange="this.form.submit()">
+                        <option value="">-- ทุกระดับ --</option>
+                        @foreach($levels as $lv)
+                        <option value="{{ $lv->level_id }}" {{ $levelId == $lv->level_id ? 'selected' : '' }}>
+                            {{ $lv->name }}
                         </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">ห้องเรียน</label>
-                    <select name="section_id" class="form-select" onchange="this.form.submit()">
-                        <option value="">-- เลือกห้อง --</option>
+                <div class="p3-field">
+                    <label>ห้องเรียน</label>
+                    <select name="section_id">
+                        <option value="all" {{ $sectionId == 'all' ? 'selected' : '' }}>-- ทุกห้องเรียน --</option>
                         @foreach($sections as $sec)
                         <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                            {{ $sec->level?->name }}/{{ $sec->section_number }}
+                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
                         </option>
                         @endforeach
                     </select>
                 </div>
-                <div class="col-md-3">
-                    <label class="form-label">ค้นหา</label>
-                    <div style="display:flex;gap:6px;">
-                        <input type="text" name="search" class="form-control" value="{{ $search }}" placeholder="ชื่อ / รหัส">
-                        <button type="submit" class="btn-search">🔍</button>
-                    </div>
+            </div>
+
+            {{-- แถว 2: ค้นหาชื่อ + ปุ่ม --}}
+            <div class="p3-search-row2">
+                <div class="p3-field">
+                    <label>ค้นหาชื่อ / รหัส</label>
+                    <input type="text" name="search" placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..." value="{{ $search }}">
+                </div>
+                <div class="p3-field">
+                    <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
                 </div>
             </div>
         </form>
+    </div>
 
-        {{-- Table --}}
-        @if($students->count() > 0)
-        <table class="student-table">
+    {{-- รายการนักเรียน --}}
+    <div class="p3-card">
+        <div class="p3-icon p3-icon-list"><i class="bi bi-award"></i></div>
+        <div class="p3-card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-right:0">
+            <span>แบบรายงานผู้สำเร็จการศึกษา (ปพ.3)
+                @if($currentSection)
+                — {{ $currentSection->level->name ?? '' }}/{{ $currentSection->section_number }}
+                @endif
+                ({{ $students->count() }} คน)
+            </span>
+            @if($students->count())
+            <a href="#" class="btn-print-all">
+                <i class="bi bi-printer"></i> พิมพ์ ปพ.3 ทั้งหมด
+            </a>
+            @endif
+        </div>
+
+        @if($students->count())
+        <table class="p3-table">
             <thead>
                 <tr>
                     <th style="width:60px">ลำดับ</th>
                     <th>รหัสนักเรียน</th>
                     <th>บัตรประชาชน</th>
+                    <th>คำนำหน้า</th>
                     <th>ชื่อ - นามสกุล</th>
                     <th>ระดับชั้น/ห้อง</th>
-                    <th style="text-align:center;min-width:200px"></th>
+                    <th style="text-align:center;min-width:180px"></th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($students as $i => $ss)
-                @php
-                    $stu = $ss->student;
-                    $sec = $ss->classSection;
-                    $fullName = ($stu?->thai_prefix ?? '') . ($stu?->thai_firstname ?? '') . ' ' . ($stu?->thai_lastname ?? '');
-                @endphp
+                @foreach($students as $i => $row)
+                @php $stu = $row['student']; $sec = $row['section']; @endphp
                 <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>{{ $stu?->student_code }}</td>
-                    <td>{{ $stu?->id_card_number ?? '-' }}</td>
-                    <td>{{ $fullName }}</td>
-                    <td>{{ $sec?->level?->name }}/{{ $sec?->section_number }}</td>
-                    <td style="text-align:center;">
-                        <div class="btn-print-wrap" id="pw{{ $i }}">
-                            <button class="btn-print-main" onclick="toggleDrop('pw{{ $i }}')">
-                                <i class="bi bi-printer"></i> เตรียมพิมพ์ ปพ.3
+                    <td>{{ $i + 1 }}.</td>
+                    <td>{{ $stu->student_code }}</td>
+                    <td>{{ $stu->id_card_number ?? '-' }}</td>
+                    <td>{{ $stu->thai_prefix ?? '' }}</td>
+                    <td>{{ $stu->thai_firstname }} {{ $stu->thai_lastname }}</td>
+                    <td>{{ $sec->level->name ?? '' }}/{{ $sec->section_number ?? '' }}</td>
+                    <td style="text-align:center">
+                        <div class="btn-print-wrap" id="printWrap{{ $i }}">
+                            <button class="btn-print-main"
+                                onclick="toggleDropdown('printWrap{{ $i }}')">
+                                <i class="bi bi-printer"></i> เตรียมการพิมพ์ใบ ปพ.3
                             </button>
-                            <button class="btn-print-caret" onclick="toggleDrop('pw{{ $i }}')">
+                            <button class="btn-print-caret"
+                                onclick="toggleDropdown('printWrap{{ $i }}')">
                                 <i class="bi bi-caret-down-fill" style="font-size:0.7rem;"></i>
                             </button>
-                            <div class="btn-print-dropdown">
-                                <a href="#" onclick="alert('PDF กำลังพัฒนา');return false;">
+                            <div class="btn-print-dropdown" id="dropdown{{ $i }}">
+                                <a href="#" onclick="alert('ฟีเจอร์ PDF กำลังพัฒนา'); return false;">
                                     <i class="bi bi-file-earmark-pdf" style="color:#e53935;"></i> PDF
                                 </a>
-                                <a href="#" onclick="alert('Excel กำลังพัฒนา');return false;">
+                                <a href="#" onclick="alert('ฟีเจอร์ Excel กำลังพัฒนา'); return false;">
                                     <i class="bi bi-file-earmark-excel" style="color:#43a047;"></i> Excel
                                 </a>
                             </div>
@@ -232,21 +226,24 @@
                 @endforeach
             </tbody>
         </table>
-        @elseif($sectionId)
-        <p style="color:#aaa;margin-top:12px;">ไม่พบนักเรียนที่มีสถานะ "จบการศึกษา" ในห้องนี้</p>
         @else
-        <p style="color:#aaa;margin-top:12px;">เลือกปีการศึกษา ระดับชั้น และห้องเรียนเพื่อแสดงรายชื่อ</p>
+        <div class="p3-empty">
+            <i class="bi bi-file-earmark-x" style="font-size:2rem;display:block;margin-bottom:8px"></i>
+            กรุณาเลือกห้องเรียนหรือค้นหาชื่อนักเรียน
+        </div>
         @endif
     </div>
+
 </div>
 
 <script>
-function toggleDrop(id) {
-    const wrap = document.getElementById(id);
-    const drop = wrap.querySelector('.btn-print-dropdown');
-    const open = drop.classList.contains('open');
+function toggleDropdown(wrapperId) {
+    const wrap = document.getElementById(wrapperId);
+    const dropdown = wrap.querySelector('.btn-print-dropdown');
+    const isOpen = dropdown.classList.contains('open');
+    // ปิดทั้งหมดก่อน
     document.querySelectorAll('.btn-print-dropdown.open').forEach(d => d.classList.remove('open'));
-    if (!open) drop.classList.add('open');
+    if (!isOpen) dropdown.classList.add('open');
 }
 document.addEventListener('click', function(e) {
     if (!e.target.closest('.btn-print-wrap')) {
