@@ -538,7 +538,11 @@ body {
                                 {{-- ข้อมูลคะแนน --}}
                                 <tr>
                                     <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; font-size: 13px;">
-                                        @php $colW = 'style="width:38px;text-align:right;flex-shrink:0;"'; $midW = 'style="width:24px;text-align:center;flex-shrink:0;"'; @endphp
+                                        @php
+                                            $colW = 'style="width:38px;text-align:right;flex-shrink:0;border-bottom:0.5px solid #999;"';
+                                            $midW = 'style="width:24px;text-align:center;flex-shrink:0;border-bottom:0.5px solid #999;"';
+                                            $resW = 'style="width:50px;text-align:center;flex-shrink:0;border-bottom:0.5px solid #999;"';
+                                        @endphp
                                         <div style="display:flex;align-items:baseline;margin-bottom:6px;">
                                             <span style="flex:1;">1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span>
                                             <span {!! $colW !!}>{{ number_format($basicCredits, 1) }}</span>
@@ -553,29 +557,30 @@ body {
                                         </div>
                                         <div style="display:flex;align-items:baseline;margin-bottom:6px;">
                                             <span style="flex:1;">2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span>
-                                            <span {!! $colW !!}></span>
+                                            <span style="width:38px;flex-shrink:0;"></span>
                                             <span {!! $midW !!}>ได้</span>
-                                            <span style="width:50px;text-align:center;flex-shrink:0;">ดีเยี่ยม</span>
+                                            <span {!! $resW !!}>ดีเยี่ยม</span>
                                         </div>
                                         <div style="display:flex;align-items:baseline;margin-bottom:6px;">
                                             <span style="flex:1;">3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span>
-                                            <span {!! $colW !!}></span>
+                                            <span style="width:38px;flex-shrink:0;"></span>
                                             <span {!! $midW !!}>ได้</span>
-                                            <span style="width:50px;text-align:center;flex-shrink:0;">ดีเยี่ยม</span>
+                                            <span {!! $resW !!}>ดีเยี่ยม</span>
                                         </div>
                                         <div style="display:flex;align-items:baseline;">
                                             <span style="flex:1;">4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span>
-                                            <span {!! $colW !!}></span>
+                                            <span style="width:38px;flex-shrink:0;"></span>
                                             <span {!! $midW !!}>ได้</span>
-                                            <span style="width:50px;text-align:center;flex-shrink:0;">ผ่าน</span>
+                                            <span {!! $resW !!}>ผ่าน</span>
                                         </div>
                                     </td>
                                     <td style="padding: 8px 10px; vertical-align: top; text-align: center; font-size: 13px;">
-                                        <div style="margin-bottom:6px;">ผ่าน</div>
-                                        <div style="margin-bottom:6px;">ผ่าน</div>
-                                        <div style="margin-bottom:6px;">ผ่าน</div>
-                                        <div style="margin-bottom:6px;">ผ่าน</div>
-                                        <div>ผ่าน</div>
+                                        @php $passW = 'style="display:inline-block;width:50px;border-bottom:0.5px solid #999;margin-bottom:6px;"'; @endphp
+                                        <div><span {!! $passW !!}>ผ่าน</span></div>
+                                        <div><span {!! $passW !!}>ผ่าน</span></div>
+                                        <div><span {!! $passW !!}>ผ่าน</span></div>
+                                        <div><span {!! $passW !!}>ผ่าน</span></div>
+                                        <div><span style="display:inline-block;width:50px;border-bottom:0.5px solid #999;">ผ่าน</span></div>
                                     </td>
                                 </tr>
                                 {{-- วันที่จบ --}}
