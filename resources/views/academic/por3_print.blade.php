@@ -47,6 +47,14 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .main-table tr.row-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; padding-top: 0; padding-bottom: 1px; }
 .main-table tr.empty-top td { border-bottom: 0.5px dotted #aaa; }
 .main-table tr.empty-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; }
+.main-table td.no-dot,
+.main-table tr.row-top td.no-dot,
+.main-table tr.row-bot td.no-dot,
+.main-table tr.empty-top td.no-dot,
+.main-table tr.empty-bot td.no-dot {
+    border-top: 0.5px solid #333 !important;
+    border-bottom: 0.5px solid #333 !important;
+}
 
 /* Footer */
 .footer { flex-shrink: 0; margin-top: 5px; }
@@ -200,10 +208,10 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td style="font-size:11px;">{{ $birthDayMonth }}</td>
                 <td class="left" style="font-size:11px;">{{ $fatherName }}</td>
                 <td rowspan="2" style="font-size:11px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:10px;">{{ $gpa }}</span></td>
-                <td rowspan="2"></td>
-                <td rowspan="2"></td>
-                <td rowspan="2"></td>
-                <td rowspan="2"></td>
+                <td rowspan="2" class="no-dot"></td>
+                <td rowspan="2" class="no-dot"></td>
+                <td rowspan="2" class="no-dot"></td>
+                <td rowspan="2" class="no-dot"></td>
             </tr>
             <tr class="row-bot">
                 <td style="font-size:10px;color:#555;border-top:0.5px dotted #999;">{{ $stu?->id_card_number }}</td>
@@ -215,10 +223,12 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             @else
             {{-- แถวว่าง --}}
             <tr class="empty-top">
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td>
             </tr>
             <tr class="empty-bot">
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td>
             </tr>
             @endif
             @endforeach
