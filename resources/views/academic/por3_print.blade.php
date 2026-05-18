@@ -70,13 +70,13 @@ $school    = $school ?? config('school');
 
 $thaiMonths = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
-function formatBirthDay($date) use ($thaiMonths) {
+$formatBirthDay = function($date) use ($thaiMonths) {
     if (!$date) return ['', ''];
     try {
         $d = \Carbon\Carbon::parse($date);
         return [$d->day . ' ' . $thaiMonths[$d->month], $d->year + 543];
     } catch (\Exception $e) { return ['', '']; }
-}
+};
 
 // แบ่งนักเรียนเป็นหน้าๆ ละ 20 คน
 $chunks = $studentSections->chunk(20);
@@ -166,7 +166,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 $fatherName = $father ? trim(($father->prefix_th ?? '') . ($father->first_name_th ?? '') . ' ' . ($father->last_name_th ?? '')) : '';
                 $motherName = $mother ? trim(($mother->prefix_th ?? '') . ($mother->first_name_th ?? '') . ' ' . ($mother->last_name_th ?? '')) : '';
 
-                [$birthDayMonth, $birthYear] = formatBirthDay($stu?->date_of_birth);
+                [$birthDayMonth, $birthYear] = $formatBirthDay($stu?->date_of_birth);
                 $rowNum = ($pageIdx * 20) + $i + 1;
             @endphp
             {{-- แถวบน --}}

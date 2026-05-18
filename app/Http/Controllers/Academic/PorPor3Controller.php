@@ -72,18 +72,32 @@ class PorPor3Controller extends Controller
             ->orderBy('thai_firstname')
             ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
 
+        $savedApproverId  = session('por3_approver_id');
+        $savedApproveDate = session('por3_approve_date');
+        $savedApprover    = $savedApproverId ? $personnels->firstWhere('personnel_id', $savedApproverId) : null;
+
         return view('academic.por3_index', compact(
             'academicYears', 'levels', 'sections', 'students', 'personnels',
             'yearId', 'term', 'levelId', 'sectionId', 'search',
-            'semesterId', 'currentSection'
+            'semesterId', 'currentSection',
+            'savedApproverId', 'savedApproveDate', 'savedApprover'
         ));
+    }
+
+    public function savePrintSettings(Request $request)
+    {
+        session([
+            'por3_approver_id'   => $request->approver_id,
+            'por3_approve_date'  => $request->approve_date,
+        ]);
+        return redirect()->back()->with('settings_saved', true);
     }
 
     public function print(Request $request)
     {
         $sectionId   = $request->section_id;
-        $approverId  = $request->approver_id;
-        $approveDate = $request->approve_date;
+        $approverId  = $request->approver_id  ?? session('por3_approver_id');
+        $approveDate = $request->approve_date ?? session('por3_approve_date');
 
         $section = ClassSection::with(['level', 'semester.academicYear'])->findOrFail($sectionId);
 
