@@ -693,10 +693,10 @@ body {
                             </colgroup>
                             <tbody>
                                 {{-- หัวข้อ กลุ่มสาระ --}}
-                                <tr>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 4px; text-align: center; font-weight: bold; font-size: 11px; vertical-align: middle;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 2px; font-weight: bold; overflow: hidden; vertical-align: middle;"><div class="vert-header" style="font-size:11px;">หน่วยกิตรวม</div></th>
-                                    <th style="border-bottom: 1px solid #000; padding: 2px 2px; font-weight: bold; overflow: hidden; vertical-align: middle;"><div class="vert-header" style="font-size:11px;">ผลการเรียนเฉลี่ย</div></th>
+                                <tr style="height: 52px;">
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold; font-size: 11px; vertical-align: middle;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px; font-weight: bold; overflow: hidden; vertical-align: middle;"><div class="vert-header" style="font-size:10px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 2px; font-weight: bold; overflow: hidden; vertical-align: middle;"><div class="vert-header" style="font-size:10px;">ผลการเรียนเฉลี่ย</div></th>
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
