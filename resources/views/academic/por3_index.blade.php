@@ -172,10 +172,10 @@
                 @endif
                 ({{ $students->count() }} คน)
             </span>
-            @if($students->count())
-            <a href="#" class="btn-print-all">
+            @if($students->count() && $sectionId && $sectionId !== 'all')
+            <button class="btn-print-all" onclick="openPrintModal()">
                 <i class="bi bi-printer"></i> พิมพ์ ปพ.3 ทั้งหมด
-            </a>
+            </button>
             @endif
         </div>
 
@@ -236,17 +236,71 @@
 
 </div>
 
+{{-- Modal ตั้งค่าก่อนพิมพ์ ปพ.3 --}}
+<div id="printModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.2);width:480px;max-width:94vw;padding:28px 28px 22px;">
+        <h3 style="font-size:1rem;font-weight:700;color:#333;margin:0 0 20px;text-align:center;">
+            <i class="bi bi-printer"></i> ตั้งค่าก่อนพิมพ์ ปพ.3
+        </h3>
+        <form id="printForm" method="GET" action="{{ route('por3.print') }}" target="_blank">
+            <input type="hidden" name="section_id" value="{{ $sectionId }}">
+
+            <div style="margin-bottom:16px;">
+                <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">
+                    ผู้อนุมัติการจบหลักสูตร (ผู้อำนวยการ/อาจารย์ใหญ่)
+                </label>
+                <select name="approver_id" id="approver_select"
+                    style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;">
+                    <option value="">-- ไม่ระบุ --</option>
+                    @foreach($personnels as $p)
+                    <option value="{{ $p->personnel_id }}">
+                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                        @if($p->position) ({{ $p->position }}) @endif
+                    </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div style="margin-bottom:20px;">
+                <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">
+                    วันที่อนุมัติ
+                </label>
+                <input type="date" name="approve_date"
+                    style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
+            </div>
+
+            <div style="display:flex;gap:10px;justify-content:center;">
+                <button type="submit" style="background:#43a047;color:#fff;border:none;border-radius:6px;padding:9px 28px;font-size:0.88rem;font-weight:600;cursor:pointer;">
+                    <i class="bi bi-printer"></i> พิมพ์
+                </button>
+                <button type="button" onclick="closePrintModal()" style="background:#f44336;color:#fff;border:none;border-radius:6px;padding:9px 28px;font-size:0.88rem;font-weight:600;cursor:pointer;">
+                    ยกเลิก
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
+function openPrintModal() {
+    const m = document.getElementById('printModal');
+    m.style.display = 'flex';
+}
+function closePrintModal() {
+    document.getElementById('printModal').style.display = 'none';
+}
+document.getElementById('printModal').addEventListener('click', function(e) {
+    if (e.target === this) closePrintModal();
+});
 function toggleDropdown(wrapperId) {
     const wrap = document.getElementById(wrapperId);
     const dropdown = wrap.querySelector('.btn-print-dropdown');
     const isOpen = dropdown.classList.contains('open');
-    // ปิดทั้งหมดก่อน
     document.querySelectorAll('.btn-print-dropdown.open').forEach(d => d.classList.remove('open'));
     if (!isOpen) dropdown.classList.add('open');
 }
 document.addEventListener('click', function(e) {
-    if (!e.target.closest('.btn-print-wrap')) {
+    if (!e.target.closest('.btn-print-wrap') && !e.target.closest('#printModal')) {
         document.querySelectorAll('.btn-print-dropdown.open').forEach(d => d.classList.remove('open'));
     }
 });

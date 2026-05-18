@@ -261,6 +261,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
         Route::get('/', 'index')->name('index');
+        Route::get('/print', 'print')->name('print');
     });
 
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
