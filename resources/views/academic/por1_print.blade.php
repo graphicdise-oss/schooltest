@@ -540,7 +540,7 @@ body {
                                     <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; font-size: 13px;">
                                         @php
                                             $uline = 'border-bottom:0.5px solid #999;';
-                                            $vCol  = "style=\"width:44px;text-align:right;{$uline}\"";
+                                            $vCol  = "style=\"width:44px;text-align:center;{$uline}\"";
                                             $daiCol= 'style="width:28px;text-align:center;"';
                                             $resCol= "style=\"width:52px;text-align:center;{$uline}\"";
                                             $emptyCol = 'style="width:44px;"';
