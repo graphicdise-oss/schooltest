@@ -723,10 +723,10 @@ body {
                                 </tr>
                                 @endfor
                                 {{-- ผลการเรียนเฉลี่ยตลอดหลักสูตร --}}
-                                <tr>
-                                    <td style="border-right: 1px solid #000; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 6px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
-                                    <td style="border-right: 1px solid #000; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: center; padding: 2px;">{{ $overallCredits > 0 ? number_format($overallCredits, 1) : '' }}</td>
-                                    <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: center; padding: 2px;">{{ $overallGpa !== null ? number_format($overallGpa, 2) : '' }}</td>
+                                <tr style="height: 20px;">
+                                    <td style="border-right: 1px solid #000; border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 6px; font-size: 13px;">ผลการเรียนเฉลี่ยตลอดหลักสูตร</td>
+                                    <td style="border-right: 1px solid #000; border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: center; padding: 1px; font-size: 13px;">{{ $overallCredits > 0 ? number_format($overallCredits, 1) : '' }}</td>
+                                    <td style="border-top: 1px solid #000; border-bottom: 1px solid #000; text-align: center; padding: 1px; font-size: 13px;">{{ $overallGpa !== null ? number_format($overallGpa, 2) : '' }}</td>
                                 </tr>
                                 {{-- ช่องว่างดันลายเซ็น --}}
                                 <tr style="height: 30px;">
