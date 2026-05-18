@@ -539,48 +539,51 @@ body {
                                 <tr>
                                     <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; font-size: 13px;">
                                         @php
-                                            $colW = 'style="width:38px;text-align:right;flex-shrink:0;border-bottom:0.5px solid #999;"';
-                                            $midW = 'style="width:24px;text-align:center;flex-shrink:0;border-bottom:0.5px solid #999;"';
-                                            $resW = 'style="width:50px;text-align:center;flex-shrink:0;border-bottom:0.5px solid #999;"';
+                                            $uline = 'border-bottom:0.5px solid #999;';
+                                            $vCol  = "style=\"width:44px;text-align:right;{$uline}\"";
+                                            $daiCol= "style=\"width:28px;text-align:center;{$uline}\"";
+                                            $resCol= "style=\"width:52px;text-align:center;{$uline}\"";
+                                            $emptyCol = 'style="width:44px;"';
                                         @endphp
-                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;">
-                                            <span style="flex:1;">1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span>
-                                            <span {!! $colW !!}>{{ number_format($basicCredits, 1) }}</span>
-                                            <span {!! $midW !!}>ได้</span>
-                                            <span {!! $colW !!}>{{ number_format($basicCredits, 1) }}</span>
+                                        {{-- grid: label | val | ได้ | result  --}}
+                                        <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;gap:0 2px;">
+                                            <span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span>
+                                            <span {!! $vCol !!}>{{ number_format($basicCredits, 1) }}</span>
+                                            <span {!! $daiCol !!}>ได้</span>
+                                            <span {!! $resCol !!}>{{ number_format($basicCredits, 1) }}</span>
                                         </div>
-                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;padding-left:14px;">
-                                            <span style="flex:1;">จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span>
-                                            <span {!! $colW !!}>{{ number_format($extraCredits, 1) }}</span>
-                                            <span {!! $midW !!}>ได้</span>
-                                            <span {!! $colW !!}>{{ number_format($extraCredits, 1) }}</span>
+                                        <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;padding-left:14px;gap:0 2px;">
+                                            <span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span>
+                                            <span {!! $vCol !!}>{{ number_format($extraCredits, 1) }}</span>
+                                            <span {!! $daiCol !!}>ได้</span>
+                                            <span {!! $resCol !!}>{{ number_format($extraCredits, 1) }}</span>
                                         </div>
-                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;">
-                                            <span style="flex:1;">2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span>
-                                            <span style="width:38px;flex-shrink:0;"></span>
-                                            <span {!! $midW !!}>ได้</span>
-                                            <span {!! $resW !!}>ดีเยี่ยม</span>
+                                        <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;gap:0 2px;">
+                                            <span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span>
+                                            <span {!! $emptyCol !!}></span>
+                                            <span {!! $daiCol !!}>ได้</span>
+                                            <span {!! $resCol !!}>ดีเยี่ยม</span>
                                         </div>
-                                        <div style="display:flex;align-items:baseline;margin-bottom:6px;">
-                                            <span style="flex:1;">3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span>
-                                            <span style="width:38px;flex-shrink:0;"></span>
-                                            <span {!! $midW !!}>ได้</span>
-                                            <span {!! $resW !!}>ดีเยี่ยม</span>
+                                        <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;gap:0 2px;">
+                                            <span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span>
+                                            <span {!! $emptyCol !!}></span>
+                                            <span {!! $daiCol !!}>ได้</span>
+                                            <span {!! $resCol !!}>ดีเยี่ยม</span>
                                         </div>
-                                        <div style="display:flex;align-items:baseline;">
-                                            <span style="flex:1;">4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span>
-                                            <span style="width:38px;flex-shrink:0;"></span>
-                                            <span {!! $midW !!}>ได้</span>
-                                            <span {!! $resW !!}>ผ่าน</span>
+                                        <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;gap:0 2px;">
+                                            <span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span>
+                                            <span {!! $emptyCol !!}></span>
+                                            <span {!! $daiCol !!}>ได้</span>
+                                            <span {!! $resCol !!}>ผ่าน</span>
                                         </div>
                                     </td>
                                     <td style="padding: 8px 10px; vertical-align: top; text-align: center; font-size: 13px;">
-                                        @php $passW = 'style="display:inline-block;width:50px;border-bottom:0.5px solid #999;margin-bottom:6px;"'; @endphp
+                                        @php $passW = "style=\"display:inline-block;width:52px;{$uline}margin-bottom:7px;\""; @endphp
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
-                                        <div><span style="display:inline-block;width:50px;border-bottom:0.5px solid #999;">ผ่าน</span></div>
+                                        <div><span style="display:inline-block;width:52px;{{ $uline }}">ผ่าน</span></div>
                                     </td>
                                 </tr>
                                 {{-- วันที่จบ --}}
