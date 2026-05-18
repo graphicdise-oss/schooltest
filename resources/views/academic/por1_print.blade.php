@@ -507,6 +507,23 @@ body {
                 <tr>
                     {{-- ฝั่งซ้าย (กินพื้นที่ 2 คอลัมน์) สรุปผล + ผลการตัดสิน --}}
                     <td colspan="2" style="vertical-align: top; padding: 0; border-right: 1px solid #000;">
+                        @php
+                        $basicCredits = 0;
+                        $extraCredits = 0;
+                        foreach ($yearGroups as $yg) {
+                            foreach ($yg['semesters'] as $semGrades) {
+                                foreach ($semGrades as $g) {
+                                    $subj = $g->teachingAssign->subject ?? null;
+                                    if (!$subj) continue;
+                                    if (($subj->subject_group ?? '') === 'กิจกรรมพัฒนาผู้เรียน') continue;
+                                    $cr = (float)($subj->credits ?? 0);
+                                    $type = $subj->subject_type ?? '';
+                                    if ($type === 'พื้นฐาน') $basicCredits += $cr;
+                                    else $extraCredits += $cr;
+                                }
+                            }
+                        }
+                        @endphp
                         <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
                             <colgroup>
                                 <col style="width: 72%;">
@@ -521,8 +538,8 @@ body {
                                 {{-- ข้อมูลคะแนน --}}
                                 <tr>
                                     <td style="border-right: 1px solid #000; padding: 8px 10px; vertical-align: top; line-height: 1.8;">
-                                        <div style="display:flex; justify-content:space-between;"><span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ $totalCredits ?? '41.0' }}</span> <span>ได้</span> <span>{{ $totalCredits ?? '41.0' }}</span></div></div>
-                                        <div style="display:flex; justify-content:space-between; padding-left:12px;"><span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span> <div style="display:flex;gap:15px"><span>48.0</span> <span>ได้</span> <span>48.0</span></div></div>
+                                        <div style="display:flex; justify-content:space-between;"><span>1. จำนวนหน่วยกิตรายวิชาพื้นฐานที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ number_format($basicCredits, 1) }}</span> <span>ได้</span> <span>{{ number_format($basicCredits, 1) }}</span></div></div>
+                                        <div style="display:flex; justify-content:space-between; padding-left:12px;"><span>จำนวนหน่วยกิตรายวิชาเพิ่มเติมที่เรียน</span> <div style="display:flex;gap:15px"><span>{{ number_format($extraCredits, 1) }}</span> <span>ได้</span> <span>{{ number_format($extraCredits, 1) }}</span></div></div>
                                         <div style="display:flex; justify-content:space-between;"><span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
                                         <div style="display:flex; justify-content:space-between;"><span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ดีเยี่ยม</span></div></div>
                                         <div style="display:flex; justify-content:space-between;"><span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span> <div style="display:flex;gap:15px;"><span>ได้</span><span style="width:40px;text-align:center;">ผ่าน</span></div></div>
