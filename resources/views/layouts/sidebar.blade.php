@@ -475,7 +475,7 @@
                                         <li><a href="{{ route('pp2.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบประกาศนียบัตร
                                                 (ปพ.2)</a></li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('por3.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบรายงานผู้สำเร็จการศึกษา
                                                 (ปพ.3)</a></li>
                                         <li><a href="#"

@@ -21,6 +21,7 @@ use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\PorPor1Controller;
+use App\Http\Controllers\Academic\PorPor3Controller;
 use App\Http\Controllers\Academic\AcademicYearController;
 use App\Http\Controllers\Setting\LeaveSettingController;
 use App\Http\Controllers\Leave\LeavePersonnelController;
@@ -256,6 +257,10 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/set-doc', 'setDocNumber')->name('setDoc');
         Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
         Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
+    });
+
+    Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
+        Route::get('/', 'index')->name('index');
     });
 
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
