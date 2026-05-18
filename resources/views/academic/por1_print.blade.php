@@ -118,6 +118,7 @@ body {
 .vert-header {
     writing-mode: vertical-rl; transform: rotate(180deg);
     white-space: nowrap; margin: 0 auto; font-size: 12px;
+    display: block; overflow: hidden;
 }
 
 
@@ -693,9 +694,9 @@ body {
                             <tbody>
                                 {{-- หัวข้อ กลุ่มสาระ --}}
                                 <tr>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 28px;">หน่วยกิตรวม</div></th>
-                                    <th style="border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 28px;">ผลการเรียนเฉลี่ย</div></th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 4px; text-align: center; font-weight: bold; font-size: 11px; vertical-align: middle;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 2px; font-weight: bold; overflow: hidden; vertical-align: middle;"><div class="vert-header" style="font-size:11px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 2px 2px; font-weight: bold; overflow: hidden; vertical-align: middle;"><div class="vert-header" style="font-size:11px;">ผลการเรียนเฉลี่ย</div></th>
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
