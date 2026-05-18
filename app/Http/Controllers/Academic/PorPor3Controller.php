@@ -18,9 +18,11 @@ class PorPor3Controller extends Controller
         $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
         $currentSem    = Semester::where('is_current', true)->with('academicYear')->first();
 
-        $yearId    = $request->year_id  ?? ($currentSem->year_id ?? $academicYears->first()?->year_id);
-        $term      = $request->term     ?? ($currentSem->semester_name ?? '1');
+        $yearId    = $request->year_id   ?? ($currentSem->year_id ?? $academicYears->first()?->year_id);
+        $term      = $request->term      ?? ($currentSem->semester_name ?? '1');
         $levelId   = $request->level_id;
+        $sectionId = $request->section_id;
+        $search    = trim($request->search ?? '');
 
         $semester   = Semester::where('year_id', $yearId)->where('semester_name', $term)->first();
         $semesterId = $semester?->semester_id;
@@ -28,13 +30,26 @@ class PorPor3Controller extends Controller
         $levels = Level::whereHas('classSections', fn($q) => $q->where('semester_id', $semesterId))
             ->orderBy('sort_order')->get();
 
-        // ดึงนักเรียนที่ status = 'จบการศึกษา' ในห้องของปีการศึกษา/เทอม/ระดับที่เลือก
+        $sections = $levelId && $semesterId
+            ? ClassSection::where('semester_id', $semesterId)->where('level_id', $levelId)->orderBy('section_number')->get()
+            : collect();
+
         $query = StudentSection::with(['student', 'classSection.level', 'classSection.semester.academicYear'])
             ->where('status', 'จบการศึกษา')
             ->whereHas('classSection.semester', fn($q) => $q->where('year_id', $yearId)->where('semester_name', $term));
 
         if ($levelId) {
             $query->whereHas('classSection', fn($q) => $q->where('level_id', $levelId));
+        }
+        if ($sectionId) {
+            $query->where('class_section_id', $sectionId);
+        }
+        if ($search !== '') {
+            $query->whereHas('student', fn($q) => $q
+                ->where('thai_firstname', 'like', "%{$search}%")
+                ->orWhere('thai_lastname',  'like', "%{$search}%")
+                ->orWhere('student_code',   'like', "%{$search}%")
+            );
         }
 
         $rows = $query->orderBy('student_number')->get();
@@ -45,8 +60,8 @@ class PorPor3Controller extends Controller
         ])->filter(fn($r) => $r['student']);
 
         return view('academic.por3_index', compact(
-            'academicYears', 'levels', 'students',
-            'yearId', 'term', 'levelId', 'semesterId'
+            'academicYears', 'levels', 'sections', 'students',
+            'yearId', 'term', 'levelId', 'sectionId', 'search', 'semesterId'
         ));
     }
 }

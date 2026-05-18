@@ -20,8 +20,12 @@
 .p3-card-title  { margin-left: 90px; font-size: 1.05rem; color: #555; margin-top: -8px; }
 
 .p3-search-grid {
-    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    display: grid; grid-template-columns: 1fr 1fr 1fr 1fr;
     gap: 14px 24px; margin-top: 20px; align-items: end;
+}
+.p3-search-grid2 {
+    display: grid; grid-template-columns: 1fr;
+    gap: 14px 24px; margin-top: 14px; align-items: end;
 }
 .p3-search-row2 {
     display: flex; justify-content: center; margin-top: 20px;
@@ -33,6 +37,12 @@
     background: transparent; box-sizing: border-box;
 }
 .p3-field select:focus { border-bottom-color: #00bcd4; }
+.p3-field input[type=text] {
+    width: 100%; height: 36px; border: none; border-bottom: 1.5px solid #bbb;
+    padding: 0 8px; font-size: 0.88rem; font-family: inherit; outline: none;
+    background: transparent; box-sizing: border-box;
+}
+.p3-field input[type=text]:focus { border-bottom-color: #00bcd4; }
 .btn-search {
     background: #00bcd4; color: #fff; border: none; border-radius: 6px;
     padding: 9px 32px; font-size: 0.9rem; font-weight: 600;
@@ -94,7 +104,7 @@
         <div class="p3-icon p3-icon-search"><i class="bi bi-search"></i></div>
         <div class="p3-card-title">ค้นหา</div>
 
-        <form method="GET" action="{{ route('por3.index') }}">
+        <form method="GET" action="{{ route('por3.index') }}" id="searchForm">
             <div class="p3-search-grid">
                 <div class="p3-field">
                     <label>ปีการศึกษา</label>
@@ -115,7 +125,7 @@
                 </div>
                 <div class="p3-field">
                     <label>ระดับชั้น</label>
-                    <select name="level_id">
+                    <select name="level_id" onchange="this.form.submit()">
                         <option value="">-- ทุกระดับชั้น --</option>
                         @foreach($levels as $lv)
                         <option value="{{ $lv->level_id }}" {{ $levelId == $lv->level_id ? 'selected' : '' }}>
@@ -123,6 +133,23 @@
                         </option>
                         @endforeach
                     </select>
+                </div>
+                <div class="p3-field">
+                    <label>ห้องเรียน</label>
+                    <select name="section_id">
+                        <option value="">-- ทุกห้อง --</option>
+                        @foreach($sections as $sec)
+                        <option value="{{ $sec->class_section_id }}" {{ $sectionId == $sec->class_section_id ? 'selected' : '' }}>
+                            ห้อง {{ $sec->section_number }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="p3-search-grid2">
+                <div class="p3-field">
+                    <label>ค้นหาชื่อ / รหัสนักเรียน</label>
+                    <input type="text" name="search" value="{{ $search }}" placeholder="พิมพ์ชื่อ นามสกุล หรือรหัสนักเรียน...">
                 </div>
             </div>
             <div class="p3-search-row2">
@@ -166,7 +193,7 @@
                     <th>คำนำหน้า</th>
                     <th>ชื่อ</th>
                     <th>นามสกุล</th>
-                    <th>ระดับชั้น</th>
+                    <th>ระดับชั้น / ห้อง</th>
                 </tr>
             </thead>
             <tbody>
@@ -194,7 +221,6 @@
 </div>
 
 <script>
-// ปิด dropdown เมื่อคลิกนอก
 document.addEventListener('click', function(e) {
     const wrap = document.getElementById('printWrap');
     if (wrap && !wrap.contains(e.target)) {
