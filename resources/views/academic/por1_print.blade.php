@@ -532,8 +532,8 @@ body {
                             <tbody>
                                 {{-- หัวข้อ สรุปผลการประเมิน | ผลการตัดสิน --}}
                                 <tr>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">สรุปผลการประเมิน</th>
-                                    <th style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">ผลการตัดสิน</th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 3px 6px; text-align: center; font-weight: bold;">สรุปผลการประเมิน</th>
+                                    <th style="border-bottom: 1px solid #000; padding: 3px 6px; text-align: center; font-weight: bold;">ผลการตัดสิน</th>
                                 </tr>
                                 {{-- ข้อมูลคะแนน --}}
                                 <tr>
@@ -694,8 +694,8 @@ body {
                                 {{-- หัวข้อ กลุ่มสาระ --}}
                                 <tr>
                                     <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold;">กลุ่มสาระการเรียนรู้/<br>การศึกษาค้นคว้าด้วยตนเอง</th>
-                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 38px;">หน่วยกิตรวม</div></th>
-                                    <th style="border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 38px;">ผลการเรียนเฉลี่ย</div></th>
+                                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 28px;">หน่วยกิตรวม</div></th>
+                                    <th style="border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold;"><div class="vert-header" style="height: 28px;">ผลการเรียนเฉลี่ย</div></th>
                                 </tr>
                                 {{-- รายวิชา --}}
                                 @foreach(['ภาษาไทย', 'คณิตศาสตร์', 'วิทยาศาสตร์และเทคโนโลยี', 'สังคมศึกษา ศาสนา และวัฒนธรรม', 'สุขศึกษาและพลศึกษา', 'ศิลปะ', 'การงานอาชีพ', 'ภาษาต่างประเทศ', 'การศึกษาค้นคว้าด้วยตนเอง'] as $group)
@@ -714,7 +714,7 @@ body {
                                 @endforeach
                                 {{-- filler rows เพื่อล็อคความสูงให้ครบ 9 แถวเสมอ --}}
                                 @php $shownCount = count(array_filter(array_map(fn($g) => ($groupStats[$g]['credits'] ?? 0) > 0, ['ภาษาไทย','คณิตศาสตร์','วิทยาศาสตร์และเทคโนโลยี','สังคมศึกษา ศาสนา และวัฒนธรรม','สุขศึกษาและพลศึกษา','ศิลปะ','การงานอาชีพ','ภาษาต่างประเทศ','การศึกษาค้นคว้าด้วยตนเอง']))); @endphp
-                                @for($fi = $shownCount; $fi < 9; $fi++)
+                                @for($fi = $shownCount; $fi < 12; $fi++)
                                 <tr style="height: 16px;">
                                     <td style="border-right: 1px solid #000;"></td>
                                     <td style="border-right: 1px solid #000;"></td>
