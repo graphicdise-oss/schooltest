@@ -29,11 +29,16 @@ class PorPor3Controller extends Controller
         $levels = Level::whereHas('classSections', fn($q) => $q->where('semester_id', $semesterId))
             ->orderBy('sort_order')->get();
 
-        // ดึงนักเรียนที่สำเร็จการศึกษา (promo_type = บันทึกจบ) จาก section ของปีการศึกษา + ระดับชั้น
+        // ดึงนักเรียนที่สำเร็จการศึกษา (promo_type = บันทึกจบ)
         $query = Promotion::with(['student', 'fromSection.level', 'fromSection.semester.academicYear'])
-            ->where('promo_type', 'บันทึกจบ')
-            ->whereHas('fromSection.semester', fn($q) => $q->where('year_id', $yearId));
+            ->whereIn('promo_type', ['บันทึกจบ', 'ลาออก']);
 
+        if ($yearId) {
+            $query->whereHas('fromSection.semester', fn($q) => $q->where('year_id', $yearId));
+        }
+        if ($term) {
+            $query->whereHas('fromSection.semester', fn($q) => $q->where('semester_name', $term));
+        }
         if ($levelId) {
             $query->whereHas('fromSection', fn($q) => $q->where('level_id', $levelId));
         }
