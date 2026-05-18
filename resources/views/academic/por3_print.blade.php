@@ -208,7 +208,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td style="font-size:11px;">{{ $birthDayMonth }}</td>
                 <td class="left" style="font-size:11px;">{{ $fatherName }}</td>
                 <td rowspan="2" style="font-size:11px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:10px;">{{ $gpa }}</span></td>
-                <td rowspan="2"></td>
+                <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2"></td>
@@ -224,11 +224,11 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             {{-- แถวว่าง --}}
             <tr class="empty-top">
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
             </tr>
             <tr class="empty-bot">
                 <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
             </tr>
             @endif
             @endforeach
