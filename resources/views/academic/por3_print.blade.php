@@ -92,7 +92,7 @@ $formatBirthDay = function($date) use ($thaiMonths) {
 // แบ่งหน้า แล้วแพดแต่ละหน้าให้ครบ ROWS_PER_PAGE
 $rawChunks = $studentSections->chunk($ROWS_PER_PAGE)->values();
 $pages = $rawChunks->map(function($chunk) use ($ROWS_PER_PAGE) {
-    $arr = $chunk->values()->toArray();
+    $arr = $chunk->values()->all();
     while (count($arr) < $ROWS_PER_PAGE) {
         $arr[] = null; // empty row
     }
