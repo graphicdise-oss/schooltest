@@ -49,10 +49,16 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .main-table tr.empty-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; }
 .main-table td.no-dot,
 .main-table tr.row-top td.no-dot,
-.main-table tr.row-bot td.no-dot,
-.main-table tr.empty-top td.no-dot,
-.main-table tr.empty-bot td.no-dot {
+.main-table tr.row-bot td.no-dot {
     border-top: 0.5px solid #333 !important;
+    border-bottom: 0.5px solid #333 !important;
+}
+.main-table tr.empty-top td.no-dot {
+    border-top: 0.5px solid #333 !important;
+    border-bottom: none !important;
+}
+.main-table tr.empty-bot td.no-dot {
+    border-top: none !important;
     border-bottom: 0.5px solid #333 !important;
 }
 
