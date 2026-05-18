@@ -170,7 +170,7 @@
                 </tr>
             </thead>
             <tbody>
-                @foreach($students as $i => $row)
+                @foreach($students->values() as $i => $row)
                 @php $stu = $row['student']; $sec = $row['section']; @endphp
                 <tr>
                     <td class="center">{{ $i + 1 }}.</td>
@@ -179,10 +179,7 @@
                     <td class="center">{{ $stu->thai_prefix ?? '' }}</td>
                     <td>{{ $stu->thai_firstname }}</td>
                     <td>{{ $stu->thai_lastname }}</td>
-                    <td>
-                        {{ $sec->level->name ?? '' }}
-                        @if($sec) / {{ $sec->section_number }} @endif
-                    </td>
+                    <td>{{ $sec->level->name ?? '' }}{{ $sec ? ' / '.$sec->section_number : '' }}</td>
                 </tr>
                 @endforeach
             </tbody>

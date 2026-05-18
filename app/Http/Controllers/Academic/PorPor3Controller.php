@@ -8,7 +8,6 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\Level;
 use App\Models\Academic\StudentSection;
-use App\Models\Academic\Promotion;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -29,28 +28,21 @@ class PorPor3Controller extends Controller
         $levels = Level::whereHas('classSections', fn($q) => $q->where('semester_id', $semesterId))
             ->orderBy('sort_order')->get();
 
-        // ดึงนักเรียนที่สำเร็จการศึกษา (promo_type = บันทึกจบ)
-        $query = Promotion::with(['student', 'fromSection.level', 'fromSection.semester.academicYear'])
-            ->whereIn('promo_type', ['บันทึกจบ', 'ลาออก']);
+        // ดึงนักเรียนที่ status = 'จบการศึกษา' ในห้องของปีการศึกษา/เทอม/ระดับที่เลือก
+        $query = StudentSection::with(['student', 'classSection.level', 'classSection.semester.academicYear'])
+            ->where('status', 'จบการศึกษา')
+            ->whereHas('classSection.semester', fn($q) => $q->where('year_id', $yearId)->where('semester_name', $term));
 
-        if ($yearId) {
-            $query->whereHas('fromSection.semester', fn($q) => $q->where('year_id', $yearId));
-        }
-        if ($term) {
-            $query->whereHas('fromSection.semester', fn($q) => $q->where('semester_name', $term));
-        }
         if ($levelId) {
-            $query->whereHas('fromSection', fn($q) => $q->where('level_id', $levelId));
+            $query->whereHas('classSection', fn($q) => $q->where('level_id', $levelId));
         }
 
-        $promotions = $query->orderBy('promo_date')->get();
+        $rows = $query->orderBy('student_number')->get();
 
-        // รวบรวมนักเรียนไม่ซ้ำ พร้อม section ล่าสุด
-        $students = $promotions->map(fn($p) => [
-            'student'      => $p->student,
-            'section'      => $p->fromSection,
-            'promo_date'   => $p->promo_date,
-        ])->unique(fn($r) => $r['student']?->student_id ?? '')->values()->filter(fn($r) => $r['student']);
+        $students = $rows->map(fn($ss) => [
+            'student' => $ss->student,
+            'section' => $ss->classSection,
+        ])->filter(fn($r) => $r['student']);
 
         return view('academic.por3_index', compact(
             'academicYears', 'levels', 'students',
