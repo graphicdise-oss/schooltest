@@ -541,7 +541,7 @@ body {
                                         @php
                                             $uline = 'border-bottom:0.5px solid #999;';
                                             $vCol  = "style=\"width:44px;text-align:right;{$uline}\"";
-                                            $daiCol= "style=\"width:28px;text-align:center;{$uline}\"";
+                                            $daiCol= 'style="width:28px;text-align:center;"';
                                             $resCol= "style=\"width:52px;text-align:center;{$uline}\"";
                                             $emptyCol = 'style="width:44px;"';
                                         @endphp
