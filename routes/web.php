@@ -21,6 +21,7 @@ use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
 use App\Http\Controllers\Academic\PorPor1Controller;
+use App\Http\Controllers\Academic\PorPor3Controller;
 use App\Http\Controllers\Academic\AcademicYearController;
 use App\Http\Controllers\Setting\LeaveSettingController;
 use App\Http\Controllers\Leave\LeavePersonnelController;
@@ -248,6 +249,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{id}', 'printOne')->name('print-one');
         Route::get('/print-all', 'printAll')->name('print-all');
         Route::get('/print-selected', 'printSelected')->name('print-selected');
+    });
+
+    Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
+        Route::get('/', 'index')->name('index');
     });
 
     Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->group(function () {
