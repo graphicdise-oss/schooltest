@@ -28,7 +28,7 @@ body {
     display: flex; justify-content: center; align-items: center;
     gap: 4.5mm; margin-bottom: 0;
 }
-.doc-logo { width: 16mm; height: 16mm; flex-shrink: 0; }
+.doc-logo { width: 18mm; height: 16mm; flex-shrink: 0; }
 .doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block;
     filter: contrast(0.8) brightness(1.15); }
 .doc-title-block { line-height: 1.0; flex: 1; overflow: hidden; }
