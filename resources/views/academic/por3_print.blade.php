@@ -38,8 +38,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     overflow: hidden;
 }
 .main-table thead th { background: #fff; font-size: 9.5px; font-weight: 700; line-height: 1.2; }
-.main-table .th-top { border-bottom: none; }
-.main-table .th-bot { border-top: none; }
+
 .main-table td.left { text-align: left; }
 .main-table tbody tr { height: 14px; max-height: 14px; }
 .main-table tbody td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 14px; }
