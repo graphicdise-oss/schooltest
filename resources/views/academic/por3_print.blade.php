@@ -162,11 +162,11 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <th rowspan="2" style="width:26px;">ลำดับ<br>ที่</th>
                 <th class="th-top" style="width:68px;">เลขประจำตัวนักเรียน</th>
                 <th class="th-top" style="width:48px;">ชุดที่ ปพ.1:พ</th>
-                <th class="th-top" style="width:22px;"></th>
+                <th rowspan="2" style="width:22px;">เลขที่<br>ปพ.2:พ</th>
                 <th class="th-top" style="width:90px;">ชื่อนักเรียน</th>
                 <th class="th-top" style="width:58px;">วัน เดือน</th>
                 <th class="th-top" style="width:108px;">ชื่อ-ชื่อสกุลบิดา</th>
-                <th rowspan="2" style="width:54px;">จำนวนหน่วยกิต<br>รายวิชาที่เรียน/ที่ได้<br>ตลอดหลักสูตร</th>
+                <th class="th-top" style="width:54px;">จำนวนหน่วยกิต<br>รายวิชาที่เรียน/ที่ได้</th>
                 <th rowspan="2" style="width:46px;">ผลการประเมิน<br>การอ่าน<br>คิดวิเคราะห์<br>และเขียน</th>
                 <th rowspan="2" style="width:46px;">ผลการประเมิน<br>คุณลักษณะ<br>อันพึง<br>ประสงค์</th>
                 <th rowspan="2" style="width:46px;">ผลการประเมิน<br>กิจกรรม<br>พัฒนา<br>ผู้เรียน</th>
@@ -175,10 +175,10 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             <tr>
                 <th class="th-bot" style="font-size:8.5px;">เลขประจำตัวประชาชน</th>
                 <th class="th-bot" style="font-size:8.5px;">เลขที่ ปพ.1:พ</th>
-                <th class="th-bot" style="font-size:8.5px;">เลขที่ ปพ.2:พ</th>
                 <th class="th-bot">ชื่อสกุลนักเรียน</th>
                 <th class="th-bot">ปีเกิด</th>
                 <th class="th-bot">ชื่อ-ชื่อสกุลมารดา</th>
+                <th class="th-bot">ผลการเรียนเฉลี่ย<br>ตลอดหลักสูตร</th>
             </tr>
         </thead>
         <tbody>
