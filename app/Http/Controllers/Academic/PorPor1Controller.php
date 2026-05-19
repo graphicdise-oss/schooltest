@@ -277,10 +277,12 @@ class PorPor1Controller extends Controller
 
         $section = ClassSection::findOrFail($request->section_id);
 
-        $rows = StudentSection::where('section_id', $request->section_id)
+        $rows = StudentSection::with('student')
+            ->where('section_id', $request->section_id)
             ->where('status', 'กำลังศึกษา')
-            ->orderBy('student_number')
-            ->get();
+            ->get()
+            ->sortBy(fn($ss) => $ss->student?->student_code)
+            ->values();
 
         $startNum = (int)($request->start_number ?? 1);
         $count    = $rows->count();
