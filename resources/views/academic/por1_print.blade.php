@@ -44,11 +44,11 @@ body {
 .doc-meta-row .label { font-size: 20px; font-weight: 700; line-height: 1.0; }
 .doc-meta-row .field-group { display: flex; align-items: baseline; gap: 3px; font-size: 20px; font-weight: 700; line-height: 1.0; }
 .doc-meta-row .field-val {
-    font-size: 20px; font-weight: 700;
-    border-bottom: 0.3px solid #999;
+    font-size: 26px; font-weight: 700;
+    border-bottom: 0.5px solid #555;
     min-width: 28mm; text-align: center;
     padding: 0 4px 0; display: inline-block;
-    line-height: 1.0;
+    line-height: 0.82;
 }
 
 /* ===== INFO SECTION ===== */
@@ -366,10 +366,10 @@ body {
     <div class="subpage" style="height: 100%; display: flex; flex-direction: column;">
         
         {{-- Header ชุดที่ / เลขที่ --}}
-        <div style="display: flex; justify-content: center; align-items: baseline; gap: 30px; margin-top: 10px; font-weight: bold; font-size: 16px;">
+        <div style="display: flex; justify-content: center; align-items: baseline; gap: 30px; margin-top: 10px; font-weight: bold; font-size: 20px;">
             <div>ปพ.1 : พ</div>
-            <div>ชุดที่ <span style="display: inline-block; width: 60px; text-align: center; border-bottom: 0.5px solid #999;">{{ $docNumber->doc_set ?? '' }}</span></div>
-            <div>เลขที่ <span style="display: inline-block; width: 80px; text-align: center; border-bottom: 0.5px solid #999;">{{ $docNumber->doc_number ?? '' }}</span></div>
+            <div>ชุดที่ <span style="display: inline-block; width: 70px; text-align: center; border-bottom: 0.5px solid #555; font-size: 24px; line-height: 0.82;">{{ $docNumber->doc_set ?? '' }}</span></div>
+            <div>เลขที่ <span style="display: inline-block; width: 90px; text-align: center; border-bottom: 0.5px solid #555; font-size: 24px; line-height: 0.82;">{{ $docNumber->doc_number ?? '' }}</span></div>
         </div>
 
         <div style="text-align: center; font-weight: bold; font-size: 16px; margin-top: 15px; margin-bottom: 5px;">
