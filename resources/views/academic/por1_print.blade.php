@@ -26,7 +26,7 @@ body {
 /* ===== HEADER ===== */
 .doc-top {
     display: flex; justify-content: center; align-items: center;
-    gap: 5mm; margin-bottom: 0;
+    gap: 4.5mm; margin-bottom: 0;
 }
 .doc-logo { width: 14mm; height: 14mm; flex-shrink: 0; }
 .doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
