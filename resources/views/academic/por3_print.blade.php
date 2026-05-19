@@ -205,9 +205,9 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td style="font-size:11px;">{{ $stu?->student_code }}</td>
                 <td style="font-size:11px;">{{ $doc?->doc_set ?? '' }}</td>
                 <td rowspan="2" style="font-size:12px;font-weight:600;">{{ $rowNum }}</td>
-                <td class="left" style="font-size:11px;">{{ $stu?->thai_prefix }}{{ $stu?->thai_firstname }}</td>
+                <td style="font-size:11px;">{{ $stu?->thai_prefix }}{{ $stu?->thai_firstname }}</td>
                 <td style="font-size:11px;">{{ $birthDayMonth }}</td>
-                <td class="left" style="font-size:11px;">{{ $fatherName }}</td>
+                <td style="font-size:11px;">{{ $fatherName }}</td>
                 <td rowspan="2" style="font-size:11px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:10px;">{{ $gpa }}</span></td>
                 <td></td>
                 <td rowspan="2" class="no-dot"></td>
@@ -217,9 +217,9 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             <tr class="row-bot">
                 <td style="font-size:10px;color:#555;border-top:0.5px dotted #999;">{{ $stu?->id_card_number }}</td>
                 <td style="font-size:10px;">{{ $doc?->doc_number ?? '' }}@if($pp2?->doc_number) / {{ $pp2->doc_number }}@endif</td>
-                <td class="left" style="font-size:11px;">{{ $stu?->thai_lastname }}</td>
+                <td style="font-size:11px;">{{ $stu?->thai_lastname }}</td>
                 <td style="font-size:11px;">{{ $birthYear }}</td>
-                <td class="left" style="font-size:11px;">{{ $motherName }}</td>
+                <td style="font-size:11px;">{{ $motherName }}</td>
                 <td></td>
                 <td></td>
             </tr>
