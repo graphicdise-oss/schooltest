@@ -8,6 +8,7 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
 use App\Models\Academic\StudentSection;
+use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\TeachingAssign;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -262,7 +263,8 @@ class GradeController extends Controller
         $father = \App\Models\StudentFamily::where('student_id', $studentId)->where('guardian_type', 'บิดา')->first();
         $mother = \App\Models\StudentFamily::where('student_id', $studentId)->where('guardian_type', 'มารดา')->first();
         
-        $docNumber = (object)['doc_set' => '', 'doc_number' => '']; 
+        $docNumber = StudentDocNumber::where('student_id', $studentId)->latest()->first()
+            ?? (object)['doc_set' => '', 'doc_number' => ''];
 
         // 2. รับค่าเทอมที่ติ๊กมาจาก Modal
         $filterActive = $request->has('filter_active'); // เช็คว่าส่งมาจากหน้าป๊อปอัปหรือไม่
