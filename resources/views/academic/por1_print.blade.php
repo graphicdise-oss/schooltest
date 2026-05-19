@@ -30,12 +30,12 @@ body {
 }
 .doc-logo { width: 14mm; height: 14mm; flex-shrink: 0; }
 .doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
-.doc-title-block { line-height: 1.0; flex: 1; }
+.doc-title-block { line-height: 1.0; flex: 1; overflow: hidden; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
     font-size: 20px; font-weight: 700; line-height: 1.0;
-    text-align: justify; text-align-last: justify;
-    width: 100%; margin-bottom: 0;
+    white-space: nowrap; transform-origin: left center;
+    display: block; margin-bottom: 0;
 }
 
 .doc-meta-row {
@@ -773,5 +773,19 @@ body {
     </div>
 </div>
 
+<script>
+function fitTitleToWidth() {
+    const h2 = document.querySelector('.doc-title-block h2');
+    if (!h2) return;
+    h2.style.transform = 'scaleX(1)';
+    const containerW = h2.parentElement.offsetWidth;
+    const textW = h2.scrollWidth;
+    if (textW > 0 && containerW > 0) {
+        h2.style.transform = 'scaleX(' + (containerW / textW) + ')';
+    }
+}
+window.addEventListener('load', fitTitleToWidth);
+window.addEventListener('beforeprint', fitTitleToWidth);
+</script>
 </body>
 </html>
