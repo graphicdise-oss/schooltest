@@ -126,6 +126,12 @@
     </div>
     @endif
 
+    @if(session('warning'))
+    <div style="background:#fff3e0;color:#e65100;padding:10px 18px;border-radius:6px;margin-bottom:16px;font-size:0.88rem">
+        <i class="bi bi-exclamation-triangle"></i> {{ session('warning') }}
+    </div>
+    @endif
+
     {{-- ค้นหา --}}
     <div class="p1-card">
         <div class="p1-icon p1-icon-search"><i class="bi bi-search"></i></div>
@@ -180,8 +186,11 @@
                     <label>ค้นหาชื่อ / รหัส</label>
                     <input type="text" name="search" placeholder="พิมพ์ชื่อหรือรหัสนักเรียน..." value="{{ $search }}">
                 </div>
-                <div class="p1-field" style="display:flex;gap:8px;">
+                <div class="p1-field" style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
+                    <button type="button" class="btn-search" style="background:#ff9800;" onclick="openBulkModal()">
+                        <i class="bi bi-123"></i> ตั้งค่าเลขที่
+                    </button>
                     <button type="button" class="btn-search" style="background:#5c6bc0;" onclick="openSignSettingsModal()">
                         <i class="bi bi-pen"></i> ตั้งค่าผู้ลงนาม
                     </button>
@@ -202,7 +211,7 @@
             </span>
             @if($students->count() && $sectionId)
             <div style="display:flex;gap:8px;flex-wrap:wrap">
-                <button class="btn-bulk" onclick="openBulkModal()">
+                <button class="btn-bulk" onclick="openBulkModal({{ $sectionId }})">
                     <i class="bi bi-layers"></i> นำชั้นเลขที่เอกสาร
                 </button>
                 <a href="#" class="btn-print-all">
@@ -349,16 +358,30 @@
 <div class="p1-modal-overlay" id="bulkModal" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="p1-modal">
         <h3><i class="bi bi-layers"></i> ตั้งเลขชุดทั้งห้อง</h3>
+        @if($docNumRange)
+        <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:6px;padding:8px 12px;font-size:0.82rem;color:#6d4c00;margin-bottom:14px;">
+            <i class="bi bi-info-circle"></i>
+            เลขที่ที่ใช้ไปแล้วในเทอมนี้: <strong>{{ $docNumRange['min'] }}</strong> – <strong>{{ $docNumRange['max'] }}</strong>
+            ({{ $docNumRange['count'] }} คน) — แนะนำให้เริ่มจาก <strong>{{ $docNumRange['max'] + 1 }}</strong>
+        </div>
+        @endif
         <form method="POST" action="{{ route('por1.bulkSet') }}">
             @csrf
-            <input type="hidden" name="section_id" value="{{ $sectionId }}">
+            <input type="hidden" name="section_id" id="bulk_section_id" value="{{ $sectionId }}">
             <input type="hidden" name="semester_id" value="{{ $semesterId }}">
             <div class="p1-modal-field">
                 <label>ชุดที่ (ใช้กับทุกคนในห้อง)</label>
                 <input type="text" name="doc_set" placeholder="เช่น 00008" maxlength="20" required>
             </div>
+            <div class="p1-modal-field">
+                <label>เลขที่เริ่มต้น</label>
+                <input type="number" name="start_number" min="1"
+                    placeholder="เช่น {{ ($docNumRange['max'] ?? 0) + 1 }}"
+                    value="{{ ($docNumRange['max'] ?? 0) + 1 }}"
+                    style="width:100%;border:1.5px solid #ddd;border-radius:6px;padding:8px 12px;font-size:0.9rem;font-family:inherit;outline:none;box-sizing:border-box;">
+            </div>
             <p style="font-size:0.82rem;color:#888;margin:0 0 8px">
-                <i class="bi bi-info-circle"></i> เลขที่จะถูกกำหนดอัตโนมัติตามลำดับเลขที่ในห้อง (00001, 00002, ...)
+                <i class="bi bi-info-circle"></i> เลขที่จะเรียงต่อกันอัตโนมัติจากเลขที่เริ่มต้น
             </p>
             <div class="p1-modal-actions">
                 <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> บันทึกทั้งหมด</button>
@@ -418,7 +441,12 @@ function openDocModal(studentId, semesterId, levelId, levelName, docSet, docNumb
 }
 function closeDocModal() { document.getElementById('docModal').classList.remove('open'); }
 
-function openBulkModal() { document.getElementById('bulkModal').classList.add('open'); }
+function openBulkModal(sectionId) {
+    if (sectionId) {
+        document.getElementById('bulk_section_id').value = sectionId;
+    }
+    document.getElementById('bulkModal').classList.add('open');
+}
 function closeBulkModal() { document.getElementById('bulkModal').classList.remove('open'); }
 
 function openSignSettingsModal() { document.getElementById('signSettingsModal').classList.add('open'); }

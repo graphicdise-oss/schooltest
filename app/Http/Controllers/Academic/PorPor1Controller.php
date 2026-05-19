@@ -102,11 +102,26 @@ class PorPor1Controller extends Controller
             ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
         $signSettings = Pp2Setting::getInstance();
 
+        // หาช่วงเลขที่ถูกใช้ไปแล้วในเทอมนี้ (สำหรับแสดงคำแนะนำ)
+        $docNumRange = null;
+        if ($semesterId) {
+            $nums = StudentDocNumber::where('semester_id', $semesterId)
+                ->whereNotNull('doc_number')
+                ->get()
+                ->map(fn($d) => (int)$d->doc_number)
+                ->filter()
+                ->sort()
+                ->values();
+            if ($nums->count()) {
+                $docNumRange = ['min' => $nums->first(), 'max' => $nums->last(), 'count' => $nums->count()];
+            }
+        }
+
         return view('academic.por1_index', compact(
             'academicYears', 'levels', 'sections', 'students', 'docNumbers',
             'yearId', 'term', 'levelId', 'semesterId', 'sectionId', 'search',
             'currentSection', 'studentSemesters', 'studentApproveDates',
-            'personnels', 'signSettings'
+            'personnels', 'signSettings', 'docNumRange'
         ));
     }
 
@@ -254,9 +269,10 @@ class PorPor1Controller extends Controller
     public function bulkSetDocSet(Request $request)
     {
         $request->validate([
-            'section_id'  => 'required|integer',
-            'semester_id' => 'required|integer',
-            'doc_set'     => 'required|string|max:20',
+            'section_id'   => 'required|integer',
+            'semester_id'  => 'required|integer',
+            'doc_set'      => 'required|string|max:20',
+            'start_number' => 'nullable|integer|min:1',
         ]);
 
         $section = ClassSection::findOrFail($request->section_id);
@@ -266,13 +282,40 @@ class PorPor1Controller extends Controller
             ->orderBy('student_number')
             ->get();
 
+        $startNum = (int)($request->start_number ?? 1);
+        $count    = $rows->count();
+
+        // ตรวจสอบเลขซ้ำ: หาเลขที่ใช้ในเทอมนี้จาก section อื่น
+        $newNumbers = range($startNum, $startNum + $count - 1);
+        $ownStudentIds = $rows->pluck('student_id');
+
+        $usedNums = StudentDocNumber::where('semester_id', $request->semester_id)
+            ->whereNotIn('student_id', $ownStudentIds)
+            ->whereNotNull('doc_number')
+            ->get()
+            ->map(fn($d) => (int)$d->doc_number)
+            ->filter()
+            ->toArray();
+
+        $conflicts = array_intersect($newNumbers, $usedNums);
+        if (!empty($conflicts)) {
+            $usedSorted = collect($usedNums)->sort()->values();
+            $min = $usedSorted->first();
+            $max = $usedSorted->last();
+            $suggested = $max + 1;
+            return redirect()->back()->with(
+                'warning',
+                "เลขที่ซ้ำกับที่ใช้ไปแล้ว (ช่วงที่ใช้แล้ว: {$min} – {$max}) กรุณาเริ่มจาก {$suggested} หรือมากกว่า"
+            );
+        }
+
         foreach ($rows as $i => $ss) {
             StudentDocNumber::updateOrCreate(
                 ['student_id' => $ss->student_id, 'semester_id' => $request->semester_id],
                 [
                     'level_id'   => $section->level_id,
                     'doc_set'    => $request->doc_set,
-                    'doc_number' => str_pad($i + 1, 5, '0', STR_PAD_LEFT),
+                    'doc_number' => str_pad($startNum + $i, 5, '0', STR_PAD_LEFT),
                 ]
             );
         }
