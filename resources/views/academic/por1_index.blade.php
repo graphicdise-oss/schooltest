@@ -188,9 +188,6 @@
                 </div>
                 <div class="p1-field" style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
-                    <button type="button" class="btn-search" style="background:#ff9800;" onclick="openBulkModal()">
-                        <i class="bi bi-123"></i> ตั้งค่าเลขที่
-                    </button>
                     <button type="button" class="btn-search" style="background:#5c6bc0;" onclick="openSignSettingsModal()">
                         <i class="bi bi-pen"></i> ตั้งค่าผู้ลงนาม
                     </button>
