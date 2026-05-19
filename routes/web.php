@@ -262,6 +262,7 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/save-print-settings', 'savePrintSettings')->name('savePrintSettings');
+        Route::post('/save-school-settings', 'saveSchoolSettings')->name('saveSchoolSettings');
         Route::get('/print', 'print')->name('print');
     });
 
