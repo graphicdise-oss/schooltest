@@ -159,30 +159,26 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     <table class="main-table">
         <thead>
             <tr>
-                <th rowspan="3" style="width:26px;">ลำดับ<br>ที่</th>
+                <th rowspan="2" style="width:26px;">ลำดับ<br>ที่</th>
                 <th class="th-top" style="width:68px;">เลขประจำตัวนักเรียน</th>
-                <th style="width:48px;">ชุดที่ ปพ.1:พ</th>
-                <th rowspan="3" style="width:22px;">เลข<br>ที่</th>
+                <th class="th-top" style="width:48px;">ชุดที่ ปพ.1:พ</th>
+                <th class="th-top" style="width:22px;"></th>
                 <th class="th-top" style="width:90px;">ชื่อนักเรียน</th>
                 <th class="th-top" style="width:58px;">วัน เดือน</th>
                 <th class="th-top" style="width:108px;">ชื่อ-ชื่อสกุลบิดา</th>
-                <th rowspan="3" style="width:54px;">จำนวนหน่วยกิต<br>รายวิชาที่เรียน/ที่ได้<br>ตลอดหลักสูตร</th>
-                <th rowspan="3" style="width:46px;">ผลการประเมิน<br>การอ่าน<br>คิดวิเคราะห์<br>และเขียน</th>
-                <th rowspan="3" style="width:46px;">ผลการประเมิน<br>คุณลักษณะ<br>อันพึง<br>ประสงค์</th>
-                <th rowspan="3" style="width:46px;">ผลการประเมิน<br>กิจกรรม<br>พัฒนา<br>ผู้เรียน</th>
-                <th rowspan="3" style="width:38px;">หมาย<br>เหตุ</th>
+                <th rowspan="2" style="width:54px;">จำนวนหน่วยกิต<br>รายวิชาที่เรียน/ที่ได้<br>ตลอดหลักสูตร</th>
+                <th rowspan="2" style="width:46px;">ผลการประเมิน<br>การอ่าน<br>คิดวิเคราะห์<br>และเขียน</th>
+                <th rowspan="2" style="width:46px;">ผลการประเมิน<br>คุณลักษณะ<br>อันพึง<br>ประสงค์</th>
+                <th rowspan="2" style="width:46px;">ผลการประเมิน<br>กิจกรรม<br>พัฒนา<br>ผู้เรียน</th>
+                <th rowspan="2" style="width:38px;">หมาย<br>เหตุ</th>
             </tr>
             <tr>
                 <th class="th-bot" style="font-size:8.5px;">เลขประจำตัวประชาชน</th>
-                <th style="font-size:8.5px;">เลขที่ ปพ.1:พ</th>
+                <th class="th-bot" style="font-size:8.5px;">เลขที่ ปพ.1:พ</th>
+                <th class="th-bot" style="font-size:8.5px;">เลขที่ ปพ.2:พ</th>
                 <th class="th-bot">ชื่อสกุลนักเรียน</th>
                 <th class="th-bot">ปีเกิด</th>
                 <th class="th-bot">ชื่อ-ชื่อสกุลมารดา</th>
-            </tr>
-            <tr>
-                <th style="font-size:8.5px;border-top:none;"></th>
-                <th style="font-size:8.5px;">เลขที่ ปพ.2:พ</th>
-                <th colspan="3" style="border-top:none;"></th>
             </tr>
         </thead>
         <tbody>
