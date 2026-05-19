@@ -33,7 +33,7 @@ body {
 .doc-title-block { line-height: 1.0; flex: 1; overflow: hidden; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
-    font-size: 21px; font-weight: 700; line-height: 1.0;
+    font-size: 21px; font-weight: 700; line-height: 1.5;
     white-space: nowrap; transform-origin: left center;
     display: block; margin-bottom: 0;
 }
