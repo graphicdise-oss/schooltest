@@ -28,9 +28,8 @@ body {
     display: flex; justify-content: center; align-items: center;
     gap: 4.5mm; margin-bottom: 0;
 }
-.doc-logo { width: 17mm; height: 17mm; flex-shrink: 0; }
-.doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block;
-    filter: contrast(0.55) brightness(1.6); }
+.doc-logo { width: 15mm; height: 15mm; flex-shrink: 0; }
+.doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .doc-title-block { line-height: 1.0; flex: 1; overflow: hidden; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
