@@ -191,10 +191,27 @@
                 @endif
                 ({{ $students->count() }} คน)
             </span>
-            @if($students->count() && $sectionId && $sectionId !== 'all')
-            <button class="btn-print-all" onclick="openPrintModal()">
-                <i class="bi bi-printer"></i> พิมพ์ ปพ.3 ทั้งหมด
-            </button>
+            @if($sectionId && $sectionId !== 'all' && $students->count())
+            <div class="btn-print-wrap" id="mainPrintWrap">
+                <button class="btn-print-main" onclick="openPrintModal()">
+                    <i class="bi bi-printer"></i> พิมพ์ ปพ.3 ทั้งหมด
+                </button>
+                <button class="btn-print-caret" onclick="toggleDropdown('mainPrintWrap')">
+                    <i class="bi bi-caret-down-fill" style="font-size:0.7rem;"></i>
+                </button>
+                <div class="btn-print-dropdown" id="dropdownMain">
+                    <a href="#" onclick="openPrintModal(); return false;">
+                        <i class="bi bi-file-earmark-pdf" style="color:#e53935;"></i> พิมพ์ / PDF
+                    </a>
+                    <a href="{{ route('por3.exportExcel') }}?section_id={{ $sectionId }}">
+                        <i class="bi bi-file-earmark-excel" style="color:#43a047;"></i> Excel
+                    </a>
+                </div>
+            </div>
+            @elseif(!$sectionId || $sectionId === 'all')
+            <span style="font-size:0.82rem;color:#f57c00;">
+                <i class="bi bi-exclamation-circle"></i> กรุณาเลือกชั้นเรียนก่อนพิมพ์
+            </span>
             @endif
         </div>
 
@@ -208,7 +225,6 @@
                     <th>คำนำหน้า</th>
                     <th>ชื่อ - นามสกุล</th>
                     <th>ระดับชั้น/ห้อง</th>
-                    <th style="text-align:center;min-width:180px"></th>
                 </tr>
             </thead>
             <tbody>
@@ -221,26 +237,6 @@
                     <td>{{ $stu->thai_prefix ?? '' }}</td>
                     <td>{{ $stu->thai_firstname }} {{ $stu->thai_lastname }}</td>
                     <td>{{ $sec->level->name ?? '' }}/{{ $sec->section_number ?? '' }}</td>
-                    <td style="text-align:center">
-                        <div class="btn-print-wrap" id="printWrap{{ $i }}">
-                            <button class="btn-print-main"
-                                onclick="toggleDropdown('printWrap{{ $i }}')">
-                                <i class="bi bi-printer"></i> เตรียมการพิมพ์ใบ ปพ.3
-                            </button>
-                            <button class="btn-print-caret"
-                                onclick="toggleDropdown('printWrap{{ $i }}')">
-                                <i class="bi bi-caret-down-fill" style="font-size:0.7rem;"></i>
-                            </button>
-                            <div class="btn-print-dropdown" id="dropdown{{ $i }}">
-                                <a href="#" onclick="alert('ฟีเจอร์ PDF กำลังพัฒนา'); return false;">
-                                    <i class="bi bi-file-earmark-pdf" style="color:#e53935;"></i> PDF
-                                </a>
-                                <a href="#" onclick="alert('ฟีเจอร์ Excel กำลังพัฒนา'); return false;">
-                                    <i class="bi bi-file-earmark-excel" style="color:#43a047;"></i> Excel
-                                </a>
-                            </div>
-                        </div>
-                    </td>
                 </tr>
                 @endforeach
             </tbody>

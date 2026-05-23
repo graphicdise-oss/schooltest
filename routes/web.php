@@ -264,6 +264,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/save-print-settings', 'savePrintSettings')->name('savePrintSettings');
         Route::post('/save-school-settings', 'saveSchoolSettings')->name('saveSchoolSettings');
         Route::get('/print', 'print')->name('print');
+        Route::get('/export-excel', 'exportExcel')->name('exportExcel');
     });
 
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {

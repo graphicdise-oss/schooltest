@@ -107,6 +107,76 @@ class PorPor3Controller extends Controller
         return redirect()->back()->with('school_saved', true);
     }
 
+    public function exportExcel(Request $request)
+    {
+        $sectionId = $request->section_id;
+        $section   = ClassSection::with(['level', 'semester.academicYear'])->findOrFail($sectionId);
+
+        $studentSections = StudentSection::with(['student'])
+            ->where('section_id', $sectionId)
+            ->orderBy('student_number')
+            ->get();
+
+        $studentIds = $studentSections->pluck('student_id');
+        $semesterId = $section->semester_id;
+
+        $docNumbers = StudentDocNumber::whereIn('student_id', $studentIds)
+            ->where('semester_id', $semesterId)
+            ->get()->keyBy('student_id');
+
+        $allGrades = FinalGrade::with(['teachingAssign.subject'])
+            ->whereIn('student_id', $studentIds)
+            ->get()->groupBy('student_id');
+
+        $creditsByStudent = [];
+        $gpaTotalByStudent = [];
+        foreach ($allGrades as $sid => $grades) {
+            $credits = 0; $gpaSum = 0; $gpaCount = 0;
+            foreach ($grades as $g) {
+                $subj = $g->teachingAssign->subject ?? null;
+                if (!$subj) continue;
+                $cr = (float)($subj->credits ?? 0);
+                if (($subj->subject_group ?? '') !== 'กิจกรรมพัฒนาผู้เรียน') {
+                    $credits += $cr;
+                    if ($cr > 0 && $g->gpa_point !== null) { $gpaSum += (float)$g->gpa_point; $gpaCount++; }
+                }
+            }
+            $creditsByStudent[$sid] = $credits;
+            $gpaTotalByStudent[$sid] = $gpaCount > 0 ? round($gpaSum / $gpaCount, 2) : 0;
+        }
+
+        $levelName = $section->level->name ?? '';
+        $secNum    = $section->section_number;
+        $yearName  = $section->semester->academicYear->year_name ?? '';
+        $termName  = $section->semester->semester_name ?? '';
+        $filename  = "por3_{$levelName}{$secNum}_year{$yearName}_term{$termName}.xls";
+
+        $html  = '<html><head><meta charset="UTF-8"></head><body><table border="1">';
+        $html .= '<tr><th>ลำดับ</th><th>รหัสนักเรียน</th><th>เลขบัตรประชาชน</th><th>ชื่อ-นามสกุล</th>'
+               . '<th>ชุดที่ ปพ.1</th><th>เลขที่ ปพ.1</th><th>หน่วยกิตที่ได้</th><th>ผลการเรียนเฉลี่ย</th></tr>';
+
+        foreach ($studentSections as $i => $ss) {
+            $stu = $ss->student;
+            $sid = $stu?->student_id;
+            $doc = $docNumbers[$sid] ?? null;
+            $html .= '<tr>'
+                . '<td>' . ($i + 1) . '</td>'
+                . '<td>' . ($stu?->student_code ?? '') . '</td>'
+                . '<td>' . ($stu?->id_card_number ?? '') . '</td>'
+                . '<td>' . ($stu?->thai_prefix ?? '') . ($stu?->thai_firstname ?? '') . ' ' . ($stu?->thai_lastname ?? '') . '</td>'
+                . '<td>' . ($doc?->doc_set ?? '') . '</td>'
+                . '<td>' . ($doc?->doc_number ?? '') . '</td>'
+                . '<td>' . number_format($creditsByStudent[$sid] ?? 0, 1) . '</td>'
+                . '<td>' . number_format($gpaTotalByStudent[$sid] ?? 0, 2) . '</td>'
+                . '</tr>';
+        }
+        $html .= '</table></body></html>';
+
+        return response($html)
+            ->header('Content-Type', 'application/vnd.ms-excel; charset=UTF-8')
+            ->header('Content-Disposition', 'attachment; filename="' . rawurlencode($filename) . '"');
+    }
+
     public function print(Request $request)
     {
         $sectionId   = $request->section_id;
