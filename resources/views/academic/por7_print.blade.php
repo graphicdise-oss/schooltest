@@ -22,28 +22,28 @@ body {
     font-size: 138%; font-weight: 600;
 }
 .header {
-    text-align: center; margin-bottom: 3mm;
+    text-align: center; margin-bottom: 2mm;
 }
 .header img {
     width: 33mm; height: 33mm; object-fit: contain;
 }
 .doc-title {
-    font-size: 200%; font-weight: bold; text-align: center;
-    margin-bottom: 2mm; line-height: 1.2;
+    font-size: 170%; font-weight: bold; text-align: center;
+    margin-bottom: 1mm; line-height: 1.2;
 }
 .school-name {
-    font-size: 30px; font-weight: 600; text-align: center;
-    margin-bottom: 1mm;
+    font-size: 28px; font-weight: 600; text-align: center;
+    margin-bottom: 0.5mm;
 }
 .school-addr {
-    font-size: 26px; text-align: center; margin-bottom: 4mm;
+    font-size: 24px; text-align: center; margin-bottom: 2mm;
 }
-.divider { border-top: 1px solid #000; margin: 2mm 0 4mm; }
+.divider { border-top: 1px solid #000; margin: 1.5mm 0 2.5mm; }
 
 /* Data rows */
 .data-row {
     display: flex; align-items: baseline;
-    margin-bottom: 2mm; font-size: 21px;
+    margin-bottom: 1mm; font-size: 21px;
 }
 .data-row .lbl {
     font-weight: bold; white-space: nowrap; flex-shrink: 0;
@@ -51,14 +51,14 @@ body {
 }
 .data-row .val {
     flex: 1; padding: 0 2mm;
-    min-height: 7mm; line-height: 1.1;
+    min-height: 6mm; line-height: 1.1;
 }
 .data-row .val.no-border { border-bottom: none; }
 
 /* Two-column rows */
 .data-row-2col {
     display: flex; align-items: baseline;
-    margin-bottom: 2mm; font-size: 21px;
+    margin-bottom: 1mm; font-size: 21px;
 }
 .data-row-2col .col {
     display: flex; align-items: baseline; flex: 1;
@@ -70,30 +70,30 @@ body {
 }
 .data-row-2col .val {
     flex: 1; padding: 0 2mm;
-    min-height: 7mm; line-height: 1.1;
+    min-height: 6mm; line-height: 1.1;
 }
 
 /* Result area */
-.result-area { margin: 4mm 0 4mm 15mm; }
+.result-area { margin: 2mm 0 2mm 15mm; }
 .result-row {
     display: flex; align-items: baseline;
-    margin-bottom: 3mm; font-size: 21px;
+    margin-bottom: 2mm; font-size: 21px;
 }
 .result-row .lbl { font-weight: bold; width: 38mm; flex-shrink: 0; }
 .result-row .val {
     flex: 1;
-    min-height: 7mm; padding: 0 2mm;
+    min-height: 6mm; padding: 0 2mm;
 }
 
 .issue-line {
     text-align: center; font-size: 21px; font-weight: bold;
-    margin: 6mm 0 6mm;
+    margin: 3mm 0 3mm;
 }
 
 /* Sign area */
 .sign-area {
     display: flex; align-items: flex-start; gap: 0;
-    margin-top: 2mm;
+    margin-top: 1mm;
 }
 .photo-box {
     width: 30mm; height: 40mm;
@@ -105,27 +105,27 @@ body {
 .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
 .signatures { flex: 1; padding-left: 6mm; }
-.sig-block { margin-bottom: 6mm; }
+.sig-block { margin-bottom: 4mm; }
 .sig-dots {
     border-bottom: 1px dotted #666;
     width: 70mm; margin: 0 auto 1mm;
-    height: 9mm;
+    height: 8mm;
 }
 .sig-name { text-align: center; font-size: 20px; }
 .sig-position { text-align: center; font-weight: bold; font-size: 20px; }
 
 /* Registrar below photo */
-.registrar-block { margin-top: 5mm; }
+.registrar-block { margin-top: 3mm; }
 .registrar-block .sig-dots {
     width: 70mm; border-bottom: 1px dotted #666;
-    height: 9mm; margin: 0 auto 1mm;
+    height: 8mm; margin: 0 auto 1mm;
 }
 .registrar-block .sig-name { text-align: center; font-size: 20px; }
 .registrar-block .sig-position { text-align: center; font-weight: bold; font-size: 20px; }
 
 .remark {
-    margin-top: 6mm; font-size: 18px;
-    border-top: 0.5px solid #ccc; padding-top: 3mm;
+    margin-top: 4mm; font-size: 18px;
+    border-top: 0.5px solid #ccc; padding-top: 2mm;
 }
 
 .no-print { padding: 12px; text-align: center; background: #f5f5f5; }
@@ -244,8 +244,7 @@ $fullName = ($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . '
     <div class="data-row" style="margin-top:1mm;">
         <span class="lbl">เป็นนักเรียนของ</span>
         <span class="val no-border">
-            {{ $school['name'] ?? '' }}
-            &nbsp;&nbsp;&nbsp; กำลังศึกษาชั้น &nbsp;{{ $levelSection }}
+            กำลังศึกษาชั้น &nbsp;{{ $levelSection }}
             @if($section?->program) &nbsp;&nbsp;{{ $section->program }} @endif
             &nbsp;&nbsp;&nbsp; ปีการศึกษา &nbsp;{{ $yearName }}
         </span>
