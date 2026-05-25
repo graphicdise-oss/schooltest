@@ -187,4 +187,27 @@ class PorPor7Controller extends Controller
         $d = \Carbon\Carbon::parse($dateStr);
         return $d->day . ' ' . $months[$d->month] . ' ' . ($d->year + 543);
     }
+
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $dir  = public_path('img/pp_1');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        // ลบไฟล์โลโก้เดิมทุก extension
+        foreach (['png','jpg','jpeg','PNG','JPG','JPEG'] as $ext) {
+            $old = $dir . '/logo.' . $ext;
+            if (file_exists($old)) unlink($old);
+        }
+
+        $ext  = strtolower($request->file('logo')->getClientOriginalExtension());
+        $request->file('logo')->move($dir, 'logo.' . $ext);
+
+        return redirect()->back()->with('success', 'อัปโหลดตราโรงเรียนสำเร็จ');
+    }
 }

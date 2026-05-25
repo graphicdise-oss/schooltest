@@ -156,6 +156,9 @@
                     <button type="button" class="btn-search" style="background:#5c6bc0;" onclick="openSignSettingsModal()">
                         <i class="bi bi-pen"></i> ตั้งค่าผู้ลงนาม
                     </button>
+                    <button type="button" class="btn-search" style="background:#e65100;" onclick="openLogoModal()">
+                        <i class="bi bi-image"></i> อัปโหลดตราโรงเรียน
+                    </button>
                 </div>
             </div>
         </form>
@@ -326,5 +329,45 @@ function onPersonnelChange(role) {
     const manualRow = document.getElementById(role + '_manual_row');
     manualRow.style.display = sel.value === '__manual__' ? '' : 'none';
 }
+
+function openLogoModal() { document.getElementById('logoModal').classList.add('open'); }
+function closeLogoModal() { document.getElementById('logoModal').classList.remove('open'); }
+
+function previewLogo(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('logoPreview').src = e.target.result;
+            document.getElementById('logoPreviewWrap').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
 </script>
+
+{{-- Modal: อัปโหลดตราโรงเรียน --}}
+<div class="p7-modal-overlay" id="logoModal" onclick="if(event.target===this)closeLogoModal()">
+    <div class="p7-modal" onclick="event.stopPropagation()">
+        <h3><i class="bi bi-image"></i> อัปโหลดตราโรงเรียน</h3>
+        <form method="POST" action="{{ route('por7.uploadLogo') }}" enctype="multipart/form-data">
+            @csrf
+            <div class="p7-modal-field">
+                <label>เลือกไฟล์รูป (PNG หรือ JPG)</label>
+                <input type="file" name="logo" accept=".png,.jpg,.jpeg"
+                    onchange="previewLogo(this)"
+                    style="width:100%;border:1.5px solid #ddd;border-radius:6px;padding:8px;font-family:inherit;font-size:0.88rem;box-sizing:border-box;">
+            </div>
+            <div id="logoPreviewWrap" style="display:none;text-align:center;margin:12px 0;">
+                <img id="logoPreview" style="max-height:100px;max-width:100px;object-fit:contain;border:1px solid #eee;padding:4px;border-radius:6px;">
+            </div>
+            <p style="font-size:0.8rem;color:#888;margin:0 0 12px;">
+                <i class="bi bi-info-circle"></i> รูปนี้จะแสดงในหน้า ปพ.7 และ ปพ.1
+            </p>
+            <div class="p7-modal-actions">
+                <button type="submit" class="btn-save"><i class="bi bi-upload"></i> อัปโหลด</button>
+                <button type="button" class="btn-cancel" onclick="closeLogoModal()">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

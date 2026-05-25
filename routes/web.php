@@ -271,6 +271,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/print/{studentId}', 'print')->name('print');
         Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
+        Route::post('/upload-logo', 'uploadLogo')->name('uploadLogo');
     });
 
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
