@@ -334,13 +334,21 @@ function openLogoModal() { document.getElementById('logoModal').classList.add('o
 function closeLogoModal() { document.getElementById('logoModal').classList.remove('open'); }
 
 function previewLogo(input) {
+    const maxMB = 2;
     if (input.files && input.files[0]) {
+        const file = input.files[0];
+        if (file.size > maxMB * 1024 * 1024) {
+            alert('ไฟล์ใหญ่เกินไป! ขนาดสูงสุดที่รองรับคือ ' + maxMB + ' MB\nไฟล์ที่เลือก: ' + (file.size / 1024 / 1024).toFixed(2) + ' MB');
+            input.value = '';
+            document.getElementById('logoPreviewWrap').style.display = 'none';
+            return;
+        }
         const reader = new FileReader();
         reader.onload = e => {
             document.getElementById('logoPreview').src = e.target.result;
             document.getElementById('logoPreviewWrap').style.display = 'block';
         };
-        reader.readAsDataURL(input.files[0]);
+        reader.readAsDataURL(file);
     }
 }
 </script>
@@ -352,7 +360,7 @@ function previewLogo(input) {
         <form method="POST" action="{{ route('por7.uploadLogo') }}" enctype="multipart/form-data">
             @csrf
             <div class="p7-modal-field">
-                <label>เลือกไฟล์รูป (PNG หรือ JPG)</label>
+                <label>เลือกไฟล์รูป (PNG หรือ JPG) — ขนาดสูงสุด 2 MB</label>
                 <input type="file" name="logo" accept=".png,.jpg,.jpeg"
                     onchange="previewLogo(this)"
                     style="width:100%;border:1.5px solid #ddd;border-radius:6px;padding:8px;font-family:inherit;font-size:0.88rem;box-sizing:border-box;">
