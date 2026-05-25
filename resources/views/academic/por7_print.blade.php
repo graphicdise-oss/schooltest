@@ -41,19 +41,18 @@ body {
 .info-table td { padding: 1.5mm 0; vertical-align: baseline; }
 .info-table .lbl { font-weight: 700; white-space: nowrap; padding-right: 2mm; }
 .info-table .val {
-    border-bottom: 0.5px solid #999;
     padding: 0 2mm 0; min-width: 30mm;
 }
 .info-table .val-inline { padding-right: 4mm; }
 
 .full-row { display: flex; align-items: baseline; gap: 2mm; margin-bottom: 3mm; font-size: 16px; }
 .full-row .lbl { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.full-row .val { border-bottom: 0.5px solid #999; flex: 1; padding: 0 2mm; }
+.full-row .val { flex: 1; padding: 0 2mm; }
 
 .result-area { margin: 5mm 0 5mm 20mm; font-size: 16px; }
 .result-row { display: flex; align-items: baseline; gap: 4mm; margin-bottom: 4mm; }
 .result-row .lbl { font-weight: 700; width: 35mm; }
-.result-row .val { min-width: 40mm; border-bottom: 0.5px solid #999; padding: 0 2mm; }
+.result-row .val { min-width: 40mm; padding: 0 2mm; }
 
 .issue-line {
     text-align: center; font-size: 17px; font-weight: 700;
