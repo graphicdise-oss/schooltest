@@ -267,6 +267,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/export-excel', 'exportExcel')->name('exportExcel');
     });
 
+    Route::controller(\App\Http\Controllers\Academic\PorPor7Controller::class)->prefix('por7')->name('por7.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/print/{studentId}', 'print')->name('print');
+        Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
+    });
+
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
         Route::post('/', 'storeYear')->name('storeYear');
         Route::put('/{id}/current', 'setYearCurrent')->name('setYearCurrent');
