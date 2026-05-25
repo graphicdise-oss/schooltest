@@ -38,7 +38,7 @@ body {
 .school-addr {
     font-size: 24px; text-align: center; margin-bottom: 2mm;
 }
-.divider { border-top: 1px solid #000; margin: 1.5mm 0 2.5mm; }
+.divider { margin: 1.5mm 0 2.5mm; }
 
 /* Data rows */
 .data-row {
