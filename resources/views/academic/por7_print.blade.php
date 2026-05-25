@@ -6,84 +6,128 @@
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
-    font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif;
-    font-size: 16px; color: #000; background: #e0e0e0;
+    font-family: 'TH Sarabun New', 'THSarabun', 'Sarabun', 'Tahoma', sans-serif;
+    font-size: 21px; color: #000; background: #e0e0e0;
     -webkit-font-smoothing: antialiased;
 }
 .page {
     width: 210mm; min-height: 297mm;
-    margin: 0 auto 10mm; padding: 15mm 20mm 12mm;
+    margin: 0 auto 10mm; padding: 15mm 20mm 15mm;
     background: #fff;
     box-shadow: 0 0 8px rgba(0,0,0,0.15);
     position: relative;
-    display: flex; flex-direction: column;
 }
 .por-label {
-    position: absolute; top: 10mm; right: 14mm;
-    font-size: 14px; font-weight: 600;
+    position: absolute; top: 12mm; right: 14mm;
+    font-size: 138%; font-weight: 600;
 }
-.header { text-align: center; margin-bottom: 4mm; }
-.header img { width: 28mm; height: 28mm; object-fit: contain; margin-bottom: 3mm; }
+.header {
+    text-align: center; margin-bottom: 3mm;
+}
+.header img {
+    width: 28mm; height: 28mm; object-fit: contain;
+}
 .doc-title {
-    font-size: 26px; font-weight: 700; text-align: center;
-    margin-bottom: 4mm;
+    font-size: 250%; font-weight: bold; text-align: center;
+    margin-bottom: 2mm; line-height: 1.2;
 }
 .school-name {
-    font-size: 17px; font-weight: 600; text-align: center;
-    margin-bottom: 1.5mm;
+    font-size: 30px; font-weight: 600; text-align: center;
+    margin-bottom: 1mm;
 }
 .school-addr {
-    font-size: 15px; text-align: center; margin-bottom: 5mm;
+    font-size: 26px; text-align: center; margin-bottom: 4mm;
 }
 .divider { border-top: 1px solid #000; margin: 2mm 0 4mm; }
 
-.info-table { width: 100%; border-collapse: collapse; font-size: 16px; margin-bottom: 3mm; }
-.info-table td { padding: 1.5mm 0; vertical-align: baseline; }
-.info-table .lbl { font-weight: 700; white-space: nowrap; padding-right: 2mm; }
-.info-table .val {
-    padding: 0 2mm 0; min-width: 30mm;
+/* Data rows */
+.data-row {
+    display: flex; align-items: baseline;
+    margin-bottom: 2mm; font-size: 21px;
 }
-.info-table .val-inline { padding-right: 4mm; }
+.data-row .lbl {
+    font-weight: bold; white-space: nowrap; flex-shrink: 0;
+    padding-right: 2mm;
+}
+.data-row .val {
+    flex: 1; padding: 0 2mm;
+    border-bottom: 1px solid #999;
+    min-height: 7mm; line-height: 1.1;
+}
+.data-row .val.no-border { border-bottom: none; }
 
-.full-row { display: flex; align-items: baseline; gap: 2mm; margin-bottom: 3mm; font-size: 16px; }
-.full-row .lbl { font-weight: 700; white-space: nowrap; flex-shrink: 0; }
-.full-row .val { flex: 1; padding: 0 2mm; }
+/* Two-column rows */
+.data-row-2col {
+    display: flex; align-items: baseline;
+    margin-bottom: 2mm; font-size: 21px;
+}
+.data-row-2col .col {
+    display: flex; align-items: baseline; flex: 1;
+}
+.data-row-2col .col:first-child { flex: 1.4; }
+.data-row-2col .lbl {
+    font-weight: bold; white-space: nowrap; flex-shrink: 0;
+    padding-right: 2mm;
+}
+.data-row-2col .val {
+    flex: 1; padding: 0 2mm;
+    border-bottom: 1px solid #999;
+    min-height: 7mm; line-height: 1.1;
+}
 
-.result-area { margin: 5mm 0 5mm 20mm; font-size: 16px; }
-.result-row { display: flex; align-items: baseline; gap: 4mm; margin-bottom: 4mm; }
-.result-row .lbl { font-weight: 700; width: 35mm; }
-.result-row .val { min-width: 40mm; padding: 0 2mm; }
+/* Result area */
+.result-area { margin: 4mm 0 4mm 15mm; }
+.result-row {
+    display: flex; align-items: baseline;
+    margin-bottom: 3mm; font-size: 21px;
+}
+.result-row .lbl { font-weight: bold; width: 38mm; flex-shrink: 0; }
+.result-row .val {
+    flex: 1;
+    border-bottom: 1px solid #999;
+    min-height: 7mm; padding: 0 2mm;
+}
 
 .issue-line {
-    text-align: center; font-size: 17px; font-weight: 700;
-    margin: 6mm 0 8mm;
+    text-align: center; font-size: 21px; font-weight: bold;
+    margin: 6mm 0 6mm;
 }
 
+/* Sign area */
 .sign-area {
     display: flex; align-items: flex-start; gap: 0;
-    margin-top: 4mm;
+    margin-top: 2mm;
 }
 .photo-box {
-    width: 35mm; height: 45mm;
+    width: 30mm; height: 40mm;
     border: 1px solid #666;
     display: flex; align-items: center; justify-content: center;
-    font-size: 12px; color: #999; flex-shrink: 0;
+    font-size: 13px; color: #999; flex-shrink: 0;
     overflow: hidden;
 }
 .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-.signatures { flex: 1; padding-left: 10mm; }
-.sig-block { margin-bottom: 8mm; }
+.signatures { flex: 1; padding-left: 6mm; }
+.sig-block { margin-bottom: 6mm; }
 .sig-dots {
     border-bottom: 1px dotted #666;
     width: 70mm; margin: 0 auto 1mm;
-    height: 8mm;
+    height: 9mm;
 }
-.sig-name { text-align: center; font-size: 15px; }
-.sig-position { text-align: center; font-weight: 700; font-size: 15px; }
+.sig-name { text-align: center; font-size: 20px; }
+.sig-position { text-align: center; font-weight: bold; font-size: 20px; }
+
+/* Registrar below photo */
+.registrar-block { margin-top: 5mm; }
+.registrar-block .sig-dots {
+    width: 70mm; border-bottom: 1px dotted #666;
+    height: 9mm; margin: 0 auto 1mm;
+}
+.registrar-block .sig-name { text-align: center; font-size: 20px; }
+.registrar-block .sig-position { text-align: center; font-weight: bold; font-size: 20px; }
 
 .remark {
-    margin-top: 8mm; font-size: 14px;
+    margin-top: 6mm; font-size: 18px;
     border-top: 0.5px solid #ccc; padding-top: 3mm;
 }
 
@@ -91,7 +135,7 @@ body {
 @page { size: A4 portrait; margin: 0; }
 @media print {
     body { background: #fff; }
-    .page { box-shadow: none; margin: 0; padding: 15mm 20mm 12mm; }
+    .page { box-shadow: none; margin: 0; padding: 15mm 20mm 15mm; }
     .no-print { display: none !important; }
 }
 </style>
@@ -157,50 +201,56 @@ $fullName = ($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . '
     <div class="school-name">{{ $school['name'] ?? '' }}</div>
     <div class="school-addr">
         สำนักงานศึกษาธิการจังหวัด{{ $school['changwat'] ?? '' }}
-        &nbsp; อำเภอ{{ $school['amphoe'] ?? '' }}
-        &nbsp; จังหวัด{{ $school['changwat'] ?? '' }}
+        &nbsp;&nbsp; อำเภอ{{ $school['amphoe'] ?? '' }}
+        &nbsp;&nbsp; จังหวัด{{ $school['changwat'] ?? '' }}
     </div>
 
     <div class="divider"></div>
 
     {{-- แถว 1: ชื่อ + เลขประจำตัวนักเรียน --}}
-    <table class="info-table">
-        <tr>
-            <td class="lbl" style="width:72mm;">ขอรับรองสถานภาพการเรียนของ</td>
-            <td class="val" style="width:70mm;">{{ $fullName }}</td>
-            <td class="lbl" style="padding-left:4mm;white-space:nowrap;">เลขประจำตัวนักเรียน</td>
-            <td class="val">{{ $student->student_code ?? '' }}</td>
-        </tr>
-    </table>
+    <div class="data-row-2col">
+        <div class="col" style="flex:1.8;">
+            <span class="lbl">ขอรับรองสถานภาพการเรียนของ</span>
+            <span class="val">{{ $fullName }}</span>
+        </div>
+        <div class="col" style="flex:1; padding-left:4mm;">
+            <span class="lbl">เลขประจำตัวนักเรียน</span>
+            <span class="val">{{ $student->student_code ?? '' }}</span>
+        </div>
+    </div>
 
     {{-- แถว 2: เลขบัตร + วันเกิด --}}
-    <table class="info-table">
-        <tr>
-            <td class="lbl" style="width:52mm;">เลขประจำตัวประชาชน</td>
-            <td class="val" style="width:55mm;">{{ $student->id_card_number ?? '' }}</td>
-            <td class="lbl" style="padding-left:4mm;white-space:nowrap;"><strong>เกิดวันที่</strong></td>
-            <td style="padding-left:2mm;">{{ $dobFormatted }}</td>
-        </tr>
-    </table>
+    <div class="data-row-2col">
+        <div class="col" style="flex:1.5;">
+            <span class="lbl">เลขประจำตัวประชาชน</span>
+            <span class="val">{{ $student->id_card_number ?? '' }}</span>
+        </div>
+        <div class="col" style="flex:1; padding-left:4mm;">
+            <span class="lbl">เกิดวันที่</span>
+            <span class="val">{{ $dobFormatted }}</span>
+        </div>
+    </div>
 
     {{-- แถว 3: บิดา + มารดา --}}
-    <table class="info-table" style="margin-top:1mm;">
-        <tr>
-            <td class="lbl" style="width:42mm;">ชื่อ - นามสกุลบิดา</td>
-            <td class="val" style="width:70mm;">{{ $fatherName }}</td>
-            <td class="lbl" style="padding-left:4mm;white-space:nowrap;">ชื่อ - นามสกุลมารดา</td>
-            <td class="val">{{ $motherName }}</td>
-        </tr>
-    </table>
+    <div class="data-row-2col">
+        <div class="col" style="flex:1.2;">
+            <span class="lbl">ชื่อ-นามสกุลบิดา</span>
+            <span class="val">{{ $fatherName }}</span>
+        </div>
+        <div class="col" style="flex:1; padding-left:4mm;">
+            <span class="lbl">ชื่อ-นามสกุลมารดา</span>
+            <span class="val">{{ $motherName }}</span>
+        </div>
+    </div>
 
     {{-- แถว 4: เป็นนักเรียนของ --}}
-    <div class="full-row" style="margin-top:2mm;">
+    <div class="data-row" style="margin-top:1mm;">
         <span class="lbl">เป็นนักเรียนของ</span>
-        <span class="val">
+        <span class="val no-border">
             {{ $school['name'] ?? '' }}
-            กำลังศึกษาชั้น {{ $levelSection }}
-            @if($section?->program) {{ $section->program }} @endif
-            ปีการศึกษา {{ $yearName }}
+            &nbsp; กำลังศึกษาชั้น {{ $levelSection }}
+            @if($section?->program) &nbsp;{{ $section->program }} @endif
+            &nbsp; ปีการศึกษา {{ $yearName }}
         </span>
     </div>
 
@@ -235,7 +285,7 @@ $fullName = ($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . '
 
         <div class="signatures">
             {{-- ผู้อำนวยการ --}}
-            <div class="sig-block" style="margin-top:6mm;">
+            <div class="sig-block" style="margin-top:8mm;">
                 <div class="sig-dots"></div>
                 <div class="sig-name">( {{ $school['director_name'] ?? '' }} )</div>
                 <div class="sig-position">{{ $school['director_position'] ?? 'ผู้อำนวยการ' }}</div>
@@ -244,8 +294,8 @@ $fullName = ($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . '
     </div>
 
     {{-- นายทะเบียน --}}
-    <div style="margin-top:6mm;">
-        <div class="sig-dots" style="width:70mm;border-bottom:1px dotted #666;height:8mm;"></div>
+    <div class="registrar-block">
+        <div class="sig-dots"></div>
         <div class="sig-name">( {{ $school['registrar_name'] ?? '' }} )</div>
         <div class="sig-position">{{ $school['registrar_position'] ?? 'นายทะเบียน' }}</div>
     </div>
