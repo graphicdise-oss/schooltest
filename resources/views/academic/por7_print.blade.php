@@ -51,7 +51,6 @@ body {
 }
 .data-row .val {
     flex: 1; padding: 0 2mm;
-    border-bottom: 1px solid #999;
     min-height: 7mm; line-height: 1.1;
 }
 .data-row .val.no-border { border-bottom: none; }
@@ -71,7 +70,6 @@ body {
 }
 .data-row-2col .val {
     flex: 1; padding: 0 2mm;
-    border-bottom: 1px solid #999;
     min-height: 7mm; line-height: 1.1;
 }
 
@@ -84,7 +82,6 @@ body {
 .result-row .lbl { font-weight: bold; width: 38mm; flex-shrink: 0; }
 .result-row .val {
     flex: 1;
-    border-bottom: 1px solid #999;
     min-height: 7mm; padding: 0 2mm;
 }
 
