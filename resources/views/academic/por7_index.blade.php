@@ -153,6 +153,9 @@
                 </div>
                 <div class="p7-field" style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
+                    <button type="button" class="btn-search" style="background:#00897b;" onclick="openSchoolSettingModal()">
+                        <i class="bi bi-gear"></i> ตั้งค่าข้อมูลโรงเรียน
+                    </button>
                     <button type="button" class="btn-search" style="background:#5c6bc0;" onclick="openSignSettingsModal()">
                         <i class="bi bi-pen"></i> ตั้งค่าผู้ลงนาม
                     </button>
@@ -311,6 +314,58 @@
     </div>
 </div>
 
+{{-- Modal: ตั้งค่าข้อมูลโรงเรียน --}}
+<div class="p7-modal-overlay" id="schoolSettingModal" onclick="if(event.target===this)this.classList.remove('open')">
+    <div class="p7-modal" style="width:560px;max-width:95vw;" onclick="event.stopPropagation()">
+        <h3><i class="bi bi-gear"></i> ตั้งค่าข้อมูลโรงเรียน</h3>
+        @if(session('success') && str_contains(session('success'), 'โรงเรียน'))
+        <div style="background:#e8f5e9;color:#2e7d32;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:0.85rem;">
+            ✓ {{ session('success') }}
+        </div>
+        @endif
+        <form method="POST" action="{{ route('por7.saveSchoolSetting') }}">
+            @csrf
+            <div class="p7-modal-field">
+                <label>ชื่อโรงเรียน</label>
+                <input type="text" name="school_name" class="form-control"
+                    value="{{ old('school_name', $setting?->school_name ?? config('school.name')) }}"
+                    placeholder="เช่น โรงเรียนสาธิตมหาวิทยาลัย...">
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <div class="p7-modal-field">
+                    <label>จังหวัด</label>
+                    <input type="text" name="province" class="form-control"
+                        value="{{ old('province', $setting?->province ?? config('school.changwat')) }}"
+                        placeholder="เช่น ปทุมธานี">
+                </div>
+                <div class="p7-modal-field">
+                    <label>ชื่อผู้อำนวยการ</label>
+                    <select name="director_personnel_id" class="form-select">
+                        <option value="">-- เลือกบุคลากร --</option>
+                        @foreach($directors as $p)
+                            @php $fullName = ($p->thai_prefix ?? '').$p->thai_firstname.' '.$p->thai_lastname; @endphp
+                            <option value="{{ $p->personnel_id }}"
+                                {{ ($setting?->director_personnel_id) == $p->personnel_id ? 'selected' : '' }}>
+                                {{ $fullName }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            </div>
+            <div class="p7-modal-field">
+                <label>สังกัด</label>
+                <input type="text" name="affiliation" class="form-control"
+                    value="{{ old('affiliation', $setting?->affiliation ?? config('school.affiliation')) }}"
+                    placeholder="เช่น สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม">
+            </div>
+            <div class="p7-modal-actions">
+                <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> บันทึก</button>
+                <button type="button" class="btn-cancel" onclick="closeSchoolSettingModal()">ยกเลิก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
 const today = new Date().toISOString().split('T')[0];
 
@@ -323,6 +378,9 @@ function openPrintModal(studentId, semesterId) {
 
 function openSignSettingsModal() { document.getElementById('signSettingsModal').classList.add('open'); }
 function closeSignSettingsModal() { document.getElementById('signSettingsModal').classList.remove('open'); }
+
+function openSchoolSettingModal() { document.getElementById('schoolSettingModal').classList.add('open'); }
+function closeSchoolSettingModal() { document.getElementById('schoolSettingModal').classList.remove('open'); }
 
 function onPersonnelChange(role) {
     const sel = document.getElementById(role + '_personnel_id');

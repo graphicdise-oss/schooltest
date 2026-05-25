@@ -73,13 +73,19 @@ class PorPor7Controller extends Controller
             ->orderBy('thai_firstname')
             ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
 
+        $directors = Personnel::where('position', 'ผู้อำนวยการโรงเรียน')
+            ->orWhere('position', 'like', '%ผู้อำนวยการ%')
+            ->orderBy('thai_firstname')
+            ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
+
         $signSettings = Pp2Setting::getInstance();
+        $setting = $signSettings;
 
         return view('academic.por7_index', compact(
             'academicYears', 'levels', 'sections', 'students',
             'yearId', 'term', 'levelId', 'sectionId', 'search',
             'semesterId', 'currentSection',
-            'personnels', 'signSettings'
+            'personnels', 'directors', 'signSettings', 'setting'
         ));
     }
 
@@ -118,12 +124,11 @@ class PorPor7Controller extends Controller
 
         $signSettings = Pp2Setting::getInstance();
         $school = config('school');
-        if ($signSettings->registrar_name) {
-            $school['registrar_name'] = $signSettings->registrar_name;
-        }
-        if ($signSettings->director_name) {
-            $school['director_name'] = $signSettings->director_name;
-        }
+        if ($signSettings->school_name)  $school['name']           = $signSettings->school_name;
+        if ($signSettings->province)     $school['changwat']        = $signSettings->province;
+        if ($signSettings->affiliation)  $school['affiliation']     = $signSettings->affiliation;
+        if ($signSettings->registrar_name) $school['registrar_name'] = $signSettings->registrar_name;
+        if ($signSettings->director_name)  $school['director_name']  = $signSettings->director_name;
 
         $issueDate   = $request->issue_date ?? date('Y-m-d');
         $gradeResult = $request->grade_result ?? '';
@@ -145,6 +150,35 @@ class PorPor7Controller extends Controller
             'issueDateFormatted', 'gradeResult', 'behavior',
             'dobFormatted'
         ));
+    }
+
+    public function saveSchoolSetting(Request $request)
+    {
+        $request->validate([
+            'school_name' => 'nullable|string|max:255',
+            'province'    => 'nullable|string|max:100',
+            'affiliation' => 'nullable|string|max:255',
+            'director_personnel_id' => 'nullable|integer',
+        ]);
+
+        $setting = Pp2Setting::first();
+        $data = $request->only(['school_name', 'province', 'affiliation']);
+
+        if ($request->director_personnel_id) {
+            $director = Personnel::find($request->director_personnel_id);
+            if ($director) {
+                $data['director_name'] = trim(($director->thai_prefix ?? '') . $director->thai_firstname . ' ' . $director->thai_lastname);
+                $data['director_personnel_id'] = $director->personnel_id;
+            }
+        }
+
+        if ($setting) {
+            $setting->update($data);
+        } else {
+            Pp2Setting::create($data);
+        }
+
+        return redirect()->back()->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');
     }
 
     public function saveSignSettings(Request $request)
