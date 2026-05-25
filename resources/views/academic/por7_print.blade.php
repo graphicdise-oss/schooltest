@@ -25,10 +25,10 @@ body {
     text-align: center; margin-bottom: 3mm;
 }
 .header img {
-    width: 28mm; height: 28mm; object-fit: contain;
+    width: 33mm; height: 33mm; object-fit: contain;
 }
 .doc-title {
-    font-size: 250%; font-weight: bold; text-align: center;
+    font-size: 200%; font-weight: bold; text-align: center;
     margin-bottom: 2mm; line-height: 1.2;
 }
 .school-name {
