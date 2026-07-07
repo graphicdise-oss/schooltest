@@ -97,22 +97,97 @@
                     <div style="color:#d97706; font-weight:700; font-size:24px;">{{ number_format($holidayDays) }} <span style="font-size:13px; font-weight:500;">วัน</span></div>
                 </div>
             </div>
-            @if($holidays->isNotEmpty())
-                <div style="max-height:130px; overflow-y:auto;">
-                    @foreach($holidays as $h)
-                    <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #e6ebf5; font-size:14px;">
-                        <span style="color:#082b75;">{{ $h->title }}</span>
-                        <span style="color:#6b7a99;">{{ $thDate($h->start_date) }}@if($h->end_date && $h->end_date->ne($h->start_date))–{{ $thDate($h->end_date) }}@endif</span>
-                    </div>
-                    @endforeach
-                </div>
-            @else
+            @if($holidays->isEmpty())
                 <p style="color:#94a3b8; font-size:13px; margin:0;">
                     <i class="fa-regular fa-circle-question"></i>
                     ยังไม่มีวันหยุดในปีการศึกษานี้ — เพิ่มได้ที่เมนู
                     <a href="{{ route('holidays.index') }}" style="color:#4b7ce3;">ตั้งค่าวันหยุด</a>
                 </p>
             @endif
+        </div>
+    </div>
+
+    {{-- ===== ปฏิทินวันหยุด ===== --}}
+    <div style="background:#fff; border-radius:14px; padding:20px; box-shadow:0 2px 10px rgba(8,43,117,.08); margin-bottom:20px;"
+         x-data="{
+            holidays: @json($holidayMap),
+            view: new Date({{ $calYear }}, {{ $calMonth }} - 1, 1),
+            months: ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],
+            dows: ['อา','จ','อ','พ','พฤ','ศ','ส'],
+            get y() { return this.view.getFullYear(); },
+            get m() { return this.view.getMonth(); },
+            get label() { return this.months[this.m] + ' ' + (this.y + 543); },
+            get todayKey() {
+                let t = new Date();
+                return t.getFullYear() + '-' + String(t.getMonth()+1).padStart(2,'0') + '-' + String(t.getDate()).padStart(2,'0');
+            },
+            get cells() {
+                let start = new Date(this.y, this.m, 1).getDay();
+                let total = new Date(this.y, this.m + 1, 0).getDate();
+                let out = [];
+                for (let i = 0; i < start; i++) out.push(null);
+                for (let d = 1; d <= total; d++) {
+                    let key = this.y + '-' + String(this.m+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+                    out.push({ d: d, key: key, name: this.holidays[key] || null });
+                }
+                return out;
+            },
+            get monthHolidays() {
+                let pre = this.y + '-' + String(this.m+1).padStart(2,'0');
+                return Object.keys(this.holidays).filter(k => k.indexOf(pre) === 0).sort()
+                    .map(k => ({ day: parseInt(k.slice(8)), name: this.holidays[k] }));
+            },
+            prev() { this.view = new Date(this.y, this.m - 1, 1); },
+            next() { this.view = new Date(this.y, this.m + 1, 1); }
+         }">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <h3 style="color:#082b75; font-weight:700; font-size:17px; margin:0;">
+                <i class="fa-solid fa-calendar-day" style="color:#4b7ce3;"></i> ปฏิทินวันหยุด
+            </h3>
+            <div style="display:flex; align-items:center; gap:10px;">
+                <button type="button" @click="prev()" style="border:none; background:#eef4ff; color:#2563eb; width:34px; height:34px; border-radius:8px; cursor:pointer;">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <span x-text="label" style="min-width:150px; text-align:center; color:#082b75; font-weight:600;"></span>
+                <button type="button" @click="next()" style="border:none; background:#eef4ff; color:#2563eb; width:34px; height:34px; border-radius:8px; cursor:pointer;">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:6px;">
+            <template x-for="(dw, i) in dows" :key="'dw'+i">
+                <div style="text-align:center; font-size:13px; font-weight:600; color:#94a3b8; padding:4px 0;" x-text="dw"></div>
+            </template>
+            <template x-for="(c, i) in cells" :key="'c'+i">
+                <div>
+                    <template x-if="c">
+                        <div :title="c.name || ''"
+                             :style="'position:relative; text-align:center; padding:9px 0; border-radius:8px; font-size:14px; ' +
+                                     (c.name ? 'background:#fff1e6; color:#d97706; font-weight:700;' :
+                                      (c.key === todayKey ? 'background:#eef4ff; color:#2563eb; font-weight:700;' : 'color:#334155;'))">
+                            <span x-text="c.d"></span>
+                            <span x-show="c.name" style="position:absolute; bottom:4px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:#d97706;"></span>
+                        </div>
+                    </template>
+                    <template x-if="!c"><div></div></template>
+                </div>
+            </template>
+        </div>
+
+        <div style="margin-top:14px; border-top:1px dashed #e6ebf5; padding-top:12px;">
+            <template x-if="monthHolidays.length">
+                <div style="display:flex; flex-wrap:wrap; gap:8px;">
+                    <template x-for="(h, i) in monthHolidays" :key="'mh'+i">
+                        <span style="background:#fff1e6; color:#b45309; border-radius:20px; padding:4px 12px; font-size:13px;">
+                            <span x-text="h.day"></span> <span x-text="label.split(' ')[0]"></span> · <span x-text="h.name"></span>
+                        </span>
+                    </template>
+                </div>
+            </template>
+            <template x-if="!monthHolidays.length">
+                <p style="color:#94a3b8; font-size:13px; margin:0;">ไม่มีวันหยุดในเดือนนี้</p>
+            </template>
         </div>
     </div>
 

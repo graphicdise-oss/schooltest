@@ -43,6 +43,23 @@ class DashboardController extends Controller
             : collect();
         $holidayDays = $holidays->sum('day_count');
 
+        // แผนที่วันที่ -> ชื่อวันหยุด (กระจายช่วงวันหยุดหลายวันออกเป็นรายวัน) สำหรับปฏิทิน
+        $holidayMap = [];
+        foreach ($holidays as $h) {
+            if (!$h->start_date) continue;
+            $d   = $h->start_date->copy();
+            $end = $h->end_date ?? $h->start_date;
+            while ($d->lte($end)) {
+                $holidayMap[$d->format('Y-m-d')] = $h->title;
+                $d->addDay();
+            }
+        }
+
+        // เดือนเริ่มต้นของปฏิทิน: เดือนของวันหยุดแรก ถ้าไม่มีใช้เดือนปัจจุบัน
+        $calDate  = $holidays->isNotEmpty() ? $holidays->first()->start_date : now();
+        $calYear  = (int) $calDate->format('Y');
+        $calMonth = (int) $calDate->format('n');
+
         // ===== คะแนนเต็มความประพฤติ (จาก config) =====
         $conductFullScore = config('school.conduct_full_score', 100);
 
@@ -105,7 +122,7 @@ class DashboardController extends Controller
             'currentYear', 'currentSemester',
             'studentsStudying', 'personnelWorking',
             'semStart', 'semEnd', 'daysTotal', 'daysLeft',
-            'holidays', 'holidayDays', 'conductFullScore',
+            'holidays', 'holidayDays', 'holidayMap', 'calYear', 'calMonth', 'conductFullScore',
             'studentsByLevel', 'enrolledTotal', 'studentsNotOpened',
             'overview'
         ));
