@@ -136,7 +136,7 @@
                 </div>
 
                 {{-- Dashboard --}}
-                <a id="menu-dashboard" href="#" @mouseenter="moveIndicator($el); hoverItem = 'dashboard'"
+                <a id="menu-dashboard" href="{{ route('dashboard') }}" @mouseenter="moveIndicator($el); hoverItem = 'dashboard'"
                     :class="(hoverItem === 'dashboard' || (hoverItem === null && activeItem === 'dashboard')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
                     <i class="fa-solid fa-border-all w-6 text-center mr-2"></i> Dashboard
