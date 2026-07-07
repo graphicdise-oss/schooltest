@@ -171,59 +171,64 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
     </div>
 
     {{-- ตาราง --}}
-    <div class="ts-grid-wrap">
-        <table class="ts-grid">
-            <thead>
-                <tr>
-                    <th class="day-col">วัน / เวลา</th>
-                    @foreach($hours as $h)
-                    <th>
-                        {{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00<br>
-                        <span style="color:#aaa;font-weight:400">{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00</span>
-                    </th>
-                    @endforeach
-                </tr>
-            </thead>
-                       <tbody>
-                @php
-                $skipCells = [];
-                foreach ($slotGrid as $d => $daySlots) {
-                    foreach ($daySlots as $h => $cell) {
-                        $span = $cell['span'] ?? 1;
-                        for ($s = 1; $s < $span; $s++) {
-                            $skipCells[$d][$h + $s] = true;
-                        }
-                    }
-                }
-                @endphp
-                @foreach($days as $day)
-                <tr>
-                    <th class="day-col">{{ $day }}</th>
-                    @foreach($hours as $h)
-                    @if(isset($skipCells[$day][$h]))
-                        @continue
-                    @endif
-                    @php $cell = $slotGrid[$day][$h] ?? null; @endphp
-                    @if($cell)
-                        <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
-                            <div class="ts-slot" style="background:{{ $colorMap[$cell['assign']->assign_id] }}">
-                                <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
-                                <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
-                                <div class="ts-slot-teacher">{{ $cell['assign']->personnel->thai_firstname }}</div>
-                                <form method="POST" action="{{ route('timetable.destroySlot', $cell['slot']->slot_id) }}"
-                                      onsubmit="return confirm('ลบคาบนี้?')" style="display:inline">
-                                    @csrf @method('DELETE')
-                                    <button type="submit" class="ts-slot-del">✕</button>
-                                </form>
-                            </div>
-                        </td>
-                    @else
-                        <td onclick="openSlotModal('{{ $day }}','{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00','{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00')"></td>
-                    @endif
-                    @endforeach
-                </tr>
+<div class="ts-grid-wrap">
+    <table class="ts-grid">
+        <thead>
+            <tr>
+                <th class="day-col">วัน / เวลา</th>
+                @foreach($hours as $h)
+                <th>
+                    {{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00<br>
+                    <span style="color:#aaa;font-weight:400">{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00</span>
+                </th>
                 @endforeach
-            </tbody>
+            </tr>
+        </thead>
+      <tbody>
+    @php
+    $skipCells = [];
+    foreach ($slotGrid as $d => $daySlots) {
+        foreach ($daySlots as $h => $cell) {
+            $span = $cell['span'] ?? 1;
+            for ($s = 1; $s < $span; $s++) {
+                $skipCells[$d][$h + $s] = true;
+            }
+        }
+    }
+    @endphp
+    @foreach($days as $day)
+    <tr>
+        <th class="day-col">{{ $day }}</th>
+        @foreach($hours as $h)
+            @if(isset($skipCells[$day][$h]))
+                @continue
+            @endif
+            @php $cell = $slotGrid[$day][$h] ?? null; @endphp
+            @if($cell)
+                @php
+                    $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
+                    $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
+                @endphp
+                <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
+                    <div class="ts-slot" style="background:{{ $colorMap[$cell['assign']->assign_id] }}">
+                        <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
+                        <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
+                        <div class="ts-slot-teacher">{{ $cell['assign']->personnel->thai_firstname }}</div>
+                        <div style="font-size:0.62rem;opacity:0.85;margin-top:2px">{{ $tStart }}–{{ $tEnd }}</div>
+                        <form method="POST" action="{{ route('timetable.destroySlot', $cell['slot']->slot_id) }}"
+                              onsubmit="return confirm('ลบคาบนี้?')" style="display:inline">
+                            @csrf @method('DELETE')
+                            <button type="submit" class="ts-slot-del">✕</button>
+                        </form>
+                    </div>
+                </td>
+            @else
+                <td onclick="openSlotModal('{{ $day }}','{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00','{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00')"></td>
+            @endif
+        @endforeach
+    </tr>
+    @endforeach
+</tbody>
         </table>
     </div>
 
@@ -280,20 +285,22 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                         @endforeach
                     </select>
                 </div>
-            <div class="mrow">
+             <div class="mrow">
     <div class="mfield">
         <label>เวลาเริ่ม *</label>
         <select name="start_time" id="slotStart" required>
-            @for($i = 6; $i <= 17; $i++)    {{-- ← แก้ 6 เป็น 7, 20 เป็น 17 --}}
+            @for($i = 6; $i <= 17; $i++)
             <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
+            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
             @endfor
         </select>
     </div>
     <div class="mfield">
-               <label>เวลาสิ้นสุด *</label>
+        <label>เวลาสิ้นสุด *</label>
         <select name="end_time" id="slotEnd" required>
-            @for($i = 7; $i <= 18; $i++)    {{-- ← แก้ 7 เป็น 8, 21 เป็น 18 --}}
+            @for($i = 7; $i <= 18; $i++)
             <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
+            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
             @endfor
         </select>
     </div>

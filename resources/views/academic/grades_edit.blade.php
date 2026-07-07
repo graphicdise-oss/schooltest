@@ -138,9 +138,9 @@
         <div class="ge-card-header">
             <span class="ge-card-title">แก้ไขเกรด — รายวิชาที่เรียน</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap">
-                <a href="{{ route('grades.transcript.print', $student->student_id) }}" class="btn-print" target="_blank">
-                    <i class="bi bi-printer"></i> พิมพ์ Transcript
-                </a>
+              <button type="button" class="btn-print" onclick="document.getElementById('printSettingsModal').classList.add('active')">
+                <i class="bi bi-printer"></i> พิมพ์ Transcript
+            </button>
                 <a href="javascript:history.back()" class="btn-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
@@ -165,7 +165,7 @@
 
         @forelse($grades as $semKey => $semGrades)
         @php
-            [$yearName, $termName] = explode('|', $semKey . '|');
+            [$yearName, $levelName, $termName] = array_pad(explode('|', $semKey), 3, '');
             $semCredits = 0; $semPoints = 0;
             foreach($semGrades as $g) {
                 $c = $g->teachingAssign->subject->credits ?? 0;
@@ -176,7 +176,7 @@
         @endphp
         <div class="sem-section-header">
             <i class="bi bi-calendar3"></i>
-            ปีการศึกษา {{ $yearName }} ภาคเรียนที่ {{ $termName }}
+            ปีการศึกษา {{ $yearName }} {{ $levelName ? '— '.$levelName : '' }} ภาคเรียนที่ {{ $termName }}
             &nbsp;—&nbsp; GPA เทอมนี้: {{ $semGPA }} ({{ $semCredits }} หน่วยกิต)
         </div>
         <table class="ge-table">
@@ -280,3 +280,4 @@ document.addEventListener('keydown', e => {
 });
 </script>
 @endsection
+

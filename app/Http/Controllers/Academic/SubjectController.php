@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Academic\Subject;
 use Illuminate\Http\Request;
 
+
 class SubjectController extends Controller
 {
+
     public function index(Request $request)
     {
         $query = Subject::query();
@@ -26,7 +28,7 @@ class SubjectController extends Controller
     public function store(Request $request)
     {
         $request->validate(['code' => 'required|unique:subjects,code', 'name_th' => 'required', 'credits' => 'required|numeric']);
-        Subject::create($request->only(['code', 'name_th', 'name_en', 'subject_group', 'credits', 'hours_per_week']));
+        Subject::create($request->only(['code', 'name_th', 'name_short', 'code_en', 'name_en', 'subject_group', 'subject_type', 'credits', 'hours_per_week', 'hours_per_year']));
         return redirect()->back()->with('success', 'เพิ่มรายวิชาสำเร็จ');
     }
 
@@ -34,11 +36,12 @@ class SubjectController extends Controller
     {
         $subject = Subject::findOrFail($id);
         $request->validate(['code' => 'required|unique:subjects,code,' . $id . ',subject_id', 'name_th' => 'required']);
-        $subject->update($request->only(['code', 'name_th', 'name_en', 'subject_group', 'credits', 'hours_per_week']));
+        $subject->update($request->only(['code', 'name_th', 'name_short', 'code_en', 'name_en', 'subject_group', 'subject_type', 'credits', 'hours_per_week', 'hours_per_year']));
         return redirect()->back()->with('success', 'แก้ไขสำเร็จ');
     }
 
-    public function toggle($id)
+
+   public function toggle($id)
     {
         $s = Subject::findOrFail($id);
         $s->update(['is_active' => !$s->is_active]);

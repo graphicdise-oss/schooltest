@@ -47,30 +47,27 @@
 
                         <div class="si-form-row">
                             <label>ระดับชั้นเรียน</label>
-                            <select name="level" class="si-select">
+                            <select name="level_id" class="si-select" id="levelSelect" onchange="filterClassrooms()">
                                 <option value="">เลือกระดับชั้นเรียน</option>
-                                <option value="ป.1" {{ request('level') == 'ป.1' ? 'selected' : '' }}>ป.1</option>
-                                <option value="ป.2" {{ request('level') == 'ป.2' ? 'selected' : '' }}>ป.2</option>
-                                <option value="ป.3" {{ request('level') == 'ป.3' ? 'selected' : '' }}>ป.3</option>
-                                <option value="ป.4" {{ request('level') == 'ป.4' ? 'selected' : '' }}>ป.4</option>
-                                <option value="ป.5" {{ request('level') == 'ป.5' ? 'selected' : '' }}>ป.5</option>
-                                <option value="ป.6" {{ request('level') == 'ป.6' ? 'selected' : '' }}>ป.6</option>
-                                <option value="ม.1" {{ request('level') == 'ม.1' ? 'selected' : '' }}>ม.1</option>
-                                <option value="ม.2" {{ request('level') == 'ม.2' ? 'selected' : '' }}>ม.2</option>
-                                <option value="ม.3" {{ request('level') == 'ม.3' ? 'selected' : '' }}>ม.3</option>
-                                <option value="ม.4" {{ request('level') == 'ม.4' ? 'selected' : '' }}>ม.4</option>
-                                <option value="ม.5" {{ request('level') == 'ม.5' ? 'selected' : '' }}>ม.5</option>
-                                <option value="ม.6" {{ request('level') == 'ม.6' ? 'selected' : '' }}>ม.6</option>
+                                @foreach($levels as $lv)
+                                <option value="{{ $lv->level_id }}" {{ request('level_id') == $lv->level_id ? 'selected' : '' }}>
+                                    {{ $lv->name }}
+                                </option>
+                                @endforeach
                             </select>
                         </div>
 
                         <div class="si-form-row">
                             <label>ชั้นเรียน</label>
-                            <select name="classroom" class="si-select">
+                            <select name="section_id" class="si-select" id="classroomSelect">
                                 <option value="">เลือกชั้นเรียน</option>
-                                @for ($i = 1; $i <= 10; $i++)
-                                    <option value="{{ $i }}" {{ request('classroom') == $i ? 'selected' : '' }}>{{ $i }}</option>
-                                @endfor
+                                @foreach($classrooms as $room)
+                                <option value="{{ $room['section_id'] }}"
+                                    data-level="{{ $room['level_id'] }}"
+                                    {{ request('section_id') == $room['section_id'] ? 'selected' : '' }}>
+                                    {{ $room['label'] }}
+                                </option>
+                                @endforeach
                             </select>
                         </div>
 
@@ -229,6 +226,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        function filterClassrooms() {
+            const levelId = document.getElementById('levelSelect').value;
+            const sel = document.getElementById('classroomSelect');
+            Array.from(sel.options).forEach(opt => {
+                if (!opt.value) return;
+                opt.hidden = levelId && opt.dataset.level != levelId;
+            });
+            if (levelId && sel.options[sel.selectedIndex] && sel.options[sel.selectedIndex].dataset.level != levelId) {
+                sel.value = '';
+            }
+        }
+        document.addEventListener('DOMContentLoaded', filterClassrooms);
+
         function confirmDelete(e, form) {
             e.preventDefault();
             Swal.fire({

@@ -6,10 +6,19 @@
     <nav class="ac-breadcrumb"><a href="#">วิชาการ</a><i class="bi bi-chevron-right"></i><span>จัดการห้องเรียน</span></nav>
 
     <div class="ac-card">
-        <div class="ac-card-header">
-            <span><i class="bi bi-door-open"></i> ห้องเรียน</span>
-            <button class="ac-btn ac-btn-success" onclick="document.getElementById('addOverlay').classList.add('active')"><i class="bi bi-plus-lg"></i> เพิ่มห้องเรียน</button>
-        </div>
+       <div class="ac-card-header">
+    <span><i class="bi bi-door-open"></i> ห้องเรียน</span>
+    <div style="display:flex;gap:8px;">
+        <button class="ac-btn" style="background:#f59e0b;color:#fff;"
+            onclick="document.getElementById('copyTerm2Modal').classList.add('active')">
+            <i class="bi bi-copy"></i> เปิดภาคเรียนที่ 2
+        </button>
+        <button class="ac-btn ac-btn-success"
+            onclick="document.getElementById('addOverlay').classList.add('active')">
+            <i class="bi bi-plus-lg"></i> เพิ่มห้องเรียน
+        </button>
+    </div>
+</div>
         <div class="ac-card-body">
             {{-- เลือกเทอม --}}
             <div class="ac-field" style="max-width:400px; margin-bottom:16px">
@@ -153,5 +162,46 @@ document.addEventListener('keydown', e => {
 });
 </script>
 
+{{-- Modal: เปิดภาคเรียนที่ 2 --}}
+<div class="ac-overlay" id="copyTerm2Modal" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="ac-modal">
+        <div class="ac-modal-header">
+            <i class="bi bi-copy me-2"></i> เปิดภาคเรียนที่ 2 (คัดลอกห้องเรียน)
+        </div>
+        <form method="POST" action="{{ route('class-sections.copy-term2') }}">
+            @csrf
+            <div class="ac-modal-body">
 
+                <p style="font-size:0.85rem;color:#666;margin-bottom:16px;">
+                    ระบบจะคัดลอกทุกห้องเรียนจากเทอม 1 ไปสร้างเป็นเทอม 2 ของปีเดียวกัน
+                    พร้อมย้ายนักเรียนทั้งหมดเข้าด้วย
+                </p>
+
+                <div style="margin-bottom:14px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">
+                        เลือกปีการศึกษาเทอม 1 (ต้นทาง)
+                    </label>
+                    <select name="from_semester_id" required class="ac-select">
+                        <option value="">-- เลือก --</option>
+                        @foreach($semesters->filter(fn($s) => $s->semester_name == '1') as $sem)
+                        <option value="{{ $sem->semester_id }}" {{ $semesterId == $sem->semester_id ? 'selected' : '' }}>
+                            {{ $sem->academicYear->year_name }} เทอม {{ $sem->semester_name }}
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+
+            </div>
+            <div class="ac-modal-footer">
+                <button type="button" class="ac-btn ac-btn-secondary"
+                    onclick="document.getElementById('copyTerm2Modal').classList.remove('active')">
+                    ยกเลิก
+                </button>
+                <button type="submit" class="ac-btn" style="background:#f59e0b;color:#fff;">
+                    <i class="bi bi-copy"></i> เปิดภาคเรียนที่ 2
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection

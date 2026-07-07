@@ -20,7 +20,18 @@ use App\Http\Controllers\Academic\PromotionController;
 use App\Http\Controllers\Student\StudentAlumniController;
 use App\Http\Controllers\Setting\PositionController;
 use App\Http\Controllers\Student\StudentCardController;
+use App\Http\Controllers\Academic\PorPor1Controller;
+use App\Http\Controllers\Academic\PorPor3Controller;
 use App\Http\Controllers\Academic\AcademicYearController;
+use App\Http\Controllers\Setting\LeaveSettingController;
+use App\Http\Controllers\Leave\LeavePersonnelController;
+use App\Http\Controllers\Leave\LeaveRequestController;
+use App\Http\Controllers\Setting\DepartmentController;
+use App\Http\Controllers\Student\ClassRosterController;
+use App\Http\Controllers\Student\StudentStatController;
+use App\Http\Controllers\Academic\Pp2Controller;
+use App\Http\Controllers\Academic\ExamRoomController;
+use App\Http\Controllers\ChangeRequestController;
 
 // --- 1. หน้าทั่วไป ---
 Route::view('/', 'welcome');
@@ -56,6 +67,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/students/health', 'storeHealth')->name('students.storeHealth');
     });
 
+
     // === บุคลากร ===
     Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->group(function () {
 
@@ -65,9 +77,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
-        Route::put('/{id}/credentials', 'updateCredentials')->name('updateCredentials');  // ← เพิ่มบรรทัดนี้
-        // เพิ่มใน group personnels ที่มีอยู่แล้ว
-
+        Route::put('/{id}/credentials', 'updateCredentials')->name('updateCredentials');
 
         // ข้อมูลการศึกษา
         Route::post('/education', 'storeEducation')->name('education.store');
@@ -154,7 +164,6 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
         Route::get('/year/{year}', 'byYear')->name('byYear');
         Route::post('/{id}/copy', 'copy')->name('copy');
-
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===
@@ -166,22 +175,23 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{id}/students', 'manageStudents')->name('students');
         Route::post('/{id}/students', 'assignStudents')->name('assignStudents');
         Route::delete('/{id}/students/{ssId}', 'removeStudent')->name('removeStudent');
+        Route::post('/{id}/students/renumber', 'renumberStudents')->name('renumberStudents');
+        Route::post('/copy-to-term2', 'copyToTerm2')->name('copy-term2');
     });
 
     // === 4. ตารางสอน ===
-  Route::controller(TimetableController::class)->prefix('timetable')->name('timetable.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::post('/assign', 'storeAssign')->name('storeAssign');
-    Route::delete('/assign/{id}', 'destroyAssign')->name('destroyAssign');
-    Route::post('/slot', 'storeSlot')->name('storeSlot');
-    Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
-    Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
-    Route::get('/view', 'viewTimetable')->name('view');
-    Route::get('/section/{id}', 'sectionView')->name('section');
-    Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
-    Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
-    Route::post('/section/{id}/set-curriculum', 'setCurriculum')->name('setCurriculum'); // ← เพิ่มตรงนี้
-});
+    Route::controller(TimetableController::class)->prefix('timetable')->name('timetable.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/assign', 'storeAssign')->name('storeAssign');
+        Route::delete('/assign/{id}', 'destroyAssign')->name('destroyAssign');
+        Route::post('/slot', 'storeSlot')->name('storeSlot');
+        Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
+        Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
+        Route::get('/view', 'viewTimetable')->name('view');
+        Route::get('/section/{id}', 'sectionView')->name('section');
+        Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
+        Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
+    });
 
     // === 5. บันทึกคะแนน ===
     Route::controller(ScoreController::class)->prefix('scores')->name('scores.')->group(function () {
@@ -194,7 +204,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignId}/save', 'saveScores')->name('save');
         Route::post('/{assignId}/calculate', 'calculateGrades')->name('calculate');
         Route::post('/{assignId}/setup', 'setupCategories')->name('setup');
-        Route::get('/{assignId}/print', 'printScoreSheet')->name('print'); // เพิ่มบรรทัดนี้
+        Route::get('/{assignId}/print', 'printScoreSheet')->name('print');
     });
 
     // === 6. ผลการเรียน / เกรด ===
@@ -222,6 +232,9 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/student-alumni', [StudentAlumniController::class, 'index'])->name('student-alumni.index');
+    Route::get('/student-alumni/withdrawal', [StudentAlumniController::class, 'withdrawalReport'])->name('student-alumni.withdrawal');
+    Route::get('/student-alumni/import', [StudentAlumniController::class, 'importIndex'])->name('student-alumni.import');
+    Route::post('/student-alumni/import', [StudentAlumniController::class, 'importStore'])->name('student-alumni.import.store');
 
     Route::controller(PositionController::class)->prefix('positions')->name('positions.')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -238,13 +251,29 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print-selected', 'printSelected')->name('print-selected');
     });
 
-    // Logout
-    Route::post('/logout', function (Request $request) {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
-        return redirect('/login');
-    })->name('logout');
+    Route::controller(PorPor1Controller::class)->prefix('por1')->name('por1.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/print/{studentId}', 'printOne')->name('print');
+        Route::post('/set-doc', 'setDocNumber')->name('setDoc');
+        Route::post('/bulk-set', 'bulkSetDocSet')->name('bulkSet');
+        Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
+    });
+
+    Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/save-print-settings', 'savePrintSettings')->name('savePrintSettings');
+        Route::post('/save-school-settings', 'saveSchoolSettings')->name('saveSchoolSettings');
+        Route::get('/print', 'print')->name('print');
+        Route::get('/export-excel', 'exportExcel')->name('exportExcel');
+    });
+
+    Route::controller(\App\Http\Controllers\Academic\PorPor7Controller::class)->prefix('por7')->name('por7.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/print/{studentId}', 'print')->name('print');
+        Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
+        Route::post('/save-school-setting', 'saveSchoolSetting')->name('saveSchoolSetting');
+        Route::post('/upload-logo', 'uploadLogo')->name('uploadLogo');
+    });
 
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
         Route::post('/', 'storeYear')->name('storeYear');
@@ -256,5 +285,87 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
 
-    
+    // === ตั้งค่าการลา ===
+    Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->group(function () {
+        Route::get('/', 'index')->name('index');
+
+        Route::post('/general', 'saveGeneral')->name('saveGeneral');
+        Route::post('/dept', 'storeDept')->name('storeDept');
+        Route::put('/dept/{id}', 'updateDept')->name('updateDept');
+        Route::delete('/dept/{id}', 'destroyDept')->name('destroyDept');
+
+        Route::post('/quota-group', 'storeQuotaGroup')->name('storeQuotaGroup');
+        Route::put('/quota-group/{id}/toggle', 'toggleQuotaGroup')->name('toggleQuotaGroup');
+        Route::delete('/quota-group/{id}', 'destroyQuotaGroup')->name('destroyQuotaGroup');
+        Route::put('/quota-group/{id}/quotas', 'updateQuotas')->name('updateQuotas');
+
+        Route::post('/cutoff', 'saveCutoff')->name('saveCutoff');
+
+        Route::post('/notifications', 'saveNotifications')->name('saveNotifications');
+        Route::post('/recipient', 'storeRecipient')->name('storeRecipient');
+        Route::delete('/recipient/{id}', 'destroyRecipient')->name('destroyRecipient');
+    });
+
+
+    Route::get('/class-roster', [ClassRosterController::class, 'index'])->name('class-roster.index');
+
+    // === ข้อมูลการลา ===
+    Route::prefix('leave')->name('leave.')->group(function () {
+        Route::get('/personnel', [LeavePersonnelController::class, 'index'])->name('personnel.index');
+        Route::get('/personnel/{personnelId}', [LeavePersonnelController::class, 'show'])->name('personnel.show');
+
+        Route::get('/requests/create', [LeaveRequestController::class, 'create'])->name('requests.create');
+        Route::post('/requests', [LeaveRequestController::class, 'store'])->name('requests.store');
+
+        Route::get('/requests/{id}', [LeaveRequestController::class, 'show'])->name('requests.show');
+        Route::get('/requests/{id}/print', [LeaveRequestController::class, 'print'])->name('requests.print');
+        Route::patch('/requests/{id}/status', [LeaveRequestController::class, 'updateStatus'])->name('requests.updateStatus');
+        Route::delete('/requests/{id}', [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
+    });
+
+    Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
+
+    Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/set-doc-number', 'setDocNumber')->name('setDocNumber');
+        Route::post('/bulk-set-doc-number', 'bulkSetDocNumber')->name('bulkSetDocNumber');
+        Route::post('/save-setting', 'saveSetting')->name('saveSetting');
+        Route::post('/settings', 'saveSettings')->name('saveSettings');
+        Route::post('/section/{sectionId}/date', 'saveSectionDate')->name('saveSectionDate');
+        Route::get('/print/{studentId}/{sectionId}', 'print')->name('print');
+    });
+
+
+    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    Route::controller(ChangeRequestController::class)->prefix('change-request')->name('change-request.')->group(function () {
+        Route::get('/', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/preview', 'preview')->name('preview');
+        Route::get('/history', 'history')->name('history');
+        Route::get('/{id}', 'show')->name('show');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    Route::get('/por1/print/{studentId}', [App\Http\Controllers\Academic\GradeController::class, 'printPor1'])->name('por1.print');
+
+    Route::post('/logout', function (Request $request) {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+        return redirect('/login');
+    })->name('logout');
+
 });

@@ -91,39 +91,40 @@ class TimetableController extends Controller
     }
 
     public function sectionView($sectionId)
-    {
-        $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'])->findOrFail($sectionId);
+{
+    $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'])->findOrFail($sectionId);
 
-        $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
-            ->where('section_id', $sectionId)
-            ->where('semester_id', $section->semester_id)
-            ->get();
+    $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
+        ->where('section_id', $sectionId)
+        ->where('semester_id', $section->semester_id)
+        ->get();
 
-        $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
-        $subjects = Subject::where('is_active', true)->orderBy('code')->get();
-        $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
-        $hours = range(7, 17);
+    $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+    $subjects = Subject::where('is_active', true)->orderBy('code')->get();
+    $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+    $hours = range(6, 17);
 
-  $slotGrid = [];
-foreach ($assigns as $assign) {
-    foreach ($assign->timetableSlots as $slot) {
-        $startH = (int) \Carbon\Carbon::parse($slot->start_time)->format('H');
-        $endH   = (int) \Carbon\Carbon::parse($slot->end_time)->format('H');
-        $span   = max(1, $endH - $startH);
-        $slotGrid[$slot->day_of_week][$startH] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+    $slotGrid = [];
+    foreach ($assigns as $assign) {
+        foreach ($assign->timetableSlots as $slot) {
+            $start     = \Carbon\Carbon::parse($slot->start_time);
+            $end       = \Carbon\Carbon::parse($slot->end_time);
+            $startHour = (int) $start->format('H');
+            $span      = max(1, (int) ceil($start->diffInMinutes($end) / 60));
+            $slotGrid[$slot->day_of_week][$startHour] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+        }
     }
+
+    $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
+        ->where('level_id', $section->level_id)
+        ->where('is_active', true)
+        ->orderBy('year_applied', 'desc')
+        ->get();
+
+    return view('academic.timetable_section', compact(
+        'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid', 'curriculums'
+    ));
 }
-
-        $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
-            ->where('level_id', $section->level_id)
-            ->where('is_active', true)
-            ->orderBy('year_applied', 'desc')
-            ->get();
-
-        return view('academic.timetable_section', compact(
-            'section', 'assigns', 'teachers', 'subjects', 'days', 'hours', 'slotGrid', 'curriculums'
-        ));
-    }
 
     public function clearSection($sectionId)
     {
