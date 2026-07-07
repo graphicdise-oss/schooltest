@@ -161,9 +161,9 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                 <i class="bi bi-journal-bookmark"></i> นำเข้าจากแผนการเรียน
             </button>
             @endif
-            <button class="btn-add-subject" onclick="openSlotModal()">
+            <a href="{{ route('curriculums.index') }}" class="btn-add-subject" style="text-decoration:none;">
                 <i class="bi bi-plus-lg"></i> เพิ่มวิชาเรียน
-            </button>
+            </a>
             <button class="btn-assign" onclick="openAssignModal()">
                 <i class="bi bi-person-workspace"></i> มอบหมายวิชา
             </button>
