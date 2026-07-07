@@ -45,9 +45,8 @@ Route::post('/login', [LoginController::class, 'login']);
 Route::middleware(['auth'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', function () {
-        return view('dashboard.dashboard', ['user' => Auth::user()]);
-    })->name('dashboard');
+    Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
+        ->name('dashboard');
 
     // === หน้ารายการนักเรียน (ตาราง/ค้นหา/ลบ) ===
     Route::controller(StudentListController::class)->group(function () {
