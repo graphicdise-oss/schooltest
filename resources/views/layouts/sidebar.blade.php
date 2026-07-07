@@ -109,7 +109,7 @@
 
         {{-- เมนูหลัก --}}
         <nav x-data="{
-            activeItem: 'dashboard',
+            activeItem: '',
             hoverItem: null,
             indicatorTop: 0,
             indicatorHeight: 0,
@@ -118,13 +118,30 @@
                 this.indicatorHeight = el.offsetHeight;
             },
             resetIndicator() {
-                let activeEl = document.getElementById('menu-' + this.activeItem);
+                let activeEl = this.$el.querySelector(`[data-menu='${this.activeItem}']`);
                 if (activeEl) {
                     this.indicatorTop = activeEl.offsetTop;
                     this.indicatorHeight = activeEl.offsetHeight;
+                } else {
+                    this.indicatorHeight = 0;
                 }
             },
-            init() { setTimeout(() => { this.resetIndicator(); }, 50); }
+            detectActive() {
+                let here = window.location.pathname.replace(/\/+$/, '');
+                let best = null, bestLen = -1;
+                this.$el.querySelectorAll('a[href]').forEach(a => {
+                    let p;
+                    try { p = new URL(a.href).pathname.replace(/\/+$/, ''); } catch (e) { return; }
+                    if (!p || a.getAttribute('href') === '#') return;
+                    if (here === p || here.startsWith(p + '/')) {
+                        if (p.length > bestLen) { bestLen = p.length; best = a; }
+                    }
+                });
+                if (!best) return;
+                let group = best.closest('[data-menu]');
+                if (group) this.activeItem = group.getAttribute('data-menu');
+            },
+            init() { this.detectActive(); setTimeout(() => { this.resetIndicator(); }, 50); }
         }" @mouseleave="hoverItem = null; resetIndicator()"
             class="flex-1 overflow-y-auto custom-scrollbar text-[18px] font-medium pl-4 relative">
 
@@ -136,14 +153,14 @@
                 </div>
 
                 {{-- Dashboard --}}
-                <a id="menu-dashboard" href="{{ route('dashboard') }}" @mouseenter="moveIndicator($el); hoverItem = 'dashboard'"
+                <a id="menu-dashboard" data-menu="dashboard" href="{{ route('dashboard') }}" @mouseenter="moveIndicator($el); hoverItem = 'dashboard'"
                     :class="(hoverItem === 'dashboard' || (hoverItem === null && activeItem === 'dashboard')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
                     <i class="fa-solid fa-border-all w-6 text-center mr-2"></i> Dashboard
                 </a>
 
                 {{-- ===== ข้อมูลบุคคล ===== --}}
-                <div id="menu-personnel" x-data="{
+                <div id="menu-personnel" data-menu="personnel" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
                         let rect = el.getBoundingClientRect();
@@ -344,7 +361,7 @@
                 </div>
 
                 {{-- ===== วิชาการ ===== --}}
-                <div id="menu-academic" x-data="{
+                <div id="menu-academic" data-menu="academic" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
                         let rect = el.getBoundingClientRect();
@@ -550,6 +567,7 @@
                         this.myArrow = elCenterY - boxTop - 12;
                     }
                 }" @mouseenter="moveIndicator($el); hoverItem = 'student_affairs'; calcPos($el)"
+                    data-menu="student_affairs"
                     class="mb-2 relative z-10 block">
 
                     <a :class="(hoverItem === 'student_affairs' || (hoverItem === null && activeItem === 'student_affairs')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
@@ -686,6 +704,7 @@
                         this.myArrow = elCenterY - boxTop - 12;
                     }
                 }" @mouseenter="moveIndicator($el); hoverItem = 'general_admin'; calcPos($el)"
+                    data-menu="general_admin"
                     class="mb-2 relative z-10 block">
 
                     <a :class="(hoverItem === 'general_admin' || (hoverItem === null && activeItem === 'general_admin')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
@@ -794,7 +813,7 @@
                 </div>
 
                 {{-- ===== บัญชี/การเงิน ===== --}}
-                <div id="menu-accounting" x-data="{
+                <div id="menu-accounting" data-menu="accounting" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
                         let rect = el.getBoundingClientRect();
