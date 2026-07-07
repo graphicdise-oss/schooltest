@@ -221,6 +221,13 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/excel/{assignId}', 'exportScoreExcel')->name('excel');
     });
 
+    // === บันทึกผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม) ===
+    Route::controller(\App\Http\Controllers\Academic\AssessmentController::class)
+        ->prefix('assessments')->name('assessments.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'save')->name('save');
+        });
+
     // === 7. เลื่อนชั้น / ย้ายห้อง / บันทึกจบ ===
     Route::controller(PromotionController::class)->prefix('promotions')->name('promotions.')->group(function () {
         Route::get('/', 'index')->name('index');

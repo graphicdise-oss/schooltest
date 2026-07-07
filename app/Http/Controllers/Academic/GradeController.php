@@ -278,18 +278,22 @@ class GradeController extends Controller
             
         $yearGroups = [];
         
+        $shownSemesterIds = [];
+
         foreach ($allGrades as $grade) {
             $year = $grade->semester->academicYear->year_name ?? '';
             $term = $grade->semester->semester_name ?? '';
             $level = $grade->teachingAssign->classSection->level->name ?? '';
-            
+
             $semKey = $year . '/' . $term;
-            
+
             // 🛑 ถ้าเปิดใช้งานตัวกรอง (ผ่าน Modal) และเทอมนี้ไม่อยู่ในรายการที่ติ๊ก -> ข้ามทันที!
             if ($filterActive && !in_array($semKey, $selectedSemesters)) {
-                continue; 
+                continue;
             }
-            
+
+            $shownSemesterIds[] = $grade->semester_id;
+
             if (!isset($yearGroups[$year])) {
                 $yearGroups[$year] = ['year' => $year, 'level' => $level, 'semesters' => []];
             }
@@ -320,7 +324,15 @@ class GradeController extends Controller
         if ($signSettings->registrar_name) $school['registrar_name'] = $signSettings->registrar_name;
         if ($signSettings->director_name)  $school['director_name']  = $signSettings->director_name;
 
-        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school'));
+        // ผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม) ของภาคเรียนล่าสุดที่แสดงในเอกสาร
+        $latestSemId = !empty($shownSemesterIds) ? max($shownSemesterIds) : null;
+        $assessment = \App\Models\Academic\StudentAssessment::where('student_id', $studentId)
+                ->when($latestSemId, fn($q) => $q->where('semester_id', $latestSemId))
+                ->first()
+            ?? \App\Models\Academic\StudentAssessment::where('student_id', $studentId)
+                ->orderByDesc('semester_id')->first();
+
+        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment'));
     }
 
     private function formatThaiDate(string $dateStr): string

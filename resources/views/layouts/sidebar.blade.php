@@ -534,6 +534,9 @@
                                         <li><a href="{{ route('grades.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แก้ไขเกรด</a>
                                         </li>
+                                        <li><a href="{{ route('assessments.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม)</a>
+                                        </li>
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้าเกรดสำหรับปพ.1/รบ.1</a>
                                         </li>

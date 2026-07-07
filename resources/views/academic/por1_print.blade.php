@@ -547,6 +547,13 @@ body {
                                             $daiCol= 'style="width:28px;text-align:center;"';
                                             $resCol= "style=\"width:52px;text-align:center;{$uline}\"";
                                             $emptyCol = 'style="width:44px;"';
+
+                                            // ผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม) จากข้อมูลจริง
+                                            $asmt  = $assessment ?? null;
+                                            $vRead = $asmt->reading_thinking ?? '';
+                                            $vChar = $asmt->desired_char ?? '';
+                                            $vAct  = $asmt->activity ?? '';
+                                            $judge = fn($v) => ($v === '' || $v === null) ? '' : ($v === 'ไม่ผ่าน' ? 'ไม่ผ่าน' : 'ผ่าน');
                                         @endphp
                                         {{-- grid: label | val | ได้ | result  --}}
                                         <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;gap:0 2px;">
@@ -565,28 +572,28 @@ body {
                                             <span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span>
                                             <span {!! $emptyCol !!}></span>
                                             <span {!! $daiCol !!}>ได้</span>
-                                            <span {!! $resCol !!}>ดีเยี่ยม</span>
+                                            <span {!! $resCol !!}>{{ $vRead }}</span>
                                         </div>
                                         <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;gap:0 2px;">
                                             <span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span>
                                             <span {!! $emptyCol !!}></span>
                                             <span {!! $daiCol !!}>ได้</span>
-                                            <span {!! $resCol !!}>ดีเยี่ยม</span>
+                                            <span {!! $resCol !!}>{{ $vChar }}</span>
                                         </div>
                                         <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;gap:0 2px;">
                                             <span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span>
                                             <span {!! $emptyCol !!}></span>
                                             <span {!! $daiCol !!}>ได้</span>
-                                            <span {!! $resCol !!}>ผ่าน</span>
+                                            <span {!! $resCol !!}>{{ $vAct }}</span>
                                         </div>
                                     </td>
                                     <td style="padding: 8px 10px; vertical-align: top; text-align: center; font-size: 13px;">
                                         @php $passW = "style=\"display:inline-block;width:52px;{$uline}margin-bottom:7px;\""; @endphp
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
-                                        <div><span {!! $passW !!}>ผ่าน</span></div>
-                                        <div><span {!! $passW !!}>ผ่าน</span></div>
-                                        <div><span style="display:inline-block;width:52px;{{ $uline }}">ผ่าน</span></div>
+                                        <div><span {!! $passW !!}>{{ $judge($vRead) }}</span></div>
+                                        <div><span {!! $passW !!}>{{ $judge($vChar) }}</span></div>
+                                        <div><span style="display:inline-block;width:52px;{{ $uline }}">{{ $judge($vAct) }}</span></div>
                                     </td>
                                 </tr>
                                 {{-- วันที่จบ --}}
