@@ -9,6 +9,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
+use App\Models\Holiday;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -36,8 +37,13 @@ class DashboardController extends Controller
             $daysLeft = $today->lte($semEnd) ? $today->diffInDays($semEnd) : 0;
         }
 
-        // ===== ค่าตั้งค่าจาก config (วันหยุด / คะแนนเต็มความประพฤติ) =====
-        $holidays        = collect(config('school.holidays', []));
+        // ===== วันหยุดทั้งปีการศึกษา (ของปีการศึกษาปัจจุบัน) =====
+        $holidays = $currentYear
+            ? Holiday::where('year_id', $currentYear->year_id)->orderBy('start_date')->get()
+            : collect();
+        $holidayDays = $holidays->sum('day_count');
+
+        // ===== คะแนนเต็มความประพฤติ (จาก config) =====
         $conductFullScore = config('school.conduct_full_score', 100);
 
         // ===== นักเรียนแยกตามระดับชั้น (ของภาคเรียนปัจจุบัน) =====
@@ -99,7 +105,7 @@ class DashboardController extends Controller
             'currentYear', 'currentSemester',
             'studentsStudying', 'personnelWorking',
             'semStart', 'semEnd', 'daysTotal', 'daysLeft',
-            'holidays', 'conductFullScore',
+            'holidays', 'holidayDays', 'conductFullScore',
             'studentsByLevel', 'enrolledTotal', 'studentsNotOpened',
             'overview'
         ));

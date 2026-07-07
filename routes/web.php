@@ -27,6 +27,7 @@ use App\Http\Controllers\Setting\LeaveSettingController;
 use App\Http\Controllers\Leave\LeavePersonnelController;
 use App\Http\Controllers\Leave\LeaveRequestController;
 use App\Http\Controllers\Setting\DepartmentController;
+use App\Http\Controllers\Setting\HolidayController;
 use App\Http\Controllers\Student\ClassRosterController;
 use App\Http\Controllers\Student\StudentStatController;
 use App\Http\Controllers\Academic\Pp2Controller;
@@ -323,6 +324,14 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
+    // === ตั้งค่าวันหยุดทั้งปีการศึกษา ===
+    Route::controller(HolidayController::class)->prefix('holidays')->name('holidays.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');

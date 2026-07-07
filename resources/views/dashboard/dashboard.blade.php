@@ -94,22 +94,23 @@
                 </div>
                 <div style="flex:1; background:#fff4ec; border-radius:12px; padding:14px; text-align:center;">
                     <div style="color:#6b7a99; font-size:13px;">วันหยุดทั้งปีการศึกษา</div>
-                    <div style="color:#d97706; font-weight:700; font-size:24px;">{{ $holidays->count() }} <span style="font-size:13px; font-weight:500;">วัน</span></div>
+                    <div style="color:#d97706; font-weight:700; font-size:24px;">{{ number_format($holidayDays) }} <span style="font-size:13px; font-weight:500;">วัน</span></div>
                 </div>
             </div>
             @if($holidays->isNotEmpty())
                 <div style="max-height:130px; overflow-y:auto;">
                     @foreach($holidays as $h)
                     <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #e6ebf5; font-size:14px;">
-                        <span style="color:#082b75;">{{ $h['name'] ?? '-' }}</span>
-                        <span style="color:#6b7a99;">{{ $h['date'] ?? '' }}</span>
+                        <span style="color:#082b75;">{{ $h->title }}</span>
+                        <span style="color:#6b7a99;">{{ $thDate($h->start_date) }}@if($h->end_date && $h->end_date->ne($h->start_date))–{{ $thDate($h->end_date) }}@endif</span>
                     </div>
                     @endforeach
                 </div>
             @else
                 <p style="color:#94a3b8; font-size:13px; margin:0;">
                     <i class="fa-regular fa-circle-question"></i>
-                    ยังไม่ได้ตั้งค่าวันหยุด — เพิ่มได้ที่ <code>config/school.php</code> คีย์ <code>holidays</code>
+                    ยังไม่มีวันหยุดในปีการศึกษานี้ — เพิ่มได้ที่เมนู
+                    <a href="{{ route('holidays.index') }}" style="color:#4b7ce3;">ตั้งค่าวันหยุด</a>
                 </p>
             @endif
         </div>
