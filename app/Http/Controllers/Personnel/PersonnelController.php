@@ -294,7 +294,19 @@ class PersonnelController extends Controller
     // เพิ่มตรงท้ายก่อนปิด class
     public function updateCredentials(Request $request, $id)
     {
+        $actor = Auth::user();
+
+        // เฉพาะผู้ดูแลระบบ (admin/superadmin) เท่านั้นที่ตั้งบัญชี/บทบาทได้
+        if (!$actor || !$actor->isAdmin()) {
+            abort(403, 'เฉพาะผู้ดูแลระบบเท่านั้นที่ตั้งค่าบัญชีได้');
+        }
+
         $personnel = Personnel::where('personnel_id', $id)->firstOrFail();
+
+        // ปกป้องบัญชี superadmin: admin ธรรมดาแก้ไม่ได้ (แก้ได้เฉพาะ superadmin)
+        if ($personnel->role === 'superadmin' && !$actor->isSuperAdmin()) {
+            abort(403, 'ไม่มีสิทธิ์แก้ไขบัญชีผู้ดูแลระบบสูงสุด');
+        }
 
         $data = [];
 
@@ -307,6 +319,10 @@ class PersonnelController extends Controller
         }
 
         if ($request->filled('role')) {
+            // เฉพาะ superadmin เท่านั้นที่ตั้งบทบาทเป็น superadmin ได้
+            if ($request->role === 'superadmin' && !$actor->isSuperAdmin()) {
+                abort(403, 'เฉพาะผู้ดูแลระบบสูงสุดเท่านั้นที่ตั้ง superadmin ได้');
+            }
             $data['role'] = $request->role;
         }
 

@@ -536,6 +536,9 @@
                         <div class="pwd-field-input">
                             <select name="role" id="modalRole">
                                 <option value="">-- เลือก --</option>
+                                @if(auth()->user()->isSuperAdmin())
+                                    <option value="superadmin">superadmin (ผู้ดูแลสูงสุด)</option>
+                                @endif
                                 <option value="admin">admin</option>
                                 <option value="teacher">teacher</option>
                                 <option value="staff">staff</option>
