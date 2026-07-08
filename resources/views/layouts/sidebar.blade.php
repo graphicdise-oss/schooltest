@@ -323,27 +323,10 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบบัตรนักเรียน/บุคลากร</h4>
                                     <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึกบัตรนักเรียน</a>
-                                        </li>
                                         <li><a href="{{ route('student-cards.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">
-                                                พิมพ์บัตรนักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">พิมพ์บัตรนักเรียน</a>
                                         </li>
-
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">พิมพ์บัตรสอบ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">พิมพ์บัตรพนักงาน/อาจารย์</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึก/พิมพ์บัตรผู้ปกครอง</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บัตรสำรอง</a>
-                                        </li>
+                                        {{-- เมนูบัตรอื่น ๆ (บันทึกบัตร / บัตรสอบ / บัตรพนักงาน / บัตรผู้ปกครอง / บัตรสำรอง) ยังไม่เปิดใช้ ซ่อนไว้ก่อน --}}
                                     </ul>
                                 </div>
                             </div>
@@ -596,15 +579,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการทำกิจกรรม</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ข้อมูลการลา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าประเภทการลา</a>
-                                        </li>
-                                        <li><a href="{{ route('leave-settings.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการลา</a>
-                                        </li>
+                                        {{-- ย้ายเมนูการลา (ข้อมูลการลา/ประเภทการลา/ตั้งค่าการลา) ไปรวมที่กลุ่ม "บุคลากร - อาจารย์" แล้ว --}}
                                     </ul>
                                 </div>
                                 <div>
