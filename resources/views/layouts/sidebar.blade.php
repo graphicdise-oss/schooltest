@@ -260,6 +260,7 @@
                                         <li><a href="{{ route('personnels.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลบุคลากร
                                                 - อาจารย์</a></li>
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('prefixes.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าคำนำหน้า</a>
                                         </li>
@@ -272,6 +273,7 @@
                                         <li><a href="{{ route('departments.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าแผนก</a>
                                         </li>
+                                        @endif
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทการลา</a>
                                         </li>

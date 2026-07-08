@@ -130,7 +130,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
-    Route::controller(PersonnelTypeController::class)->prefix('personnel-types')->name('personnel-types.')->group(function () {
+    Route::controller(PersonnelTypeController::class)->prefix('personnel-types')->name('personnel-types.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -141,7 +141,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    Route::controller(PrefixController::class)->prefix('prefixes')->name('prefixes.')->group(function () {
+    Route::controller(PrefixController::class)->prefix('prefixes')->name('prefixes.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -264,7 +264,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/student-alumni/import', [StudentAlumniController::class, 'importIndex'])->name('student-alumni.import');
     Route::post('/student-alumni/import', [StudentAlumniController::class, 'importStore'])->name('student-alumni.import.store');
 
-    Route::controller(PositionController::class)->prefix('positions')->name('positions.')->group(function () {
+    Route::controller(PositionController::class)->prefix('positions')->name('positions.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -351,7 +351,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/requests/{id}', [LeaveRequestController::class, 'destroy'])->name('requests.destroy');
     });
 
-    Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->group(function () {
+    Route::controller(DepartmentController::class)->prefix('departments')->name('departments.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
