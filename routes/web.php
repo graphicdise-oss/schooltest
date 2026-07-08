@@ -245,6 +245,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/applicants/{id}/approve', 'approve')->name('approve');
             Route::post('/applicants/{id}/reject', 'reject')->name('reject');
             Route::post('/documents', 'uploadDocument')->name('docUpload');
+            Route::post('/images', 'uploadImage')->name('imgUpload');
             Route::delete('/documents/{id}', 'deleteDocument')->name('docDelete');
         });
 

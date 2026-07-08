@@ -9,7 +9,7 @@ class AdmissionDocument extends Model
 {
     protected $table = 'admission_documents';
 
-    protected $fillable = ['level_id', 'title', 'file_path'];
+    protected $fillable = ['kind', 'level_id', 'title', 'file_path'];
 
     public function level()
     {

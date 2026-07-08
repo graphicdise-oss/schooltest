@@ -22,8 +22,9 @@ class AdmissionController extends Controller
     public function form()
     {
         $setting   = AdmissionSetting::getOrCreate();
-        $documents = AdmissionDocument::with('level')->orderBy('level_id')->orderBy('id')->get();
-        return view('admission.landing', compact('setting', 'documents'));
+        $documents = AdmissionDocument::where('kind', 'file')->with('level')->orderBy('level_id')->orderBy('id')->get();
+        $images    = AdmissionDocument::where('kind', 'image')->orderBy('id')->get();
+        return view('admission.landing', compact('setting', 'documents', 'images'));
     }
 
     // หน้ากรอกใบสมัคร
@@ -120,8 +121,9 @@ class AdmissionController extends Controller
         $setting   = AdmissionSetting::getOrCreate();
         $years     = AcademicYear::orderByDesc('year_name')->get();
         $levels    = Level::orderBy('sort_order')->get();
-        $documents = AdmissionDocument::with('level')->orderBy('level_id')->orderBy('id')->get();
-        return view('admission.settings', compact('setting', 'years', 'levels', 'documents'));
+        $documents = AdmissionDocument::where('kind', 'file')->with('level')->orderBy('level_id')->orderBy('id')->get();
+        $images    = AdmissionDocument::where('kind', 'image')->orderBy('id')->get();
+        return view('admission.settings', compact('setting', 'years', 'levels', 'documents', 'images'));
     }
 
     public function saveSettings(Request $request)
@@ -164,12 +166,34 @@ class AdmissionController extends Controller
         ]);
 
         AdmissionDocument::create([
+            'kind'      => 'file',
             'level_id'  => $request->input('level_id') ?: null,
             'title'     => $request->input('title'),
             'file_path' => $request->file('file')->store('admission/docs', 'public'),
         ]);
 
         return back()->with('success', 'เพิ่มไฟล์แนบสำเร็จ');
+    }
+
+    // อัปโหลดรูปในหน้าคำชี้แจง (โปสเตอร์/QR ฯลฯ)
+    public function uploadImage(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|image|max:6144',
+            'title' => 'nullable|string|max:255',
+        ], [
+            'image.required' => 'กรุณาเลือกรูป',
+            'image.image'    => 'ไฟล์ต้องเป็นรูปภาพ',
+            'image.max'      => 'รูปต้องไม่เกิน 6 MB',
+        ]);
+
+        AdmissionDocument::create([
+            'kind'      => 'image',
+            'title'     => $request->input('title') ?: 'รูปประชาสัมพันธ์',
+            'file_path' => $request->file('image')->store('admission/images', 'public'),
+        ]);
+
+        return back()->with('success', 'เพิ่มรูปในคำชี้แจงสำเร็จ');
     }
 
     public function deleteDocument($id)

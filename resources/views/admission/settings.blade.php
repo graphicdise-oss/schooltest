@@ -112,6 +112,39 @@
         </div>
     </form>
 
+    {{-- ===== รูปในคำชี้แจง ===== --}}
+    <div class="card2">
+        <div class="card-title"><i class="fas fa-image"></i> รูปในคำชี้แจง (โปสเตอร์ / QR ค่าสมัคร ฯลฯ)</div>
+
+        <form method="POST" action="{{ route('admissions.imgUpload') }}" enctype="multipart/form-data" class="row g-2 align-items-end mb-3">
+            @csrf
+            <div class="col-md-5">
+                <label>คำอธิบายรูป (ไม่บังคับ)</label>
+                <input type="text" name="title" class="form-control" placeholder="เช่น QR ค่าสมัคร">
+            </div>
+            <div class="col-md-5">
+                <label>เลือกรูป</label>
+                <input type="file" name="image" class="form-control" accept="image/*" required>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn-up w-100"><i class="fas fa-upload"></i> เพิ่มรูป</button>
+            </div>
+        </form>
+
+        @forelse($images as $img)
+            <div class="doc-row">
+                <img src="{{ asset('storage/' . $img->file_path) }}" style="width:54px;height:54px;object-fit:cover;border-radius:8px;" alt="">
+                <span class="t">{{ $img->title }}</span>
+                <form method="POST" action="{{ route('admissions.docDelete', $img->id) }}" onsubmit="return confirm('ลบรูปนี้?')">
+                    @csrf @method('DELETE')
+                    <button class="btn btn-sm btn-outline-danger" title="ลบ"><i class="fas fa-trash"></i></button>
+                </form>
+            </div>
+        @empty
+            <p class="text-muted mb-0">ยังไม่มีรูปในคำชี้แจง</p>
+        @endforelse
+    </div>
+
     {{-- ===== ไฟล์ระเบียบการตามระดับชั้น ===== --}}
     <div class="card2">
         <div class="card-title"><i class="fas fa-paperclip"></i> ไฟล์ระเบียบการ / เอกสารแนบ (ตามระดับชั้น)</div>

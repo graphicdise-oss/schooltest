@@ -16,6 +16,7 @@
         .head p { color:#4b6aa5; margin:0; }
         .sec-title { color:#082b75; font-weight:700; font-size:1.1rem; border-left:4px solid #4b7ce3; padding-left:10px; margin:0 0 14px; }
         .content { white-space:pre-wrap; color:#475569; line-height:1.7; }
+        .announce-img { width:100%; border-radius:12px; margin-top:14px; display:block; }
         .reg-table { width:100%; border-collapse:collapse; }
         .reg-table thead th { color:#475569; font-weight:600; padding:12px 14px; border-bottom:1px solid #e6ebf5; font-size:.95rem; }
         .reg-table tbody td { padding:15px 14px; border-bottom:1px solid #eef1f7; color:#334155; vertical-align:middle; }
@@ -54,13 +55,18 @@
     @endif
 
     {{-- คำชี้แจง / ประชาสัมพันธ์ --}}
-    @if($setting->instructions)
+    @if($setting->instructions || $setting->levels_note || $images->isNotEmpty())
         <div class="card2">
             <div class="sec-title">คำชี้แจงการรับสมัคร</div>
-            <div class="content">{{ $setting->instructions }}</div>
+            @if($setting->instructions)
+                <div class="content">{{ $setting->instructions }}</div>
+            @endif
             @if($setting->levels_note)
                 <p class="mt-3 mb-0"><strong>ระดับชั้นที่เปิดรับ:</strong> {{ $setting->levels_note }}</p>
             @endif
+            @foreach($images as $img)
+                <img src="{{ asset('storage/' . $img->file_path) }}" class="announce-img" alt="รูปประชาสัมพันธ์">
+            @endforeach
         </div>
     @endif
 
