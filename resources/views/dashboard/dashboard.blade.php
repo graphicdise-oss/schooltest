@@ -141,9 +141,15 @@
             next() { this.view = new Date(this.y, this.m + 1, 1); }
          }">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
-            <h3 style="color:#082b75; font-weight:700; font-size:17px; margin:0;">
-                <i class="fa-solid fa-calendar-day" style="color:#4b7ce3;"></i> ปฏิทินวันหยุด
-            </h3>
+            <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <h3 style="color:#082b75; font-weight:700; font-size:17px; margin:0;">
+                    <i class="fa-solid fa-calendar-day" style="color:#4b7ce3;"></i> ปฏิทินวันหยุด
+                </h3>
+                <a href="{{ route('holidays.index') }}"
+                   style="display:inline-flex; align-items:center; gap:6px; text-decoration:none; background:#eef4ff; color:#2563eb; font-size:13px; font-weight:600; padding:6px 14px; border-radius:8px;">
+                    <i class="fa-solid fa-gear"></i> ตั้งค่าวันหยุด
+                </a>
+            </div>
             <div style="display:flex; align-items:center; gap:10px;">
                 <button type="button" @click="prev()" style="border:none; background:#eef4ff; color:#2563eb; width:34px; height:34px; border-radius:8px; cursor:pointer;">
                     <i class="fa-solid fa-chevron-left"></i>
