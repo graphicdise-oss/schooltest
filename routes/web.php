@@ -45,7 +45,8 @@ Route::post('/login', [LoginController::class, 'login']);
 // --- ระบบรับสมัครนักเรียนออนไลน์ (สาธารณะ ไม่ต้อง login) ---
 Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)->group(function () {
     Route::get('/admission', 'form')->name('admission.form');
-    Route::post('/admission', 'submit')->name('admission.submit');
+    Route::get('/admission/apply', 'apply')->name('admission.apply');
+    Route::post('/admission/apply', 'submit')->name('admission.submit');
     Route::get('/admission/success', 'success')->name('admission.success');
 });
 
@@ -243,6 +244,8 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/applicants', 'applicants')->name('applicants');
             Route::post('/applicants/{id}/approve', 'approve')->name('approve');
             Route::post('/applicants/{id}/reject', 'reject')->name('reject');
+            Route::post('/documents', 'uploadDocument')->name('docUpload');
+            Route::delete('/documents/{id}', 'deleteDocument')->name('docDelete');
         });
 
     // === 7. เลื่อนชั้น / ย้ายห้อง / บันทึกจบ ===

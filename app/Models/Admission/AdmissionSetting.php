@@ -11,6 +11,7 @@ class AdmissionSetting extends Model
 
     protected $fillable = [
         'is_open', 'year_id', 'open_date', 'close_date', 'instructions', 'levels_note',
+        'banner_image', 'required_docs',
     ];
 
     protected $casts = [
