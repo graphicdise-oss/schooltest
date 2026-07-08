@@ -110,7 +110,7 @@
     {{-- ===== ปฏิทินวันหยุด ===== --}}
     <div style="background:#fff; border-radius:14px; padding:20px; box-shadow:0 2px 10px rgba(8,43,117,.08); margin-bottom:20px;"
          x-data="{
-            holidays: @json($holidayMap),
+            holidays: @js($holidayMap),
             view: new Date({{ $calYear }}, {{ $calMonth }} - 1, 1),
             months: ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'],
             dows: ['อา','จ','อ','พ','พฤ','ศ','ส'],
