@@ -572,28 +572,28 @@ body {
                                             <span>2. ผลการประเมินการอ่าน คิดวิเคราะห์และเขียน</span>
                                             <span {!! $emptyCol !!}></span>
                                             <span {!! $daiCol !!}>ได้</span>
-                                            <span {!! $resCol !!}>{{ $vRead }}</span>
+                                            <span {!! $resCol !!}>{!! $vRead !== '' ? e($vRead) : '&nbsp;' !!}</span>
                                         </div>
                                         <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;margin-bottom:7px;gap:0 2px;">
                                             <span>3. ผลการประเมินคุณลักษณะอันพึงประสงค์</span>
                                             <span {!! $emptyCol !!}></span>
                                             <span {!! $daiCol !!}>ได้</span>
-                                            <span {!! $resCol !!}>{{ $vChar }}</span>
+                                            <span {!! $resCol !!}>{!! $vChar !== '' ? e($vChar) : '&nbsp;' !!}</span>
                                         </div>
                                         <div style="display:grid;grid-template-columns:1fr 44px 28px 52px;align-items:end;gap:0 2px;">
                                             <span>4. ผลการประเมินกิจกรรมพัฒนาผู้เรียน</span>
                                             <span {!! $emptyCol !!}></span>
                                             <span {!! $daiCol !!}>ได้</span>
-                                            <span {!! $resCol !!}>{{ $vAct }}</span>
+                                            <span {!! $resCol !!}>{!! $vAct !== '' ? e($vAct) : '&nbsp;' !!}</span>
                                         </div>
                                     </td>
                                     <td style="padding: 8px 10px; vertical-align: top; text-align: center; font-size: 13px;">
                                         @php $passW = "style=\"display:inline-block;width:52px;{$uline}margin-bottom:7px;\""; @endphp
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
                                         <div><span {!! $passW !!}>ผ่าน</span></div>
-                                        <div><span {!! $passW !!}>{{ $judge($vRead) }}</span></div>
-                                        <div><span {!! $passW !!}>{{ $judge($vChar) }}</span></div>
-                                        <div><span style="display:inline-block;width:52px;{{ $uline }}">{{ $judge($vAct) }}</span></div>
+                                        <div><span {!! $passW !!}>{!! $judge($vRead) ?: '&nbsp;' !!}</span></div>
+                                        <div><span {!! $passW !!}>{!! $judge($vChar) ?: '&nbsp;' !!}</span></div>
+                                        <div><span style="display:inline-block;width:52px;{{ $uline }}">{!! $judge($vAct) ?: '&nbsp;' !!}</span></div>
                                     </td>
                                 </tr>
                                 {{-- วันที่จบ --}}
