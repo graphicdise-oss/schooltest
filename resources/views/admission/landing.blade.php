@@ -16,10 +16,13 @@
         .head p { color:#4b6aa5; margin:0; }
         .sec-title { color:#082b75; font-weight:700; font-size:1.1rem; border-left:4px solid #4b7ce3; padding-left:10px; margin:0 0 14px; }
         .content { white-space:pre-wrap; color:#475569; line-height:1.7; }
-        .doc-item { display:flex; align-items:center; gap:12px; padding:11px 14px; border:1px solid #e6ebf5; border-radius:10px; margin-bottom:9px; text-decoration:none; color:#082b75; transition:.15s; }
-        .doc-item:hover { background:#f2f6ff; border-color:#bcd0f5; }
-        .doc-item .ic { color:#dc2626; font-size:20px; }
-        .grp-label { color:#2563eb; font-weight:600; font-size:.92rem; margin:14px 0 8px; }
+        .reg-table { width:100%; border-collapse:collapse; }
+        .reg-table thead th { color:#475569; font-weight:600; padding:12px 14px; border-bottom:1px solid #e6ebf5; font-size:.95rem; }
+        .reg-table tbody td { padding:15px 14px; border-bottom:1px solid #eef1f7; color:#334155; vertical-align:middle; }
+        .reg-table tbody tr:hover { background:#f7fbff; }
+        .reg-file-ic { color:#3b82f6; margin-right:8px; }
+        .btn-dl { background:#1cb8d6; color:#fff; border-radius:22px; padding:8px 24px; text-decoration:none; font-size:.9rem; font-weight:500; display:inline-block; white-space:nowrap; transition:.15s; }
+        .btn-dl:hover { background:#1596b0; color:#fff; }
         .btn-apply { background:#2563eb; border:none; border-radius:12px; padding:15px; font-weight:700; font-size:1.1rem; width:100%; color:#fff; }
         .btn-apply:hover { background:#1e4fd0; color:#fff; }
         .closed { text-align:center; background:#fff7ed; color:#c2410c; border-radius:12px; padding:16px; font-weight:600; }
@@ -90,17 +93,31 @@
     {{-- ระเบียบการ / ไฟล์แนบตามระดับชั้น --}}
     @if($documents->isNotEmpty())
         <div class="card2">
-            <div class="sec-title">ระเบียบการรับสมัคร (ดาวน์โหลด)</div>
-            @php $groups = $documents->groupBy(fn($d) => $d->level->name ?? 'ทั่วไป'); @endphp
-            @foreach($groups as $groupName => $docs)
-                <div class="grp-label">{{ $groupName }}</div>
-                @foreach($docs as $doc)
-                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="doc-item">
-                        <span class="ic">📄</span>
-                        <span>{{ $doc->title }}</span>
-                    </a>
-                @endforeach
-            @endforeach
+            <div class="sec-title">ระเบียบการรับสมัคร</div>
+            <div style="overflow-x:auto;">
+                <table class="reg-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px; text-align:left;">#</th>
+                            <th style="text-align:center;">รายการ</th>
+                            <th style="width:150px;"></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($documents as $i => $doc)
+                            <tr>
+                                <td>{{ $i + 1 }}</td>
+                                <td style="text-align:center;">
+                                    <span class="reg-file-ic">📄</span>{{ $doc->title }}
+                                </td>
+                                <td style="text-align:right;">
+                                    <a href="{{ asset('storage/' . $doc->file_path) }}" target="_blank" class="btn-dl">ดาวน์โหลด</a>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
     @endif
 
