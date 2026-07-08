@@ -42,6 +42,13 @@ Route::view('/rp_overview', 'pege.rp_overview');
 Route::view('/login', 'auth.login')->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 
+// --- ระบบรับสมัครนักเรียนออนไลน์ (สาธารณะ ไม่ต้อง login) ---
+Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)->group(function () {
+    Route::get('/admission', 'form')->name('admission.form');
+    Route::post('/admission', 'submit')->name('admission.submit');
+    Route::get('/admission/success', 'success')->name('admission.success');
+});
+
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
 Route::middleware(['auth'])->group(function () {
 
@@ -226,6 +233,16 @@ Route::middleware(['auth'])->group(function () {
         ->prefix('assessments')->name('assessments.')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'save')->name('save');
+        });
+
+    // === รับสมัครนักเรียน (ผู้ดูแล) ===
+    Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)
+        ->prefix('admissions')->name('admissions.')->group(function () {
+            Route::get('/settings', 'settings')->name('settings');
+            Route::post('/settings', 'saveSettings')->name('saveSettings');
+            Route::get('/applicants', 'applicants')->name('applicants');
+            Route::post('/applicants/{id}/approve', 'approve')->name('approve');
+            Route::post('/applicants/{id}/reject', 'reject')->name('reject');
         });
 
     // === 7. เลื่อนชั้น / ย้ายห้อง / บันทึกจบ ===

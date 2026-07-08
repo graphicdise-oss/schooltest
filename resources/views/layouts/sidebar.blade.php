@@ -309,13 +309,13 @@
                                 <div class="mb-5">
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รับสมัครนักเรียนออนไลน์</h4>
                                     <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลนักเรียน</a>
+                                        <li><a href="{{ route('admissions.applicants') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตรวจสอบผู้สมัคร</a>
                                         </li>
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าฟอร์มรับสมัคร</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('admissions.settings') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าคำชี้แจง/ระเบียบการ</a>
                                         </li>
                                         <li><a href="#"
@@ -324,7 +324,7 @@
                                         <li><a href="{{ route('exam-rooms.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าห้องสอบ</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('admissions.settings') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการรับสมัคร</a>
                                         </li>
                                     </ul>
