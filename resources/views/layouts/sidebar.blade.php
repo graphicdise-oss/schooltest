@@ -160,6 +160,7 @@
                 </a>
 
                 {{-- ===== ข้อมูลบุคคล ===== --}}
+                @if(auth()->user()->canArea(['students.index','students.create','personnels.index','personnels.create','settings.prefix','settings.personnel_type','settings.general']))
                 <div id="menu-personnel" data-menu="personnel" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -334,7 +335,9 @@
                     </div>
                 </div>
 
+                @endif
                 {{-- ===== วิชาการ ===== --}}
+                @if(auth()->user()->canArea(['academic.curriculum','academic.timetable','academic.scores','academic.reports']))
                 <div id="menu-academic" data-menu="academic" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -530,7 +533,9 @@
                     </div>
                 </div>
 
+                @endif
                 {{-- ===== กิจการนักเรียน ===== --}}
+                @if(auth()->user()->canArea(['affairs.attendance','affairs.behavior','affairs.sdq','affairs.homevisit']))
                 <div id="menu-student_affairs" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -659,7 +664,9 @@
                     </div>
                 </div>
 
+                @endif
                 {{-- ===== บริหารทั่วไป ===== --}}
+                @if(auth()->user()->canArea(['admin.news','admin.library','admin.bus']))
                 <div id="menu-general_admin" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -781,7 +788,9 @@
                     </div>
                 </div>
 
+                @endif
                 {{-- ===== บัญชี/การเงิน ===== --}}
+                @if(auth()->user()->canArea(['finance.income','finance.expense','finance.salary','finance.reports']))
                 <div id="menu-accounting" data-menu="accounting" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -907,6 +916,7 @@
                     </div>
                 </div>
 
+                @endif
                 {{-- ===== ร้านค้า/สหกรณ์ ===== --}}
                 <a id="menu-store" href="#" @mouseenter="moveIndicator($el); hoverItem = 'store'"
                     :class="(hoverItem === 'store' || (hoverItem === null && activeItem === 'store')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
