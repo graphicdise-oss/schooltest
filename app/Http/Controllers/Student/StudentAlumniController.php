@@ -186,13 +186,6 @@ class StudentAlumniController extends Controller
         );
     }
 
-    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
-    Route::get('/', 'index')->name('index');
-    Route::post('/', 'store')->name('store');
-    Route::put('/{id}', 'update')->name('update');
-    Route::delete('/{id}', 'destroy')->name('destroy');
-});
-
     $withdrawals = $query->get();
     $grouped = $withdrawals->groupBy('from_section_id');
 
