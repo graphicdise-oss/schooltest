@@ -312,20 +312,11 @@
                                         <li><a href="{{ route('admissions.applicants') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตรวจสอบผู้สมัคร</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าฟอร์มรับสมัคร</a>
-                                        </li>
                                         <li><a href="{{ route('admissions.settings') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าคำชี้แจง/ระเบียบการ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าแผนหลักสูตร</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการรับสมัคร (ฟอร์ม/คำชี้แจง/ไฟล์)</a>
                                         </li>
                                         <li><a href="{{ route('exam-rooms.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าห้องสอบ</a>
-                                        </li>
-                                        <li><a href="{{ route('admissions.settings') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการรับสมัคร</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -746,13 +737,13 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบรับนักเรียน</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">หน้าแสดงผล</a>
+                                        <li><a href="{{ route('admission.form') }}" target="_blank"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">หน้ารับสมัคร (สาธารณะ)</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานรับนักเรียน</a>
+                                        <li><a href="{{ route('admissions.applicants') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตรวจสอบผู้สมัคร</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('admissions.settings') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าระบบรับนักเรียน</a>
                                         </li>
                                     </ul>
