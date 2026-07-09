@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Academic;
 
 use App\Http\Controllers\Controller;
 use App\Models\Academic\AcademicYear;
+use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
@@ -20,12 +21,18 @@ class OnetController extends Controller
         $levels  = Level::orderBy('sort_order')->get();
         $levelId = $request->get('level_id', '');
 
+        // เลือกเฉพาะห้องของ "ภาคเรียนปัจจุบัน" ของปีนั้น (ไม่งั้นเทอม 1/2 จะมีห้องชื่อซ้ำกัน เช่น ม.5/1 x2)
         $sections = collect();
         if ($yearId && $levelId !== '') {
-            $sections = ClassSection::where('level_id', $levelId)
-                ->whereHas('semester', fn($q) => $q->where('year_id', $yearId))
-                ->orderBy('section_number')
-                ->get();
+            $semester = Semester::where('year_id', $yearId)->where('is_current', true)->first()
+                ?? Semester::where('year_id', $yearId)->orderByDesc('semester_name')->first();
+
+            if ($semester) {
+                $sections = ClassSection::where('level_id', $levelId)
+                    ->where('semester_id', $semester->semester_id)
+                    ->orderBy('section_number')
+                    ->get();
+            }
         }
 
         $sectionId = $request->get('section_id');
