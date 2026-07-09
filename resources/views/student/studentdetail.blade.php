@@ -3,6 +3,8 @@
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/studentdetail/studentdetail.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
 @endpush
 
 @section('content')
@@ -68,28 +70,55 @@
 
                 <div class="text-center mb-4 position-relative">
                     @php
-                        $defaultImage = 'https://via.placeholder.com/150';
+                        $defaultImage = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Crect%20width=%27150%27%20height=%27150%27%20fill=%27%23eef1f7%27/%3E%3Ccircle%20cx=%2775%27%20cy=%2758%27%20r=%2728%27%20fill=%27%23c3ccdb%27/%3E%3Cpath%20d=%27M35%20126c0-23%2018-35%2040-35s40%2012%2040%2035z%27%20fill=%27%23c3ccdb%27/%3E%3C/svg%3E';
                         $imageSrc = (isset($student) && $student->student_image)
                             ? asset('storage/' . $student->student_image)
                             : $defaultImage;
                     @endphp
 
-                    <img src="{{ $imageSrc }}" alt="Profile" class="profile-upload mb-2 rounded-circle object-fit-cover"
+                    <img src="{{ $imageSrc }}" alt="รูปนักเรียน" class="profile-upload mb-2 rounded-circle object-fit-cover"
                         id="preview-image"
+                        onerror="this.onerror=null;this.src='{{ $defaultImage }}';"
                         style="width: 150px; height: 150px; border: 2px solid #ccc; display: block; margin: 0 auto;">
 
                     <div>
                         <span class="text-muted small">
                             <i class="bi bi-exclamation-triangle-fill text-warning"></i>
-                            ข้อแนะนำ : ไม่ควรอัปโหลดรูปเกิน 1MB
+                            เลือกรูปแล้วครอปให้พอดีก่อนได้ (ไม่ควรเกิน 2MB)
                         </span>
                     </div>
 
-                    <input type="file" name="student_image" class="form-control d-none" id="image-upload" accept="image/*"
-                        onchange="previewImage(event)">
+                    <input type="file" class="d-none" id="image-upload" accept="image/*"
+                        onchange="openCropper(event)">
 
                     <button type="button" class="btn btn-sm btn-secondary mt-2"
-                        onclick="document.getElementById('image-upload').click()">อัปโหลดรูปภาพ</button>
+                        onclick="document.getElementById('image-upload').click()">
+                        <i class="bi bi-crop"></i> อัปโหลด/ครอปรูปภาพ
+                    </button>
+                </div>
+
+                {{-- Modal ครอปรูปนักเรียน --}}
+                <div class="modal fade" id="cropModal" tabindex="-1" data-bs-backdrop="static">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header" style="background:#082b75;color:#fff;">
+                                <h6 class="modal-title mb-0"><i class="bi bi-crop me-1"></i> ครอปรูปนักเรียน</h6>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div style="max-height:60vh; overflow:hidden;">
+                                    <img id="cropper-image" style="max-width:100%; display:block;">
+                                </div>
+                                <div class="text-center mt-2 text-muted small">ลากเลือกกรอบ · เลื่อนล้อเมาส์เพื่อซูม</div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">ยกเลิก</button>
+                                <button type="button" class="btn btn-primary" onclick="applyCrop()">
+                                    <i class="bi bi-check-lg"></i> ใช้รูปนี้
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <ul class="nav nav-pills nav-justified border-bottom pb-3 mb-4" id="pills-tab" role="tablist">
@@ -132,6 +161,8 @@
                             @if($isSaved)
                                 @method('PUT')
                             @endif
+                            {{-- รูปที่ครอปแล้ว (base64) ส่งมากับฟอร์มนี้ --}}
+                            <input type="hidden" name="student_image_cropped" id="croppedData">
 
                             @if(!$isSaved)
                                 <div class="alert alert-warning text-center">
@@ -1551,16 +1582,46 @@
             }
         }
 
-        function previewImage(event) {
+        // ===== ครอปรูปนักเรียน (Cropper.js) =====
+        let _cropper = null;
+        let _cropModal = null;
+
+        function openCropper(event) {
+            const file = event.target.files[0];
+            if (!file) return;
             const reader = new FileReader();
             reader.onload = function () {
-                const output = document.getElementById('preview-image');
-                output.src = reader.result;
-            }
-            if (event.target.files[0]) {
-                reader.readAsDataURL(event.target.files[0]);
-            }
+                document.getElementById('cropper-image').src = reader.result;
+                if (!_cropModal) {
+                    _cropModal = new bootstrap.Modal(document.getElementById('cropModal'));
+                }
+                _cropModal.show();
+            };
+            reader.readAsDataURL(file);
+            event.target.value = ''; // เลือกไฟล์เดิมซ้ำได้
         }
+
+        function applyCrop() {
+            if (!_cropper) return;
+            const canvas = _cropper.getCroppedCanvas({ width: 400, height: 400, imageSmoothingQuality: 'high' });
+            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+            document.getElementById('preview-image').src = dataUrl;
+            document.getElementById('croppedData').value = dataUrl;
+            if (_cropModal) _cropModal.hide();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const cropModalEl = document.getElementById('cropModal');
+            if (!cropModalEl) return;
+            cropModalEl.addEventListener('shown.bs.modal', function () {
+                const img = document.getElementById('cropper-image');
+                if (_cropper) { _cropper.destroy(); }
+                _cropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 1, background: false });
+            });
+            cropModalEl.addEventListener('hidden.bs.modal', function () {
+                if (_cropper) { _cropper.destroy(); _cropper = null; }
+            });
+        });
     </script>
 
    @push('scripts')

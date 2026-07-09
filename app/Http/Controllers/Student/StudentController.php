@@ -9,6 +9,7 @@ use App\Models\StudentEducation;
 use App\Models\StudentFamily; // <-- 1. เพิ่มบรรทัดนี้เพื่อเรียกใช้ Model ครอบครัว
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use App\Models\StudentHealth;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\Semester;
@@ -38,6 +39,23 @@ class StudentController extends Controller
 
 
     // 2. บันทึกข้อมูลนักเรียน + ที่อยู่ (ตอนสร้างใหม่)
+    // จัดการรูปนักเรียน: รับรูปที่ครอปมาแบบ base64 หรือไฟล์อัปโหลดปกติ
+    private function resolveStudentImage(Request $request, array &$studentData): void
+    {
+        $cropped = $request->input('student_image_cropped');
+        if ($cropped && preg_match('#^data:image/(\w+);base64,#', $cropped, $m)) {
+            $ext    = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
+            $binary = base64_decode(substr($cropped, strpos($cropped, ',') + 1));
+            if ($binary !== false) {
+                $path = 'students/' . uniqid('stu_') . '.' . $ext;
+                Storage::disk('public')->put($path, $binary);
+                $studentData['student_image'] = $path;
+            }
+        } elseif ($request->hasFile('student_image')) {
+            $studentData['student_image'] = $request->file('student_image')->store('students', 'public');
+        }
+    }
+
     public function store(Request $request)
     {
         // ตรวจสอบข้อมูลเบื้องต้น
@@ -54,7 +72,7 @@ class StudentController extends Controller
         ]);
 
         // กรองเอาเฉพาะข้อมูลที่เป็นข้อความหรือตัวเลข (กันพวก Array ขยะหลุดเข้ามา)
-        $rawStudentData = $request->except(['_token', 'addresses', 'student_image', 'semester_id', 'section_id', 'year_id', 'level_id']);
+        $rawStudentData = $request->except(['_token', 'addresses', 'student_image', 'student_image_cropped', 'semester_id', 'section_id', 'year_id', 'level_id']);
         $studentData = [];
 
         foreach ($rawStudentData as $key => $value) {
@@ -63,10 +81,8 @@ class StudentController extends Controller
             }
         }
 
-        // จัดการอัปโหลดรูปภาพ
-        if ($request->hasFile('student_image')) {
-            $studentData['student_image'] = $request->file('student_image')->store('students', 'public');
-        }
+        // จัดการอัปโหลดรูปภาพ (รองรับรูปครอป)
+        $this->resolveStudentImage($request, $studentData);
 
         $studentData['created_by'] = Auth::user()->name ?? 'system';
 
@@ -153,6 +169,7 @@ class StudentController extends Controller
             '_method',
             'addresses',
             'student_image',
+            'student_image_cropped',
             'section_id',
             'year_id',
             'semester_id',
@@ -168,9 +185,8 @@ class StudentController extends Controller
             }
         }
 
-        if ($request->hasFile('student_image')) {
-            $studentData['student_image'] = $request->file('student_image')->store('students', 'public');
-        }
+        // จัดการรูป (รองรับรูปครอป)
+        $this->resolveStudentImage($request, $studentData);
 
         // อัปเดตข้อมูลหลัก
         $student->update($studentData);
