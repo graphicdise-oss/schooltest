@@ -539,11 +539,12 @@
                                 @if(auth()->user()->isSuperAdmin())
                                     <option value="superadmin">superadmin (ผู้ดูแลสูงสุด)</option>
                                 @endif
-                                <option value="admin">admin</option>
-                                <option value="teacher">teacher</option>
-                                <option value="staff">staff</option>
-                                <option value="viewer">viewer</option>
+                                <option value="admin">admin (ผู้ดูแลระบบ)</option>
+                                <option value="user">user (ผู้ใช้ทั่วไป)</option>
                             </select>
+                            <small class="text-muted d-block mt-1">
+                                สิทธิ์เข้าถึงเมนูของ "user" กำหนดแยกได้ที่ <strong>ประเภทบุคลากร</strong> ของแต่ละคน
+                            </small>
                         </div>
                     </div>
                 </div>
