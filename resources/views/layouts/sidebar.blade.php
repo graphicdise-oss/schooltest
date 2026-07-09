@@ -141,7 +141,15 @@
                 let group = best.closest('[data-menu]');
                 if (group) this.activeItem = group.getAttribute('data-menu');
             },
-            init() { this.detectActive(); setTimeout(() => { this.resetIndicator(); }, 50); }
+            init() {
+                this.detectActive();
+                this.$nextTick(() => this.resetIndicator());
+                // คำนวณตำแหน่งแถบใหม่หลังฟอนต์/รูปโหลดเสร็จ (กันแถบเพี้ยนเพราะเลย์เอาต์ขยับ)
+                if (document.fonts && document.fonts.ready) { document.fonts.ready.then(() => this.resetIndicator()); }
+                window.addEventListener('load', () => this.resetIndicator());
+                window.addEventListener('resize', () => this.resetIndicator());
+                setTimeout(() => this.resetIndicator(), 400);
+            }
         }" @mouseleave="hoverItem = null; resetIndicator()"
             class="flex-1 overflow-y-auto custom-scrollbar text-[18px] font-medium pl-4 relative">
 
@@ -309,20 +317,7 @@
 
                             {{-- คอลัมน์ 3 --}}
                             <div class="flex-1">
-                                <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รับสมัครนักเรียนออนไลน์</h4>
-                                    <ul class="space-y-1.5 pl-2">
-                                        <li><a href="{{ route('admissions.applicants') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตรวจสอบผู้สมัคร</a>
-                                        </li>
-                                        <li><a href="{{ route('admissions.settings') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการรับสมัคร (ฟอร์ม/คำชี้แจง/ไฟล์)</a>
-                                        </li>
-                                        <li><a href="{{ route('exam-rooms.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าห้องสอบ</a>
-                                        </li>
-                                    </ul>
-                                </div>
+                                {{-- ย้ายกลุ่ม "รับสมัครนักเรียนออนไลน์" ไปที่เมนู บริหารทั่วไป > ระบบรับนักเรียน แล้ว --}}
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบบัตรนักเรียน/บุคลากร</h4>
                                     <ul class="space-y-1.5 pl-2">
@@ -729,6 +724,9 @@
                                         </li>
                                         <li><a href="{{ route('admissions.settings') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าระบบรับนักเรียน</a>
+                                        </li>
+                                        <li><a href="{{ route('exam-rooms.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าห้องสอบ</a>
                                         </li>
                                     </ul>
                                 </div>
