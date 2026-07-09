@@ -66,7 +66,7 @@ class ScoreController extends Controller
 
         // 1. จำกัดสิทธิ์: เช็คว่าคนที่ Login เป็นครูผู้สอนวิชานี้ หรือเป็น Admin หรือไม่
         $user = auth()->user();
-        if ($user->role !== 'admin' && $user->personnel_id !== $assign->personnel_id) {
+        if (!$user->isAdmin() && $user->personnel_id !== $assign->personnel_id) {
             return redirect()->route('scores.index')->with('error', 'คุณไม่มีสิทธิ์เข้าถึงหรือบันทึกคะแนนในรายวิชานี้ (เฉพาะครูประจำวิชาเท่านั้น)');
         }
 

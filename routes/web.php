@@ -361,6 +361,23 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/upload-logo', 'uploadLogo')->name('uploadLogo');
     });
 
+    // === เช็คชื่อรายวิชา (ปรับสถานะการมาเรียน) ===
+    Route::controller(\App\Http\Controllers\Academic\AttendanceController::class)
+        ->prefix('attendance')->name('attendance.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{assign}', 'mark')->name('mark');
+            Route::post('/{assign}', 'store')->name('store');
+        });
+
+    // === ปพ.5 แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน ===
+    Route::controller(\App\Http\Controllers\Academic\Por5Controller::class)
+        ->prefix('por5')->name('por5.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{assign}/manage', 'manage')->name('manage');
+            Route::post('/{assign}/manage', 'saveAssessment')->name('saveAssessment');
+            Route::get('/{assign}/print', 'print')->name('print');
+        });
+
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
         Route::post('/', 'storeYear')->name('storeYear');
         Route::put('/{id}/current', 'setYearCurrent')->name('setYearCurrent');

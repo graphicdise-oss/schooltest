@@ -486,7 +486,7 @@
                                         <li><a href="{{ route('por3.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบรายงานผู้สำเร็จการศึกษา
                                                 (ปพ.3)</a></li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('por5.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน
                                                 (ปพ.5)</a></li>
                                         <li><a href="{{ route('por7.index') }}"
@@ -587,7 +587,7 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">เช็คชื่อ/ลา</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
+                                        <li><a href="{{ route('attendance.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการมาเรียน</a>
                                         </li>
                                         <li><a href="#"
