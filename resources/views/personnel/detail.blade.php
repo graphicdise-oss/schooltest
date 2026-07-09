@@ -5,6 +5,9 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
     <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
     <style>
+        /* บังคับจัดกึ่งกลางการ์ดโปรไฟล์ (รูป + ชื่อ + ปุ่ม) */
+        .pn-profile-card { display:flex !important; flex-direction:column; align-items:center; text-align:center; }
+        .pn-profile-img-wrap { display:flex; justify-content:center; width:100%; }
         .pn-photo-actions { text-align:center; margin-top:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
         .pn-btn-photo { background:#6c757d; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:.85rem; cursor:pointer; }
         .pn-btn-photo:hover { background:#5c636a; }
