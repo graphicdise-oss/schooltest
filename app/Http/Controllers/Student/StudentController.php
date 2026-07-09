@@ -56,6 +56,19 @@ class StudentController extends Controller
         }
     }
 
+    // บันทึกเฉพาะรูปนักเรียน (AJAX จากปุ่มข้างรูป)
+    public function updatePhoto(Request $request, $id)
+    {
+        $student = Student::where('student_id', $id)->firstOrFail();
+        $data = [];
+        $this->resolveStudentImage($request, $data);
+        if (empty($data['student_image'])) {
+            return response()->json(['ok' => false, 'message' => 'ไม่พบรูปภาพ'], 422);
+        }
+        $student->update(['student_image' => $data['student_image']]);
+        return response()->json(['ok' => true, 'url' => asset('storage/' . $data['student_image'])]);
+    }
+
     public function store(Request $request)
     {
         // ตรวจสอบข้อมูลเบื้องต้น

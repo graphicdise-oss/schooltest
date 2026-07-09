@@ -5,6 +5,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>School Tech</title>
     <link rel="icon" type="image/png" href="{{ asset('img/login_pic/graduation_cap.png') }}">
 
@@ -99,9 +100,17 @@
 
         {{-- โปรไฟล์ --}}
         <div class="flex flex-col items-center justify-center pt-10 pb-4">
-            <div class="w-[90px] h-[90px] bg-[#d1d5db] rounded-full border-[3px] border-[#92b2f2] shadow-sm mb-3"></div>
+            @php $me = Auth::user(); @endphp
+            @if($me && $me->personnel_image)
+                <img src="{{ asset('storage/' . $me->personnel_image) }}" alt="โปรไฟล์"
+                    class="w-[90px] h-[90px] rounded-full border-[3px] border-[#92b2f2] shadow-sm mb-3 object-cover">
+            @else
+                <div class="w-[90px] h-[90px] bg-[#d1d5db] rounded-full border-[3px] border-[#92b2f2] shadow-sm mb-3 flex items-center justify-center">
+                    <i class="fa-solid fa-user text-[#9aa7bd] text-3xl"></i>
+                </div>
+            @endif
             <h3 class="font-bold text-[16px] tracking-wider uppercase">
-                {{ Auth::user()->first_name ?? 'USER' }}
+                {{ $me->thai_firstname ?? $me->first_name ?? 'USER' }}
                 <span class="opacity-70">({{ Auth::user()->role ?? '' }})</span>
             </h3>
             <p class="text-[10px] opacity-80">{{ Auth::user()->email }}</p>

@@ -91,10 +91,18 @@
                     <input type="file" class="d-none" id="image-upload" accept="image/*"
                         onchange="openCropper(event)">
 
-                    <button type="button" class="btn btn-sm btn-secondary mt-2"
-                        onclick="document.getElementById('image-upload').click()">
-                        <i class="bi bi-crop"></i> อัปโหลด/ครอปรูปภาพ
-                    </button>
+                    <div class="mt-2 d-flex gap-2 justify-content-center flex-wrap">
+                        <button type="button" class="btn btn-sm btn-secondary"
+                            onclick="document.getElementById('image-upload').click()">
+                            <i class="bi bi-crop"></i> อัปโหลด/ครอปรูป
+                        </button>
+                        @if($isSaved)
+                        <button type="button" class="btn btn-sm btn-success" id="btn-save-photo"
+                            data-url="{{ route('students.photo', $student->student_id) }}" onclick="savePhoto()">
+                            <i class="bi bi-save"></i> บันทึกรูป
+                        </button>
+                        @endif
+                    </div>
                 </div>
 
                 {{-- Modal ครอปรูปนักเรียน --}}
@@ -1608,6 +1616,33 @@
             document.getElementById('preview-image').src = dataUrl;
             document.getElementById('croppedData').value = dataUrl;
             if (_cropModal) _cropModal.hide();
+        }
+
+        // บันทึกเฉพาะรูป (AJAX) — ไม่ต้องกดบันทึกทั้งฟอร์ม
+        function savePhoto() {
+            const data = document.getElementById('croppedData').value;
+            if (!data) { alert('กรุณาเลือกรูปและครอปก่อน'); return; }
+            const btn = document.getElementById('btn-save-photo');
+            fetch(btn.dataset.url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ student_image_cropped: data })
+            })
+            .then(r => r.json())
+            .then(res => {
+                if (res.ok) {
+                    document.getElementById('preview-image').src = res.url + '?t=' + Date.now();
+                    if (window.Swal) Swal.fire({ icon: 'success', title: 'บันทึกรูปสำเร็จ', timer: 1200, showConfirmButton: false });
+                    else alert('บันทึกรูปสำเร็จ');
+                } else {
+                    alert(res.message || 'บันทึกไม่สำเร็จ');
+                }
+            })
+            .catch(() => alert('เกิดข้อผิดพลาดในการบันทึกรูป'));
         }
 
         document.addEventListener('DOMContentLoaded', function () {

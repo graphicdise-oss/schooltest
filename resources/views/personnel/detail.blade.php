@@ -2,10 +2,80 @@
 
 @push('styles')
     <link rel="stylesheet" href="{{ asset('css/personnel/detail.css') }}?v={{ time() }}">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.6.1/dist/cropper.min.js"></script>
+    <style>
+        .pn-photo-actions { text-align:center; margin-top:10px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+        .pn-btn-photo { background:#6c757d; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:.85rem; cursor:pointer; }
+        .pn-btn-photo:hover { background:#5c636a; }
+        .pn-btn-photo.save { background:#16a34a; }
+        .pn-btn-photo.save:hover { background:#12833c; }
+        .pn-crop-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:9999; align-items:center; justify-content:center; }
+        .pn-crop-overlay.open { display:flex; }
+        .pn-crop-box { background:#fff; border-radius:12px; width:520px; max-width:94vw; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,.3); }
+        .pn-crop-head { background:#082b75; color:#fff; padding:12px 16px; font-weight:600; }
+        .pn-crop-body { padding:14px; }
+        .pn-crop-body img { max-width:100%; display:block; max-height:60vh; }
+        .pn-crop-foot { padding:12px 16px; display:flex; justify-content:flex-end; gap:8px; }
+    </style>
 @endpush
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+    // ===== ครอป/บันทึกรูปบุคลากร =====
+    let _pnCropper = null;
+    let _pnCroppedData = '';
+
+    function pnOpenCropper(e) {
+        const file = e.target.files[0]; if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function () {
+            const img = document.getElementById('pn-cropper-image');
+            img.src = reader.result;
+            document.getElementById('pn-crop-overlay').classList.add('open');
+            setTimeout(function () {
+                if (_pnCropper) { _pnCropper.destroy(); }
+                _pnCropper = new Cropper(img, { aspectRatio: 1, viewMode: 1, autoCropArea: 1, background: false });
+            }, 200);
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    }
+    function pnCloseCropper() {
+        document.getElementById('pn-crop-overlay').classList.remove('open');
+        if (_pnCropper) { _pnCropper.destroy(); _pnCropper = null; }
+    }
+    function pnApplyCrop() {
+        if (!_pnCropper) return;
+        const canvas = _pnCropper.getCroppedCanvas({ width: 400, height: 400, imageSmoothingQuality: 'high' });
+        _pnCroppedData = canvas.toDataURL('image/jpeg', 0.9);
+        document.getElementById('pn-preview').src = _pnCroppedData;
+        pnCloseCropper();
+    }
+    function pnSavePhoto() {
+        if (!_pnCroppedData) { alert('กรุณาเลือกรูปและครอปก่อน'); return; }
+        const btn = document.getElementById('pn-btn-save-photo');
+        fetch(btn.dataset.url, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({ image_cropped: _pnCroppedData })
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res.ok) {
+                document.getElementById('pn-preview').src = res.url + '?t=' + Date.now();
+                if (window.Swal) Swal.fire({ icon: 'success', title: 'บันทึกรูปสำเร็จ', timer: 1200, showConfirmButton: false });
+                else alert('บันทึกรูปสำเร็จ');
+            } else { alert(res.message || 'บันทึกไม่สำเร็จ'); }
+        })
+        .catch(() => alert('เกิดข้อผิดพลาดในการบันทึกรูป'));
+    }
+</script>
 @if(session('success'))
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -51,20 +121,44 @@
     </nav>
 
     {{-- ===== รูปโปรไฟล์ ===== --}}
+    @php
+        $pnPlaceholder = 'data:image/svg+xml;charset=UTF-8,%3Csvg%20xmlns=%27http://www.w3.org/2000/svg%27%20width=%27150%27%20height=%27150%27%3E%3Crect%20width=%27150%27%20height=%27150%27%20fill=%27%23eef1f7%27/%3E%3Ccircle%20cx=%2775%27%20cy=%2758%27%20r=%2728%27%20fill=%27%23c3ccdb%27/%3E%3Cpath%20d=%27M35%20126c0-23%2018-35%2040-35s40%2012%2040%2035z%27%20fill=%27%23c3ccdb%27/%3E%3C/svg%3E';
+    @endphp
     <div class="pn-profile-card">
         <div class="pn-profile-img-wrap">
-            @if(isset($personnel) && $personnel->personnel_image)
-                <img src="{{ asset('storage/' . $personnel->personnel_image) }}" alt="รูปบุคลากร" class="pn-profile-img">
-            @else
-                <div class="pn-profile-placeholder">
-                    <i class="bi bi-person-fill"></i>
-                </div>
-            @endif
+            <img src="{{ (isset($personnel) && $personnel->personnel_image) ? asset('storage/' . $personnel->personnel_image) : $pnPlaceholder }}"
+                 alt="รูปบุคลากร" class="pn-profile-img" id="pn-preview"
+                 onerror="this.onerror=null;this.src='{{ $pnPlaceholder }}';">
         </div>
         <div class="pn-profile-name">
             {{ ($personnel->thai_prefix ?? '') . ' ' . ($personnel->thai_firstname ?? 'ชื่อ') . ' ' . ($personnel->thai_lastname ?? 'นามสกุล') }}
         </div>
         <div class="pn-profile-role">{{ $personnel->position ?? 'ตำแหน่ง' }} — {{ $personnel->department ?? 'แผนก' }}</div>
+
+        <input type="file" id="pn-image-upload" accept="image/*" style="display:none" onchange="pnOpenCropper(event)">
+        <div class="pn-photo-actions">
+            <button type="button" class="pn-btn-photo" onclick="document.getElementById('pn-image-upload').click()">
+                <i class="bi bi-crop"></i> อัปโหลด/ครอปรูป
+            </button>
+            @if(isset($personnel))
+            <button type="button" class="pn-btn-photo save" id="pn-btn-save-photo"
+                data-url="{{ route('personnels.photo', $personnel->personnel_id) }}" onclick="pnSavePhoto()">
+                <i class="bi bi-save"></i> บันทึกรูป
+            </button>
+            @endif
+        </div>
+    </div>
+
+    {{-- Modal ครอปรูปบุคลากร --}}
+    <div class="pn-crop-overlay" id="pn-crop-overlay">
+        <div class="pn-crop-box">
+            <div class="pn-crop-head"><i class="bi bi-crop"></i> ครอปรูปบุคลากร</div>
+            <div class="pn-crop-body"><img id="pn-cropper-image"></div>
+            <div class="pn-crop-foot">
+                <button type="button" class="pn-btn-photo" onclick="pnCloseCropper()">ยกเลิก</button>
+                <button type="button" class="pn-btn-photo save" onclick="pnApplyCrop()"><i class="bi bi-check-lg"></i> ใช้รูปนี้</button>
+            </div>
+        </div>
     </div>
 
     {{-- ===== Tab Navigation ===== --}}

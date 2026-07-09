@@ -70,6 +70,7 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/students', 'store')->name('students.store');
         Route::get('/students/{id}/edit', 'edit')->name('students.edit');
         Route::put('/students/{id}', 'update')->name('students.update');
+        Route::post('/students/{id}/photo', 'updatePhoto')->name('students.photo');
         Route::post('/students/education', 'storeEducation')->name('students.storeEducation');
         Route::post('/students/family', 'storeFamily')->name('students.storeFamily');
         Route::post('/students/health', 'storeHealth')->name('students.storeHealth');
@@ -86,6 +87,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::put('/{id}/credentials', 'updateCredentials')->name('updateCredentials');
+        Route::post('/{id}/photo', 'updatePhoto')->name('photo');
 
         // ข้อมูลการศึกษา
         Route::post('/education', 'storeEducation')->name('education.store');

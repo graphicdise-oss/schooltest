@@ -15,6 +15,7 @@ use App\Models\Personne\PersonnelDecoration;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 
 class PersonnelController extends Controller
@@ -292,6 +293,31 @@ class PersonnelController extends Controller
 
 
     // เพิ่มตรงท้ายก่อนปิด class
+    // บันทึกเฉพาะรูปบุคลากร (AJAX จากปุ่มข้างรูป)
+    public function updatePhoto(Request $request, $id)
+    {
+        $personnel = Personnel::where('personnel_id', $id)->firstOrFail();
+
+        $path = null;
+        $cropped = $request->input('image_cropped');
+        if ($cropped && preg_match('#^data:image/(\w+);base64,#', $cropped, $m)) {
+            $ext    = strtolower($m[1]) === 'jpeg' ? 'jpg' : strtolower($m[1]);
+            $binary = base64_decode(substr($cropped, strpos($cropped, ',') + 1));
+            if ($binary !== false) {
+                $path = 'personnels/' . uniqid('per_') . '.' . $ext;
+                Storage::disk('public')->put($path, $binary);
+            }
+        } elseif ($request->hasFile('personnel_image')) {
+            $path = $request->file('personnel_image')->store('personnels', 'public');
+        }
+
+        if (!$path) {
+            return response()->json(['ok' => false, 'message' => 'ไม่พบรูปภาพ'], 422);
+        }
+        $personnel->update(['personnel_image' => $path]);
+        return response()->json(['ok' => true, 'url' => asset('storage/' . $path)]);
+    }
+
     public function updateCredentials(Request $request, $id)
     {
         $actor = Auth::user();
