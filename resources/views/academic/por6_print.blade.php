@@ -39,9 +39,9 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 .summary-box td { padding:4px 8px; border-top:1px solid #ccc; }
 .summary-box td.v { text-align:center; width:70px; font-weight:700; }
 
-.sign-box { flex:1; font-size:14px; }
+.sign-box { flex:1; font-size:14px; text-align:center; }
 .sign-item { margin-bottom:14px; }
-.sign-line { margin-bottom:4px; }
+.sign-line { margin-bottom:4px; text-align:center; }
 </style>
 </head>
 <body>
