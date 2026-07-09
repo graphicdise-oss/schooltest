@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Student;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
+use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
 
 class StudentListController extends Controller
@@ -102,7 +103,11 @@ class StudentListController extends Controller
     }
 
     /**
-     * รายงานชื่อนักเรียนใหม่ (enroll_status = เข้าใหม่) + วันที่เข้าเรียนล่าสุด
+     * รายงานชื่อนักเรียนใหม่ + วันที่เข้าเรียนล่าสุด
+     *
+     * ตาราง students ไม่มีคอลัมน์บอกสถานะ "เข้าใหม่/ย้ายมา" (ตัวเลือกในฟอร์มค้นหา
+     * เป็นแค่ dropdown ที่ไม่เคยผูกกับคอลัมน์จริง) จึงนิยาม "นักเรียนใหม่" จากข้อมูล
+     * ที่มีจริง: นักเรียนที่ถูกจัดเข้าห้องเรียนครั้งแรกสุดในปีการศึกษาปัจจุบัน
      */
     public function newStudentsReport(Request $request)
     {
@@ -110,7 +115,9 @@ class StudentListController extends Controller
         $levelId = $request->get('level_id', '');
         $search  = $request->get('search', '');
 
-        $students = Student::where('enroll_status', 'เข้าใหม่')
+        $currentYearId = optional(AcademicYear::current())->year_id;
+
+        $students = Student::whereHas('studentSections')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
                     $qq->where('thai_firstname', 'like', "%$search%")
@@ -120,25 +127,32 @@ class StudentListController extends Controller
             })
             ->with(['studentSections' => function ($q) {
                 $q->with(['classSection.level', 'classSection.semester.academicYear'])
-                  ->orderByDesc('created_at');
+                  ->orderBy('created_at'); // เรียงเก่า -> ใหม่ เพื่อหาห้องแรกสุดได้ง่าย
             }])
             ->get();
 
-        // แปลงเป็นแถวรายงาน (ดึงห้อง/วันเข้าเรียนล่าสุดจาก StudentSection ล่าสุด)
+        // แปลงเป็นแถวรายงาน (ห้องแรกสุด = วันเข้าเรียนครั้งแรก, ห้องล่าสุด = วันเข้าเรียนล่าสุด)
         $rows = $students->map(function ($s) {
-            $latest = $s->studentSections->first();
+            $first  = $s->studentSections->first();
+            $latest = $s->studentSections->last();
             $sec    = $latest?->classSection;
             return (object) [
-                'code'        => $s->student_code,
-                'name'        => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
-                'gender'      => $s->gender,
-                'room'        => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number) : '-',
-                'year'        => $sec?->semester?->academicYear?->year_name,
-                'enroll_date' => $latest?->created_at,
-                'status'      => $s->status,
-                'level_id'    => $sec?->level_id,
+                'code'          => $s->student_code,
+                'name'          => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
+                'gender'        => $s->gender,
+                'room'          => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number) : '-',
+                'year'          => $sec?->semester?->academicYear?->year_name,
+                'enroll_date'   => $latest?->created_at,
+                'status'        => $s->status,
+                'level_id'      => $sec?->level_id,
+                'first_year_id' => $first?->classSection?->semester?->year_id,
             ];
         });
+
+        // นักเรียนใหม่ = เข้าห้องครั้งแรกในปีการศึกษาปัจจุบัน (ถ้าไม่มีปีปัจจุบันตั้งไว้ ให้แสดงทั้งหมด)
+        if ($currentYearId) {
+            $rows = $rows->filter(fn($r) => (string) $r->first_year_id === (string) $currentYearId)->values();
+        }
 
         // กรองตามระดับชั้นของห้องล่าสุด
         if ($levelId !== '') {
