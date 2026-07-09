@@ -100,4 +100,54 @@ class StudentListController extends Controller
         return redirect()->route('student.student_index')
             ->with('success', 'ลบข้อมูลนักเรียนสำเร็จ');
     }
+
+    /**
+     * รายงานชื่อนักเรียนใหม่ (enroll_status = เข้าใหม่) + วันที่เข้าเรียนล่าสุด
+     */
+    public function newStudentsReport(Request $request)
+    {
+        $levels  = Level::orderBy('sort_order')->get();
+        $levelId = $request->get('level_id', '');
+        $search  = $request->get('search', '');
+
+        $students = Student::where('enroll_status', 'เข้าใหม่')
+            ->when($search, function ($q) use ($search) {
+                $q->where(function ($qq) use ($search) {
+                    $qq->where('thai_firstname', 'like', "%$search%")
+                       ->orWhere('thai_lastname', 'like', "%$search%")
+                       ->orWhere('student_code', 'like', "%$search%");
+                });
+            })
+            ->with(['studentSections' => function ($q) {
+                $q->with(['classSection.level', 'classSection.semester.academicYear'])
+                  ->orderByDesc('created_at');
+            }])
+            ->get();
+
+        // แปลงเป็นแถวรายงาน (ดึงห้อง/วันเข้าเรียนล่าสุดจาก StudentSection ล่าสุด)
+        $rows = $students->map(function ($s) {
+            $latest = $s->studentSections->first();
+            $sec    = $latest?->classSection;
+            return (object) [
+                'code'        => $s->student_code,
+                'name'        => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
+                'gender'      => $s->gender,
+                'room'        => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number) : '-',
+                'year'        => $sec?->semester?->academicYear?->year_name,
+                'enroll_date' => $latest?->created_at,
+                'status'      => $s->status,
+                'level_id'    => $sec?->level_id,
+            ];
+        });
+
+        // กรองตามระดับชั้นของห้องล่าสุด
+        if ($levelId !== '') {
+            $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
+        }
+
+        // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
+        $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
+
+        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search'));
+    }
 }
