@@ -752,13 +752,13 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ห้องสมุด</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
+                                        <li><a href="{{ route('library.checkin.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ลงชื่อเข้าใช้ห้องสมุด</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('library.books.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการห้องสมุด</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('library.categories.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าหมวดหมู่หนังสือ</a>
                                         </li>
                                     </ul>
@@ -781,22 +781,22 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานห้องสมุด</h4>
                                 <ul class="space-y-1 pl-2">
-                                    <li><a href="#"
+                                    <li><a href="{{ route('library.reports.books') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานข้อมูลหนังสือ</a>
                                     </li>
-                                    <li><a href="#"
+                                    <li><a href="{{ route('library.reports.overdue') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานค้างส่ง</a>
                                     </li>
-                                    <li><a href="#"
+                                    <li><a href="{{ route('library.reports.loans') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานยืม-คืนหนังสือ</a>
                                     </li>
-                                    <li><a href="#"
+                                    <li><a href="{{ route('library.reports.damage') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานแจ้งชำรุดเสียหาย</a>
                                     </li>
-                                    <li><a href="#"
+                                    <li><a href="{{ route('library.reports.topBorrowers') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานผู้ยืมหนังสือมากที่สุด</a>
                                     </li>
-                                    <li><a href="#"
+                                    <li><a href="{{ route('library.reports.visits') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานเข้าใช้ห้องสมุด
                                             (สถิติ)</a></li>
                                 </ul>

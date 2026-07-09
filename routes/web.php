@@ -245,6 +245,50 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', 'save')->name('save');
         });
 
+    // === ระบบห้องสมุด ===
+    Route::controller(\App\Http\Controllers\Library\LibraryCategoryController::class)
+        ->prefix('library/categories')->name('library.categories.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{id}', 'update')->name('update');
+            Route::put('/{id}/toggle', 'toggle')->name('toggle');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+    Route::controller(\App\Http\Controllers\Library\LibraryBookController::class)
+        ->prefix('library/books')->name('library.books.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+    Route::controller(\App\Http\Controllers\Library\LibraryLoanController::class)
+        ->prefix('library/loans')->name('library.loans.')->group(function () {
+            Route::get('/search-borrower', 'searchBorrower')->name('searchBorrower');
+            Route::post('/issue', 'issue')->name('issue');
+            Route::post('/{id}/return', 'returnBook')->name('return');
+            Route::post('/{id}/damage', 'reportDamage')->name('damage');
+        });
+
+    Route::controller(\App\Http\Controllers\Library\LibraryVisitController::class)
+        ->prefix('library/checkin')->name('library.checkin.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/search', 'search')->name('search');
+            Route::post('/', 'store')->name('store');
+        });
+
+    Route::controller(\App\Http\Controllers\Library\LibraryReportController::class)
+        ->prefix('library/reports')->name('library.reports.')->group(function () {
+            Route::get('/books', 'books')->name('books');
+            Route::get('/overdue', 'overdue')->name('overdue');
+            Route::get('/loans', 'loans')->name('loans');
+            Route::get('/damage', 'damage')->name('damage');
+            Route::put('/damage/{id}', 'damageResolve')->name('damage.resolve');
+            Route::get('/top-borrowers', 'topBorrowers')->name('topBorrowers');
+            Route::get('/visits', 'visits')->name('visits');
+        });
+
     // === รับสมัครนักเรียน (ผู้ดูแล) ===
     Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)
         ->prefix('admissions')->name('admissions.')->group(function () {
