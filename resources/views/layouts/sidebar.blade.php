@@ -109,11 +109,13 @@
                     <i class="fa-solid fa-user text-[#9aa7bd] text-3xl"></i>
                 </div>
             @endif
-            <h3 class="font-bold text-[16px] tracking-wider uppercase">
+            <h3 class="font-bold text-[16px] tracking-wider uppercase w-full text-center px-3"
+                style="word-break: break-word; overflow-wrap: anywhere;">
                 {{ $me->thai_firstname ?? $me->first_name ?? 'USER' }}
                 <span class="opacity-70">({{ Auth::user()->role ?? '' }})</span>
             </h3>
-            <p class="text-[10px] opacity-80">{{ Auth::user()->email }}</p>
+            <p class="text-[10px] opacity-80 w-full text-center px-3"
+               style="word-break: break-word; overflow-wrap: anywhere;">{{ Auth::user()->email }}</p>
         </div>
 
         {{-- เมนูหลัก --}}
@@ -487,8 +489,9 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน
                                                 (ปพ.5)</a></li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบรับรองผลการเรียน</a>
+                                        <li><a href="{{ route('por7.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบรับรองผลการเรียน
+                                                (ปพ.7)</a>
                                         </li>
                                     </ul>
                                 </div>

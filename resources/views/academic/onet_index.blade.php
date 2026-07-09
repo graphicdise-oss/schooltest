@@ -131,7 +131,7 @@
                                     <td style="text-align:center;">{{ $stu->student_code }}</td>
                                     <td>{{ $stu->thai_prefix }}{{ $stu->thai_firstname }} {{ $stu->thai_lastname }}</td>
                                     @foreach (\App\Models\Academic\OnetScore::SUBJECTS as $subj)
-                                        <td>
+                                        <td style="text-align:center;">
                                             <input type="number" step="0.01" min="0" max="100"
                                                    name="scores[{{ $stu->student_id }}][{{ $subj }}]"
                                                    class="score-input"
