@@ -296,7 +296,6 @@
                                         <li><a href="{{ route('departments.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าแผนก</a>
                                         </li>
-                                        @endif
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทการลา</a>
                                         </li>
@@ -306,6 +305,7 @@
                                         <li><a href="{{ route('holidays.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าวันหยุด</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                                 <div>
@@ -526,7 +526,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้าเกรดสำหรับปพ.1/รบ.1</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('onet.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้า
                                                 ONET</a></li>
                                         <li><a href="#"
@@ -734,12 +734,14 @@
                                         <li><a href="{{ route('admissions.applicants') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตรวจสอบผู้สมัคร</a>
                                         </li>
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('admissions.settings') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าระบบรับนักเรียน</a>
                                         </li>
                                         <li><a href="{{ route('exam-rooms.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าห้องสอบ</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>

@@ -610,12 +610,27 @@ body {
                                         </div>
                                     </td>
                                 </tr>
-                                {{-- ผลการทดสอบระดับชาติ --}}
+                                {{-- ผลการทดสอบระดับชาติ (O-NET) --}}
                                 <tr>
-                                    <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">ผลการทดสอบระดับชาติ</th>
+                                    <th colspan="2" style="border-bottom: 1px solid #000; padding: 6px; text-align: center; font-weight: bold;">ผลการทดสอบระดับชาติ (O-NET)</th>
                                 </tr>
                                 <tr>
-                                    <td colspan="2" style="padding: 20px; text-align: center; color: #555;">-</td>
+                                    <td colspan="2" style="padding: 8px 12px;">
+                                        @if(isset($onetScores) && $onetScores->isNotEmpty())
+                                            <table style="width:100%; border-collapse:collapse; font-size:12px;">
+                                                @foreach(\App\Models\Academic\OnetScore::SUBJECTS as $subj)
+                                                    <tr>
+                                                        <td style="border:none; padding:2px 4px;">{{ $subj }}</td>
+                                                        <td style="border:none; padding:2px 4px; width:60px; text-align:center; border-bottom:0.5px solid #999;">
+                                                            {!! isset($onetScores[$subj]) ? number_format($onetScores[$subj]->score, 2) : '&nbsp;' !!}
+                                                        </td>
+                                                    </tr>
+                                                @endforeach
+                                            </table>
+                                        @else
+                                            <div style="text-align:center; color:#555;">-</div>
+                                        @endif
+                                    </td>
                                 </tr>
                                 {{-- สัดส่วนผลการเรียน... --}}
                                 <tr>

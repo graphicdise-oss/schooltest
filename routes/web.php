@@ -238,14 +238,26 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/', 'save')->name('save');
         });
 
+    // === นำเข้าคะแนน O-NET ===
+    Route::controller(\App\Http\Controllers\Academic\OnetController::class)
+        ->prefix('onet')->name('onet.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'save')->name('save');
+        });
+
     // === รับสมัครนักเรียน (ผู้ดูแล) ===
     Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)
         ->prefix('admissions')->name('admissions.')->group(function () {
-            Route::get('/settings', 'settings')->name('settings');
-            Route::post('/settings', 'saveSettings')->name('saveSettings');
             Route::get('/applicants', 'applicants')->name('applicants');
             Route::post('/applicants/{id}/approve', 'approve')->name('approve');
             Route::post('/applicants/{id}/reject', 'reject')->name('reject');
+        });
+
+    // ตั้งค่าการรับสมัคร (เฉพาะผู้ดูแลระบบ)
+    Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)
+        ->prefix('admissions')->name('admissions.')->middleware('admin')->group(function () {
+            Route::get('/settings', 'settings')->name('settings');
+            Route::post('/settings', 'saveSettings')->name('saveSettings');
             Route::post('/documents', 'uploadDocument')->name('docUpload');
             Route::post('/images', 'uploadImage')->name('imgUpload');
             Route::delete('/documents/{id}', 'deleteDocument')->name('docDelete');
@@ -316,7 +328,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // === ตั้งค่าการลา ===
-    Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->group(function () {
+    Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
 
         Route::post('/general', 'saveGeneral')->name('saveGeneral');
@@ -362,7 +374,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // === ตั้งค่าวันหยุดทั้งปีการศึกษา ===
-    Route::controller(HolidayController::class)->prefix('holidays')->name('holidays.')->group(function () {
+    Route::controller(HolidayController::class)->prefix('holidays')->name('holidays.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -382,7 +394,7 @@ Route::middleware(['auth'])->group(function () {
     });
 
 
-    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->group(function () {
+    Route::controller(ExamRoomController::class)->prefix('exam-rooms')->name('exam-rooms.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');

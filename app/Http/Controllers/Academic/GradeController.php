@@ -332,7 +332,14 @@ class GradeController extends Controller
             ?? \App\Models\Academic\StudentAssessment::where('student_id', $studentId)
                 ->orderByDesc('semester_id')->first();
 
-        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment'));
+        // คะแนน O-NET (ของปีการศึกษาล่าสุดที่นักเรียนสอบ)
+        $onetScores = \App\Models\Academic\OnetScore::where('student_id', $studentId)
+            ->orderByDesc('year_id')
+            ->get();
+        $onetYearId = $onetScores->first()?->year_id;
+        $onetScores = $onetScores->where('year_id', $onetYearId)->keyBy('subject');
+
+        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment', 'onetScores'));
     }
 
     private function formatThaiDate(string $dateStr): string
