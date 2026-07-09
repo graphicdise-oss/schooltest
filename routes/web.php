@@ -378,6 +378,14 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/{assign}/print', 'print')->name('print');
         });
 
+    // === ปพ.6 แบบรายงานผลพัฒนาคุณภาพผู้เรียนรายบุคคล ===
+    Route::controller(\App\Http\Controllers\Academic\Por6Controller::class)
+        ->prefix('por6')->name('por6.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/section/{section}/print', 'printSection')->name('printSection');
+            Route::get('/section/{section}/student/{student}/print', 'printStudent')->name('printStudent');
+        });
+
     Route::controller(AcademicYearController::class)->prefix('academic-years')->name('academic-years.')->group(function () {
         Route::post('/', 'storeYear')->name('storeYear');
         Route::put('/{id}/current', 'setYearCurrent')->name('setYearCurrent');

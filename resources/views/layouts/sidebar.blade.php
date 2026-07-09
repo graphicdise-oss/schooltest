@@ -489,6 +489,9 @@
                                         <li><a href="{{ route('por5.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน
                                                 (ปพ.5)</a></li>
+                                        <li><a href="{{ route('por6.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบรายงานผลพัฒนาคุณภาพผู้เรียนรายบุคคล
+                                                (ปพ.6)</a></li>
                                         <li><a href="{{ route('por7.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบรับรองผลการเรียน
                                                 (ปพ.7)</a>
