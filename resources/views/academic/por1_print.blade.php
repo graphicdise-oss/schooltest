@@ -237,8 +237,8 @@ body {
 
         <div class="info-photo" style="width: 32mm; flex-shrink: 0; padding-top: 1mm;">
             <div class="photo-box">
-                @if($student->photo)
-                    <img src="{{ asset('storage/' . $student->photo) }}" alt="photo">
+                @if($student->student_image)
+                    <img src="{{ asset('storage/' . $student->student_image) }}" alt="photo">
                 @else รูปถ่าย @endif
             </div>
         </div>

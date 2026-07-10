@@ -153,8 +153,8 @@ foreach (['png','jpg','jpeg','PNG','JPG'] as $ext) {
 }
 
 $photoSrc = null;
-if (!empty($student->photo)) {
-    $photoFile = public_path('storage/' . $student->photo);
+if (!empty($student->student_image)) {
+    $photoFile = public_path('storage/' . $student->student_image);
     if (file_exists($photoFile)) {
         $ext = strtolower(pathinfo($photoFile, PATHINFO_EXTENSION));
         $mime = in_array($ext,['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
