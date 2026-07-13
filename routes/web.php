@@ -50,6 +50,23 @@ Route::controller(\App\Http\Controllers\Admission\AdmissionController::class)->g
     Route::get('/admission/success', 'success')->name('admission.success');
 });
 
+// --- ระบบสำหรับผู้ปกครอง (แยกจากระบบหลังบ้าน ใช้ guard 'parent') ---
+Route::controller(\App\Http\Controllers\Parent\ParentAuthController::class)->prefix('parent')->name('parent.')->group(function () {
+    Route::get('/login', 'showLogin')->name('login');
+    Route::post('/login', 'login')->name('login.submit');
+    Route::post('/logout', 'logout')->name('logout');
+});
+
+Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
+    ->prefix('parent')->name('parent.')->middleware('parent.auth')->group(function () {
+        Route::get('/dashboard', 'dashboard')->name('dashboard');
+        Route::get('/grades', 'grades')->name('grades');
+        Route::get('/calendar', 'calendar')->name('calendar');
+        Route::get('/contact', 'contact')->name('contact');
+        Route::get('/change-password', 'changePasswordForm')->name('change-password');
+        Route::post('/change-password', 'changePassword')->name('change-password.submit');
+    });
+
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
 Route::middleware(['auth'])->group(function () {
 

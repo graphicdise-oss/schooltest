@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Auth\Authenticatable as AuthenticatableTrait;
 use Illuminate\Database\Eloquent\Model;
 
-class Student extends Model
+class Student extends Model implements Authenticatable
 {
+    use AuthenticatableTrait;
+
     // กำหนดชื่อตาราง (ใส่ไว้เพื่อความชัวร์ครับ)
     protected $table = 'students';
 
@@ -14,6 +18,14 @@ class Student extends Model
 
     // อนุญาตให้บันทึกข้อมูลได้ทุกช่อง
     protected $guarded = [];
+
+    protected $hidden = ['parent_password'];
+
+    // ระบบ login ผู้ปกครอง: ใช้ฟิลด์ parent_password เป็นรหัสผ่าน (ไม่ใช่ password ปกติ)
+    public function getAuthPassword()
+    {
+        return $this->parent_password;
+    }
 
     // ความสัมพันธ์กับตารางที่อยู่
     public function addresses()
