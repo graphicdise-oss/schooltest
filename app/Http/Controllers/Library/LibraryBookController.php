@@ -7,6 +7,7 @@ use App\Models\Library\LibraryBook;
 use App\Models\Library\LibraryCategory;
 use App\Models\Library\LibraryLoan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class LibraryBookController extends Controller
 {
@@ -42,6 +43,9 @@ class LibraryBookController extends Controller
     {
         $data = $this->validated($request);
         $data['available_copies'] = $data['total_copies'];
+        if ($request->hasFile('cover_image')) {
+            $data['cover_image'] = $request->file('cover_image')->store('library/covers', 'public');
+        }
         LibraryBook::create($data);
         return back()->with('success', 'เพิ่มหนังสือสำเร็จ');
     }
@@ -55,6 +59,13 @@ class LibraryBookController extends Controller
         $onLoan = $book->total_copies - $book->available_copies;
         $data['available_copies'] = max(0, $data['total_copies'] - $onLoan);
 
+        if ($request->hasFile('cover_image')) {
+            if ($book->cover_image) {
+                Storage::disk('public')->delete($book->cover_image);
+            }
+            $data['cover_image'] = $request->file('cover_image')->store('library/covers', 'public');
+        }
+
         $book->update($data);
         return back()->with('success', 'แก้ไขข้อมูลหนังสือสำเร็จ');
     }
@@ -64,6 +75,9 @@ class LibraryBookController extends Controller
         $book = LibraryBook::findOrFail($id);
         if ($book->loans()->where('status', 'ยืมอยู่')->exists()) {
             return back()->with('error', 'ไม่สามารถลบได้ เนื่องจากหนังสือเล่มนี้มีคนยืมอยู่');
+        }
+        if ($book->cover_image) {
+            Storage::disk('public')->delete($book->cover_image);
         }
         $book->delete();
         return back()->with('success', 'ลบหนังสือสำเร็จ');
@@ -81,6 +95,7 @@ class LibraryBookController extends Controller
             'total_copies'   => 'required|integer|min:1',
             'shelf_location' => 'nullable|string|max:100',
             'price'          => 'nullable|numeric|min:0',
+            'cover_image'    => 'nullable|image|max:2048',
         ], [
             'title.required'        => 'กรุณาระบุชื่อหนังสือ',
             'code.unique'            => 'รหัสหนังสือนี้มีอยู่แล้ว',

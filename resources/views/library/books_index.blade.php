@@ -89,6 +89,7 @@
             <table>
                 <thead>
                     <tr>
+                        <th style="width:52px;">ปก</th>
                         <th>รหัส</th>
                         <th>ชื่อหนังสือ</th>
                         <th>ผู้แต่ง</th>
@@ -101,6 +102,15 @@
                 <tbody>
                     @forelse($books as $book)
                         <tr>
+                            <td>
+                                @if($book->cover_image)
+                                    <img src="{{ asset('storage/' . $book->cover_image) }}" alt="ปก" style="width:36px; height:48px; object-fit:cover; border-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,.15);">
+                                @else
+                                    <div style="width:36px; height:48px; background:#f1f5f9; border-radius:4px; display:flex; align-items:center; justify-content:center; color:#94a3b8;">
+                                        <i class="fas fa-book"></i>
+                                    </div>
+                                @endif
+                            </td>
                             <td>{{ $book->code ?: '-' }}</td>
                             <td>{{ $book->title }}</td>
                             <td>{{ $book->author ?: '-' }}</td>
@@ -130,7 +140,7 @@
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="empty"><i class="fas fa-inbox"></i> ยังไม่มีหนังสือในระบบ</td></tr>
+                        <tr><td colspan="8" class="empty"><i class="fas fa-inbox"></i> ยังไม่มีหนังสือในระบบ</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -196,7 +206,7 @@
             <span><i class="fas fa-plus me-2"></i>เพิ่มหนังสือ</span>
             <button class="btn-close-x" onclick="closeModal('addModal')">✕</button>
         </div>
-        <form method="POST" action="{{ route('library.books.store') }}">
+        <form method="POST" action="{{ route('library.books.store') }}" enctype="multipart/form-data">
             @csrf
             <div class="modal-body">
                 <div class="modal-label">ชื่อหนังสือ <span style="color:red">*</span></div>
@@ -224,6 +234,8 @@
                 </div>
                 <div class="modal-label">ชั้นวาง</div>
                 <input type="text" name="shelf_location" class="modal-input" placeholder="เช่น ชั้น A-1">
+                <div class="modal-label">รูปปกหนังสือ</div>
+                <input type="file" name="cover_image" class="modal-input" accept="image/*">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('addModal')">ยกเลิก</button>
@@ -240,7 +252,7 @@
             <span><i class="fas fa-pen me-2"></i>แก้ไขหนังสือ</span>
             <button class="btn-close-x" onclick="closeModal('editModal')">✕</button>
         </div>
-        <form method="POST" id="editForm">
+        <form method="POST" id="editForm" enctype="multipart/form-data">
             @csrf @method('PUT')
             <div class="modal-body">
                 <div class="modal-label">ชื่อหนังสือ <span style="color:red">*</span></div>
@@ -268,6 +280,9 @@
                 </div>
                 <div class="modal-label">ชั้นวาง</div>
                 <input type="text" name="shelf_location" id="e_shelf_location" class="modal-input">
+                <div class="modal-label">รูปปกหนังสือ</div>
+                <div id="e_cover_preview" style="margin-bottom:10px;"></div>
+                <input type="file" name="cover_image" class="modal-input" accept="image/*">
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn-modal-cancel" onclick="closeModal('editModal')">ยกเลิก</button>
@@ -344,6 +359,10 @@
         document.getElementById('e_code').value = book.code || '';
         document.getElementById('e_total_copies').value = book.total_copies || 1;
         document.getElementById('e_shelf_location').value = book.shelf_location || '';
+        const preview = document.getElementById('e_cover_preview');
+        preview.innerHTML = book.cover_image
+            ? '<img src="{{ url('storage') }}/' + book.cover_image + '" style="width:60px;height:80px;object-fit:cover;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.15);">'
+            : '<span style="color:#94a3b8;font-size:.82rem;">ยังไม่มีรูปปก</span>';
         document.getElementById('editForm').action = '{{ url('library/books') }}/' + book.id;
         document.getElementById('editModal').classList.add('active');
     }
