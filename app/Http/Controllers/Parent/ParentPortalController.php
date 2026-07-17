@@ -87,7 +87,16 @@ class ParentPortalController extends Controller
         $section = $studentSection?->classSection;
 
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
-        $hours = range(8, 16);
+
+        $dayStartHour = 8;
+        $dayEndHour   = 17;
+        $units = [];
+        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
+            $units[] = sprintf('%02d:00', $h);
+            $units[] = sprintf('%02d:30', $h);
+        }
+        $baseMinutes = $dayStartHour * 60;
+
         $slotGrid = [];
         $assigns = collect();
 
@@ -101,14 +110,16 @@ class ParentPortalController extends Controller
                 foreach ($assign->timetableSlots as $slot) {
                     $start = \Carbon\Carbon::parse($slot->start_time);
                     $end = \Carbon\Carbon::parse($slot->end_time);
-                    $startHour = (int) $start->format('H');
-                    $span = max(1, (int) ceil($start->diffInMinutes($end) / 60));
-                    $slotGrid[$slot->day_of_week][$startHour] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+                    $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
+                    $span = max(1, (int) round($start->diffInMinutes($end) / 30));
+                    if ($unitIndex >= 0 && $unitIndex < count($units)) {
+                        $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+                    }
                 }
             }
         }
 
-        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'hours', 'slotGrid', 'assigns'));
+        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
     }
 
     public function calendar(Request $request)

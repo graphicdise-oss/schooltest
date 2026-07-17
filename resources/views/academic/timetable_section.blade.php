@@ -36,16 +36,16 @@
 
 /* Grid */
 .ts-grid-wrap { overflow-x:auto; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.07); background:#fff; }
-.ts-grid { border-collapse:collapse; width:100%; min-width:1000px; }
+.ts-grid { border-collapse:collapse; width:100%; min-width:1700px; }
 .ts-grid th {
-    border:1px solid #e0e0e0; padding:8px 6px;
-    font-size:0.75rem; color:#555; font-weight:600; text-align:center; white-space:nowrap;
+    border:1px solid #e0e0e0; padding:8px 4px;
+    font-size:0.72rem; color:#555; font-weight:600; text-align:center; white-space:nowrap;
     background:#f8f9fa;
 }
 .ts-grid th.day-col { background:#3949ab; color:#fff; width:90px; font-size:0.85rem; }
 .ts-grid td {
     border:1px solid #ececec; padding:0; height:58px;
-    min-width:68px; vertical-align:top; cursor:pointer;
+    min-width:48px; vertical-align:top; cursor:pointer;
 }
 .ts-grid td:hover { background:#e8f4fd; }
 .ts-grid td.occupied { cursor:default; padding:0; }
@@ -176,11 +176,8 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
         <thead>
             <tr>
                 <th class="day-col">วัน / เวลา</th>
-                @foreach($hours as $h)
-                <th>
-                    {{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00<br>
-                    <span style="color:#aaa;font-weight:400">{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00</span>
-                </th>
+                @foreach($units as $u)
+                <th>{{ $u }}</th>
                 @endforeach
             </tr>
         </thead>
@@ -188,10 +185,10 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
     @php
     $skipCells = [];
     foreach ($slotGrid as $d => $daySlots) {
-        foreach ($daySlots as $h => $cell) {
+        foreach ($daySlots as $i => $cell) {
             $span = $cell['span'] ?? 1;
             for ($s = 1; $s < $span; $s++) {
-                $skipCells[$d][$h + $s] = true;
+                $skipCells[$d][$i + $s] = true;
             }
         }
     }
@@ -199,11 +196,11 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
     @foreach($days as $day)
     <tr>
         <th class="day-col">{{ $day }}</th>
-        @foreach($hours as $h)
-            @if(isset($skipCells[$day][$h]))
+        @foreach($units as $i => $u)
+            @if(isset($skipCells[$day][$i]))
                 @continue
             @endif
-            @php $cell = $slotGrid[$day][$h] ?? null; @endphp
+            @php $cell = $slotGrid[$day][$i] ?? null; @endphp
             @if($cell)
                 @php
                     $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
@@ -223,7 +220,8 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                     </div>
                 </td>
             @else
-                <td onclick="openSlotModal('{{ $day }}','{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00','{{ str_pad($h+1,2,'0',STR_PAD_LEFT) }}:00')"></td>
+                @php $endLabel = \Carbon\Carbon::createFromFormat('H:i', $u)->addMinutes(30)->format('H:i'); @endphp
+                <td onclick="openSlotModal('{{ $day }}','{{ $u }}','{{ $endLabel }}')"></td>
             @endif
         @endforeach
     </tr>

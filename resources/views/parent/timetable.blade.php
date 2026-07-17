@@ -24,22 +24,22 @@
 
                 $skipCells = [];
                 foreach ($slotGrid as $d => $daySlots) {
-                    foreach ($daySlots as $h => $cell) {
+                    foreach ($daySlots as $i => $cell) {
                         $span = $cell['span'] ?? 1;
                         for ($s = 1; $s < $span; $s++) {
-                            $skipCells[$d][$h + $s] = true;
+                            $skipCells[$d][$i + $s] = true;
                         }
                     }
                 }
             @endphp
 
             <div class="table-responsive">
-                <table class="table table-bordered align-middle text-center" style="min-width:800px;">
+                <table class="table table-bordered align-middle text-center" style="min-width:1400px;">
                     <thead class="table-light">
                         <tr>
                             <th style="width:90px;">วัน / เวลา</th>
-                            @foreach($hours as $h)
-                                <th>{{ str_pad($h,2,'0',STR_PAD_LEFT) }}:00</th>
+                            @foreach($units as $u)
+                                <th>{{ $u }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -47,11 +47,11 @@
                         @foreach($days as $day)
                         <tr>
                             <th class="table-light">{{ $day }}</th>
-                            @foreach($hours as $h)
-                                @if(isset($skipCells[$day][$h]))
+                            @foreach($units as $i => $u)
+                                @if(isset($skipCells[$day][$i]))
                                     @continue
                                 @endif
-                                @php $cell = $slotGrid[$day][$h] ?? null; @endphp
+                                @php $cell = $slotGrid[$day][$i] ?? null; @endphp
                                 @if($cell)
                                     @php
                                         $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
