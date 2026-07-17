@@ -30,6 +30,12 @@
         </a>
     </div>
     <div class="col-md-4">
+        <a href="{{ route('parent.timetable') }}" class="pp-card d-block text-decoration-none" style="text-align:center;">
+            <i class="bi bi-table" style="font-size:1.8rem; color:#7b1fa2;"></i>
+            <div style="color:#082b75; font-weight:600; margin-top:8px;">ตารางเรียน</div>
+        </a>
+    </div>
+    <div class="col-md-4">
         <a href="{{ route('parent.calendar') }}" class="pp-card d-block text-decoration-none" style="text-align:center;">
             <i class="bi bi-calendar3" style="font-size:1.8rem; color:#16a34a;"></i>
             <div style="color:#082b75; font-weight:600; margin-top:8px;">ปฏิทิน / วันหยุด</div>

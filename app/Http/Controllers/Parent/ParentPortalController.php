@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Semester;
+use App\Models\Academic\TeachingAssign;
 use App\Models\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -77,6 +78,37 @@ class ParentPortalController extends Controller
         }
 
         return view('parent.grades', compact('student', 'semesters', 'semesterId', 'rows', 'gpa', 'totalCredits'));
+    }
+
+    public function timetable()
+    {
+        $student = Auth::guard('parent')->user();
+        $studentSection = $this->currentSection($student);
+        $section = $studentSection?->classSection;
+
+        $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
+        $hours = range(8, 16);
+        $slotGrid = [];
+        $assigns = collect();
+
+        if ($section) {
+            $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
+                ->where('section_id', $section->section_id)
+                ->where('semester_id', $section->semester_id)
+                ->get();
+
+            foreach ($assigns as $assign) {
+                foreach ($assign->timetableSlots as $slot) {
+                    $start = \Carbon\Carbon::parse($slot->start_time);
+                    $end = \Carbon\Carbon::parse($slot->end_time);
+                    $startHour = (int) $start->format('H');
+                    $span = max(1, (int) ceil($start->diffInMinutes($end) / 60));
+                    $slotGrid[$slot->day_of_week][$startHour] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+                }
+            }
+        }
+
+        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'hours', 'slotGrid'));
     }
 
     public function calendar(Request $request)
