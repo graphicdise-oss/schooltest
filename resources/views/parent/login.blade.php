@@ -23,7 +23,7 @@
 <body>
 <div class="lg-card">
     <div class="lg-head">
-        <img src="{{ asset(config('school.logo')) }}" alt="logo" onerror="this.style.display='none'">
+        <img src="{{ asset('img/login_pic/graduation_cap.png') }}" alt="logo" onerror="this.style.display='none'">
         <h1>เข้าสู่ระบบผู้ปกครอง</h1>
         <p>{{ config('school.name') }}</p>
     </div>
