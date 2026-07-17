@@ -17,5 +17,12 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            if ($request->is('parent/*')
+                && ! $request->expectsJson()
+                && ! $e instanceof \Illuminate\Validation\ValidationException) {
+                return redirect()->route('parent.login')
+                    ->with('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+            }
+        });
     })->create();
