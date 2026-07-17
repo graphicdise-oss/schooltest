@@ -108,7 +108,7 @@ class ParentPortalController extends Controller
             }
         }
 
-        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'hours', 'slotGrid'));
+        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'hours', 'slotGrid', 'assigns'));
     }
 
     public function calendar(Request $request)
