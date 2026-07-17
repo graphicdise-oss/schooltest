@@ -32,13 +32,14 @@
 <div class="pp-topbar">
     <div class="wrap">
         <div class="pp-brand">
-            <img src="{{ asset(config('school.logo')) }}" alt="logo" onerror="this.style.display='none'">
+            <img src="{{ asset('img/login_pic/graduation_cap.png') }}" alt="logo" onerror="this.style.display='none'">
             <span>ระบบผู้ปกครอง — {{ config('school.name') }}</span>
         </div>
         @if($ppStudent)
         <div class="pp-nav">
             <a href="{{ route('parent.dashboard') }}" class="{{ request()->routeIs('parent.dashboard') ? 'active' : '' }}"><i class="bi bi-house"></i> หน้าหลัก</a>
             <a href="{{ route('parent.grades') }}" class="{{ request()->routeIs('parent.grades') ? 'active' : '' }}"><i class="bi bi-mortarboard"></i> ผลการเรียน</a>
+            <a href="{{ route('parent.timetable') }}" class="{{ request()->routeIs('parent.timetable') ? 'active' : '' }}"><i class="bi bi-table"></i> ตารางเรียน</a>
             <a href="{{ route('parent.calendar') }}" class="{{ request()->routeIs('parent.calendar') ? 'active' : '' }}"><i class="bi bi-calendar3"></i> ปฏิทิน/วันหยุด</a>
             <a href="{{ route('parent.contact') }}" class="{{ request()->routeIs('parent.contact') ? 'active' : '' }}"><i class="bi bi-person-lines-fill"></i> ติดต่อครูประจำชั้น</a>
             <a href="{{ route('parent.change-password') }}" class="{{ request()->routeIs('parent.change-password') ? 'active' : '' }}"><i class="bi bi-key"></i> เปลี่ยนรหัสผ่าน</a>

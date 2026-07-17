@@ -61,6 +61,7 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
     ->prefix('parent')->name('parent.')->middleware('parent.auth')->group(function () {
         Route::get('/dashboard', 'dashboard')->name('dashboard');
         Route::get('/grades', 'grades')->name('grades');
+        Route::get('/timetable', 'timetable')->name('timetable');
         Route::get('/calendar', 'calendar')->name('calendar');
         Route::get('/contact', 'contact')->name('contact');
         Route::get('/change-password', 'changePasswordForm')->name('change-password');
