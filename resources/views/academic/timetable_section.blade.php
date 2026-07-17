@@ -477,13 +477,6 @@ function openImportModal()  {
 }
 function closeImportModal() { document.getElementById('importModal').classList.remove('open'); }
 </script>
-@if(session('success'))
-<script>
-document.addEventListener('DOMContentLoaded',()=>{
-    Swal.fire({icon:'success',title:'สำเร็จ!',text:"{{ session('success') }}",timer:2000,showConfirmButton:false});
-});
-</script>
-@endif
 <script>
 function openSlotModal(day, start, end) {
     if(day)  document.getElementById('slotDay').value  = day;
