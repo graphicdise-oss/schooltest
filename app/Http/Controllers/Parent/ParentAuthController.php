@@ -26,12 +26,18 @@ class ParentAuthController extends Controller
             'password.required'     => 'กรุณากรอกรหัสผ่าน',
         ]);
 
-        if (Auth::guard('parent')->attempt([
-            'student_code' => $request->student_code,
-            'password'     => $request->password,
-        ], $request->boolean('remember'))) {
-            $request->session()->regenerate();
-            return redirect()->intended(route('parent.dashboard'));
+        try {
+            if (Auth::guard('parent')->attempt([
+                'student_code' => $request->student_code,
+                'password'     => $request->password,
+            ], $request->boolean('remember'))) {
+                $request->session()->regenerate();
+                return redirect()->intended(route('parent.dashboard'));
+            }
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->withInput($request->only('student_code'))
+                ->with('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
         }
 
         return back()->withInput($request->only('student_code'))
