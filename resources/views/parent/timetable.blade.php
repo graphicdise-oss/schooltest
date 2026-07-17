@@ -34,7 +34,7 @@
             @endphp
 
             <div class="table-responsive">
-                <table class="table table-bordered align-middle text-center" style="min-width:1400px;">
+                <table class="table table-bordered align-middle text-center" style="min-width:1700px;">
                     <thead class="table-light">
                         <tr>
                             <th style="width:90px;">วัน / เวลา</th>
@@ -62,6 +62,9 @@
                                             <div style="font-weight:700;">{{ $cell['assign']->subject->code ?? '' }}</div>
                                             <div>{{ Str::limit($cell['assign']->subject->name_th ?? '-', 14) }}</div>
                                             <div style="opacity:.85;">{{ $cell['assign']->personnel->thai_firstname ?? '' }}</div>
+                                            @if($cell['slot']->room)
+                                                <div style="font-size:.7rem; opacity:.8;">ห้อง {{ $cell['slot']->room }}</div>
+                                            @endif
                                             <div style="font-size:.7rem; opacity:.8;">{{ $tStart }}–{{ $tEnd }}</div>
                                         </div>
                                     </td>

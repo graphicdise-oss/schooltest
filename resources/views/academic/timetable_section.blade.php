@@ -211,6 +211,9 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                         <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
                         <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
                         <div class="ts-slot-teacher">{{ $cell['assign']->personnel->thai_firstname }}</div>
+                        @if($cell['slot']->room)
+                            <div style="font-size:0.62rem;opacity:0.85;">ห้อง {{ $cell['slot']->room }}</div>
+                        @endif
                         <div style="font-size:0.62rem;opacity:0.85;margin-top:2px">{{ $tStart }}–{{ $tEnd }}</div>
                         <form method="POST" action="{{ route('timetable.destroySlot', $cell['slot']->slot_id) }}"
                               onsubmit="return confirm('ลบคาบนี้?')" style="display:inline">
