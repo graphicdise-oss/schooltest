@@ -103,6 +103,15 @@ class TimetableController extends Controller
 
         $dayStartHour = 6;
         $dayEndHour   = 18;
+        foreach ($assigns as $assign) {
+            foreach ($assign->timetableSlots as $slot) {
+                $start = \Carbon\Carbon::parse($slot->start_time);
+                $end   = \Carbon\Carbon::parse($slot->end_time);
+                $dayStartHour = min($dayStartHour, $start->hour);
+                $dayEndHour   = max($dayEndHour, (int) ceil(($end->hour * 60 + $end->minute) / 60));
+            }
+        }
+
         $units = [];
         for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
             $units[] = sprintf('%02d:00', $h);
