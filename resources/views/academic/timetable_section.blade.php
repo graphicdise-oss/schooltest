@@ -325,10 +325,11 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
     <div class="mfield">
         <label>เวลาสิ้นสุด *</label>
         <select name="end_time" id="slotEnd" required>
-            @for($i = 7; $i <= 18; $i++)
+            @for($i = 7; $i <= 17; $i++)
             <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
             <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
             @endfor
+            <option value="18:00">18:00</option>
         </select>
     </div>
 </div>
