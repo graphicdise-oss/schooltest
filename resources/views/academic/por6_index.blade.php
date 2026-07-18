@@ -41,7 +41,7 @@
 
             @if($sectionId)
                 <div style="margin-bottom:16px;">
-                    <a href="{{ route('por6.printSection', $sectionId) }}" class="ac-btn ac-btn-primary">
+                    <a href="{{ route('por6.printSection', $sectionId) }}" target="_blank" class="ac-btn ac-btn-primary">
                         <i class="bi bi-printer"></i> พิมพ์ ปพ.6 ทั้งห้อง
                     </a>
                 </div>
@@ -57,7 +57,7 @@
                             <td>{{ $s->student->student_code }}</td>
                             <td style="text-align:left">{{ $s->student->thai_prefix }}{{ $s->student->thai_firstname }} {{ $s->student->thai_lastname }}</td>
                             <td>
-                                <a href="{{ route('por6.printStudent', ['section' => $sectionId, 'student' => $s->student_id]) }}" class="ac-btn ac-btn-secondary ac-btn-sm">
+                                <a href="{{ route('por6.printStudent', ['section' => $sectionId, 'student' => $s->student_id]) }}" target="_blank" class="ac-btn ac-btn-secondary ac-btn-sm">
                                     <i class="bi bi-printer"></i> พิมพ์เดี่ยว
                                 </a>
                             </td>

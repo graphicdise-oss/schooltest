@@ -52,7 +52,7 @@
                             <td>{{ $a->classSection->level->name ?? '' }}/{{ $a->classSection->section_number }}</td>
                             <td>{{ $a->personnel->thai_firstname }} {{ $a->personnel->thai_lastname }}</td>
                             <td><a href="{{ route('por5.manage', $a->assign_id) }}" class="ac-btn ac-btn-secondary ac-btn-sm"><i class="bi bi-pencil"></i> กรอกผลประเมิน</a></td>
-                            <td><a href="{{ route('por5.print', $a->assign_id) }}" class="ac-btn ac-btn-primary ac-btn-sm"><i class="bi bi-printer"></i> พิมพ์ ปพ.5</a></td>
+                            <td><a href="{{ route('por5.print', $a->assign_id) }}" target="_blank" class="ac-btn ac-btn-primary ac-btn-sm"><i class="bi bi-printer"></i> พิมพ์ ปพ.5</a></td>
                         </tr>
                         @empty
                         <tr><td colspan="7" class="ac-empty">ไม่พบรายวิชา</td></tr>

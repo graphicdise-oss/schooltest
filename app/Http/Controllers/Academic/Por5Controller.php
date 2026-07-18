@@ -183,7 +183,7 @@ class Por5Controller extends Controller
             'gradeCount', 'gradePct', 'specialCount', 'totalStudents',
             'qualitySummary', 'classDates', 'attendance', 'attendanceStats',
             'categories', 'scores', 'school'
-        ))->download("por5_{$assign->subject->code}.pdf");
+        ))->stream("por5_{$assign->subject->code}.pdf");
     }
 
     private function authorizedAssign($assignId)

@@ -81,7 +81,7 @@ class GradeController extends Controller
     ];
 
     return Pdf::loadView('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits', 'options'))
-        ->download("transcript_{$student->student_code}.pdf");
+        ->stream("transcript_{$student->student_code}.pdf");
 }
 
     // หน้าแก้ไขเกรดรายคน
@@ -226,7 +226,7 @@ class GradeController extends Controller
 
         return Pdf::loadView('academic.grade_print', compact('assign', 'students', 'categories', 'scoreMatrix', 'finalGrades'))
             ->setPaper('a4', 'landscape')
-            ->download("scores_{$assign->subject->code}.pdf");
+            ->stream("scores_{$assign->subject->code}.pdf");
     }
 
     // รายงาน GPA
@@ -344,7 +344,7 @@ class GradeController extends Controller
         $onetScores = $onetScores->where('year_id', $onetYearId)->keyBy('subject');
 
         return Pdf::loadView('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment', 'onetScores'))
-            ->download("por1_{$student->student_code}.pdf");
+            ->stream("por1_{$student->student_code}.pdf");
     }
 
     private function formatThaiDate(string $dateStr): string

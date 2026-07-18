@@ -150,7 +150,7 @@ class PorPor7Controller extends Controller
             'father', 'mother',
             'issueDateFormatted', 'gradeResult', 'behavior',
             'dobFormatted'
-        ))->download("por7_{$student->student_code}.pdf");
+        ))->stream("por7_{$student->student_code}.pdf");
     }
 
     public function saveSchoolSetting(Request $request)

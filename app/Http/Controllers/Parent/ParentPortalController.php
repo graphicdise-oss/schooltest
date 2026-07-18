@@ -150,7 +150,7 @@ class ParentPortalController extends Controller
 
         return Pdf::loadView('parent.timetable_print', array_merge($grid, compact('student')))
             ->setPaper('a4', 'landscape')
-            ->download("timetable_{$student->student_code}.pdf");
+            ->stream("timetable_{$student->student_code}.pdf");
     }
 
     public function calendar(Request $request)

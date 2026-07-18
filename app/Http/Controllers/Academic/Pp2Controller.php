@@ -192,7 +192,7 @@ class Pp2Controller extends Controller
 
         return Pdf::loadView('academic.pp2_print', compact('studentSection', 'doc', 'setting', 'settings'))
             ->setPaper('a4', 'landscape')
-            ->download("pp2_{$studentSection->student->student_code}.pdf");
+            ->stream("pp2_{$studentSection->student->student_code}.pdf");
     }
 
     public function saveSectionDate(Request $request, $sectionId)

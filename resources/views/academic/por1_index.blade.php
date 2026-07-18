@@ -308,7 +308,7 @@
      onclick="if(event.target===this)this.classList.remove('open')">
     <div class="p1-modal" style="width:580px;max-width:95vw;" onclick="event.stopPropagation()">
         <h3><i class="bi bi-printer"></i> ตั้งค่าการพิมพ์ ปพ.1</h3>
-        <form id="printForm" action="" method="GET">
+        <form id="printForm" action="" method="GET" target="_blank">
             <input type="hidden" name="filter_active" value="1">
             <div style="display:flex;gap:30px;margin-bottom:20px;">
                 <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal;">

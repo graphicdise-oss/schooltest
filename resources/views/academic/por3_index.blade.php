@@ -363,7 +363,7 @@ document.getElementById('approverModal').addEventListener('click', function(e) {
     if (e.target === this) closeApproverModal();
 });
 function openPrintModal() {
-    window.location.href = '{{ route('por3.print') }}?section_id={{ $sectionId }}';
+    window.open('{{ route('por3.print') }}?section_id={{ $sectionId }}', '_blank');
 }
 function toggleDropdown(wrapperId) {
     const wrap = document.getElementById(wrapperId);
