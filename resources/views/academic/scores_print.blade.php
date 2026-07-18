@@ -14,6 +14,8 @@
         .title { font-size: 16px; font-weight: bold; line-height: 1.5; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        tr { page-break-inside: avoid; }
+        thead { display: table-header-group; }
         th, td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
         
         .col-name { text-align: left; white-space: nowrap; width: 25%; }

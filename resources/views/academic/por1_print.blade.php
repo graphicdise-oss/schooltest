@@ -6,6 +6,8 @@
 <style>
 @include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
 body {
     font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif;
     font-size: 15px; color: #222; background: #e0e0e0;
