@@ -67,7 +67,7 @@
                         </table>
                     </div>
                     <div class="ac-save-wrap" style="margin-top:16px; text-align:right;">
-                        <a href="{{ route('por5.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary"><i class="bi bi-printer"></i> พิมพ์ ปพ.5</a>
+                        <a href="{{ route('por5.print', $assign->assign_id) }}" class="ac-btn ac-btn-secondary"><i class="bi bi-printer"></i> พิมพ์ ปพ.5</a>
                         <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกผลการประเมิน</button>
                     </div>
                 </form>

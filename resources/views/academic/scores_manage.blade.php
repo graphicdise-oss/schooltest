@@ -239,7 +239,7 @@
     <a href="{{ route('grades.excel', $assign->assign_id) }}" class="ac-btn" style="background:#1d6f42; color:#fff">
         <i class="bi bi-file-earmark-excel"></i> Export Excel
     </a>
-    <a href="{{ route('scores.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary">
+    <a href="{{ route('scores.print', $assign->assign_id) }}" class="ac-btn ac-btn-secondary">
         <i class="bi bi-printer"></i> พิมพ์ใบบันทึกคะแนน
     </a>
     <button type="submit" class="ac-btn ac-btn-primary">

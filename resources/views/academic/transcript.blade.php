@@ -200,7 +200,7 @@
 </div>
 <div class="modal-overlay" id="printSettingsModal" onclick="if(event.target===this)this.classList.remove('active')">
     <div class="modal-box" onclick="event.stopPropagation()">
-        <form action="{{ route('grades.transcript.print', $student->student_id) }}" method="GET" target="_blank">
+        <form action="{{ route('grades.transcript.print', $student->student_id) }}" method="GET">
             <div class="modal-box-body">
                 
                 <div class="opt-row">
