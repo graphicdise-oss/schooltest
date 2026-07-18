@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>ปพ.6 — {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+@include('pdf._sarabun_font')
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15px; color:#222; background:#e0e0e0; }
 .page {

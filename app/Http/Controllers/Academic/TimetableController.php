@@ -12,6 +12,7 @@ use App\Models\Academic\Level;
 use App\Models\Academic\Curriculum;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TimetableController extends Controller
 {
@@ -155,8 +156,11 @@ class TimetableController extends Controller
     public function print($sectionId)
     {
         $grid = $this->buildTimetableGrid($sectionId);
+        $section = $grid['section'];
 
-        return view('academic.timetable_print', $grid);
+        return Pdf::loadView('academic.timetable_print', $grid)
+            ->setPaper('a4', 'landscape')
+            ->download("timetable_{$section->level->name}-{$section->section_number}.pdf");
     }
 
     public function clearSection($sectionId)
