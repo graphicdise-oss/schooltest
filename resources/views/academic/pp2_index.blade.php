@@ -414,7 +414,7 @@
                                         @if($doc?->doc_number)
                                             <span class="doc-number-badge">เลขที่ {{ $doc->doc_number }}</span>
                                         @endif
-                                        <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" target="_blank" class="btn-print">🖨️ พิมพ์</a>
+                                        <a href="{{ route('pp2.print', [$ss->student_id, $ss->section_id]) }}" class="btn-print">🖨️ พิมพ์</a>
                                         <button type="button" class="btn-set-number"
                                             onclick="openDocNumberModal({{ $ss->student_id }}, {{ $ss->section_id }}, {{ json_encode($fullName) }}, {{ json_encode($doc?->doc_number ?? '') }})">🔢 ตั้งเลขที่ ปพ.</button>
                                     </div>

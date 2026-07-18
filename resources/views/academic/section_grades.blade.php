@@ -80,7 +80,6 @@
                                     <i class="bi bi-pencil"></i>
                                 </a>
                                 <a href="{{ route('grades.transcript.print', $ss->student_id) }}"
-                                   target="_blank"
                                    class="ac-action-btn" title="พิมพ์ใบแสดงผลการเรียน"
                                    style="background:#f3f0ff; color:#7c3aed; border:1px solid #c4b5fd">
                                     <i class="bi bi-printer"></i>
