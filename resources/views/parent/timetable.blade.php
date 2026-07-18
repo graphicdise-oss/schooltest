@@ -3,7 +3,14 @@
 
 @section('content')
 <div class="pp-card">
-    <div class="pp-title">ตารางเรียน</div>
+    <div class="pp-title" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px;">
+        <span>ตารางเรียน</span>
+        @if($section)
+            <a href="{{ route('parent.timetable.print') }}" target="_blank" style="background:#455a64; color:#fff; border-radius:10px; padding:8px 16px; font-size:.85rem; font-weight:600; text-decoration:none;">
+                <i class="bi bi-printer"></i> พิมพ์ตารางเรียน
+            </a>
+        @endif
+    </div>
 
     @if(!$section)
         <div class="text-muted">ยังไม่มีข้อมูลห้องเรียนปัจจุบัน</div>
