@@ -184,11 +184,18 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
       <tbody>
     @php
     $skipCells = [];
+    $nextBlockAt = [];
+    $prevBlockAt = [];
     foreach ($slotGrid as $d => $daySlots) {
-        foreach ($daySlots as $i => $cell) {
+        foreach ($daySlots as $startIdx => $cell) {
             $span = $cell['span'] ?? 1;
             for ($s = 1; $s < $span; $s++) {
-                $skipCells[$d][$i + $s] = true;
+                $skipCells[$d][$startIdx + $s] = true;
+            }
+            $endIdx = $startIdx + $span;
+            if (isset($daySlots[$endIdx])) {
+                $nextBlockAt[$d][$startIdx] = $daySlots[$endIdx];
+                $prevBlockAt[$d][$endIdx] = $cell;
             }
         }
     }
@@ -206,11 +213,28 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                     $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
                     $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
                 @endphp
+                @php
+                    $ownColor = $colorMap[$cell['assign']->assign_id];
+                    $bgLayers = [];
+                    if (isset($nextBlockAt[$day][$i])) {
+                        $nextColor = $colorMap[$nextBlockAt[$day][$i]['assign']->assign_id];
+                        $bgLayers[] = "linear-gradient(to top right, transparent calc(100% - 16px), {$nextColor} 100%)";
+                    }
+                    if (isset($prevBlockAt[$day][$i])) {
+                        $prevColor = $colorMap[$prevBlockAt[$day][$i]['assign']->assign_id];
+                        $bgLayers[] = "linear-gradient(to bottom left, transparent calc(100% - 16px), {$prevColor} 100%)";
+                    }
+                    $bgLayers[] = $ownColor;
+                    $bgStyle = implode(', ', $bgLayers);
+                @endphp
                 <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
-                    <div class="ts-slot" style="background:{{ $colorMap[$cell['assign']->assign_id] }}">
+                    <div class="ts-slot" style="background:{{ $bgStyle }};">
                         <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
                         <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
                         <div class="ts-slot-teacher">{{ $cell['assign']->personnel->thai_firstname }}</div>
+                        @if($cell['slot']->room)
+                            <div style="font-size:0.62rem;opacity:0.85;">ห้อง {{ $cell['slot']->room }}</div>
+                        @endif
                         <div style="font-size:0.62rem;opacity:0.85;margin-top:2px">{{ $tStart }}–{{ $tEnd }}</div>
                         <form method="POST" action="{{ route('timetable.destroySlot', $cell['slot']->slot_id) }}"
                               onsubmit="return confirm('ลบคาบนี้?')" style="display:inline">

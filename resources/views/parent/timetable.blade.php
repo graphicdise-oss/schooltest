@@ -23,18 +23,25 @@
                 foreach ($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($palette)]; }
 
                 $skipCells = [];
+                $nextBlockAt = [];
+                $prevBlockAt = [];
                 foreach ($slotGrid as $d => $daySlots) {
-                    foreach ($daySlots as $i => $cell) {
+                    foreach ($daySlots as $startIdx => $cell) {
                         $span = $cell['span'] ?? 1;
                         for ($s = 1; $s < $span; $s++) {
-                            $skipCells[$d][$i + $s] = true;
+                            $skipCells[$d][$startIdx + $s] = true;
+                        }
+                        $endIdx = $startIdx + $span;
+                        if (isset($daySlots[$endIdx])) {
+                            $nextBlockAt[$d][$startIdx] = $daySlots[$endIdx];
+                            $prevBlockAt[$d][$endIdx] = $cell;
                         }
                     }
                 }
             @endphp
 
             <div class="table-responsive">
-                <table class="table table-bordered align-middle text-center" style="min-width:1400px;">
+                <table class="table table-bordered align-middle text-center" style="min-width:1700px;">
                     <thead class="table-light">
                         <tr>
                             <th style="width:90px;">วัน / เวลา</th>
@@ -56,12 +63,27 @@
                                     @php
                                         $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
                                         $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
+                                        $ownColor = $colorMap[$cell['assign']->assign_id];
+                                        $bgLayers = [];
+                                        if (isset($nextBlockAt[$day][$i])) {
+                                            $nextColor = $colorMap[$nextBlockAt[$day][$i]['assign']->assign_id];
+                                            $bgLayers[] = "linear-gradient(to top right, transparent calc(100% - 16px), {$nextColor} 100%)";
+                                        }
+                                        if (isset($prevBlockAt[$day][$i])) {
+                                            $prevColor = $colorMap[$prevBlockAt[$day][$i]['assign']->assign_id];
+                                            $bgLayers[] = "linear-gradient(to bottom left, transparent calc(100% - 16px), {$prevColor} 100%)";
+                                        }
+                                        $bgLayers[] = $ownColor;
+                                        $bgStyle = implode(', ', $bgLayers);
                                     @endphp
                                     <td colspan="{{ $cell['span'] ?? 1 }}" style="padding:0;">
-                                        <div style="background:{{ $colorMap[$cell['assign']->assign_id] }}; color:#fff; padding:6px 4px; height:100%; font-size:.78rem; line-height:1.35;">
+                                        <div style="background:{{ $bgStyle }}; color:#fff; padding:6px 4px; height:100%; font-size:.78rem; line-height:1.35;">
                                             <div style="font-weight:700;">{{ $cell['assign']->subject->code ?? '' }}</div>
                                             <div>{{ Str::limit($cell['assign']->subject->name_th ?? '-', 14) }}</div>
                                             <div style="opacity:.85;">{{ $cell['assign']->personnel->thai_firstname ?? '' }}</div>
+                                            @if($cell['slot']->room)
+                                                <div style="font-size:.7rem; opacity:.8;">ห้อง {{ $cell['slot']->room }}</div>
+                                            @endif
                                             <div style="font-size:.7rem; opacity:.8;">{{ $tStart }}–{{ $tEnd }}</div>
                                         </div>
                                     </td>

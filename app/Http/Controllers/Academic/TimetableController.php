@@ -104,7 +104,7 @@ class TimetableController extends Controller
     $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
     $dayStartHour = 6;
-    $dayEndHour   = 18;
+    $dayEndHour   = 19;
     $units = [];
     for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
         $units[] = sprintf('%02d:00', $h);
@@ -120,6 +120,7 @@ class TimetableController extends Controller
             $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
             $span      = max(1, (int) round($start->diffInMinutes($end) / 30));
             if ($unitIndex >= 0 && $unitIndex < count($units)) {
+                $span = min($span, count($units) - $unitIndex);
                 $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
             }
         }
