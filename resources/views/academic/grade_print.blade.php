@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>ใบบันทึกคะแนน — {{ $assign->subject->name_th }}</title>
 <style>
+@include('pdf._sarabun_font')
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body { font-family: 'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size: 13pt; background: #e0e0e0; }
 

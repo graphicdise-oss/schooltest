@@ -11,6 +11,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
 use App\Models\Academic\Pp2Setting;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Por6Controller extends Controller
 {
@@ -125,6 +126,11 @@ class Por6Controller extends Controller
             ];
         });
 
-        return view('academic.por6_print', compact('section', 'semester', 'reportData', 'school'));
+        $filename = $studentId
+            ? "por6_{$section->level->name}-{$section->section_number}_{$studentId}.pdf"
+            : "por6_{$section->level->name}-{$section->section_number}.pdf";
+
+        return Pdf::loadView('academic.por6_print', compact('section', 'semester', 'reportData', 'school'))
+            ->download($filename);
     }
 }

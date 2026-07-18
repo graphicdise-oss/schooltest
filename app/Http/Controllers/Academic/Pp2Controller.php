@@ -12,6 +12,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\StudentSection;
 use Illuminate\Http\Request;
 use App\Models\Personne\Personnel;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class Pp2Controller extends Controller
 {
@@ -189,7 +190,9 @@ class Pp2Controller extends Controller
         $setting = Pp2Setting::getInstance();
         $settings = $setting;
 
-        return view('academic.pp2_print', compact('studentSection', 'doc', 'setting', 'settings'));
+        return Pdf::loadView('academic.pp2_print', compact('studentSection', 'doc', 'setting', 'settings'))
+            ->setPaper('a4', 'landscape')
+            ->download("pp2_{$studentSection->student->student_code}.pdf");
     }
 
     public function saveSectionDate(Request $request, $sectionId)

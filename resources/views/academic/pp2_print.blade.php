@@ -5,33 +5,28 @@
     <meta charset="UTF-8">
     <title>ใบ ป.พ.2</title>
     <style>
+        @include('pdf._sarabun_font')
         @font-face {
             font-family: TFArluck;
-            src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TF Arluck.ttf') }}') format('truetype');
             font-weight: normal;
         }
 
         @font-face {
             font-family: TFArluck;
-            src: url('{{ asset("fonts/TF Arluck Bol.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TF Arluck Bol.ttf') }}') format('truetype');
             font-weight: bold;
         }
 
         @font-face {
             font-family: TFArluckData;
-            src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TF Arluck.ttf') }}') format('truetype');
         }
 
         @font-face {
             font-family: THDanViVek;
-            src: url('{{ asset("fonts/TH Dan Vi Vek ver 1.03.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TH Dan Vi Vek ver 1.03.ttf') }}') format('truetype');
             font-weight: normal;
-        }
-
-        @font-face {
-            font-family: THDanViVek;
-            src: url('{{ asset("fonts/TH Dan Vi Vek Bold ver 1.03.ttf") }}') format('truetype');
-            font-weight: bold;
         }
 
         * {

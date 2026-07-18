@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>ตารางเรียน {{ $section->level->name ?? '' }}/{{ $section->section_number ?? '' }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @include('pdf._sarabun_font')
         body {
             font-family: 'Sarabun', sans-serif;
             margin: 0; padding: 20px; font-size: 12px; color: #000;

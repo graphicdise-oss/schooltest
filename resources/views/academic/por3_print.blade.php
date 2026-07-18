@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>ปพ.3 - {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
 <style>
+@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; background: #fff; }
 

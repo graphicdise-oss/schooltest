@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <title>ปพ.1 — {{ $student->thai_firstname }} {{ $student->thai_lastname }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif;

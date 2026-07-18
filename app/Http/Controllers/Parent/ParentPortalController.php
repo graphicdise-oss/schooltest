@@ -11,6 +11,7 @@ use App\Models\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ParentPortalController extends Controller
 {
@@ -147,7 +148,9 @@ class ParentPortalController extends Controller
         $student = Auth::guard('parent')->user();
         $grid = $this->buildTimetableGrid($student);
 
-        return view('parent.timetable_print', array_merge($grid, compact('student')));
+        return Pdf::loadView('parent.timetable_print', array_merge($grid, compact('student')))
+            ->setPaper('a4', 'landscape')
+            ->download("timetable_{$student->student_code}.pdf");
     }
 
     public function calendar(Request $request)
