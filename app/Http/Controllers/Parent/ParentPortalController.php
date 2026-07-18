@@ -88,7 +88,7 @@ class ParentPortalController extends Controller
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
 
         $dayStartHour = 6;
-        $dayEndHour   = 19;
+        $dayEndHour   = 18;
         $units = [];
         for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
             $units[] = sprintf('%02d:00', $h);
