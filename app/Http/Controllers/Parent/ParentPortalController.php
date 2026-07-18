@@ -80,9 +80,8 @@ class ParentPortalController extends Controller
         return view('parent.grades', compact('student', 'semesters', 'semesterId', 'rows', 'gpa', 'totalCredits'));
     }
 
-    public function timetable()
+    private function buildTimetableGrid($student)
     {
-        $student = Auth::guard('parent')->user();
         $studentSection = $this->currentSection($student);
         $section = $studentSection?->classSection;
 
@@ -120,7 +119,23 @@ class ParentPortalController extends Controller
             }
         }
 
-        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
+        return compact('studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns');
+    }
+
+    public function timetable()
+    {
+        $student = Auth::guard('parent')->user();
+        $grid = $this->buildTimetableGrid($student);
+
+        return view('parent.timetable', array_merge($grid, compact('student')));
+    }
+
+    public function timetablePrint()
+    {
+        $student = Auth::guard('parent')->user();
+        $grid = $this->buildTimetableGrid($student);
+
+        return view('parent.timetable_print', array_merge($grid, compact('student')));
     }
 
     public function calendar(Request $request)

@@ -90,52 +90,65 @@ class TimetableController extends Controller
         return view('academic.timetable_view', compact('slots', 'days', 'sections', 'teachers', 'semesters', 'semesterId', 'sectionId', 'teacherId'));
     }
 
-    public function sectionView($sectionId)
-{
-    $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'])->findOrFail($sectionId);
+    private function buildTimetableGrid($sectionId)
+    {
+        $section = ClassSection::with(['level', 'semester.academicYear', 'homeroomTeacher', 'curriculum'])->findOrFail($sectionId);
 
-    $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
-        ->where('section_id', $sectionId)
-        ->where('semester_id', $section->semester_id)
-        ->get();
+        $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
+            ->where('section_id', $sectionId)
+            ->where('semester_id', $section->semester_id)
+            ->get();
 
-    $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
-    $subjects = Subject::where('is_active', true)->orderBy('code')->get();
-    $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
+        $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
-    $dayStartHour = 6;
-    $dayEndHour   = 19;
-    $units = [];
-    for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-        $units[] = sprintf('%02d:00', $h);
-        $units[] = sprintf('%02d:30', $h);
-    }
-    $baseMinutes = $dayStartHour * 60;
+        $dayStartHour = 6;
+        $dayEndHour   = 19;
+        $units = [];
+        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
+            $units[] = sprintf('%02d:00', $h);
+            $units[] = sprintf('%02d:30', $h);
+        }
+        $baseMinutes = $dayStartHour * 60;
 
-    $slotGrid = [];
-    foreach ($assigns as $assign) {
-        foreach ($assign->timetableSlots as $slot) {
-            $start = \Carbon\Carbon::parse($slot->start_time);
-            $end   = \Carbon\Carbon::parse($slot->end_time);
-            $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
-            $span      = max(1, (int) round($start->diffInMinutes($end) / 30));
-            if ($unitIndex >= 0 && $unitIndex < count($units)) {
-                $span = min($span, count($units) - $unitIndex);
-                $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+        $slotGrid = [];
+        foreach ($assigns as $assign) {
+            foreach ($assign->timetableSlots as $slot) {
+                $start = \Carbon\Carbon::parse($slot->start_time);
+                $end   = \Carbon\Carbon::parse($slot->end_time);
+                $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
+                $span      = max(1, (int) round($start->diffInMinutes($end) / 30));
+                if ($unitIndex >= 0 && $unitIndex < count($units)) {
+                    $span = min($span, count($units) - $unitIndex);
+                    $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+                }
             }
         }
+
+        return compact('section', 'assigns', 'days', 'units', 'slotGrid');
     }
 
-    $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
-        ->where('level_id', $section->level_id)
-        ->where('is_active', true)
-        ->orderBy('year_applied', 'desc')
-        ->get();
+    public function sectionView($sectionId)
+    {
+        $grid = $this->buildTimetableGrid($sectionId);
 
-    return view('academic.timetable_section', compact(
-        'section', 'assigns', 'teachers', 'subjects', 'days', 'units', 'slotGrid', 'curriculums'
-    ));
-}
+        $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+        $subjects = Subject::where('is_active', true)->orderBy('code')->get();
+
+        $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
+            ->where('level_id', $grid['section']->level_id)
+            ->where('is_active', true)
+            ->orderBy('year_applied', 'desc')
+            ->get();
+
+        return view('academic.timetable_section', array_merge($grid, compact('teachers', 'subjects', 'curriculums')));
+    }
+
+    public function print($sectionId)
+    {
+        $grid = $this->buildTimetableGrid($sectionId);
+
+        return view('academic.timetable_print', $grid);
+    }
 
     public function clearSection($sectionId)
     {
