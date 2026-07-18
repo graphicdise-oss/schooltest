@@ -248,6 +248,6 @@ class PorPor3Controller extends Controller
             'approver', 'school', 'approveDateFormatted',
             'maleCount', 'femaleCount'
         ))->setPaper('a4', 'landscape')
-            ->download("por3_{$section->level->name}-{$section->section_number}.pdf");
+            ->stream("por3_{$section->level->name}-{$section->section_number}.pdf");
     }
 }

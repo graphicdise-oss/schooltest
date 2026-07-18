@@ -131,6 +131,6 @@ class Por6Controller extends Controller
             : "por6_{$section->level->name}-{$section->section_number}.pdf";
 
         return Pdf::loadView('academic.por6_print', compact('section', 'semester', 'reportData', 'school'))
-            ->download($filename);
+            ->stream($filename);
     }
 }

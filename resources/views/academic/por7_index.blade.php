@@ -223,7 +223,7 @@
 <div class="p7-modal-overlay" id="printModal" onclick="if(event.target===this)this.classList.remove('open')">
     <div class="p7-modal" onclick="event.stopPropagation()">
         <h3><i class="bi bi-printer"></i> พิมพ์ใบรับรองการเป็นนักเรียน (ปพ.7)</h3>
-        <form id="por7PrintForm" method="GET" action="">
+        <form id="por7PrintForm" method="GET" action="" target="_blank">
             <input type="hidden" name="semester_id" id="modal_semester_id">
             <div class="p7-modal-field">
                 <label>วันที่ออกเอกสาร</label>

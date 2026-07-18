@@ -168,7 +168,7 @@
                     <a href="{{ route('scores.manage', $assign->assign_id) }}" class="btn-score">
                         <i class="bi bi-pencil-square"></i> บันทึกคะแนน
                     </a>
-                    <a href="{{ route('grades.print', $assign->assign_id) }}" class="btn-print">
+                    <a href="{{ route('grades.print', $assign->assign_id) }}" class="btn-print" target="_blank">
                         <i class="bi bi-printer"></i> พิมพ์
                     </a>
                 </div>

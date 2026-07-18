@@ -201,7 +201,7 @@ class PorPor1Controller extends Controller
         return Pdf::loadView('academic.por1_print', compact(
             'student', 'docNumber', 'yearGroups', 'father', 'mother',
             'approveDate', 'leaveDate', 'leaveReason', 'school'
-        ))->download("por1_{$student->student_code}.pdf");
+        ))->stream("por1_{$student->student_code}.pdf");
     }
 
     public function saveSignSettings(Request $request)

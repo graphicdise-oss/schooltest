@@ -160,7 +160,7 @@ class TimetableController extends Controller
 
         return Pdf::loadView('academic.timetable_print', $grid)
             ->setPaper('a4', 'landscape')
-            ->download("timetable_{$section->level->name}-{$section->section_number}.pdf");
+            ->stream("timetable_{$section->level->name}-{$section->section_number}.pdf");
     }
 
     public function clearSection($sectionId)

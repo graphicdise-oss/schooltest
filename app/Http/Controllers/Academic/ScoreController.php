@@ -112,7 +112,7 @@ class ScoreController extends Controller
 
         return Pdf::loadView('academic.scores_print', compact('assign', 'students', 'categories', 'scoreMatrix'))
             ->setPaper('a4', 'landscape')
-            ->download("scoresheet_{$assign->subject->code}.pdf");
+            ->stream("scoresheet_{$assign->subject->code}.pdf");
     }
 
     // เพิ่มหมวดคะแนน
