@@ -89,12 +89,6 @@ class ParentPortalController extends Controller
 
         $dayStartHour = 6;
         $dayEndHour   = 18;
-        $units = [];
-        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-            $units[] = sprintf('%02d:00', $h);
-            $units[] = sprintf('%02d:30', $h);
-        }
-        $baseMinutes = $dayStartHour * 60;
 
         $slotGrid = [];
         $assigns = collect();
@@ -105,6 +99,24 @@ class ParentPortalController extends Controller
                 ->where('semester_id', $section->semester_id)
                 ->get();
 
+            foreach ($assigns as $assign) {
+                foreach ($assign->timetableSlots as $slot) {
+                    $start = \Carbon\Carbon::parse($slot->start_time);
+                    $end   = \Carbon\Carbon::parse($slot->end_time);
+                    $dayStartHour = min($dayStartHour, $start->hour);
+                    $dayEndHour   = max($dayEndHour, (int) ceil(($end->hour * 60 + $end->minute) / 60));
+                }
+            }
+        }
+
+        $units = [];
+        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
+            $units[] = sprintf('%02d:00', $h);
+            $units[] = sprintf('%02d:30', $h);
+        }
+        $baseMinutes = $dayStartHour * 60;
+
+        if ($section) {
             foreach ($assigns as $assign) {
                 foreach ($assign->timetableSlots as $slot) {
                     $start = \Carbon\Carbon::parse($slot->start_time);
