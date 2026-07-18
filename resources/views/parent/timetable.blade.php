@@ -64,14 +64,16 @@
                                         $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
                                         $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
                                         $ownColor = $colorMap[$cell['assign']->assign_id];
+                                        $ownSpan  = $cell['span'] ?? 1;
+                                        $notchPct = min(50, 50 / $ownSpan);
                                         $bgLayers = [];
                                         if (isset($nextBlockAt[$day][$i])) {
                                             $nextColor = $colorMap[$nextBlockAt[$day][$i]['assign']->assign_id];
-                                            $bgLayers[] = "linear-gradient(to top right, transparent calc(100% - 16px), {$nextColor} 100%)";
+                                            $bgLayers[] = "linear-gradient(to top right, transparent " . (100 - $notchPct) . "%, {$nextColor} 100%)";
                                         }
                                         if (isset($prevBlockAt[$day][$i])) {
                                             $prevColor = $colorMap[$prevBlockAt[$day][$i]['assign']->assign_id];
-                                            $bgLayers[] = "linear-gradient(to bottom left, transparent calc(100% - 16px), {$prevColor} 100%)";
+                                            $bgLayers[] = "linear-gradient(to bottom left, transparent " . (100 - $notchPct) . "%, {$prevColor} 100%)";
                                         }
                                         $bgLayers[] = $ownColor;
                                         $bgStyle = implode(', ', $bgLayers);
