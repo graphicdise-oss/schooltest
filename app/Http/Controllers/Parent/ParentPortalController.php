@@ -123,6 +123,49 @@ class ParentPortalController extends Controller
         return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
     }
 
+    public function timetablePrint()
+    {
+        $student = Auth::guard('parent')->user();
+        $studentSection = $this->currentSection($student);
+        $section = $studentSection?->classSection;
+
+        $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
+
+        $dayStartHour = 6;
+        $dayEndHour   = 19;
+        $units = [];
+        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
+            $units[] = sprintf('%02d:00', $h);
+            $units[] = sprintf('%02d:30', $h);
+        }
+        $baseMinutes = $dayStartHour * 60;
+
+        $slotGrid = [];
+        $assigns = collect();
+
+        if ($section) {
+            $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
+                ->where('section_id', $section->section_id)
+                ->where('semester_id', $section->semester_id)
+                ->get();
+
+            foreach ($assigns as $assign) {
+                foreach ($assign->timetableSlots as $slot) {
+                    $start = \Carbon\Carbon::parse($slot->start_time);
+                    $end = \Carbon\Carbon::parse($slot->end_time);
+                    $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
+                    $span = max(1, (int) round($start->diffInMinutes($end) / 30));
+                    if ($unitIndex >= 0 && $unitIndex < count($units)) {
+                        $span = min($span, count($units) - $unitIndex);
+                        $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
+                    }
+                }
+            }
+        }
+
+        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
+    }
+
     public function calendar(Request $request)
     {
         $student = Auth::guard('parent')->user();

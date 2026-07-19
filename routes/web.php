@@ -62,6 +62,7 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
         Route::get('/dashboard', 'dashboard')->name('dashboard');
         Route::get('/grades', 'grades')->name('grades');
         Route::get('/timetable', 'timetable')->name('timetable');
+        Route::get('/timetable/print', 'timetablePrint')->name('timetable.print');
         Route::get('/calendar', 'calendar')->name('calendar');
         Route::get('/contact', 'contact')->name('contact');
         Route::get('/change-password', 'changePasswordForm')->name('change-password');
@@ -217,6 +218,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
         Route::get('/view', 'viewTimetable')->name('view');
         Route::get('/section/{id}', 'sectionView')->name('section');
+        Route::get('/section/{id}/print', 'print')->name('print');
         Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
         Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
     });

@@ -167,6 +167,9 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
             <button class="btn-assign" onclick="openAssignModal()">
                 <i class="bi bi-person-workspace"></i> มอบหมายวิชา
             </button>
+            <a href="{{ route('timetable.print', $section->section_id) }}" target="_blank" class="btn-assign" style="background:#455a64; text-decoration:none;">
+                <i class="bi bi-printer"></i> พิมพ์ตารางสอน
+            </a>
         </div>
     </div>
 
