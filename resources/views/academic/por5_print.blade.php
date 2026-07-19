@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <title>ปพ.5 — {{ $assign->subject->name_th }} {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+@include('pdf._sarabun_font')
 * { margin:0; padding:0; box-sizing:border-box; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
 body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15px; color:#222; background:#e0e0e0; }
 .page {
-    width:210mm; min-height:297mm; margin:0 auto 10mm; padding:10mm 12mm;
+    width:186mm; min-height:277mm; margin:0 auto 10mm; padding:10mm 12mm;
     background:#fff; box-shadow:0 0 8px rgba(0,0,0,.15);
     page-break-after:always; display:flex; flex-direction:column;
 }
@@ -28,8 +30,8 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 .meta-table .lbl { font-weight:700; white-space:nowrap; width:70px; }
 .meta-table .val { border-bottom:0.5px solid #999; padding-left:6px; }
 
-.grade-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
-.grade-table th, .grade-table td { border:1px solid #000; padding:4px 3px; text-align:center; }
+.grade-table { width:186mm; table-layout:fixed; border-collapse:collapse; font-size:11px; margin-bottom:10px; }
+.grade-table th, .grade-table td { border:1px solid #000; padding:4px 2px; text-align:center; overflow:hidden; }
 .grade-table th { font-weight:700; background:#f5f5f5; }
 
 .quality-row { display:flex; gap:6px; margin-bottom:12px; }
@@ -76,7 +78,8 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 {{-- ===================== หน้าที่ 1: ปก + สรุปผล ===================== --}}
 <div class="page">
     <div class="doc-top">
-        <div class="doc-logo"><img src="{{ asset(config('school.logo')) }}" alt="logo" onerror="this.style.display='none'"></div>
+        @php $schoolLogoPath = public_path(config('school.logo')); @endphp
+        <div class="doc-logo">@if(file_exists($schoolLogoPath))<img src="{{ 'file://' . $schoolLogoPath }}" alt="logo">@endif</div>
         <span class="doc-tag">ปพ.5</span>
     </div>
     <div class="doc-title">
@@ -98,6 +101,12 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     </table>
 
     <table class="grade-table">
+        <colgroup>
+            <col style="width: 20mm;">
+            @for($gc = 0; $gc < count($gradeBuckets) + count($specialBuckets); $gc++)
+            <col style="width: 11.8mm;">
+            @endfor
+        </colgroup>
         <tr>
             <th rowspan="3" style="width:60px;">จำนวน<br>นักเรียน</th>
             <th colspan="{{ count($gradeBuckets) }}">ระดับผลการเรียน</th>
@@ -153,7 +162,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
             </div>
             <div class="sign-item">
                 <div class="sign-approve">
-                    <label>☐ อนุมัติ</label><label>☐ ไม่อนุมัติ</label>
+                    <label>[ ] อนุมัติ</label><label>[ ] ไม่อนุมัติ</label>
                 </div>
                 <div class="sign-line">ลงชื่อ ........................................................</div>
                 <div>( {{ $school['director_name'] ?? '' }} )</div>
@@ -177,7 +186,16 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
         @endphp
         <div class="page">
             <div class="att-title">บันทึกเวลาเรียน วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->level->name ?? '' }}/{{ $section->section_number }}</div>
-            <table class="att-table">
+            @php $dateColWidth = max(6, (186 - 45) / max(1, $dchunk->count())); @endphp
+            <table class="att-table" style="width: 186mm;">
+                <colgroup>
+                    <col style="width: 6mm;">
+                    <col style="width: 10mm;">
+                    <col style="width: 29mm;">
+                    @for($dc = 0; $dc < $dchunk->count(); $dc++)
+                    <col style="width: {{ $dateColWidth }}mm;">
+                    @endfor
+                </colgroup>
                 <thead>
                     <tr>
                         <th class="col-no" rowspan="3">เลขที่</th>
@@ -201,7 +219,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
                                 @php
                                     $rec = ($attendance->get($s->student_id) ?? collect())->get($d->format('Y-m-d'));
                                     $mark = match($rec->status ?? null) {
-                                        'มา' => '✓', 'ป่วย' => 'ป', 'ลา' => 'ล', 'ขาด' => 'ข', default => '',
+                                        'มา' => '/', 'ป่วย' => 'ป', 'ลา' => 'ล', 'ขาด' => 'ข', default => '',
                                     };
                                 @endphp
                                 <td class="att-mark">{{ $mark }}</td>
@@ -253,14 +271,23 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     @foreach($catChunks as $catChunk)
         <div class="page">
             <div class="att-title">คะแนนเก็บ วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->level->name ?? '' }}/{{ $section->section_number }}</div>
-            <table class="score-table">
+            @php $scoreColWidth = max(10, (186 - 12 - 18 - 40) / max(1, $catChunk->count() + 1)); @endphp
+            <table class="score-table" style="width: 186mm;">
+                <colgroup>
+                    <col style="width: 12mm;">
+                    <col style="width: 18mm;">
+                    <col style="width: 40mm;">
+                    @for($sc = 0; $sc < $catChunk->count() + 1; $sc++)
+                    <col style="width: {{ $scoreColWidth }}mm;">
+                    @endfor
+                </colgroup>
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width:45px;">เลขที่</th>
-                        <th rowspan="2" style="width:70px;">รหัส</th>
-                        <th rowspan="2" class="col-name">ชื่อ - สกุล</th>
+                        <th>เลขที่</th>
+                        <th>รหัส</th>
+                        <th class="col-name">ชื่อ - สกุล</th>
                         @foreach($catChunk as $cat)<th colspan="1">{{ $cat->name }} ({{ (float) $cat->max_score }})</th>@endforeach
-                        <th rowspan="2">รวม</th>
+                        <th>รวม</th>
                     </tr>
                 </thead>
                 <tbody>

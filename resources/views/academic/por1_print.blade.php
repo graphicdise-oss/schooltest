@@ -3,9 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>ปพ.1 — {{ $student->thai_firstname }} {{ $student->thai_lastname }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
+thead { display: table-header-group; }
+.grades-table tbody tr, .act-table tbody tr { page-break-inside: avoid; }
 body {
     font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif;
     font-size: 15px; color: #222; background: #e0e0e0;
@@ -13,13 +15,11 @@ body {
 }
 
 .page {
-    width: 210mm; height: 297mm;
+    width: 186mm; min-height: 285mm;
     margin: 0 auto 10mm; padding: 3mm 14mm 4mm;
     background: #fff;
     box-shadow: 0 0 8px rgba(0,0,0,0.15);
     page-break-after: always;
-    display: flex;
-    flex-direction: column;
 }
 .page:last-child { page-break-after: auto; }
 
@@ -34,8 +34,8 @@ body {
 .doc-title-block { line-height: 1.0; flex: 1; overflow: hidden; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
-    font-size: 21px; font-weight: 700; line-height: 1.5;
-    white-space: nowrap; transform-origin: left center;
+    font-size: 15px; font-weight: 700; line-height: 1.35;
+    text-align: center;
     display: block; margin-bottom: 0;
 }
 
@@ -94,13 +94,12 @@ body {
 }
 
 .grades-outer {
-    flex: 1; display: flex; flex-direction: column; margin-top: 1mm;
+    margin-top: 1mm;
 }
-.grades-spacer { flex: 0; }
 
 .grades-table {
-    width: 100%; height: 100%; border-collapse: collapse;
-    font-size: 13px; border: 1px solid #000; 
+    width: 100%; table-layout: fixed; border-collapse: collapse;
+    font-size: 13px; border: 1px solid #000;
 }
 .grades-table th {
     border: 1px solid #000; padding: 2px 3px; vertical-align: middle;
@@ -110,7 +109,7 @@ body {
     border-left: 1px solid #000; border-right: 1px solid #000;
     border-top: none; border-bottom: none; padding: 2px 4px; vertical-align: top;
 }
-.grades-table tbody tr.stretch-row td { height: 100%; }
+.grades-table tbody tr.stretch-row td { height: 40mm; }
 
 /* ของใหม่: ล็อคความกว้างเป็นหน่วย mm จะแคบลงชัดเจน */
 .col-subject { width: 45mm; font-size: 12px; } /* ส่วนชื่อวิชา */
@@ -118,9 +117,9 @@ body {
 .col-grade   { width: 6mm; text-align: center; padding: 0 !important; } /* ส่วนผลการเรียน */
 
 .vert-header {
-    writing-mode: vertical-rl; transform: rotate(180deg);
-    white-space: nowrap; margin: 0 auto; font-size: 12px;
-    display: block; overflow: hidden;
+    margin: 0 auto; font-size: 10px; line-height: 1.15;
+    display: block; overflow: hidden; word-break: break-word;
+    text-align: center;
 }
 
 
@@ -138,7 +137,7 @@ body {
 @media print {
     .no-print { display: none !important; }
     body { background: #fff; }
-    .page { margin: 0; box-shadow: none; padding: 8mm 12mm 4mm; height: 297mm; min-height: unset; }
+    .page { margin: 0; box-shadow: none; padding: 8mm 12mm 4mm; min-height: 285mm; }
     @page { size: A4; margin: 0; }
 }
 </style>
@@ -237,8 +236,9 @@ body {
 
         <div class="info-photo" style="width: 32mm; flex-shrink: 0; padding-top: 1mm;">
             <div class="photo-box">
-                @if($student->student_image)
-                    <img src="{{ asset('storage/' . $student->student_image) }}" alt="photo">
+                @php $studentPhotoPath = $student->student_image ? public_path('storage/' . $student->student_image) : null; @endphp
+                @if($studentPhotoPath && file_exists($studentPhotoPath))
+                    <img src="{{ 'file://' . $studentPhotoPath }}" alt="photo">
                 @else รูปถ่าย @endif
             </div>
         </div>
@@ -291,6 +291,13 @@ body {
             $maxRows = max(array_map('count', $colRows));
         @endphp
         <table class="grades-table">
+            <colgroup>
+                @for($c = 0; $c < $numCols; $c++)
+                <col style="width: 45mm;">
+                <col style="width: 6mm;">
+                <col style="width: 6mm;">
+                @endfor
+            </colgroup>
             <thead>
                 <tr>
                     @for($c = 0; $c < $numCols; $c++)
@@ -365,7 +372,7 @@ body {
 
 {{-- ===== PAGE 2 ===== --}}
 <div class="page">
-    <div class="subpage" style="height: 100%; display: flex; flex-direction: column;">
+    <div class="subpage">
         
         {{-- Header ชุดที่ / เลขที่ --}}
         <div style="display: flex; justify-content: center; align-items: baseline; gap: 30px; margin-top: 10px; font-weight: bold; font-size: 20px;">
@@ -407,17 +414,17 @@ body {
         @endphp
 
         {{-- ตารางกิจกรรมพัฒนาผู้เรียน (เส้นยาวต่อเนื่อง, มีเส้นใต้หัวข้อ, จัดความกว้างเป๊ะๆ ให้ตรงกับตารางล่าง) --}}
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000;">
+        <table class="act-table" style="width: 186mm; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000;">
             <colgroup>
-                <col style="width: 25%;">
-                <col style="width: 4.166667%;">
-                <col style="width: 4.166667%;">
-                <col style="width: 25%;">
-                <col style="width: 4.166667%;">
-                <col style="width: 4.166667%;">
-                <col style="width: 25%;">
-                <col style="width: 4.166667%;">
-                <col style="width: 4.166667%;">
+                <col style="width: 46.5mm;">
+                <col style="width: 7.75mm;">
+                <col style="width: 7.75mm;">
+                <col style="width: 46.5mm;">
+                <col style="width: 7.75mm;">
+                <col style="width: 7.75mm;">
+                <col style="width: 46.5mm;">
+                <col style="width: 7.75mm;">
+                <col style="width: 7.75mm;">
             </colgroup>
             <thead>
                 <tr>
@@ -499,12 +506,12 @@ body {
         </table>
 
         {{-- ตารางกรอบใหญ่ด้านล่าง --}}
-        <div style="flex: 1; display: flex; flex-direction: column; margin-top: 4px; margin-bottom: 12mm;">
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000; height: 100%;">
+        <div style="margin-top: 4px; margin-bottom: 12mm;">
+        <table style="width: 186mm; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000;">
             <colgroup>
-                <col style="width: 33.333333%;">
-                <col style="width: 33.333333%;">
-                <col style="width: 33.333333%;">
+                <col style="width: 62mm;">
+                <col style="width: 62mm;">
+                <col style="width: 62mm;">
             </colgroup>
             <tbody>
                 <tr>
@@ -709,7 +716,7 @@ body {
                         }
                         $overallGpa = $overallCredits > 0 ? round($overallWeighted / $overallCredits, 2) : null;
                         @endphp
-                        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; height: 100%;">
+                        <table style="width: 100%; table-layout: fixed; border-collapse: collapse;">
                             <colgroup>
                                 <col style="width: 75%;">
                                 <col style="width: 12.5%;">
@@ -796,19 +803,5 @@ body {
     </div>
 </div>
 
-<script>
-function fitTitleToWidth() {
-    const h2 = document.querySelector('.doc-title-block h2');
-    if (!h2) return;
-    h2.style.transform = 'scaleX(1)';
-    const containerW = h2.parentElement.offsetWidth;
-    const textW = h2.scrollWidth;
-    if (textW > 0 && containerW > 0) {
-        h2.style.transform = 'scaleX(' + (containerW / textW) + ')';
-    }
-}
-window.addEventListener('load', fitTitleToWidth);
-window.addEventListener('beforeprint', fitTitleToWidth);
-</script>
 </body>
 </html>

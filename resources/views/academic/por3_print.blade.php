@@ -4,18 +4,17 @@
 <meta charset="UTF-8">
 <title>ปพ.3 - {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
 <style>
+@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
+thead { display: table-header-group; }
 body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; background: #fff; }
 
 .page {
-    width: 297mm;
-    height: 210mm;
+    width: 279mm;
+    min-height: 188mm;
     margin: 0 auto;
     padding: 7mm 9mm;
     background: #fff;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
 }
 
 /* Header */
@@ -24,11 +23,10 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .doc-header td { padding: 0 3px; font-size: 12.5px; }
 
 /* Main table — flex-grow to fill remaining height */
-.table-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.table-wrap { overflow: hidden; }
 .main-table {
     width: 100%; border-collapse: collapse; font-size: 11px;
     margin-top: 4px; table-layout: fixed;
-    flex: 1;
 }
 .main-table th, .main-table td {
     border: 0.5px solid #333;
@@ -73,12 +71,10 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .page {
-        width: 297mm; height: 210mm;
+        width: 281mm; min-height: 178mm;
         padding: 6mm 8mm;
-        page-break-after: always;
-        page-break-inside: avoid;
     }
-    .page:last-child { page-break-after: avoid; }
+    .page.has-next { page-break-after: always; }
     .no-print { display: none !important; }
 }
 </style>
@@ -130,13 +126,17 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
 </div>
 
 @foreach($pages as $pageIdx => $rows)
-<div class="page">
+<div class="page{{ $loop->last ? '' : ' has-next' }}">
 
     {{-- หัวเอกสาร --}}
     <div class="doc-header">
-        <table>
+        <table style="width: 279mm; table-layout: fixed;">
+            <colgroup>
+                <col style="width: 255mm;">
+                <col style="width: 24mm;">
+            </colgroup>
             <tr>
-                <td>สำเร็จการศึกษาภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong> &nbsp; โรงเรียน <strong>{{ $school['name'] ?? '' }}</strong></td>
+                <td style="overflow-wrap: break-word;">สำเร็จการศึกษาภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong> &nbsp; โรงเรียน <strong>{{ $school['name'] ?? '' }}</strong></td>
                 <td style="text-align:right;white-space:nowrap;font-size:12px;">หน้า {{ $pageIdx + 1 }}</td>
             </tr>
             <tr>
@@ -162,9 +162,9 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <th class="th-top" style="width:68px;">เลขประจำตัวนักเรียน</th>
                 <th class="th-top" style="width:48px;">ชุดที่ ปพ.1:พ</th>
                 <th rowspan="2" style="width:22px;">เลขที่<br>ปพ.2:พ</th>
-                <th class="th-top" style="width:90px;">ชื่อนักเรียน</th>
+                <th class="th-top" style="width:140px;">ชื่อนักเรียน</th>
                 <th class="th-top" style="width:58px;">วัน เดือน</th>
-                <th class="th-top" style="width:108px;">ชื่อ-ชื่อสกุลบิดา</th>
+                <th class="th-top" style="width:160px;">ชื่อ-ชื่อสกุลบิดา</th>
                 <th class="th-top" style="width:54px;">จำนวนหน่วยกิต<br>รายวิชาที่เรียน/ที่ได้</th>
                 <th rowspan="2" style="width:46px;">ผลการประเมิน<br>การอ่าน<br>คิดวิเคราะห์<br>และเขียน</th>
                 <th rowspan="2" style="width:46px;">ผลการประเมิน<br>คุณลักษณะ<br>อันพึง<br>ประสงค์</th>

@@ -4,15 +4,18 @@
 <meta charset="UTF-8">
 <title>ปพ.7 — {{ $student->thai_firstname }} {{ $student->thai_lastname }}</title>
 <style>
+@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
 body {
     font-family: 'TH Sarabun New', 'THSarabun', 'Sarabun', 'Tahoma', sans-serif;
     font-size: 21px; color: #000; background: #e0e0e0;
     -webkit-font-smoothing: antialiased;
 }
 .page {
-    width: 210mm; min-height: 297mm;
-    margin: 0 auto 10mm; padding: 15mm 20mm 15mm;
+    width: 174mm; min-height: 277mm;
+    margin: 0 auto 10mm; padding: 10mm 18mm 10mm;
     background: #fff;
     box-shadow: 0 0 8px rgba(0,0,0,0.15);
     position: relative;
@@ -92,19 +95,20 @@ body {
 
 /* Sign area */
 .sign-area {
-    display: flex; align-items: flex-start; gap: 0;
     margin-top: 1mm;
 }
+.sign-area::after { content: ""; display: block; clear: both; }
 .photo-box {
-    width: 30mm; height: 40mm;
+    width: 30mm; height: 30mm;
     border: 1px solid #666;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 13px; color: #999; flex-shrink: 0;
+    text-align: center;
+    font-size: 13px; color: #999;
     overflow: hidden;
+    float: left;
 }
 .photo-box img { width: 100%; height: 100%; object-fit: cover; }
 
-.signatures { flex: 1; padding-left: 6mm; }
+.signatures { margin-left: 36mm; }
 .sig-block { margin-bottom: 4mm; }
 .sig-dots {
     border-bottom: 1px dotted #666;
@@ -115,7 +119,7 @@ body {
 .sig-position { text-align: center; font-weight: bold; font-size: 20px; }
 
 /* Registrar below photo */
-.registrar-block { margin-top: 3mm; }
+.registrar-block { margin-top: 1mm; }
 .registrar-block .sig-dots {
     width: 70mm; border-bottom: 1px dotted #666;
     height: 8mm; margin: 0 auto 1mm;
@@ -132,7 +136,7 @@ body {
 @page { size: A4 portrait; margin: 0; }
 @media print {
     body { background: #fff; }
-    .page { box-shadow: none; margin: 0; padding: 15mm 20mm 15mm; }
+    .page { box-shadow: none; margin: 0; padding: 10mm 18mm 10mm; }
     .no-print { display: none !important; }
 }
 </style>
@@ -281,7 +285,7 @@ $fullName = ($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . '
 
         <div class="signatures">
             {{-- ผู้อำนวยการ --}}
-            <div class="sig-block" style="margin-top:8mm;">
+            <div class="sig-block" style="margin-top:2mm;">
                 <div class="sig-dots"></div>
                 <div class="sig-name">( {{ $school['director_name'] ?? '' }} )</div>
                 <div class="sig-position">{{ $school['director_position'] ?? 'ผู้อำนวยการ' }}</div>

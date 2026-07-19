@@ -5,11 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ใบแสดงผลการเรียน — {{ $student->thai_firstname }} {{ $student->thai_lastname }}</title>
 <style>
+@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
 body { font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif; font-size: 13pt; color: #000; background: #f0f0f0; }
 
 .page {
-    width: 210mm; min-height: 297mm;
+    width: 190mm; min-height: 279mm;
     background: #fff; margin: 20px auto; padding: 14mm 12mm 12mm;
     box-shadow: 0 2px 16px rgba(0,0,0,0.12);
 }
@@ -20,14 +23,17 @@ body { font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif; font-size
 .doc-title { font-size: 14pt; font-weight: bold; margin-top: 2px; }
 
 /* Student info */
-.student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; margin: 8px 0; font-size: 12pt; }
-.student-info-row { display: flex; gap: 6px; }
-.student-info-row .label { font-weight: bold; white-space: nowrap; }
-.student-info-full { grid-column: 1 / -1; }
+.student-info { width: 100%; border-collapse: collapse; margin: 8px 0; font-size: 12pt; }
+.student-info-row { width: 50%; padding-right: 10mm; padding-bottom: 4px; text-align: left; }
+.student-info-row .label { font-weight: bold; white-space: nowrap; padding-right: 6px; }
+.student-info-full { width: 100%; }
 .right-info { text-align: right; }
 
 /* Content in two columns */
-.transcript-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10mm; margin-top: 6px; }
+.transcript-cols { width: 100%; border-collapse: collapse; table-layout: fixed; margin-top: 6px; }
+.transcript-cols > tbody > tr > td { width: 50%; vertical-align: top; }
+.transcript-cols > tbody > tr > td.left-col { padding-right: 5mm; }
+.transcript-cols > tbody > tr > td.right-col { padding-left: 5mm; }
 .semester-block { margin-bottom: 8px; }
 .semester-title { font-size: 12pt; font-weight: bold; text-align: center; text-decoration: underline; margin-bottom: 3px; }
 
@@ -48,19 +54,22 @@ table.course-table tr.sem-total td {
 
 /* Summary bar */
 .summary-bar {
+    width: 100%; border-collapse: collapse;
     border-top: 2px solid #000; border-bottom: 2px solid #000;
-    margin-top: 8px; padding: 5px 0;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
+    margin-top: 8px;
     font-size: 12pt;
 }
-.summary-item { display: flex; gap: 8px; padding: 0 8px; }
-.summary-item .label { font-weight: bold; }
+.summary-item { padding: 5px 8px; width: 50%; }
+.summary-item .label { font-weight: bold; padding-right: 8px; }
 
 /* Signature section */
 .sig-section {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    width: 100%; border-collapse: collapse;
     margin-top: 14px;
 }
+.sig-section .sig-box-cell { width: 50%; vertical-align: top; }
+.sig-section .sig-box-cell:first-child { padding-right: 5px; }
+.sig-section .sig-box-cell:last-child { padding-left: 5px; }
 .sig-box { border: 1px solid #000; padding: 12px 10px 8px; text-align: center; }
 .sig-box .sig-title { font-weight: bold; font-size: 11pt; border-bottom: 1px solid #aaa; padding-bottom: 4px; margin-bottom: 10px; }
 .sig-line { border-bottom: 1px dotted #000; margin: 20px 10px 4px; }
@@ -107,36 +116,40 @@ table.course-table tr.sem-total td {
     </div>
 
     {{-- Student Info --}}
-    <div class="student-info">
-        <div class="student-info-row">
-            <span class="label">รหัสนักเรียน</span>
-            <span>{{ $student->student_code ?? '-' }}</span>
-        </div>
-        <div class="student-info-row right-info">
-            <span class="label">ชั้น/ห้อง</span>
-            <span>
-                @php
-                    $latestSection = $student->studentSections()->with('classSection.level')->latest()->first() ?? null;
-                @endphp
-                {{ $latestSection?->classSection?->level?->name ?? '-' }}
-                / {{ $latestSection?->classSection?->section_number ?? '-' }}
-            </span>
-        </div>
-        <div class="student-info-row student-info-full">
-            <span class="label">ชื่อ-นามสกุล</span>
-            <span>{{ $student->thai_prefix }}{{ $student->thai_firstname }} {{ $student->thai_lastname }}</span>
-        </div>
-    </div>
+    <table class="student-info"><tbody>
+        <tr>
+            <td class="student-info-row">
+                <span class="label">รหัสนักเรียน</span>
+                <span>{{ $student->student_code ?? '-' }}</span>
+            </td>
+            <td class="student-info-row right-info">
+                <span class="label">ชั้น/ห้อง</span>
+                <span>
+                    @php
+                        $latestSection = $student->studentSections()->with('classSection.level')->latest()->first() ?? null;
+                    @endphp
+                    {{ $latestSection?->classSection?->level?->name ?? '-' }}
+                    / {{ $latestSection?->classSection?->section_number ?? '-' }}
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td class="student-info-row student-info-full" colspan="2">
+                <span class="label">ชื่อ-นามสกุล</span>
+                <span>{{ $student->thai_prefix }}{{ $student->thai_firstname }} {{ $student->thai_lastname }}</span>
+            </td>
+        </tr>
+    </tbody></table>
 
     {{-- Two-column course layout --}}
-    <div class="transcript-cols">
+    <table class="transcript-cols"><tbody><tr>
     @php
         $semList = $grades->values();
         $semKeys = $grades->keys()->values();
-        $leftSems  = $semList->filter(fn($v, $k) => $k % 2 === 0);
-        $rightSems = $semList->filter(fn($v, $k) => $k % 2 !== 0);
-        $leftKeys  = $semKeys->filter(fn($v, $k) => $k % 2 === 0);
-        $rightKeys = $semKeys->filter(fn($v, $k) => $k % 2 !== 0);
+        $leftSems  = $semList->filter(fn($v, $k) => $k % 2 === 0)->values();
+        $rightSems = $semList->filter(fn($v, $k) => $k % 2 !== 0)->values();
+        $leftKeys  = $semKeys->filter(fn($v, $k) => $k % 2 === 0)->values();
+        $rightKeys = $semKeys->filter(fn($v, $k) => $k % 2 !== 0)->values();
 
         $renderSems = function($semCollection, $keyCollection) {
             return ['sems' => $semCollection, 'keys' => $keyCollection];
@@ -144,7 +157,7 @@ table.course-table tr.sem-total td {
     @endphp
 
     {{-- Left column --}}
-    <div>
+    <td class="left-col">
         @foreach($leftSems as $idx => $semGrades)
         @php
             $key = $leftKeys->values()[$idx] ?? '';
@@ -194,10 +207,10 @@ table.course-table tr.sem-total td {
             </table>
         </div>
         @endforeach
-    </div>
+    </td>
 
     {{-- Right column --}}
-    <div>
+    <td class="right-col">
         @foreach($rightSems as $idx => $semGrades)
         @php
             $key = $rightKeys->values()[$idx] ?? '';
@@ -247,23 +260,24 @@ table.course-table tr.sem-total td {
             </table>
         </div>
         @endforeach
-    </div>
-    </div>
+    </td>
+    </tr></tbody></table>
 
     {{-- Summary --}}
-    <div class="summary-bar">
-        <div class="summary-item">
+    <table class="summary-bar"><tbody><tr>
+        <td class="summary-item">
             <span class="label">จำนวนหน่วยกิตรวม</span>
             <span>{{ $totalCredits }}</span>
-        </div>
-        <div class="summary-item">
+        </td>
+        <td class="summary-item">
             <span class="label">ค่าคะแนนเฉลี่ยสะสม (GPA)</span>
             <span style="font-size:14pt; font-weight:bold; color:#1a237e">{{ $gpa }}</span>
-        </div>
-    </div>
+        </td>
+    </tr></tbody></table>
 
     {{-- Signatures --}}
-    <div class="sig-section">
+    <table class="sig-section"><tbody><tr>
+        <td class="sig-box-cell">
         <div class="sig-box">
             <div class="sig-title">สำหรับนักเรียน</div>
             <div style="height:30px"></div>
@@ -273,6 +287,8 @@ table.course-table tr.sem-total td {
             </div>
             <div class="sig-date">วันที่ ........../........../..........…</div>
         </div>
+        </td>
+        <td class="sig-box-cell">
         <div class="sig-box">
             <div class="sig-title">สำหรับผู้บริหาร / ผู้ได้รับมอบหมาย</div>
             <div style="height:30px"></div>
@@ -280,7 +296,8 @@ table.course-table tr.sem-total td {
             <div class="sig-name">(..................................................)</div>
             <div class="sig-date">วันที่ ........../........../..........…</div>
         </div>
-    </div>
+        </td>
+    </tr></tbody></table>
 
 </div>
 

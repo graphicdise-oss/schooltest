@@ -4,11 +4,14 @@
 <meta charset="UTF-8">
 <title>ใบบันทึกคะแนน — {{ $assign->subject->name_th }}</title>
 <style>
+@include('pdf._sarabun_font')
 * { box-sizing: border-box; margin: 0; padding: 0; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
 body { font-family: 'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size: 13pt; background: #e0e0e0; }
 
 .page {
-    width: 297mm; min-height: 210mm; background: #fff;
+    width: 285mm; min-height: 194mm; background: #fff;
     margin: 16px auto; padding: 10mm 8mm 8mm;
     box-shadow: 0 2px 16px rgba(0,0,0,0.15);
 }
@@ -29,14 +32,14 @@ body { font-family: 'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size: 1
 }
 .score-table th { font-weight: bold; background: #fff; }
 
-/* Rotated header text */
+/* Header text */
 .rotate-header {
-    writing-mode: vertical-rl;
-    transform: rotate(180deg);
-    white-space: nowrap;
-    font-size: 9.5pt;
-    height: 60px;
+    font-size: 8pt;
+    line-height: 1.15;
+    min-height: 60px;
     display: flex; align-items: center; justify-content: center;
+    word-break: break-word;
+    text-align: center;
 }
 
 /* Column colors */

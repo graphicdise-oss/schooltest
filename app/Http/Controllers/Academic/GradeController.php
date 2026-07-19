@@ -13,6 +13,7 @@ use App\Models\Academic\TeachingAssign;
 use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class GradeController extends Controller
 {
@@ -79,7 +80,8 @@ class GradeController extends Controller
         'english_report'=> $request->boolean('english_report'),
     ];
 
-    return view('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits', 'options'));
+    return Pdf::loadView('academic.transcript_print', compact('student', 'grades', 'gpa', 'totalCredits', 'options'))
+        ->stream("transcript_{$student->student_code}.pdf");
 }
 
     // หน้าแก้ไขเกรดรายคน
@@ -222,7 +224,9 @@ class GradeController extends Controller
         $finalGrades = FinalGrade::where('assign_id', $assignId)
             ->get()->keyBy('student_id');
 
-        return view('academic.grade_print', compact('assign', 'students', 'categories', 'scoreMatrix', 'finalGrades'));
+        return Pdf::loadView('academic.grade_print', compact('assign', 'students', 'categories', 'scoreMatrix', 'finalGrades'))
+            ->setPaper('a4', 'landscape')
+            ->stream("scores_{$assign->subject->code}.pdf");
     }
 
     // รายงาน GPA
@@ -339,7 +343,8 @@ class GradeController extends Controller
         $onetYearId = $onetScores->first()?->year_id;
         $onetScores = $onetScores->where('year_id', $onetYearId)->keyBy('subject');
 
-        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment', 'onetScores'));
+        return Pdf::loadView('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment', 'onetScores'))
+            ->stream("por1_{$student->student_code}.pdf");
     }
 
     private function formatThaiDate(string $dateStr): string

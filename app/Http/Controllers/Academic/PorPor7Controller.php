@@ -12,6 +12,7 @@ use App\Models\Academic\Pp2Setting;
 use App\Models\Personne\Personnel;
 use App\Models\Student;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class PorPor7Controller extends Controller
 {
@@ -143,13 +144,13 @@ class PorPor7Controller extends Controller
             ? $dob->day . ' ' . $thMonths[$dob->month] . ' ' . ($dob->year + 543)
             : '';
 
-        return view('academic.por7_print', compact(
+        return Pdf::loadView('academic.por7_print', compact(
             'student', 'school',
             'level', 'section', 'levelSection', 'yearName',
             'father', 'mother',
             'issueDateFormatted', 'gradeResult', 'behavior',
             'dobFormatted'
-        ));
+        ))->stream("por7_{$student->student_code}.pdf");
     }
 
     public function saveSchoolSetting(Request $request)

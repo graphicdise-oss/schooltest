@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <title>ปพ.6 — {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
-<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+@include('pdf._sarabun_font')
 * { margin:0; padding:0; box-sizing:border-box; }
+tr { page-break-inside: avoid; }
+thead { display: table-header-group; }
 body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15px; color:#222; background:#e0e0e0; }
 .page {
-    width:210mm; min-height:297mm; margin:0 auto 10mm; padding:10mm 12mm;
+    width:186mm; min-height:277mm; margin:0 auto 10mm; padding:10mm 12mm;
     background:#fff; box-shadow:0 0 8px rgba(0,0,0,.15);
     page-break-after:always; display:flex; flex-direction:column;
 }
@@ -53,7 +55,8 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 @endphp
 <div class="page">
     <div class="doc-top">
-        <div class="doc-logo"><img src="{{ asset(config('school.logo')) }}" alt="logo" onerror="this.style.display='none'"></div>
+        @php $schoolLogoPath = public_path(config('school.logo')); @endphp
+        <div class="doc-logo">@if(file_exists($schoolLogoPath))<img src="{{ 'file://' . $schoolLogoPath }}" alt="logo">@endif</div>
         <div class="doc-title">
             <h2>แบบรายงานผลพัฒนาคุณภาพผู้เรียนรายบุคคล</h2>
             <p>{{ $section->level->name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }}</p>

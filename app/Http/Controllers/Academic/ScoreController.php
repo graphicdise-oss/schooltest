@@ -13,6 +13,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\Subject;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ScoreController extends Controller
 {
@@ -109,7 +110,9 @@ class ScoreController extends Controller
             }
         }
 
-        return view('academic.scores_print', compact('assign', 'students', 'categories', 'scoreMatrix'));
+        return Pdf::loadView('academic.scores_print', compact('assign', 'students', 'categories', 'scoreMatrix'))
+            ->setPaper('a4', 'landscape')
+            ->stream("scoresheet_{$assign->subject->code}.pdf");
     }
 
     // เพิ่มหมวดคะแนน

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>บัญชีรายชื่อและแบบบันทึกผลการเรียน</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @include('pdf._sarabun_font')
         body {
             font-family: 'Sarabun', sans-serif;
             margin: 0; padding: 20px; font-size: 13px; color: #000;
@@ -12,15 +12,17 @@
         .header-container { text-align: center; margin-bottom: 20px; position: relative; }
         .logo { position: absolute; left: 50px; top: 0; width: 80px; }
         .title { font-size: 16px; font-weight: bold; line-height: 1.5; }
-        
+
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        tr { page-break-inside: avoid; }
+        thead { display: table-header-group; }
         th, td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
         
         .col-name { text-align: left; white-space: nowrap; width: 25%; }
         .col-score { width: 30px; }
         
         /* สลับสีหัวตารางแบบในรูป */
-        th.bg-green { background-color: #28a745 !important; color: white; writing-mode: vertical-lr; transform: rotate(180deg); height: 80px; padding: 5px 2px; }
+        th.bg-green { background-color: #28a745 !important; color: white; padding: 5px 2px; }
         th.bg-yellow { background-color: #ffff00 !important; }
         td.bg-yellow { background-color: #ffff00 !important; font-weight: bold; }
         
@@ -42,7 +44,10 @@
     </div>
 
     <div class="header-container">
-        <img src="{{ asset('img/logo/vrulogo.png') }}" class="logo" alt="Logo">
+        @php $logoPath = public_path('img/logo/vrulogo.png'); @endphp
+        @if(file_exists($logoPath))
+        <img src="{{ 'file://' . $logoPath }}" class="logo" alt="Logo">
+        @endif
         <div class="title">
             บัญชีรายชื่อนักเรียนชั้น {{ $assign->classSection->level->name }}/{{ $assign->classSection->section_number }} 
             ปีการศึกษา {{ $assign->classSection->semester->academicYear->year_name }}<br>
@@ -64,7 +69,7 @@
                     <th class="bg-green">{{ $cat->name }}</th>
                 @endforeach
                 
-                <th class="bg-yellow" style="writing-mode: vertical-lr; transform: rotate(180deg); height: 80px;">รวม</th>
+                <th class="bg-yellow">รวม</th>
                 <th rowspan="2">เกรด</th>
             </tr>
             <tr>

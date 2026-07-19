@@ -5,34 +5,32 @@
     <meta charset="UTF-8">
     <title>ใบ ป.พ.2</title>
     <style>
+        @include('pdf._sarabun_font')
         @font-face {
             font-family: TFArluck;
-            src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TF Arluck.ttf') }}') format('truetype');
             font-weight: normal;
         }
 
         @font-face {
             font-family: TFArluck;
-            src: url('{{ asset("fonts/TF Arluck Bol.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TF Arluck Bol.ttf') }}') format('truetype');
             font-weight: bold;
         }
 
         @font-face {
             font-family: TFArluckData;
-            src: url('{{ asset("fonts/TF Arluck.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TF Arluck.ttf') }}') format('truetype');
         }
 
         @font-face {
             font-family: THDanViVek;
-            src: url('{{ asset("fonts/TH Dan Vi Vek ver 1.03.ttf") }}') format('truetype');
+            src: url('{{ 'file://' . public_path('fonts/TH Dan Vi Vek ver 1.03.ttf') }}') format('truetype');
             font-weight: normal;
         }
 
-        @font-face {
-            font-family: THDanViVek;
-            src: url('{{ asset("fonts/TH Dan Vi Vek Bold ver 1.03.ttf") }}') format('truetype');
-            font-weight: bold;
-        }
+        tr { page-break-inside: avoid; }
+        thead { display: table-header-group; }
 
         * {
             box-sizing: border-box;
@@ -60,12 +58,15 @@
             padding: 0 1.6cm;
         }
 
+        @php $pp2LogoPath = public_path('img/pp_1/logo.jpg'); @endphp
+        @if(file_exists($pp2LogoPath))
         .page.front {
-            background-image: url('{{ asset("img/pp_1/logo.jpg") }}');
+            background-image: url('{{ 'file://' . $pp2LogoPath }}');
             background-repeat: no-repeat;
             background-position: 2pt 4pt;
             background-size: 110pt auto;
         }
+        @endif
 
         .row {
             display: flex;
@@ -101,7 +102,7 @@
         }
 
         .back .spn-label {
-            font-family: 'TH Sarabun New', 'THSarabunNew', sans-serif;
+            font-family: 'Sarabun', 'TH Sarabun New', 'THSarabunNew', sans-serif;
             letter-spacing: -0.5pt;
         }
 
