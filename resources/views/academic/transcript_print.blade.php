@@ -5,10 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ใบแสดงผลการเรียน — {{ $student->thai_firstname }} {{ $student->thai_lastname }}</title>
 <style>
-@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
-tr { page-break-inside: avoid; }
-thead { display: table-header-group; }
 body { font-family: 'TH Sarabun New', 'Sarabun', 'Tahoma', sans-serif; font-size: 13pt; color: #000; background: #f0f0f0; }
 
 .page {

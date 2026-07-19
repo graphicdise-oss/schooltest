@@ -17,7 +17,6 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\Subject;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class Por5Controller extends Controller
 {
@@ -178,12 +177,12 @@ class Por5Controller extends Controller
 
         $studentChunks = $students->chunk(45)->values();
 
-        return Pdf::loadView('academic.por5_print', compact(
+        return view('academic.por5_print', compact(
             'assign', 'section', 'semester', 'students', 'studentChunks',
             'gradeCount', 'gradePct', 'specialCount', 'totalStudents',
             'qualitySummary', 'classDates', 'attendance', 'attendanceStats',
             'categories', 'scores', 'school'
-        ))->stream("por5_{$assign->subject->code}.pdf");
+        ));
     }
 
     private function authorizedAssign($assignId)

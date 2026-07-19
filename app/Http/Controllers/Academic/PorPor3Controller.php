@@ -13,7 +13,6 @@ use App\Models\Academic\Pp2Document;
 use App\Models\Academic\FinalGrade;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PorPor3Controller extends Controller
 {
@@ -242,12 +241,11 @@ class PorPor3Controller extends Controller
         $maleCount   = $studentSections->filter(fn($ss) => ($ss->student?->gender ?? '') === 'M')->count();
         $femaleCount = $studentSections->filter(fn($ss) => ($ss->student?->gender ?? '') === 'F')->count();
 
-        return Pdf::loadView('academic.por3_print', compact(
+        return view('academic.por3_print', compact(
             'section', 'studentSections', 'docNumbers', 'pp2Docs',
             'creditsByStudent', 'gpaTotalByStudent',
             'approver', 'school', 'approveDateFormatted',
             'maleCount', 'femaleCount'
-        ))->setPaper('a4', 'landscape')
-            ->stream("por3_{$section->level->name}-{$section->section_number}.pdf");
+        ));
     }
 }

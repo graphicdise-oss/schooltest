@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>บัญชีรายชื่อและแบบบันทึกผลการเรียน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        @include('pdf._sarabun_font')
         body {
             font-family: 'Sarabun', sans-serif;
             margin: 0; padding: 20px; font-size: 13px; color: #000;
@@ -14,8 +14,6 @@
         .title { font-size: 16px; font-weight: bold; line-height: 1.5; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-        tr { page-break-inside: avoid; }
-        thead { display: table-header-group; }
         th, td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
         
         .col-name { text-align: left; white-space: nowrap; width: 25%; }

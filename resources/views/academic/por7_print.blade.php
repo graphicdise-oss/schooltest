@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>ปพ.7 — {{ $student->thai_firstname }} {{ $student->thai_lastname }}</title>
 <style>
-@include('pdf._sarabun_font')
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
     font-family: 'TH Sarabun New', 'THSarabun', 'Sarabun', 'Tahoma', sans-serif;

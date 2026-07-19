@@ -11,7 +11,6 @@ use App\Models\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ParentPortalController extends Controller
 {
@@ -81,15 +80,22 @@ class ParentPortalController extends Controller
         return view('parent.grades', compact('student', 'semesters', 'semesterId', 'rows', 'gpa', 'totalCredits'));
     }
 
-    private function buildTimetableGrid($student)
+    public function timetable()
     {
+        $student = Auth::guard('parent')->user();
         $studentSection = $this->currentSection($student);
         $section = $studentSection?->classSection;
 
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
 
         $dayStartHour = 6;
-        $dayEndHour   = 18;
+        $dayEndHour   = 19;
+        $units = [];
+        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
+            $units[] = sprintf('%02d:00', $h);
+            $units[] = sprintf('%02d:30', $h);
+        }
+        $baseMinutes = $dayStartHour * 60;
 
         $slotGrid = [];
         $assigns = collect();
@@ -100,24 +106,6 @@ class ParentPortalController extends Controller
                 ->where('semester_id', $section->semester_id)
                 ->get();
 
-            foreach ($assigns as $assign) {
-                foreach ($assign->timetableSlots as $slot) {
-                    $start = \Carbon\Carbon::parse($slot->start_time);
-                    $end   = \Carbon\Carbon::parse($slot->end_time);
-                    $dayStartHour = min($dayStartHour, $start->hour);
-                    $dayEndHour   = max($dayEndHour, (int) ceil(($end->hour * 60 + $end->minute) / 60));
-                }
-            }
-        }
-
-        $units = [];
-        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-            $units[] = sprintf('%02d:00', $h);
-            $units[] = sprintf('%02d:30', $h);
-        }
-        $baseMinutes = $dayStartHour * 60;
-
-        if ($section) {
             foreach ($assigns as $assign) {
                 foreach ($assign->timetableSlots as $slot) {
                     $start = \Carbon\Carbon::parse($slot->start_time);
@@ -132,25 +120,7 @@ class ParentPortalController extends Controller
             }
         }
 
-        return compact('studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns');
-    }
-
-    public function timetable()
-    {
-        $student = Auth::guard('parent')->user();
-        $grid = $this->buildTimetableGrid($student);
-
-        return view('parent.timetable', array_merge($grid, compact('student')));
-    }
-
-    public function timetablePrint()
-    {
-        $student = Auth::guard('parent')->user();
-        $grid = $this->buildTimetableGrid($student);
-
-        return Pdf::loadView('parent.timetable_print', array_merge($grid, compact('student')))
-            ->setPaper('a4', 'landscape')
-            ->stream("timetable_{$student->student_code}.pdf");
+        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
     }
 
     public function calendar(Request $request)

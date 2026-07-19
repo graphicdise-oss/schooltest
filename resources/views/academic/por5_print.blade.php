@@ -3,11 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <title>ปพ.5 — {{ $assign->subject->name_th }} {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
-@include('pdf._sarabun_font')
 * { margin:0; padding:0; box-sizing:border-box; }
-tr { page-break-inside: avoid; }
-thead { display: table-header-group; }
 body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15px; color:#222; background:#e0e0e0; }
 .page {
     width:210mm; min-height:297mm; margin:0 auto 10mm; padding:10mm 12mm;
