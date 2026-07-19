@@ -12,6 +12,7 @@ use App\Models\Academic\Level;
 use App\Models\Academic\Curriculum;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class TimetableController extends Controller
 {
@@ -171,7 +172,9 @@ class TimetableController extends Controller
             }
         }
 
-        return view('academic.timetable_print', compact('section', 'assigns', 'days', 'units', 'slotGrid'));
+        return Pdf::loadView('academic.timetable_print', compact('section', 'assigns', 'days', 'units', 'slotGrid'))
+            ->setPaper('a4', 'landscape')
+            ->stream("timetable_{$section->level->name}-{$section->section_number}.pdf");
     }
 
     public function clearSection($sectionId)
