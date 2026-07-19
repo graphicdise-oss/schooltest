@@ -16,7 +16,6 @@ use App\Models\Personne\Personnel;
 use App\Models\Pp2SectionSetting;
 use App\Models\Student;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class PorPor1Controller extends Controller
 {
@@ -198,10 +197,10 @@ class PorPor1Controller extends Controller
             $school['director_name'] = $signSettings->director_name;
         }
 
-        return Pdf::loadView('academic.por1_print', compact(
+        return view('academic.por1_print', compact(
             'student', 'docNumber', 'yearGroups', 'father', 'mother',
             'approveDate', 'leaveDate', 'leaveReason', 'school'
-        ))->stream("por1_{$student->student_code}.pdf");
+        ));
     }
 
     public function saveSignSettings(Request $request)
