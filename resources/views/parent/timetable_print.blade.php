@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <title>ตารางเรียน {{ $section->level->name ?? '' }}/{{ $section->section_number ?? '' }}</title>
-    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        @include('pdf._sarabun_font')
         body {
             font-family: 'Sarabun', sans-serif;
             margin: 0; padding: 20px; font-size: 12px; color: #000;
@@ -15,6 +15,8 @@
         .meta { font-size: 12px; color: #444; margin-top: 4px; }
 
         table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        thead { display: table-header-group; }
+        tr { page-break-inside: avoid; }
         th, td { border: 1px solid #000; padding: 4px 2px; text-align: center; vertical-align: middle; word-break: break-word; }
         th.day-col, td.day-col { width: 70px; background: #f0f0f0; font-weight: bold; }
         th { font-size: 10px; background: #f0f0f0; }
