@@ -12,7 +12,6 @@ use App\Models\Academic\Level;
 use App\Models\Academic\Curriculum;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class TimetableController extends Controller
 {
@@ -105,7 +104,7 @@ class TimetableController extends Controller
     $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
     $dayStartHour = 6;
-    $dayEndHour   = 19;
+    $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
     $units = [];
     for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
         $units[] = sprintf('%02d:00', $h);
@@ -127,6 +126,13 @@ class TimetableController extends Controller
         }
     }
 
+    $lunchStart = $section->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+    $lunchEnd   = $section->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+    [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
+    [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
+    $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
+    $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+
     $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
         ->where('level_id', $section->level_id)
         ->where('is_active', true)
@@ -134,8 +140,26 @@ class TimetableController extends Controller
         ->get();
 
     return view('academic.timetable_section', compact(
-        'section', 'assigns', 'teachers', 'subjects', 'days', 'units', 'slotGrid', 'curriculums'
+        'section', 'assigns', 'teachers', 'subjects', 'days', 'units', 'slotGrid', 'curriculums',
+        'lunchStartIdx', 'lunchEndIdx', 'lunchStart', 'lunchEnd'
     ));
+}
+
+public function updateLunch(Request $request, $sectionId)
+{
+    $section = ClassSection::findOrFail($sectionId);
+
+    $data = $request->validate([
+        'lunch_start' => ['nullable', 'date_format:H:i'],
+        'lunch_end'   => ['nullable', 'date_format:H:i', 'after:lunch_start'],
+    ]);
+
+    $section->update([
+        'lunch_start' => $data['lunch_start'] ?? null,
+        'lunch_end'   => $data['lunch_end'] ?? null,
+    ]);
+
+    return back()->with('success', 'ตั้งค่าเวลาพักกลางวันเรียบร้อยแล้ว');
 }
 
     public function print($sectionId)
@@ -150,7 +174,7 @@ class TimetableController extends Controller
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
         $dayStartHour = 6;
-        $dayEndHour   = 19;
+        $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
         $units = [];
         for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
             $units[] = sprintf('%02d:00', $h);
@@ -172,9 +196,14 @@ class TimetableController extends Controller
             }
         }
 
-        return Pdf::loadView('academic.timetable_print', compact('section', 'assigns', 'days', 'units', 'slotGrid'))
-            ->setPaper('a4', 'landscape')
-            ->stream("timetable_{$section->level->name}-{$section->section_number}.pdf");
+        $lunchStart = $section->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+        $lunchEnd   = $section->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+        [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
+        [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
+        $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
+        $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+
+        return view('academic.timetable_print', compact('section', 'assigns', 'days', 'units', 'slotGrid', 'lunchStartIdx', 'lunchEndIdx'));
     }
 
     public function clearSection($sectionId)

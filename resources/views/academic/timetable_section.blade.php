@@ -49,6 +49,7 @@
 }
 .ts-grid td:hover { background:#e8f4fd; }
 .ts-grid td.occupied { cursor:default; padding:0; }
+.ts-grid td.lunch-col, .ts-grid th.lunch-col { background:#eee; font-weight:700; color:#666; cursor:default; vertical-align:middle; text-align:center; }
 
 .ts-slot {
     height:100%; min-height:58px; padding:5px 6px;
@@ -167,6 +168,9 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
             <button class="btn-assign" onclick="openAssignModal()">
                 <i class="bi bi-person-workspace"></i> มอบหมายวิชา
             </button>
+            <button class="btn-assign" style="background:#fb8c00" onclick="openLunchModal()">
+                <i class="bi bi-cup-hot"></i> ตั้งค่าพักกลางวัน
+            </button>
             <a href="{{ route('timetable.print', $section->section_id) }}" target="_blank" class="btn-assign" style="background:#455a64; text-decoration:none;">
                 <i class="bi bi-printer"></i> พิมพ์ตารางสอน
             </a>
@@ -179,8 +183,14 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
         <thead>
             <tr>
                 <th class="day-col">วัน / เวลา</th>
-                @foreach($units as $u)
-                <th>{{ $u }}</th>
+                @foreach($units as $i => $u)
+                    @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
+                        <th class="lunch-col" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</th>
+                    @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
+                        @continue
+                    @else
+                        <th>{{ $u }}</th>
+                    @endif
                 @endforeach
             </tr>
         </thead>
@@ -203,10 +213,18 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
         }
     }
     @endphp
-    @foreach($days as $day)
+    @foreach($days as $dIdx => $day)
     <tr>
         <th class="day-col">{{ $day }}</th>
         @foreach($units as $i => $u)
+            @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
+                @if($dIdx === 0)
+                    <td class="lunch-col" rowspan="{{ count($days) }}" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</td>
+                @endif
+                @continue
+            @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
+                @continue
+            @endif
             @if(isset($skipCells[$day][$i]))
                 @continue
             @endif
@@ -340,6 +358,45 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
             <div class="ts-modal-foot">
                 <button type="button" class="btn-mcancel" onclick="closeSlotModal()">ยกเลิก</button>
                 <button type="submit" class="btn-msave" {{ $assigns->isEmpty()?'disabled':'' }}>
+                    <i class="bi bi-check-lg me-1"></i>บันทึก
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{{-- Modal ตั้งค่าพักกลางวัน --}}
+<div class="ts-overlay" id="lunchModal" onclick="if(event.target===this)closeLunchModal()">
+    <div class="ts-modal">
+        <div class="ts-modal-head"><i class="bi bi-cup-hot me-2" style="color:#fb8c00"></i>ตั้งค่าพักกลางวัน (ห้องนี้)</div>
+        <form method="POST" action="{{ route('timetable.updateLunch', $section->section_id) }}">
+            @csrf
+            <div class="ts-modal-body">
+                <div class="mrow">
+                    <div class="mfield">
+                        <label>เวลาเริ่มพัก *</label>
+                        <select name="lunch_start" required>
+                            @for($i = 6; $i <= 17; $i++)
+                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00" {{ $lunchStart === str_pad($i,2,'0',STR_PAD_LEFT).':00' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
+                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30" {{ $lunchStart === str_pad($i,2,'0',STR_PAD_LEFT).':30' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
+                            @endfor
+                        </select>
+                    </div>
+                    <div class="mfield">
+                        <label>เวลาสิ้นสุดพัก *</label>
+                        <select name="lunch_end" required>
+                            @for($i = 6; $i <= 18; $i++)
+                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00" {{ $lunchEnd === str_pad($i,2,'0',STR_PAD_LEFT).':00' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
+                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30" {{ $lunchEnd === str_pad($i,2,'0',STR_PAD_LEFT).':30' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
+                            @endfor
+                        </select>
+                    </div>
+                </div>
+                <div style="font-size:0.78rem;color:#888">ตั้งค่านี้จะมีผลเฉพาะห้อง {{ $section->level?->name }}/{{ $section->section_number }} เท่านั้น ทั้งในตารางนี้และตอนพิมพ์</div>
+            </div>
+            <div class="ts-modal-foot">
+                <button type="button" class="btn-mcancel" onclick="closeLunchModal()">ยกเลิก</button>
+                <button type="submit" class="btn-msave" style="background:#fb8c00">
                     <i class="bi bi-check-lg me-1"></i>บันทึก
                 </button>
             </div>
@@ -516,8 +573,10 @@ function openSlotModal(day, start, end) {
 function closeSlotModal()  { document.getElementById('slotModal').classList.remove('open'); }
 function openAssignModal() { document.getElementById('assignModal').classList.add('open'); }
 function closeAssignModal(){ document.getElementById('assignModal').classList.remove('open'); }
+function openLunchModal()  { document.getElementById('lunchModal').classList.add('open'); }
+function closeLunchModal() { document.getElementById('lunchModal').classList.remove('open'); }
 document.addEventListener('keydown', e => {
-    if(e.key==='Escape'){ closeSlotModal(); closeAssignModal(); }
+    if(e.key==='Escape'){ closeSlotModal(); closeAssignModal(); closeLunchModal(); }
 });
 </script>
 @endpush
