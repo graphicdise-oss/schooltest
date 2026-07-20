@@ -11,7 +11,6 @@ use App\Models\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ParentPortalController extends Controller
 {
@@ -164,9 +163,7 @@ class ParentPortalController extends Controller
             }
         }
 
-        return Pdf::loadView('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'))
-            ->setPaper('a4', 'landscape')
-            ->stream("timetable_{$student->student_code}.pdf");
+        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
     }
 
     public function calendar(Request $request)
