@@ -21,6 +21,7 @@
         .slot { font-size: 10px; line-height: 1.3; padding: 3px 2px; color: #fff; }
         .slot-code { font-weight: bold; }
         .slot-room, .slot-time { font-size: 9px; opacity: .85; }
+        .lunch-col { background: #eee; font-weight: bold; color: #555; }
 
         @media print {
             body { padding: 0; }
@@ -79,16 +80,30 @@
             <thead>
                 <tr>
                     <th class="day-col">วัน / เวลา</th>
-                    @foreach($units as $u)
-                        <th>{{ $u }}</th>
+                    @foreach($units as $i => $u)
+                        @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
+                            <th class="lunch-col" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</th>
+                        @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
+                            @continue
+                        @else
+                            <th>{{ $u }}</th>
+                        @endif
                     @endforeach
                 </tr>
             </thead>
             <tbody>
-                @foreach($days as $day)
+                @foreach($days as $dIdx => $day)
                     <tr>
                         <td class="day-col">{{ $day }}</td>
                         @foreach($units as $i => $u)
+                            @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
+                                @if($dIdx === 0)
+                                    <td class="lunch-col" rowspan="{{ count($days) }}" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</td>
+                                @endif
+                                @continue
+                            @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
+                                @continue
+                            @endif
                             @if(isset($skipCells[$day][$i]))
                                 @continue
                             @endif

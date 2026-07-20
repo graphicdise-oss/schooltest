@@ -132,7 +132,7 @@ class ParentPortalController extends Controller
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
 
         $dayStartHour = 6;
-        $dayEndHour   = 19;
+        $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
         $units = [];
         for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
             $units[] = sprintf('%02d:00', $h);
@@ -163,7 +163,12 @@ class ParentPortalController extends Controller
             }
         }
 
-        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
+        [$lsH, $lsM] = array_map('intval', explode(':', config('school.lunch_start', '12:00')));
+        [$leH, $leM] = array_map('intval', explode(':', config('school.lunch_end', '13:00')));
+        $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
+        $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+
+        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns', 'lunchStartIdx', 'lunchEndIdx'));
     }
 
     public function calendar(Request $request)
