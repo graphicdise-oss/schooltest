@@ -49,7 +49,7 @@
 }
 .ts-grid td:hover { background:#e8f4fd; }
 .ts-grid td.occupied { cursor:default; padding:0; }
-.ts-grid td.lunch-col, .ts-grid th.lunch-col { background:#eee; font-weight:700; color:#666; cursor:default; }
+.ts-grid td.lunch-col, .ts-grid th.lunch-col { background:#eee; font-weight:700; color:#666; cursor:default; vertical-align:middle; text-align:center; }
 
 .ts-slot {
     height:100%; min-height:58px; padding:5px 6px;
