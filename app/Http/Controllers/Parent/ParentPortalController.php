@@ -163,8 +163,10 @@ class ParentPortalController extends Controller
             }
         }
 
-        [$lsH, $lsM] = array_map('intval', explode(':', config('school.lunch_start', '12:00')));
-        [$leH, $leM] = array_map('intval', explode(':', config('school.lunch_end', '13:00')));
+        $lunchStart = $section?->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+        $lunchEnd   = $section?->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+        [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
+        [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
         $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
         $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
 

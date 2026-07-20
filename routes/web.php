@@ -221,6 +221,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/section/{id}/print', 'print')->name('print');
         Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
         Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
+        Route::post('/section/{id}/lunch', 'updateLunch')->name('updateLunch');
     });
 
     // === 5. บันทึกคะแนน ===
