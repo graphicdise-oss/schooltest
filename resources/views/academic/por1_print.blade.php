@@ -249,8 +249,8 @@ body {
 
     {{-- Grades outer box --}}
     <div class="grades-outer">
-        @if(isset($yearGroups) && count($yearGroups) > 0)
         @php
+            $yearGroups = $yearGroups ?? [];
             ksort($yearGroups);
             $cols    = array_values($yearGroups);
             $numCols = 3;
@@ -356,7 +356,6 @@ body {
             </tr>
             </tbody>
         </table>
-        @endif
 
         <div class="grades-spacer"></div>
 
