@@ -18,7 +18,8 @@ class ImportStudentsFromExcel extends Command
     protected $signature = 'import:students
         {file : พาธไฟล์ .xlsx}
         {--dry-run : ตรวจสอบข้อมูลเฉยๆ ไม่บันทึกลงฐานข้อมูลจริง}
-        {--limit=0 : จำกัดจำนวนแถวที่ประมวลผล (0 = ทั้งหมด)}';
+        {--limit=0 : จำกัดจำนวนแถวที่ประมวลผล (0 = ทั้งหมด)}
+        {--fill-classroom-number : สำหรับนักเรียนที่มีอยู่แล้ว (import ไปรอบก่อนหน้า) เติมเฉพาะช่อง "เลขที่นักเรียน" ให้ ถ้าช่องนั้นยังว่างอยู่ ไม่แตะข้อมูลช่องอื่น}';
 
     protected $description = 'นำเข้าข้อมูลนักเรียนจากไฟล์ Excel (ข้อมูลส่วนตัว/ที่อยู่/ผู้ปกครอง/สุขภาพ) โดยข้ามนักเรียนที่มีเลขบัตรประชาชนซ้ำในระบบอยู่แล้ว และไม่ยุ่งกับการจัดห้องเรียน';
 
@@ -115,6 +116,7 @@ class ImportStudentsFromExcel extends Command
         $created = 0;
         $skippedExisting = 0;
         $skippedInvalid = 0;
+        $filledClassroomNumber = 0;
         $errors = [];
 
         $processed = 0;
@@ -144,9 +146,21 @@ class ImportStudentsFromExcel extends Command
                 continue;
             }
 
-            if (Student::where('id_card_number', $idCard)->exists()) {
+            $existing = Student::where('id_card_number', $idCard)->first();
+            if ($existing) {
                 $skippedExisting++;
-                continue; // มีอยู่แล้ว ไม่แตะของเดิม ตามที่ตกลงไว้
+
+                if ($this->option('fill-classroom-number') && empty($existing->classroom_number)) {
+                    $classroomNumber = $get(self::COL['classroom_number']) ?: null;
+                    if ($classroomNumber !== null) {
+                        if (!$this->option('dry-run')) {
+                            $existing->update(['classroom_number' => $classroomNumber]);
+                        }
+                        $filledClassroomNumber++;
+                    }
+                }
+
+                continue; // มีอยู่แล้ว ไม่แตะข้อมูลอื่นของเดิม ตามที่ตกลงไว้
             }
 
             $dob = $this->parseThaiDate($get(self::COL['date_of_birth']));
@@ -316,6 +330,9 @@ class ImportStudentsFromExcel extends Command
         $this->info(($dryRun ? 'จะสร้างใหม่: ' : 'สร้างใหม่สำเร็จ: ') . "{$created} คน");
         $this->info("ข้าม (มีในระบบอยู่แล้ว): {$skippedExisting} คน");
         $this->info("ข้าม (ข้อมูลไม่ครบ/ผิดพลาด): {$skippedInvalid} คน");
+        if ($this->option('fill-classroom-number')) {
+            $this->info(($dryRun ? 'จะเติมเลขที่นักเรียนให้: ' : 'เติมเลขที่นักเรียนสำเร็จ: ') . "{$filledClassroomNumber} คน");
+        }
 
         if (!empty($errors)) {
             $this->newLine();
