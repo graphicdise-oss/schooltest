@@ -2,6 +2,10 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Academic\ClassSection;
+use App\Models\Academic\Level;
+use App\Models\Academic\Semester;
+use App\Models\Academic\StudentSection;
 use App\Models\Student;
 use App\Models\StudentAddress;
 use App\Models\StudentEducation;
@@ -19,13 +23,15 @@ class ImportStudentsFromExcel extends Command
         {file : พาธไฟล์ .xlsx}
         {--dry-run : ตรวจสอบข้อมูลเฉยๆ ไม่บันทึกลงฐานข้อมูลจริง}
         {--limit=0 : จำกัดจำนวนแถวที่ประมวลผล (0 = ทั้งหมด)}
-        {--fill-classroom-number : สำหรับนักเรียนที่มีอยู่แล้ว (import ไปรอบก่อนหน้า) เติมเฉพาะช่อง "เลขที่นักเรียน" ให้ ถ้าช่องนั้นยังว่างอยู่ ไม่แตะข้อมูลช่องอื่น}';
+        {--fill-classroom-number : สำหรับนักเรียนที่มีอยู่แล้ว (import ไปรอบก่อนหน้า) เติมเฉพาะช่อง "เลขที่นักเรียน" ให้ ถ้าช่องนั้นยังว่างอยู่ ไม่แตะข้อมูลช่องอื่น}
+        {--assign-rooms : จัดห้องเรียนตามคอลัมน์ "ชั้น/ห้อง" ในไฟล์ (เอาแค่ชั้น+เลขห้อง ไม่เอาแผนการเรียน) สร้างห้อง/ชั้นใหม่อัตโนมัติถ้ายังไม่มี}
+        {--semester-id= : ระบุภาคเรียนที่จะใช้จัดห้อง (ค่าเริ่มต้น = ภาคเรียนปัจจุบันที่ตั้ง is_current ไว้)}';
 
     protected $description = 'นำเข้าข้อมูลนักเรียนจากไฟล์ Excel (ข้อมูลส่วนตัว/ที่อยู่/ผู้ปกครอง/สุขภาพ) โดยข้ามนักเรียนที่มีเลขบัตรประชาชนซ้ำในระบบอยู่แล้ว และไม่ยุ่งกับการจัดห้องเรียน';
 
     // ดัชนีคอลัมน์ (1-based) ในไฟล์ Excel ต้นฉบับของโรงเรียน -> ไม่ผูกกับข้อความหัวตาราง เพราะมีชื่อซ้ำกันหลายจุด (เช่น "นามสกุล")
     private const COL = [
-        'status' => 4, 'id_card_number' => 5, 'student_code' => 6, 'classroom_number' => 3,
+        'status' => 4, 'id_card_number' => 5, 'student_code' => 6, 'classroom_number' => 3, 'class_room' => 2,
         'gender' => 9, 'thai_prefix' => 10, 'thai_firstname' => 11, 'thai_lastname' => 12,
         'thai_nickname' => 13, 'english_firstname' => 14, 'english_lastname' => 15, 'english_nickname' => 16,
         'date_of_birth' => 17, 'religion' => 18, 'nationality' => 19, 'ethnicity' => 20,
@@ -88,7 +94,6 @@ class ImportStudentsFromExcel extends Command
         'เพื่อนใกล้บ้าน/นามสกุล/เบอร์โทรศัพท์เพื่อน (55-57)',
         'รายได้ต่อปี ของผู้ปกครอง/บิดา/มารดา (100, 126, 151)',
         'น้ำหนัก/ส่วนสูง (152-153)', 'ประเภทนักเรียน (161)', 'หมายเลขบัตร (162)',
-        'ชั้น/ห้อง (2) — ตามที่ตกลงไว้ว่าจะไม่ยุ่งเรื่องจัดห้องเรียน/section ในรอบนี้ (เลขที่นักเรียนตามคอลัมน์ 3 นำเข้าแล้ว)',
     ];
 
     public function handle(): int
@@ -101,12 +106,30 @@ class ImportStudentsFromExcel extends Command
 
         $dryRun = (bool) $this->option('dry-run');
         $limit = (int) $this->option('limit');
+        $assignRooms = (bool) $this->option('assign-rooms');
+
+        $semesterId = null;
+        if ($assignRooms) {
+            $semesterId = $this->option('semester-id')
+                ? (int) $this->option('semester-id')
+                : Semester::where('is_current', true)->value('semester_id');
+
+            if (!$semesterId) {
+                $this->error('ไม่พบภาคเรียนปัจจุบัน (is_current) กรุณาระบุ --semester-id=<รหัสภาคเรียน> เอง');
+                return self::FAILURE;
+            }
+        }
 
         $this->info($dryRun ? '=== โหมดทดสอบ (dry-run) — จะไม่มีการบันทึกข้อมูลจริง ===' : '=== โหมดนำเข้าจริง ===');
         $this->newLine();
         $this->warn('หมายเหตุ: คอลัมน์ต่อไปนี้ในไฟล์ยังไม่ถูกนำเข้า (ไม่มีช่องรองรับในระบบตอนนี้ หรือข้ามตามที่ตกลงกันไว้):');
         foreach (self::UNMAPPED_LABELS as $label) {
             $this->line("  - {$label}");
+        }
+        if (!$assignRooms) {
+            $this->line('  - ชั้น/ห้อง (2) — ไม่ได้ใส่ --assign-rooms จึงยังไม่จัดห้องให้ (เลขที่นักเรียนตามคอลัมน์ 3 นำเข้าแล้ว)');
+        } else {
+            $this->line("  - ชั้น/ห้อง (2): จะจัดเข้าห้องตามชั้น+เลขห้องเท่านั้น (ตัดแผนการเรียน เช่น 'IEP','วิทย์-คณิต' ทิ้ง) โดยใช้ภาคเรียน semester_id={$semesterId}");
         }
         $this->newLine();
 
@@ -117,6 +140,12 @@ class ImportStudentsFromExcel extends Command
         $skippedExisting = 0;
         $skippedInvalid = 0;
         $filledClassroomNumber = 0;
+        $roomsAssigned = 0;
+        $roomsAlready = 0;
+        $roomsSkippedConflict = 0;
+        $roomsUnparsed = 0;
+        $newLevels = [];
+        $newSections = [];
         $errors = [];
 
         $processed = 0;
@@ -160,6 +189,31 @@ class ImportStudentsFromExcel extends Command
                     }
                 }
 
+                if ($assignRooms) {
+                    $roomResult = null;
+                    try {
+                        DB::transaction(function () use ($existing, $get, $semesterId, &$newLevels, &$newSections, &$roomResult) {
+                            $roomResult = $this->assignRoom($existing, $get(self::COL['class_room']), $get(self::COL['classroom_number']), $semesterId, $newLevels, $newSections);
+                            if ($this->option('dry-run')) {
+                                throw new \RuntimeException('__DRY_RUN_ROLLBACK__');
+                            }
+                        });
+                    } catch (\RuntimeException $e) {
+                        if ($e->getMessage() !== '__DRY_RUN_ROLLBACK__') {
+                            $errors[] = "{$label}: จัดห้องไม่สำเร็จ — " . $e->getMessage();
+                            $roomResult = null;
+                        }
+                    }
+
+                    match ($roomResult) {
+                        'assigned' => $roomsAssigned++,
+                        'already' => $roomsAlready++,
+                        'conflict' => $roomsSkippedConflict++,
+                        'unparsed' => $roomsUnparsed++,
+                        default => null,
+                    };
+                }
+
                 continue; // มีอยู่แล้ว ไม่แตะข้อมูลอื่นของเดิม ตามที่ตกลงไว้
             }
 
@@ -170,8 +224,9 @@ class ImportStudentsFromExcel extends Command
                 continue;
             }
 
+            $newStudentRoomResult = null;
             try {
-                DB::transaction(function () use ($get, $idCard, $dob, $row) {
+                DB::transaction(function () use ($get, $idCard, $dob, $row, $assignRooms, $semesterId, &$newLevels, &$newSections, &$newStudentRoomResult) {
                     $student = Student::create([
                         'student_code'       => $get(self::COL['student_code']) ?: null,
                         'id_card_number'     => $idCard,
@@ -305,6 +360,10 @@ class ImportStudentsFromExcel extends Command
                         ]);
                     }
 
+                    if ($assignRooms) {
+                        $newStudentRoomResult = $this->assignRoom($student, $get(self::COL['class_room']), $get(self::COL['classroom_number']), $semesterId, $newLevels, $newSections);
+                    }
+
                     if ($this->option('dry-run')) {
                         // ย้อนกลับเสมอในโหมดทดสอบ แม้ว่าทุกอย่างจะผ่านการตรวจสอบแล้วก็ตาม
                         throw new \RuntimeException('__DRY_RUN_ROLLBACK__');
@@ -312,9 +371,21 @@ class ImportStudentsFromExcel extends Command
                 });
 
                 $created++;
+                match ($newStudentRoomResult) {
+                    'assigned' => $roomsAssigned++,
+                    'conflict' => $roomsSkippedConflict++,
+                    'unparsed' => $roomsUnparsed++,
+                    default => null,
+                };
             } catch (\RuntimeException $e) {
                 if ($e->getMessage() === '__DRY_RUN_ROLLBACK__') {
                     $created++; // นับเป็น "จะสร้าง" ในโหมดทดสอบ
+                    match ($newStudentRoomResult) {
+                        'assigned' => $roomsAssigned++,
+                        'conflict' => $roomsSkippedConflict++,
+                        'unparsed' => $roomsUnparsed++,
+                        default => null,
+                    };
                 } else {
                     $skippedInvalid++;
                     $errors[] = "{$label}: {$e->getMessage()}";
@@ -333,6 +404,18 @@ class ImportStudentsFromExcel extends Command
         if ($this->option('fill-classroom-number')) {
             $this->info(($dryRun ? 'จะเติมเลขที่นักเรียนให้: ' : 'เติมเลขที่นักเรียนสำเร็จ: ') . "{$filledClassroomNumber} คน");
         }
+        if ($assignRooms) {
+            $this->info(($dryRun ? 'จะจัดห้องให้: ' : 'จัดห้องสำเร็จ: ') . "{$roomsAssigned} คน");
+            $this->info("อยู่ห้องนี้อยู่แล้ว (ข้าม): {$roomsAlready} คน");
+            $this->info("ข้าม (มีห้องอื่นอยู่แล้วในภาคเรียนนี้ ไม่ทับของเดิม): {$roomsSkippedConflict} คน");
+            $this->info("ข้าม (อ่านชั้น/ห้องจากไฟล์ไม่ได้): {$roomsUnparsed} คน");
+            if (!empty($newLevels)) {
+                $this->info('ชั้นใหม่ที่ ' . ($dryRun ? 'จะสร้าง' : 'สร้างแล้ว') . ': ' . implode(', ', array_keys($newLevels)));
+            }
+            if (!empty($newSections)) {
+                $this->info('ห้องใหม่ที่ ' . ($dryRun ? 'จะสร้าง' : 'สร้างแล้ว') . ': ' . implode(', ', array_keys($newSections)));
+            }
+        }
 
         if (!empty($errors)) {
             $this->newLine();
@@ -348,6 +431,76 @@ class ImportStudentsFromExcel extends Command
         }
 
         return self::SUCCESS;
+    }
+
+    // จัดนักเรียนเข้าห้องตามคอลัมน์ "ชั้น/ห้อง" (เอาแค่ชั้น+เลขห้อง ตัดแผนการเรียนทิ้งตามที่ตกลงไว้)
+    // คืนค่า: assigned | already (อยู่ห้องนี้แล้ว) | conflict (มีห้องอื่นในภาคเรียนนี้แล้ว ไม่ทับของเดิม) | unparsed (อ่านชั้น/ห้องจากไฟล์ไม่ได้)
+    private function assignRoom(Student $student, string $rawClassRoom, string $rollNumberRaw, int $semesterId, array &$newLevels, array &$newSections): string
+    {
+        $parsed = $this->parseClassRoom($rawClassRoom);
+        if (!$parsed) {
+            return 'unparsed';
+        }
+
+        $level = Level::firstOrCreate(
+            ['name' => $parsed['level_name']],
+            ['level_group' => null, 'sort_order' => (Level::max('sort_order') ?? 0) + 1]
+        );
+        if ($level->wasRecentlyCreated) {
+            $newLevels[$parsed['level_name']] = true;
+        }
+
+        $section = ClassSection::firstOrCreate(
+            ['level_id' => $level->level_id, 'section_number' => $parsed['section_number'], 'semester_id' => $semesterId],
+            ['homeroom_teacher_id' => null, 'max_students' => null, 'curriculum_id' => null]
+        );
+        if ($section->wasRecentlyCreated) {
+            $newSections["{$parsed['level_name']}/{$parsed['section_number']}"] = true;
+        }
+
+        if (StudentSection::where('student_id', $student->student_id)->where('section_id', $section->section_id)->exists()) {
+            return 'already';
+        }
+
+        $conflict = StudentSection::where('student_id', $student->student_id)
+            ->whereHas('classSection', fn ($q) => $q->where('semester_id', $semesterId))
+            ->exists();
+        if ($conflict) {
+            return 'conflict';
+        }
+
+        $rollNumber = $rollNumberRaw !== '' ? (int) $rollNumberRaw : null;
+        if ($rollNumber === null) {
+            $rollNumber = (StudentSection::where('section_id', $section->section_id)->max('student_number') ?? 0) + 1;
+        }
+
+        StudentSection::create([
+            'student_id' => $student->student_id,
+            'section_id' => $section->section_id,
+            'student_number' => $rollNumber,
+            'status' => 'กำลังศึกษา',
+        ]);
+
+        return 'assigned';
+    }
+
+    // แยก "ชั้น/ห้อง" เช่น "ม.1/4 ICP" -> ชั้น "ม.1" + ห้อง 4 (ตัดแผนการเรียน "ICP" ทิ้ง)
+    private function parseClassRoom(string $raw): ?array
+    {
+        $raw = trim($raw);
+        if ($raw === '' || !str_contains($raw, '/')) {
+            return null;
+        }
+
+        [$levelName, $rest] = explode('/', $raw, 2);
+        $levelName = trim($levelName);
+        $rest = trim($rest);
+
+        if ($levelName === '' || $rest === '' || !preg_match('/^(\d+)/', $rest, $m)) {
+            return null;
+        }
+
+        return ['level_name' => $levelName, 'section_number' => (int) $m[1]];
     }
 
     private function mapGender(string $value): ?string
