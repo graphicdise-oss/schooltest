@@ -24,7 +24,7 @@ class ImportStudentsFromExcel extends Command
 
     // ดัชนีคอลัมน์ (1-based) ในไฟล์ Excel ต้นฉบับของโรงเรียน -> ไม่ผูกกับข้อความหัวตาราง เพราะมีชื่อซ้ำกันหลายจุด (เช่น "นามสกุล")
     private const COL = [
-        'status' => 4, 'id_card_number' => 5, 'student_code' => 6,
+        'status' => 4, 'id_card_number' => 5, 'student_code' => 6, 'classroom_number' => 3,
         'gender' => 9, 'thai_prefix' => 10, 'thai_firstname' => 11, 'thai_lastname' => 12,
         'thai_nickname' => 13, 'english_firstname' => 14, 'english_lastname' => 15, 'english_nickname' => 16,
         'date_of_birth' => 17, 'religion' => 18, 'nationality' => 19, 'ethnicity' => 20,
@@ -87,7 +87,7 @@ class ImportStudentsFromExcel extends Command
         'เพื่อนใกล้บ้าน/นามสกุล/เบอร์โทรศัพท์เพื่อน (55-57)',
         'รายได้ต่อปี ของผู้ปกครอง/บิดา/มารดา (100, 126, 151)',
         'น้ำหนัก/ส่วนสูง (152-153)', 'ประเภทนักเรียน (161)', 'หมายเลขบัตร (162)',
-        'ชั้น/ห้อง และ เลขที่ (2-3) — ตามที่ตกลงไว้ว่าจะไม่ยุ่งเรื่องจัดห้องเรียนในรอบนี้',
+        'ชั้น/ห้อง (2) — ตามที่ตกลงไว้ว่าจะไม่ยุ่งเรื่องจัดห้องเรียน/section ในรอบนี้ (เลขที่นักเรียนตามคอลัมน์ 3 นำเข้าแล้ว)',
     ];
 
     public function handle(): int
@@ -179,6 +179,7 @@ class ImportStudentsFromExcel extends Command
                         'phone_number'        => $get(self::COL['phone_number']) ?: null,
                         'email'               => $get(self::COL['email']) ?: null,
                         'transportation_type' => $get(self::COL['transportation_type']) ?: null,
+                        'classroom_number'    => $get(self::COL['classroom_number']) ?: null,
                         'parent_password'     => Hash::make($idCard),
                         'created_by'          => 'import:students',
                     ]);
