@@ -94,6 +94,7 @@ class ImportStudentsFromExcel extends Command
         'เพื่อนใกล้บ้าน/นามสกุล/เบอร์โทรศัพท์เพื่อน (55-57)',
         'รายได้ต่อปี ของผู้ปกครอง/บิดา/มารดา (100, 126, 151)',
         'น้ำหนัก/ส่วนสูง (152-153)', 'ประเภทนักเรียน (161)', 'หมายเลขบัตร (162)',
+        'ตำบล/อำเภอ/จังหวัด ของที่อยู่ตามทะเบียนบ้าน/ปัจจุบัน/โรงเรียนเดิม/ผู้ปกครอง/บิดา/มารดา — คอลัมน์เหล่านี้ในระบบเป็นรหัสอ้างอิง (ตัวเลข) ไม่ใช่ชื่อข้อความ จึงยังไม่นำเข้าให้อัตโนมัติ (ข้อมูลบ้านเลขที่/ถนน/ไปรษณีย์ยังเข้าปกติ)',
     ];
 
     public function handle(): int
@@ -261,15 +262,11 @@ class ImportStudentsFromExcel extends Command
                         'village_no' => $get(self::COL['reg_village_no']) ?: null,
                         'soi' => $get(self::COL['reg_soi']) ?: null,
                         'road' => $get(self::COL['reg_road']) ?: null,
-                        'subdistrict_id' => $get(self::COL['reg_subdistrict_id']) ?: null,
-                        'district_id' => $get(self::COL['reg_district_id']) ?: null,
-                        'province_id' => $get(self::COL['reg_province_id']) ?: null,
+                        // subdistrict_id/district_id/province_id เป็นคอลัมน์ integer (FK ไปตารางที่อยู่จริง) ในฐานข้อมูลจริง
+                        // ไม่ใช่ข้อความอย่างที่ฟอร์มแสดง — ใส่ text ตำบล/อำเภอ/จังหวัดตรงๆ ไม่ได้ จึงเว้นว่างไว้ก่อน
                         'postal_code' => $get(self::COL['reg_postal_code']) ?: null,
                         'home_phone' => $get(self::COL['reg_home_phone']) ?: null,
                         'birth_hospital_th' => $get(self::COL['birth_hospital_th']) ?: null,
-                        'birth_subdistrict_id' => $get(self::COL['birth_subdistrict_id']) ?: null,
-                        'birth_district_id' => $get(self::COL['birth_district_id']) ?: null,
-                        'birth_province_id' => $get(self::COL['birth_province_id']) ?: null,
                     ]);
 
                     StudentAddress::create([
@@ -279,9 +276,6 @@ class ImportStudentsFromExcel extends Command
                         'village_no' => $get(self::COL['cur_village_no']) ?: null,
                         'soi' => $get(self::COL['cur_soi']) ?: null,
                         'road' => $get(self::COL['cur_road']) ?: null,
-                        'subdistrict_id' => $get(self::COL['cur_subdistrict_id']) ?: null,
-                        'district_id' => $get(self::COL['cur_district_id']) ?: null,
-                        'province_id' => $get(self::COL['cur_province_id']) ?: null,
                         'postal_code' => $get(self::COL['cur_postal_code']) ?: null,
                         'home_phone' => $get(self::COL['cur_home_phone']) ?: null,
                         'house_characteristic' => $get(self::COL['house_characteristic']) ?: null,
@@ -292,16 +286,15 @@ class ImportStudentsFromExcel extends Command
                     ]);
 
                     if ($get(self::COL['edu_school_name']) !== '') {
-                        StudentEducation::create([
+                        DB::table('student_education')->insert([
                             'student_id' => $student->student_id,
                             'school_name' => $get(self::COL['edu_school_name']) ?: null,
-                            'subdistrict_id' => $get(self::COL['edu_subdistrict_id']) ?: null,
-                            'district_id' => $get(self::COL['edu_district_id']) ?: null,
-                            'province_id' => $get(self::COL['edu_province_id']) ?: null,
                             'education_level' => $get(self::COL['edu_education_level']) ?: null,
                             'gpa' => $get(self::COL['edu_gpa']) ?: null,
                             'transfer_reason' => $get(self::COL['edu_transfer_reason']) ?: null,
                             'education_type' => 'ปกติ',
+                            'created_at' => now(),
+                            'updated_at' => now(),
                         ]);
                     }
 
@@ -332,9 +325,7 @@ class ImportStudentsFromExcel extends Command
                             'village_no' => $get($cols['village_no']) ?: null,
                             'soi' => $get($cols['soi']) ?: null,
                             'road' => $get($cols['road']) ?: null,
-                            'subdistrict_id' => $get($cols['subdistrict_id']) ?: null,
-                            'district_id' => $get($cols['district_id']) ?: null,
-                            'province_id' => $get($cols['province_id']) ?: null,
+                            // subdistrict_id/district_id/province_id เป็น integer FK จริงในฐานข้อมูล เว้นว่างไว้เหมือนกับ student_address
                             'postal_code' => $get($cols['postal_code']) ?: null,
                             'phone_home' => $get($cols['phone_home']) ?: null,
                             'phone_mobile' => $get($cols['phone_mobile']) ?: null,
