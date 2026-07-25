@@ -126,7 +126,9 @@ class ImportStudentsFromExcel extends Command
             $get = fn (int $col) => trim((string) ($sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue() ?? ''));
             $rowNo = $get(1);
 
-            $idCard = preg_replace('/\D/', '', $get(self::COL['id_card_number']));
+            // ใช้ค่าดิบตามที่กรอกจริง (ห้ามตัดตัวอักษรทิ้ง) เพราะนักเรียนต่างชาติบางคนใช้รหัส 13 หลักแบบมีตัวอักษรนำ
+            // เช่น G691300019802 ซึ่งผ่านกฎ size:13 ของระบบเดิมอยู่แล้ว (ไม่ใช่ตัวเลขล้วนเสมอไป)
+            $idCard = $get(self::COL['id_card_number']);
             $firstname = $get(self::COL['thai_firstname']);
 
             if ($idCard === '' && $firstname === '') {
@@ -138,7 +140,7 @@ class ImportStudentsFromExcel extends Command
 
             if (strlen($idCard) !== 13) {
                 $skippedInvalid++;
-                $errors[] = "{$label}: เลขบัตรประชาชนไม่ครบ 13 หลัก ('{$idCard}') — ข้าม";
+                $errors[] = "{$label}: เลขบัตรประชาชน/รหัสไม่ครบ 13 หลัก ('{$idCard}') — ข้าม";
                 continue;
             }
 
