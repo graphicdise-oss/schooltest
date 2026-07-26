@@ -71,7 +71,7 @@ class StudentListController extends Controller
             ->map(fn($s) => [
                 'section_id' => $s->section_id,
                 'level_id' => $s->level_id,
-                'label' => ($s->level->name ?? '?') . '/' . $s->section_number,
+                'label' => ($s->level->name ?? '?') . '/' . $s->section_number . ($s->study_plan ? ' '.$s->study_plan : ''),
             ]);
 
         return view('student.student_index', compact('students', 'levels', 'classrooms'));
@@ -140,7 +140,7 @@ class StudentListController extends Controller
                 'code'          => $s->student_code,
                 'name'          => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
                 'gender'        => $s->gender,
-                'room'          => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number) : '-',
+                'room'          => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) : '-',
                 'year'          => $sec?->semester?->academicYear?->year_name,
                 'enroll_date'   => $latest?->created_at,
                 'status'        => $s->status,
