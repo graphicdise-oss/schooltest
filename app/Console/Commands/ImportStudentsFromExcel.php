@@ -453,7 +453,7 @@ class ImportStudentsFromExcel extends Command
 
         $level = Level::firstOrCreate(
             ['name' => $parsed['level_name']],
-            ['level_group' => null, 'sort_order' => (Level::max('sort_order') ?? 0) + 1]
+            ['level_group' => 'อื่นๆ', 'sort_order' => (Level::max('sort_order') ?? 0) + 1]
         );
         if ($level->wasRecentlyCreated) {
             $newLevels[$parsed['level_name']] = true;
