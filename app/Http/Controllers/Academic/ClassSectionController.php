@@ -20,8 +20,12 @@ class ClassSectionController extends Controller
 
         $sections = ClassSection::with(['level', 'homeroomTeacher', 'studentSections'])
             ->where('semester_id', $semesterId)
-            ->orderBy('level_id')->orderBy('section_number')
-            ->get();
+            ->get()
+            ->sortBy([
+                fn ($s) => $s->level->sort_order ?? 0,
+                fn ($s) => $s->section_number,
+            ])
+            ->values();
 
         return view('academic.class_sections', compact('sections', 'semesters', 'levels', 'semesterId'));
     }
