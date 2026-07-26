@@ -28,15 +28,42 @@ class ClassSectionController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate(['semester_id' => 'required', 'level_id' => 'required', 'section_number' => 'required|integer']);
-        ClassSection::create($request->only(['semester_id', 'level_id', 'section_number', 'study_plan', 'homeroom_teacher_id', 'max_students']));
+        $request->validate(['semester_id' => 'required', 'level_id' => 'required', 'room_label' => 'required']);
+        [$sectionNumber, $studyPlan] = $this->parseRoomLabel($request->room_label);
+        if ($sectionNumber === null) {
+            return redirect()->back()->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
+        }
+
+        ClassSection::create($request->only(['semester_id', 'level_id', 'homeroom_teacher_id', 'max_students']) + [
+            'section_number' => $sectionNumber,
+            'study_plan' => $studyPlan,
+        ]);
         return redirect()->back()->with('success', 'เพิ่มห้องเรียนสำเร็จ');
     }
 
     public function update(Request $request, $id)
     {
-        ClassSection::findOrFail($id)->update($request->only(['section_number', 'study_plan', 'homeroom_teacher_id', 'max_students']));
+        [$sectionNumber, $studyPlan] = $this->parseRoomLabel($request->room_label);
+        if ($sectionNumber === null) {
+            return redirect()->back()->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
+        }
+
+        ClassSection::findOrFail($id)->update($request->only(['homeroom_teacher_id', 'max_students']) + [
+            'section_number' => $sectionNumber,
+            'study_plan' => $studyPlan,
+        ]);
         return redirect()->back()->with('success', 'แก้ไขสำเร็จ');
+    }
+
+    // แยก "2 วิทย์-คณิต" -> เลขห้อง 2 + แผนการเรียน "วิทย์-คณิต" (เว้นแผนการเรียนได้ เช่น "2" เฉยๆ)
+    private function parseRoomLabel(?string $label): array
+    {
+        $label = trim((string) $label);
+        if (!preg_match('/^(\d+)\s*(.*)$/', $label, $m)) {
+            return [null, null];
+        }
+
+        return [(int) $m[1], trim($m[2]) ?: null];
     }
 
     public function destroy($id)

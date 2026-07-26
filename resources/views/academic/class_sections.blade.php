@@ -63,7 +63,7 @@
                                     <i class="bi bi-people"></i>
                                 </a>
                                 <button class="ac-action-btn ac-action-edit" title="แก้ไข"
-                                    onclick="openEdit({{ $sec->section_id }}, {{ $sec->section_number }}, {{ Js::from($sec->study_plan ?? '') }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }})">
+                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('class-sections.destroy', $sec->section_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบห้องเรียนนี้?')">
@@ -99,10 +99,7 @@
                 </select>
 
                 <label>ห้องที่ *</label>
-                <input type="number" name="section_number" required min="1" placeholder="เช่น 1, 2, 3">
-
-                <label>แผนการเรียน</label>
-                <input type="text" name="study_plan" placeholder="เช่น IEP, วิทย์-คณิต (เว้นว่างได้)">
+                <input type="text" name="room_label" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id">
@@ -131,10 +128,7 @@
             @csrf @method('PUT')
             <div class="ac-modal-body">
                 <label>ห้องที่ *</label>
-                <input type="number" name="section_number" id="eSectionNum" required min="1">
-
-                <label>แผนการเรียน</label>
-                <input type="text" name="study_plan" id="eStudyPlan" placeholder="เช่น IEP, วิทย์-คณิต (เว้นว่างได้)">
+                <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id" id="eTeacher">
@@ -156,10 +150,9 @@
 </div>
 
 <script>
-function openEdit(id, num, studyPlan, teacherId, max) {
+function openEdit(id, roomLabel, teacherId, max) {
     document.getElementById('editForm').action = '{{ url("class-sections") }}/' + id;
-    document.getElementById('eSectionNum').value = num;
-    document.getElementById('eStudyPlan').value = studyPlan || '';
+    document.getElementById('eRoomLabel').value = roomLabel;
     document.getElementById('eTeacher').value = teacherId || '';
     document.getElementById('eMax').value = max;
     document.getElementById('editOverlay').classList.add('active');
