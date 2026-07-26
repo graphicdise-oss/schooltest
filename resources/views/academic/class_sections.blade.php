@@ -50,7 +50,7 @@
                         <tr>
                             <td>{{ $i + 1 }}</td>
                             <td>{{ $sec->level->name ?? '-' }}</td>
-                            <td style="font-weight:700; color:#4479DA">{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}</td>
+                            <td style="font-weight:700; color:#4479DA">{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}{{ $sec->study_plan ? ' '.$sec->study_plan : '' }}</td>
                             <td>{{ $sec->homeroomTeacher ? $sec->homeroomTeacher->thai_firstname . ' ' . $sec->homeroomTeacher->thai_lastname : '-' }}</td>
                             <td>
                                 <span class="ac-badge ac-badge-info">

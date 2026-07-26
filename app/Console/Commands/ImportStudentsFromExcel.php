@@ -130,7 +130,7 @@ class ImportStudentsFromExcel extends Command
         if (!$assignRooms) {
             $this->line('  - ชั้น/ห้อง (2) — ไม่ได้ใส่ --assign-rooms จึงยังไม่จัดห้องให้ (เลขที่นักเรียนตามคอลัมน์ 3 นำเข้าแล้ว)');
         } else {
-            $this->line("  - ชั้น/ห้อง (2): จะจัดเข้าห้องตามชั้น+เลขห้องเท่านั้น (ตัดแผนการเรียน เช่น 'IEP','วิทย์-คณิต' ทิ้ง) โดยใช้ภาคเรียน semester_id={$semesterId}");
+            $this->line("  - ชั้น/ห้อง (2): จะจัดเข้าห้องตามชั้น+เลขห้อง+แผนการเรียน (เช่น 'ม.1/4 ICP' กับ 'ม.1/4 IEP' ถือเป็นคนละห้อง) โดยใช้ภาคเรียน semester_id={$semesterId}");
         }
         $this->newLine();
 
@@ -424,7 +424,7 @@ class ImportStudentsFromExcel extends Command
         return self::SUCCESS;
     }
 
-    // จัดนักเรียนเข้าห้องตามคอลัมน์ "ชั้น/ห้อง" (เอาแค่ชั้น+เลขห้อง ตัดแผนการเรียนทิ้งตามที่ตกลงไว้)
+    // จัดนักเรียนเข้าห้องตามคอลัมน์ "ชั้น/ห้อง" (ชั้น+เลขห้อง+แผนการเรียน ถือเป็นห้องต่างกัน)
     // คืนค่า: assigned | already (อยู่ห้องนี้แล้ว) | conflict (มีห้องอื่นในภาคเรียนนี้แล้ว ไม่ทับของเดิม) | unparsed (อ่านชั้น/ห้องจากไฟล์ไม่ได้)
     private function assignRoom(Student $student, string $rawClassRoom, string $rollNumberRaw, int $semesterId, array &$newLevels, array &$newSections): string
     {
@@ -442,11 +442,17 @@ class ImportStudentsFromExcel extends Command
         }
 
         $section = ClassSection::firstOrCreate(
-            ['level_id' => $level->level_id, 'section_number' => $parsed['section_number'], 'semester_id' => $semesterId],
+            [
+                'level_id' => $level->level_id,
+                'section_number' => $parsed['section_number'],
+                'study_plan' => $parsed['study_plan'],
+                'semester_id' => $semesterId,
+            ],
             ['homeroom_teacher_id' => null, 'max_students' => null, 'curriculum_id' => null]
         );
         if ($section->wasRecentlyCreated) {
-            $newSections["{$parsed['level_name']}/{$parsed['section_number']}"] = true;
+            $label = "{$parsed['level_name']}/{$parsed['section_number']}" . ($parsed['study_plan'] ? " {$parsed['study_plan']}" : '');
+            $newSections[$label] = true;
         }
 
         if (StudentSection::where('student_id', $student->student_id)->where('section_id', $section->section_id)->exists()) {
@@ -475,7 +481,7 @@ class ImportStudentsFromExcel extends Command
         return 'assigned';
     }
 
-    // แยก "ชั้น/ห้อง" เช่น "ม.1/4 ICP" -> ชั้น "ม.1" + ห้อง 4 (ตัดแผนการเรียน "ICP" ทิ้ง)
+    // แยก "ชั้น/ห้อง" เช่น "ม.1/4 ICP" -> ชั้น "ม.1" + ห้อง 4 + แผนการเรียน "ICP" (ถือเป็นคนละห้องกับ "ม.1/4 IEP")
     private function parseClassRoom(string $raw): ?array
     {
         $raw = trim($raw);
@@ -487,11 +493,11 @@ class ImportStudentsFromExcel extends Command
         $levelName = trim($levelName);
         $rest = trim($rest);
 
-        if ($levelName === '' || $rest === '' || !preg_match('/^(\d+)/', $rest, $m)) {
+        if ($levelName === '' || $rest === '' || !preg_match('/^(\d+)\s*(.*)$/', $rest, $m)) {
             return null;
         }
 
-        return ['level_name' => $levelName, 'section_number' => (int) $m[1]];
+        return ['level_name' => $levelName, 'section_number' => (int) $m[1], 'study_plan' => trim($m[2]) ?: null];
     }
 
     private function mapGender(string $value): ?string
