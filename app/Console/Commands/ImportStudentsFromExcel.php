@@ -497,7 +497,7 @@ class ImportStudentsFromExcel extends Command
             return null;
         }
 
-        return ['level_name' => $levelName, 'section_number' => (int) $m[1], 'study_plan' => trim($m[2]) ?: null];
+        return ['level_name' => $levelName, 'section_number' => (int) $m[1], 'study_plan' => trim($m[2])];
     }
 
     private function mapGender(string $value): ?string

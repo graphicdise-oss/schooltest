@@ -63,7 +63,7 @@ class ClassSectionController extends Controller
             return [null, null];
         }
 
-        return [(int) $m[1], trim($m[2]) ?: null];
+        return [(int) $m[1], trim($m[2])];
     }
 
     public function destroy($id)
