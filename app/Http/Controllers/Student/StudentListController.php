@@ -98,7 +98,7 @@ class StudentListController extends Controller
         $student = Student::where('student_id', $id)->firstOrFail();
         $student->delete();
 
-        return redirect()->route('student.student_index')
+        return redirect()->route('students.index')
             ->with('success', 'ลบข้อมูลนักเรียนสำเร็จ');
     }
 
