@@ -263,7 +263,7 @@
                             data-semester="{{ $sec->semester_id }}"
                             data-level="{{ $sec->level_id }}" 
                             {{ (isset($currentSection) && $currentSection->section_id == $sec->section_id) ? 'selected' : '' }}>
-                            {{ $sec->level->name ?? '' }} / {{ $sec->section_number }}
+                            {{ $sec->level->name ?? '' }} / {{ $sec->section_number }}{{ $sec->study_plan ? ' '.$sec->study_plan : '' }}
                         </option>
                     @endforeach
                 </select>
