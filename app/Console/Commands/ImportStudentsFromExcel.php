@@ -138,6 +138,7 @@ class ImportStudentsFromExcel extends Command
         $highestRow = $sheet->getHighestRow();
 
         $created = 0;
+        $createdWithPlaceholderId = 0;
         $skippedExisting = 0;
         $skippedInvalid = 0;
         $filledClassroomNumber = 0;
@@ -161,6 +162,7 @@ class ImportStudentsFromExcel extends Command
             // ใช้ค่าดิบตามที่กรอกจริง (ห้ามตัดตัวอักษรทิ้ง) เพราะนักเรียนต่างชาติบางคนใช้รหัส 13 หลักแบบมีตัวอักษรนำ
             // เช่น G691300019802 ซึ่งผ่านกฎ size:13 ของระบบเดิมอยู่แล้ว (ไม่ใช่ตัวเลขล้วนเสมอไป)
             $idCard = $get(self::COL['id_card_number']);
+            $studentCode = $get(self::COL['student_code']);
             $firstname = $get(self::COL['thai_firstname']);
 
             if ($idCard === '' && $firstname === '') {
@@ -170,10 +172,17 @@ class ImportStudentsFromExcel extends Command
             $processed++;
             $label = "แถว {$row} (ลำดับ {$rowNo}: {$get(self::COL['thai_prefix'])}{$firstname} {$get(self::COL['thai_lastname'])})";
 
+            $usingPlaceholderId = false;
             if (strlen($idCard) !== 13) {
-                $skippedInvalid++;
-                $errors[] = "{$label}: เลขบัตรประชาชน/รหัสไม่ครบ 13 หลัก ('{$idCard}') — ข้าม";
-                continue;
+                if ($studentCode === '') {
+                    $skippedInvalid++;
+                    $errors[] = "{$label}: ไม่มีทั้งเลขบัตรประชาชนและรหัสนักศึกษา ระบุตัวคนไม่ได้ — ข้าม";
+                    continue;
+                }
+                // ไม่มีเลขบัตรประชาชนในไฟล์ (พบมากใน ม.1 ที่ยังไม่กรอก) ใช้รหัสนักศึกษาแทนเป็นค่าจำลอง
+                // เพื่อกันไม่ให้ซ้ำ (ยังไม่มีเลขบัตรจริง ผู้ดูแลระบบไปแก้ไขทีหลังได้ผ่านหน้าแก้ไขนักเรียน)
+                $idCard = 'P' . str_pad($studentCode, 12, '0', STR_PAD_LEFT);
+                $usingPlaceholderId = true;
             }
 
             $existing = Student::where('id_card_number', $idCard)->first();
@@ -362,6 +371,9 @@ class ImportStudentsFromExcel extends Command
                 });
 
                 $created++;
+                if ($usingPlaceholderId) {
+                    $createdWithPlaceholderId++;
+                }
                 match ($newStudentRoomResult) {
                     'assigned' => $roomsAssigned++,
                     'conflict' => $roomsSkippedConflict++,
@@ -371,6 +383,9 @@ class ImportStudentsFromExcel extends Command
             } catch (\RuntimeException $e) {
                 if ($e->getMessage() === '__DRY_RUN_ROLLBACK__') {
                     $created++; // นับเป็น "จะสร้าง" ในโหมดทดสอบ
+                    if ($usingPlaceholderId) {
+                        $createdWithPlaceholderId++;
+                    }
                     match ($newStudentRoomResult) {
                         'assigned' => $roomsAssigned++,
                         'conflict' => $roomsSkippedConflict++,
@@ -390,6 +405,9 @@ class ImportStudentsFromExcel extends Command
         $this->newLine();
         $this->info("ประมวลผลทั้งหมด: {$processed} แถว");
         $this->info(($dryRun ? 'จะสร้างใหม่: ' : 'สร้างใหม่สำเร็จ: ') . "{$created} คน");
+        if ($createdWithPlaceholderId > 0) {
+            $this->warn("  (ในจำนวนนี้ {$createdWithPlaceholderId} คน ไม่มีเลขบัตรประชาชนในไฟล์ ใช้รหัสนักศึกษาแทนชั่วคราว — ต้องไปกรอกเลขบัตรจริงทีหลังผ่านหน้าแก้ไขนักเรียน)");
+        }
         $this->info("ข้าม (มีในระบบอยู่แล้ว): {$skippedExisting} คน");
         $this->info("ข้าม (ข้อมูลไม่ครบ/ผิดพลาด): {$skippedInvalid} คน");
         if ($this->option('fill-classroom-number')) {
