@@ -29,13 +29,13 @@ class ClassSectionController extends Controller
     public function store(Request $request)
     {
         $request->validate(['semester_id' => 'required', 'level_id' => 'required', 'section_number' => 'required|integer']);
-        ClassSection::create($request->only(['semester_id', 'level_id', 'section_number', 'homeroom_teacher_id', 'max_students']));
+        ClassSection::create($request->only(['semester_id', 'level_id', 'section_number', 'study_plan', 'homeroom_teacher_id', 'max_students']));
         return redirect()->back()->with('success', 'เพิ่มห้องเรียนสำเร็จ');
     }
 
     public function update(Request $request, $id)
     {
-        ClassSection::findOrFail($id)->update($request->only(['section_number', 'homeroom_teacher_id', 'max_students']));
+        ClassSection::findOrFail($id)->update($request->only(['section_number', 'study_plan', 'homeroom_teacher_id', 'max_students']));
         return redirect()->back()->with('success', 'แก้ไขสำเร็จ');
     }
 
