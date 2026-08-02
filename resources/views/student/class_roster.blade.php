@@ -148,7 +148,7 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-label-sm">สถานะนักเรียน</div>
-                    <select name="status" class="form-select-line">
+                    <select name="status" class="form-select-line" onchange="submitForm()">
                         <option value="">ทั้งหมด</option>
                         <option value="กำลังศึกษา" {{ $status === 'กำลังศึกษา' ? 'selected' : '' }}>กำลังศึกษา</option>
                         <option value="จบการศึกษา"  {{ $status === 'จบการศึกษา'  ? 'selected' : '' }}>จบการศึกษา</option>
