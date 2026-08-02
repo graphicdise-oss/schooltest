@@ -73,7 +73,8 @@ class LeavePersonnelController extends Controller
     }
 
     /**
-     * Export รายการคำขอลาแต่ละครั้ง (ใครลา วันไหน ประเภทไหน สถานะอะไร) เป็น Excel
+     * Export รายการคำขอลาแต่ละครั้ง (ใครลา วันไหน ประเภทไหน) เป็น Excel
+     * แยกเป็นคนละชีทตามสถานะ (อนุมัติแล้ว / รอการอนุมัติ / ไม่อนุมัติ) จะได้ไม่ปนกัน
      * ใช้ตัวกรองเดียวกับหน้าค้นหา (ปี พ.ศ. / แผนก / ชื่อ / ช่วงวันที่)
      */
     private function export(string $department, string $searchName, string $startAD, string $endAD, int $fiscalYear)
@@ -93,24 +94,56 @@ class LeavePersonnelController extends Controller
             ->orderBy('start_date')
             ->get();
 
-        $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('รายงานการลา');
+        $requestsByStatus = $requests->groupBy('status');
 
-        $headers = ['ลำดับ', 'รหัสพนักงาน', 'ชื่อ - นามสกุล', 'แผนก', 'ประเภทการลา', 'วันที่เริ่ม', 'วันที่สิ้นสุด', 'จำนวนวัน', 'สถานะ', 'เหตุผล'];
+        $spreadsheet = new Spreadsheet();
+        $spreadsheet->removeSheetByIndex(0);
+
+        $sheetsInOrder = [
+            'อนุมัติ' => 'อนุมัติแล้ว',
+            'รอการอนุมัติ' => 'รอการอนุมัติ',
+            'ไม่อนุมัติ' => 'ไม่อนุมัติ',
+        ];
+
+        foreach ($sheetsInOrder as $status => $sheetTitle) {
+            $this->addLeaveSheet($spreadsheet, $sheetTitle, $requestsByStatus->get($status, collect()));
+        }
+
+        // เผื่อมีสถานะแปลกๆ ที่ไม่อยู่ใน 3 อย่างข้างบน (ข้อมูลเก่า/แก้ไขนอกระบบ) ไม่ทิ้งข้อมูลไปเงียบๆ
+        $otherStatuses = $requestsByStatus->keys()->diff(array_keys($sheetsInOrder));
+        foreach ($otherStatuses as $status) {
+            $this->addLeaveSheet($spreadsheet, $status ?: 'ไม่ระบุสถานะ', $requestsByStatus->get($status));
+        }
+
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'leave_report') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = "รายงานการลา_{$fiscalYear}_" . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    private function addLeaveSheet(Spreadsheet $spreadsheet, string $title, $requests): void
+    {
+        $sheet = $spreadsheet->createSheet();
+        $sheet->setTitle($title);
+
+        $headers = ['ลำดับ', 'รหัสพนักงาน', 'ชื่อ - นามสกุล', 'แผนก', 'ประเภทการลา', 'วันที่เริ่ม', 'วันที่สิ้นสุด', 'จำนวนวัน', 'เหตุผล'];
         foreach ($headers as $i => $header) {
             $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
             $sheet->setCellValue("{$col}1", $header);
         }
-        $sheet->getStyle('A1:J1')->applyFromArray([
+        $sheet->getStyle('A1:I1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '5482E7']],
         ]);
-        foreach (range('A', 'J') as $col) {
+        foreach (range('A', 'I') as $col) {
             $sheet->getColumnDimension($col)->setWidth(16);
         }
         $sheet->getColumnDimension('C')->setWidth(24);
-        $sheet->getColumnDimension('J')->setWidth(30);
+        $sheet->getColumnDimension('I')->setWidth(30);
 
         $row = 2;
         foreach ($requests as $i => $r) {
@@ -123,17 +156,9 @@ class LeavePersonnelController extends Controller
             $sheet->setCellValue("F{$row}", optional($r->start_date)->format('d/m/Y'));
             $sheet->setCellValue("G{$row}", optional($r->end_date)->format('d/m/Y'));
             $sheet->setCellValue("H{$row}", $r->num_days);
-            $sheet->setCellValue("I{$row}", $r->status);
-            $sheet->setCellValue("J{$row}", $r->reason);
+            $sheet->setCellValue("I{$row}", $r->reason);
             $row++;
         }
-
-        $tmpPath = tempnam(sys_get_temp_dir(), 'leave_report') . '.xlsx';
-        (new Xlsx($spreadsheet))->save($tmpPath);
-
-        $filename = "รายงานการลา_{$fiscalYear}_" . now()->format('Ymd_His') . '.xlsx';
-
-        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
     }
 
     public function show(Request $request, $personnelId)
