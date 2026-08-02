@@ -96,10 +96,16 @@
 @section('content')
 <div class="page">
 
-    <nav class="breadcrumb-custom mb-3" style="font-size:0.88rem; display:flex; align-items:center; gap:4px;">
-        <a href="#">ข้อมูลนักเรียน</a>
-        <i class="bi bi-chevron-right"></i>
-        <span style="color:#555;">รายชื่อนักเรียนรายห้อง</span>
+    <nav class="breadcrumb-custom mb-3" style="font-size:0.88rem; display:flex; align-items:center; gap:4px; justify-content:space-between;">
+        <div style="display:flex; align-items:center; gap:4px;">
+            <a href="#">ข้อมูลนักเรียน</a>
+            <i class="bi bi-chevron-right"></i>
+            <span style="color:#555;">รายชื่อนักเรียนรายห้อง</span>
+        </div>
+        <a href="{{ route('class-roster.index', ['export' => 'excel']) }}" class="btn-export"
+           title="ผู้ดูแลระบบ: export ทุกคน / ครู: export เฉพาะห้องที่ตัวเองเป็นครูที่ปรึกษา">
+            <i class="fas fa-file-excel"></i> Export ทั้งหมด
+        </a>
     </nav>
 
     {{-- ค้นหา --}}
