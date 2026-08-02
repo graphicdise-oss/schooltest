@@ -290,7 +290,8 @@ class PersonnelController extends Controller
             ->values();
 
         $personnels = $query->paginate(20);
-        return view('personnel.index', compact('personnels', 'departments'));
+        $schoolInfo = SchoolInfoSetting::getInstance();
+        return view('personnel.index', compact('personnels', 'departments', 'schoolInfo'));
 
 
     }
