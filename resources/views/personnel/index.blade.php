@@ -122,7 +122,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(20, 30, 40, 0.55);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -146,18 +146,18 @@
         /* ===== Modal Card ===== */
         .pwd-modal {
             background: #fff;
-            border-radius: 16px;
-            width: 480px;
+            border-radius: 14px;
+            width: 440px;
             max-width: 92vw;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
             overflow: hidden;
-            animation: slideUp 0.3s ease;
+            animation: slideUp 0.25s ease;
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
 
             to {
@@ -167,93 +167,103 @@
         }
 
         .pwd-modal-header {
-            text-align: center;
-            padding: 24px 24px 16px;
-            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 24px;
+            background: #00bcd4;
+            color: #fff;
+        }
+
+        .pwd-modal-header .pwd-header-icon {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
         }
 
         .pwd-modal-header h5 {
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            color: #333;
-            margin: 0 0 4px;
-        }
-
-        .pwd-modal-header p {
-            font-size: 0.82rem;
-            color: #999;
             margin: 0;
         }
 
+        .pwd-modal-header p {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 2px 0 0;
+        }
+
         .pwd-modal-body {
-            padding: 24px;
+            padding: 22px 24px 6px;
         }
 
         .pwd-field {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 14px 0;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .pwd-field:last-child {
-            border-bottom: none;
+            margin-bottom: 18px;
         }
 
         .pwd-field-label {
-            min-width: 130px;
-        }
-
-        .pwd-field-label .label-th {
-            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
             font-weight: 700;
-            color: #333;
+            color: #444;
+            margin-bottom: 6px;
         }
 
-        .pwd-field-label .label-en {
-            font-size: 0.72rem;
-            color: #aaa;
+        .pwd-field-label i {
+            color: #00bcd4;
         }
 
         .pwd-field-input {
-            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .pwd-field-input input,
         .pwd-field-input select {
+            flex: 1;
             width: 100%;
-            height: 40px;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 10px;
+            height: 42px;
+            border: 1.5px solid #e3e7ea;
+            border-radius: 8px;
             padding: 0 14px;
             font-size: 0.88rem;
             font-family: inherit;
             color: #333;
             outline: none;
-            transition: border-color 0.2s;
+            background: #fafbfc;
+            transition: border-color 0.2s, background 0.2s;
             box-sizing: border-box;
         }
 
         .pwd-field-input input:focus,
         .pwd-field-input select:focus {
             border-color: #00bcd4;
-            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+            background: #fff;
         }
 
-        .pwd-field-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .pwd-field-hint {
+            font-size: 0.76rem;
+            color: #999;
+            margin-top: 5px;
         }
 
         /* ปุ่มดูรหัส */
         .btn-toggle-pwd {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            border: 1.5px solid #e0e0e0;
-            background: #fff;
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 8px;
+            border: 1.5px solid #e3e7ea;
+            background: #fafbfc;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -270,75 +280,62 @@
 
         /* ปุ่มเปลี่ยนรหัส */
         .btn-change-pwd {
-            height: 38px;
-            border-radius: 10px;
             border: none;
-            background: linear-gradient(135deg, #ff9800, #ffa726);
-            color: #fff;
-            padding: 0 16px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            background: none;
+            color: #ff9800;
+            padding: 0;
+            font-size: 0.78rem;
+            font-weight: 700;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             font-family: inherit;
-            transition: all 0.2s;
-            white-space: nowrap;
         }
 
         .btn-change-pwd:hover {
-            background: linear-gradient(135deg, #e68900, #ff9800);
+            text-decoration: underline;
         }
 
         /* Footer ปุ่ม */
         .pwd-modal-footer {
             display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 16px 24px 24px;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px 22px;
+        }
+
+        .btn-pwd-save,
+        .btn-pwd-cancel {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 0.87rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.15s;
         }
 
         .btn-pwd-save {
-            background: linear-gradient(135deg, #00bcd4, #00acc1);
+            background: #00bcd4;
             color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 36px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
         }
 
         .btn-pwd-save:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(0, 188, 212, 0.35);
+            opacity: 0.9;
         }
 
         .btn-pwd-cancel {
-            background: #e74c3c;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 28px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
+            background: #f1f3f5;
+            color: #666;
         }
 
         .btn-pwd-cancel:hover {
-            background: #c0392b;
+            background: #e6e9eb;
         }
     </style>
 @endpush
@@ -509,8 +506,11 @@
     <div class="pwd-overlay" id="pwdOverlay" onclick="closePwdModal(event)">
         <div class="pwd-modal" onclick="event.stopPropagation()">
             <div class="pwd-modal-header">
-                <h5>ข้อมูลรหัสผ่าน</h5>
-                <p>Password Information</p>
+                <div class="pwd-header-icon"><i class="bi bi-shield-lock"></i></div>
+                <div>
+                    <h5>จัดการบัญชีผู้ใช้งาน</h5>
+                    <p>ตั้งรหัสผ่านและสิทธิ์การเข้าใช้ระบบ</p>
+                </div>
             </div>
 
             <form id="pwdForm" method="POST">
@@ -520,10 +520,7 @@
                 <div class="pwd-modal-body">
                     {{-- ชื่อผู้ใช้ --}}
                     <div class="pwd-field">
-                        <div class="pwd-field-label">
-                            <div class="label-th">ชื่อผู้ใช้</div>
-                            <div class="label-en">User</div>
-                        </div>
+                        <div class="pwd-field-label"><i class="bi bi-person-badge"></i> รหัสพนักงาน (ใช้ล็อกอิน)</div>
                         <div class="pwd-field-input">
                             <input type="text" name="employee_code" id="modalUsername" placeholder="รหัสพนักงาน">
                         </div>
@@ -531,29 +528,23 @@
 
                     {{-- รหัสผ่าน --}}
                     <div class="pwd-field">
-                        <div class="pwd-field-label">
-                            <div class="label-th">รหัสผ่าน</div>
-                            <div class="label-en">Password</div>
-                        </div>
+                        <div class="pwd-field-label"><i class="bi bi-key"></i> รหัสผ่าน</div>
                         <div class="pwd-field-input">
                             <input type="password" name="password" id="modalPassword" placeholder="กรอกรหัสผ่านใหม่">
-                        </div>
-                        <div class="pwd-field-actions">
                             <button type="button" class="btn-toggle-pwd" onclick="togglePassword()" title="ดู/ซ่อนรหัสผ่าน">
                                 <i class="bi bi-eye" id="togglePwdIcon"></i>
                             </button>
+                        </div>
+                        <div class="pwd-field-hint">
                             <button type="button" class="btn-change-pwd" onclick="clearPassword()">
-                                <i class="bi bi-arrow-repeat"></i> เปลี่ยนรหัสผ่าน
+                                <i class="bi bi-arrow-repeat"></i> ล้างช่องเพื่อตั้งรหัสผ่านใหม่
                             </button>
                         </div>
                     </div>
 
                     {{-- บทบาท --}}
                     <div class="pwd-field">
-                        <div class="pwd-field-label">
-                            <div class="label-th">บทบาท</div>
-                            <div class="label-en">Role</div>
-                        </div>
+                        <div class="pwd-field-label"><i class="bi bi-shield-check"></i> บทบาท (Role)</div>
                         <div class="pwd-field-input">
                             <select name="role" id="modalRole">
                                 <option value="">-- เลือก --</option>
@@ -563,17 +554,15 @@
                                 <option value="admin">admin (ผู้ดูแลระบบ)</option>
                                 <option value="user">user (ผู้ใช้ทั่วไป)</option>
                             </select>
-                            <small class="text-muted d-block mt-1">
-                                สิทธิ์เข้าถึงเมนูของ "user" กำหนดแยกได้ที่ <strong>ประเภทบุคลากร</strong> ของแต่ละคน
-                            </small>
+                        </div>
+                        <div class="pwd-field-hint">
+                            สิทธิ์เข้าถึงเมนูของ "user" กำหนดแยกได้ที่ <strong>ประเภทบุคลากร</strong> ของแต่ละคน
                         </div>
                     </div>
                 </div>
 
                 <div class="pwd-modal-footer">
-                    <button type="button" class="btn-pwd-cancel" onclick="closePwdModal()">
-                        <i class="bi bi-x-lg"></i> ยกเลิก
-                    </button>
+                    <button type="button" class="btn-pwd-cancel" onclick="closePwdModal()">ยกเลิก</button>
                     <button type="submit" class="btn-pwd-save">
                         <i class="bi bi-check-lg"></i> บันทึก
                     </button>
