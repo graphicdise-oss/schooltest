@@ -134,7 +134,7 @@
                 <div class="col-md-2">
                     <div class="form-label-sm">ระดับชั้นเรียน</div>
                     <select name="level_id" class="form-select-line" onchange="submitForm()">
-                        <option value="">เลือกระดับชั้น</option>
+                        <option value="">ทั้งหมด</option>
                         @foreach ($levels as $lv)
                             <option value="{{ $lv->level_id }}" {{ $levelId == $lv->level_id ? 'selected' : '' }}>
                                 {{ $lv->name }}
@@ -160,6 +160,10 @@
             <input type="hidden" name="section_id" id="sectionInput" value="{{ $sectionId }}">
             <div style="text-align:center; border-top:1px solid #f0f0f0; padding-top:14px; display:flex; justify-content:center; gap:12px;">
                 <button type="submit" class="btn-search-teal"><i class="fas fa-search"></i> ค้นหา</button>
+                <button type="submit" name="export" value="excel" class="btn-export"
+                    title="ระดับชั้น = ทั้งหมด จะ export นักเรียนทุกคน (ครูจะได้แค่ห้องที่ตัวเองเป็นครูที่ปรึกษา)">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
                 <a href="{{ route('class-roster.index') }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; color:#666; border:1.5px solid #d0d7de; border-radius:4px; padding:9px 20px; font-size:0.9rem; font-weight:600; text-decoration:none;">
                     <i class="fas fa-redo"></i> ล้างค่า
                 </a>
@@ -296,6 +300,7 @@
 @push('scripts')
 <script>
     function submitForm() {
+        document.getElementById('sectionInput').value = '';
         document.getElementById('searchForm').submit();
     }
 
