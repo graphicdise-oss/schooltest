@@ -16,11 +16,14 @@ class LeavePersonnelController extends Controller
 {
     public function index(Request $request)
     {
-        $fiscalYear = (int) $request->get('fiscal_year', now()->year + 543);
-        $department = $request->get('department', '');
-        $searchName = $request->get('search_name', '');
-        $dateFrom   = $request->get('date_from', '');
-        $dateTo     = $request->get('date_to', '');
+        // ใช้ ?? '' แทนพารามิเตอร์ default ตัวที่สองของ get() เพราะ middleware ของ Laravel
+        // แปลงค่าว่างในช่อง query string (เช่น department=) ให้เป็น null ไม่ใช่ '' ทำให้ get('x', '')
+        // คืนค่า null กลับมาแทน (default ใช้เฉพาะตอนไม่มี key นี้เลย ไม่ใช่ตอนมีแต่ค่าเป็น null)
+        $fiscalYear = (int) ($request->get('fiscal_year') ?: now()->year + 543);
+        $department = $request->get('department') ?? '';
+        $searchName = $request->get('search_name') ?? '';
+        $dateFrom   = $request->get('date_from') ?? '';
+        $dateTo     = $request->get('date_to') ?? '';
 
         $yearAD  = $fiscalYear - 543;
         $startAD = $dateFrom ?: "{$yearAD}-01-01";
