@@ -84,6 +84,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/students/import-template', 'importTemplate')->name('students.import-template');
         Route::post('/students/import', 'importUpload')->name('students.import');
         Route::post('/students/school-info', 'saveSchoolInfo')->name('students.school-info');
+        Route::get('/students/export', 'export')->name('students.export');
     });
 
     // === ฟอร์มกรอกข้อมูลนักเรียน ===
