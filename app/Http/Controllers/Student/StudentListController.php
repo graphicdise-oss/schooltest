@@ -8,9 +8,33 @@ use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class StudentListController extends Controller
 {
+    // หัวตาราง 162 คอลัมน์ ตำแหน่งต้องตรงกับที่คำสั่ง import:students ใช้อ่านเป๊ะๆ ห้ามสลับ/เพิ่ม/ลบคอลัมน์
+    private const IMPORT_TEMPLATE_HEADERS = [
+        'ลำดับ', 'ชั้น/ห้อง', 'เลขที่', 'สถานะ', 'รหัสบัตรประชาชน', 'รหัสนักศึกษา', 'รหัสลายนิ้วมือ', 'วันที่เข้าเรียน', 'เพศ', 'คำนำหน้า',
+        'ชื่อ', 'นามสกุล', 'ชื่อเล่น', 'ชื่อ(อังกฤษ)', 'นามสกุล(อังกฤษ)', 'ชื่อเล่น(อังกฤษ)', 'วัน/เดือน/ปีเกิด', 'ศาสนา', 'สัญชาติ', 'เชื้อชาติ',
+        'มีพี่น้องทั้งหมด', 'เป็นบุตรคนที่', 'พี่/น้องเรียนในโรงเรียนนี้', 'เบอร์โทรศัพท์', 'อีเมล์', 'เงินคงเหลือ', 'รหัสประจำบ้าน', 'บ้านเลขที่', 'ซอย', 'หมู่',
+        'ถนน', 'แขวง/ตำบล', 'เขต/อำเภอ', 'จังหวัด', 'รหัสไปรษณีย์', 'เบอร์โทรศัพท์บ้าน', 'สถานที่เกิดระบุที่เกิด(รพ.)', 'สถานที่เกิดแขวง/ตำบล', 'สถานที่เกิดเขต/อำเภอ', 'สถานที่เกิดจังหวัด',
+        'บ้านเลขที่ปัจจุบัน', 'หมู่', 'ซอย', 'ถนน', 'ตำบล', 'อำเภอ', 'จังหวัด', 'รหัสไปรษณีย์', 'เบอร์โทรศัพท์บ้าน', 'อาศัยอยู่กับ',
+        'นามสกุล', 'ลักษณะบ้าน', 'อีเมล์', 'เบอร์ติดต่อฉุกเฉิน', 'เพื่อนใกล้บ้าน', 'นามสกุล', 'เบอร์โทรศัพท์เพื่อน', 'สถานศึกษาเดิม', 'ตำบล', 'อำเภอ',
+        'จังหวัด', 'วุฒิการศึกษา', 'GPA', 'เหตุที่ย้าย', 'บ้านเกิดเลขที่', 'หมู่', 'ซอย', 'ถนน', 'ตำบล', 'อำเภอ',
+        'จังหวัด', 'รหัสไปรษณีย์', 'เบอร์โทรศัพท์', 'ความสัมพันธ์', 'คำนำหน้า', 'ชื่อผู้ปกครอง', 'นามสกุล', 'ชื่อผู้ปกครอง(อังกฤษ)', 'นามสกุล(อังกฤษ)', 'วัน/เดือน/ปีเกิด',
+        'ศาสนา', 'สัญชาติ', 'เชื้อชาติ', 'บ้านเลขที่', 'หมู่', 'ซอย', 'ถนน', 'ตำบล', 'อำเภอ', 'จังหวัด',
+        'รหัสไปรษณีย์', 'เบอร์บ้าน', 'เบอร์มือถือ', 'เบอร์ที่ทำงาน', 'สถานะครอบครัว', 'วุฒิการศึกษา', 'อาชีพผู้ปกครอง', 'สถานที่ทำงาน', 'รายได้ต่อเดือน', 'รายได้ต่อปี',
+        'เบิกค่าเล่าเรียน', 'คำนำหน้า', 'ชื่อบิดา', 'นามสกุล', 'ชื่อบิดา(อังกฤษ)', 'นามสกุล(อังกฤษ)', 'วัน/เดือน/ปีเกิด', 'ศาสนา', 'สัญชาติ', 'เชื้อชาติ',
+        'บ้านเลขที่', 'หมู่', 'ซอย', 'ถนน', 'ตำบล', 'อำเภอ', 'จังหวัด', 'รหัสไปรษณีย์', 'เบอร์บ้าน', 'เบอร์มือถือ',
+        'เบอร์ที่ทำงาน', 'วุฒิการศึกษา', 'อาชีพบิดา', 'สถานที่ทำงาน', 'รายได้ต่อเดือน', 'รายได้ต่อปี', 'คำนำหน้า', 'ชื่อมารดา', 'นามสกุล', 'ชื่อมารดา(อังกฤษ)',
+        'นามสกุล(อังกฤษ)', 'วัน/เดือน/ปีเกิด', 'ศาสนา', 'สัญชาติ', 'เชื้อชาติ', 'บ้านเลขที่', 'หมู่', 'ซอย', 'ถนน', 'ตำบล',
+        'อำเภอ', 'จังหวัด', 'รหัสไปรษณีย์', 'เบอร์บ้าน', 'เบอร์มือถือ', 'เบอร์ที่ทำงาน', 'วุฒิการศึกษา', 'อาชีพมารดา', 'สถานที่ทำงาน', 'รายได้ต่อเดือน',
+        'รายได้ต่อปี', 'น้ำหนัก', 'ส่วนสูง', 'กรุ๊ปเลือด', 'แพ้อาหาร', 'แพ้ยา', 'แพ้อื่นๆ', 'โรคประจำตัว', 'โรคร้ายแรง', 'ประเภทการเดินทาง',
+        'ประเภทนักเรียน', 'หมายเลขบัตร',
+    ];
+
     /**
      * แสดงรายการนักเรียน + ค้นหา/กรอง
      */
@@ -163,5 +187,68 @@ class StudentListController extends Controller
         $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
 
         return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search'));
+    }
+
+    /**
+     * ดาวน์โหลดไฟล์ Excel เปล่าไว้กรอกข้อมูลนักเรียน (ตำแหน่งคอลัมน์ตรงกับที่ import:students อ่าน)
+     */
+    public function importTemplate()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('ข้อมูลนักเรียนทั้งหมด');
+
+        $sheet->setCellValue('B1', 'แบบฟอร์มนำเข้าข้อมูลนักเรียน');
+        $sheet->setCellValue('B3', 'กรอกข้อมูลนักเรียนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้)');
+        $sheet->setCellValue('B4', 'ช่องที่จำเป็นต้องกรอก: เลขบัตรประชาชน หรือ รหัสนักศึกษา (อย่างน้อย 1 อย่าง), เพศ, คำนำหน้า, ชื่อ, นามสกุล, วัน/เดือน/ปีเกิด, สัญชาติ, เชื้อชาติ');
+
+        foreach (self::IMPORT_TEMPLATE_HEADERS as $i => $header) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $cell = $sheet->setCellValue("{$col}6", $header);
+            $sheet->getStyle("{$col}6")->getFont()->setBold(true);
+            $sheet->getColumnDimension($col)->setWidth(14);
+        }
+        $sheet->freezePane('A7');
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'student_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        return response()->download($tmpPath, 'แบบฟอร์มนำเข้าข้อมูลนักเรียน.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * รับไฟล์ Excel ที่ครูกรอกมา แล้วรันคำสั่งนำเข้าข้อมูลนักเรียนให้
+     */
+    public function importUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0); // ไฟล์ใหญ่อาจใช้เวลาหลายนาที
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = \Illuminate\Support\Facades\Storage::path($path);
+
+        $options = ['file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+        if ($request->boolean('assign_rooms')) {
+            $options['--assign-rooms'] = true;
+        }
+        if ($request->boolean('fill_classroom_number')) {
+            $options['--fill-classroom-number'] = true;
+        }
+
+        Artisan::call('import:students', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('import_output', $output);
     }
 }
