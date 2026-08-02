@@ -446,16 +446,29 @@ class PersonnelController extends Controller
         ]);
 
         $hasLogo = $info->logo_path && Storage::disk('public')->exists($info->logo_path);
-        $sheet->getRowDimension(1)->setRowHeight($hasLogo ? 65 : 34);
         if ($hasLogo) {
+            // ขยายคอลัมน์ A + รวมแถว 1-4 ให้เป็นช่องสี่เหลี่ยมจัตุรัสคร่าวๆ ไว้ใส่ตราโรงเรียนตัวใหญ่
+            // (แนะนำอัปโหลดรูปสี่เหลี่ยมจัตุรัส เช่น 500x500px จะได้ไม่ถูกบีบ/ไม่ต้องครอบตัดเอง)
+            $sheet->getColumnDimension('A')->setWidth(18);
+            $sheet->getRowDimension(1)->setRowHeight(30);
+            $sheet->getRowDimension(2)->setRowHeight(25);
+            $sheet->getRowDimension(3)->setRowHeight(25);
+            $sheet->getRowDimension(4)->setRowHeight(25);
+            $sheet->mergeCells('A1:A4');
+            $sheet->getStyle('A1:A4')->applyFromArray([
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2C3E50']],
+            ]);
+
             $drawing = new Drawing();
             $drawing->setName('ตราโรงเรียน');
             $drawing->setPath(Storage::disk('public')->path($info->logo_path));
-            $drawing->setHeight(58);
+            $drawing->setHeight(130);
             $drawing->setCoordinates('A1');
             $drawing->setOffsetX(6);
-            $drawing->setOffsetY(4);
+            $drawing->setOffsetY(6);
             $drawing->setWorksheet($sheet);
+        } else {
+            $sheet->getRowDimension(1)->setRowHeight(34);
         }
 
         $contact1 = trim(collect([
@@ -518,7 +531,9 @@ class PersonnelController extends Controller
         // ชื่อคอลัมน์ (แถวที่ 7)
         foreach (self::IMPORT_TEMPLATE_HEADERS as $i => $header) {
             $col = Coordinate::stringFromColumnIndex($i + 1);
-            $sheet->getColumnDimension($col)->setWidth(15);
+            if ($i !== 0 || !$hasLogo) {
+                $sheet->getColumnDimension($col)->setWidth(15); // คอลัมน์ A ถ้ามีโลโก้ ใช้ความกว้างที่ตั้งไว้ก่อนหน้าแทน ไม่ให้ตรงนี้ทับ
+            }
             if ($i === 0) {
                 continue; // "ลำดับ" ถูกรวมไว้กับ A6 แล้ว
             }
