@@ -445,7 +445,21 @@
                                 <td>{{ $person->phone ?? '-' }}</td>
                                 <td>{{ $person->date_of_birth ? \Carbon\Carbon::parse($person->date_of_birth)->addYears(543)->format('d/m/Y') : '-' }}
                                 </td>
-                                <td>{{ $person->status ?? 'ปฏิบัติงาน' }}</td>
+                                @php
+                                    $statusValue = $person->status ?? 'ปฏิบัติงาน';
+                                    $statusStyle = match (true) {
+                                        str_contains($statusValue, 'ปฏิบัติงาน') => ['bg' => '#e6f7ee', 'text' => '#1e8a4c'],
+                                        str_contains($statusValue, 'ลาออก'), str_contains($statusValue, 'ไล่ออก') => ['bg' => '#fdecea', 'text' => '#c0392b'],
+                                        str_contains($statusValue, 'พัก') => ['bg' => '#fff4e5', 'text' => '#b8720a'],
+                                        str_contains($statusValue, 'เกษียณ') => ['bg' => '#eef0f2', 'text' => '#6c757d'],
+                                        default => ['bg' => '#eef0f2', 'text' => '#495057'],
+                                    };
+                                @endphp
+                                <td>
+                                    <span style="display:inline-block; padding:4px 14px; border-radius:20px; font-size:0.85rem; font-weight:600; white-space:nowrap; background:{{ $statusStyle['bg'] }}; color:{{ $statusStyle['text'] }};">
+                                        {{ $statusValue }}
+                                    </span>
+                                </td>
                                 <td>
                                     {{-- แก้ไข --}}
                                     <a href="{{ route('personnels.edit', $person->personnel_id) }}"
