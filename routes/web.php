@@ -83,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/students/{id}', 'destroy')->name('students.destroy');
         Route::get('/students/import-template', 'importTemplate')->name('students.import-template');
         Route::post('/students/import', 'importUpload')->name('students.import');
+        Route::post('/students/school-info', 'saveSchoolInfo')->name('students.school-info');
     });
 
     // === ฟอร์มกรอกข้อมูลนักเรียน ===

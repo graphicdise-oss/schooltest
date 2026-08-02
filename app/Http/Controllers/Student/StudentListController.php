@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\SchoolInfoSetting;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\AcademicYear;
@@ -98,7 +99,9 @@ class StudentListController extends Controller
                 'label' => ($s->level->name ?? '?') . '/' . $s->section_number . ($s->study_plan ? ' '.$s->study_plan : ''),
             ]);
 
-        return view('student.student_index', compact('students', 'levels', 'classrooms'));
+        $schoolInfo = SchoolInfoSetting::getInstance();
+
+        return view('student.student_index', compact('students', 'levels', 'classrooms', 'schoolInfo'));
     }
 
     /**
@@ -194,13 +197,32 @@ class StudentListController extends Controller
      */
     public function importTemplate()
     {
+        $info = SchoolInfoSetting::getInstance();
+
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('ข้อมูลนักเรียนทั้งหมด');
 
-        $sheet->setCellValue('B1', 'แบบฟอร์มนำเข้าข้อมูลนักเรียน');
-        $sheet->setCellValue('B3', 'กรอกข้อมูลนักเรียนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้)');
-        $sheet->setCellValue('B4', 'ช่องที่จำเป็นต้องกรอก: เลขบัตรประชาชน หรือ รหัสนักศึกษา (อย่างน้อย 1 อย่าง), เพศ, คำนำหน้า, ชื่อ, นามสกุล, วัน/เดือน/ปีเกิด, สัญชาติ, เชื้อชาติ');
+        $sheet->setCellValue('B1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลนักเรียน');
+        $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(14);
+
+        $contact1 = trim(collect([
+            $info->phone ? "โทรศัพท์ : {$info->phone}" : null,
+            $info->fax ? "โทรสาร : {$info->fax}" : null,
+        ])->filter()->implode('  '));
+        if ($contact1 !== '') {
+            $sheet->setCellValue('B3', $contact1);
+        }
+
+        $contact2 = trim(collect([
+            $info->website,
+            $info->email ? "อีเมล์ : {$info->email}" : null,
+        ])->filter()->implode('  '));
+        if ($contact2 !== '') {
+            $sheet->setCellValue('B4', $contact2);
+        }
+
+        $sheet->setCellValue('B5', 'กรอกข้อมูลนักเรียนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้) — ต้องมีเลขบัตรประชาชนหรือรหัสนักศึกษาอย่างน้อย 1 อย่าง');
 
         foreach (self::IMPORT_TEMPLATE_HEADERS as $i => $header) {
             $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
@@ -214,6 +236,29 @@ class StudentListController extends Controller
         (new Xlsx($spreadsheet))->save($tmpPath);
 
         return response()->download($tmpPath, 'แบบฟอร์มนำเข้าข้อมูลนักเรียน.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * บันทึกข้อมูลโรงเรียนที่จะแสดงบนหัวแบบฟอร์ม Excel
+     */
+    public function saveSchoolInfo(Request $request)
+    {
+        $data = $request->validate([
+            'school_name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:100',
+            'fax' => 'nullable|string|max:100',
+            'website' => 'nullable|string|max:255',
+            'email' => 'nullable|string|max:255',
+        ]);
+
+        $setting = SchoolInfoSetting::first();
+        if ($setting) {
+            $setting->update($data);
+        } else {
+            SchoolInfoSetting::create($data);
+        }
+
+        return back()->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');
     }
 
     /**

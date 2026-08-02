@@ -135,6 +135,9 @@
                 <div class="si-table-header">
                     <h6 class="si-card-title">ข้อมูลนักเรียน</h6>
                     <div style="display:flex; gap:8px;">
+                        <button type="button" class="si-btn-add" style="background:#495057;" onclick="document.getElementById('schoolInfoOverlay').classList.add('active')" title="ตั้งค่าข้อมูลโรงเรียนที่จะแสดงบนแบบฟอร์ม">
+                            <i class="bi bi-gear"></i>
+                        </button>
                         <a href="{{ route('students.import-template') }}" class="si-btn-add" style="background:#6c757d;">
                             <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์ม Excel
                         </a>
@@ -273,6 +276,44 @@
         }
     </script>
 
+    {{-- Modal ตั้งค่าข้อมูลโรงเรียน (แสดงบนหัวแบบฟอร์ม Excel) --}}
+    <div id="schoolInfoOverlay" onclick="if(event.target===this)this.classList.remove('active')"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:24px; margin:16px;">
+            <h5 style="margin-bottom:4px;"><i class="bi bi-gear"></i> ตั้งค่าข้อมูลโรงเรียน</h5>
+            <p style="font-size:0.85rem; color:#777; margin-bottom:16px;">
+                ข้อมูลนี้จะแสดงที่หัวแบบฟอร์ม Excel ทุกครั้งที่กด "ดาวน์โหลดแบบฟอร์ม Excel"
+            </p>
+            <form method="POST" action="{{ route('students.school-info') }}">
+                @csrf
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">ชื่อโรงเรียน</label>
+                    <input type="text" name="school_name" value="{{ old('school_name', $schoolInfo->school_name) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">โทรศัพท์</label>
+                    <input type="text" name="phone" value="{{ old('phone', $schoolInfo->phone) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">โทรสาร</label>
+                    <input type="text" name="fax" value="{{ old('fax', $schoolInfo->fax) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">เว็บไซต์</label>
+                    <input type="text" name="website" value="{{ old('website', $schoolInfo->website) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">อีเมล์</label>
+                    <input type="text" name="email" value="{{ old('email', $schoolInfo->email) }}" class="form-control">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" onclick="document.getElementById('schoolInfoOverlay').classList.remove('active')" style="padding:8px 16px; border:1px solid #ccc; border-radius:6px; background:#fff;">ยกเลิก</button>
+                    <button type="submit" style="padding:8px 16px; border:none; border-radius:6px; background:#0d6efd; color:#fff;">บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     {{-- Modal นำเข้าข้อมูลจาก Excel --}}
     <div id="importOverlay" onclick="if(event.target===this)closeImportModal()"
         style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center;">
@@ -318,6 +359,6 @@
     @endif
 
     <style>
-        #importOverlay.active { display: flex !important; }
+        #importOverlay.active, #schoolInfoOverlay.active { display: flex !important; }
     </style>
 @endsection
