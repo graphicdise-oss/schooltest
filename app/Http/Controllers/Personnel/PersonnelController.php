@@ -18,7 +18,12 @@ use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 
@@ -426,49 +431,105 @@ class PersonnelController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('รายชื่อพนักงาน');
 
-        $sheet->setCellValue('B1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลบุคลากร');
-        $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(14);
+        $totalCols = count(self::IMPORT_TEMPLATE_HEADERS);
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
 
-        if ($info->logo_path && Storage::disk('public')->exists($info->logo_path)) {
-            $sheet->getRowDimension(1)->setRowHeight(60);
-            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+        // แถบหัวชื่อโรงเรียน
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->setCellValue('A1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลบุคลากร');
+        $sheet->getStyle('A1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2C3E50']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+
+        $hasLogo = $info->logo_path && Storage::disk('public')->exists($info->logo_path);
+        $sheet->getRowDimension(1)->setRowHeight($hasLogo ? 65 : 34);
+        if ($hasLogo) {
+            $drawing = new Drawing();
             $drawing->setName('ตราโรงเรียน');
             $drawing->setPath(Storage::disk('public')->path($info->logo_path));
-            $drawing->setHeight(75);
+            $drawing->setHeight(58);
             $drawing->setCoordinates('A1');
+            $drawing->setOffsetX(6);
+            $drawing->setOffsetY(4);
             $drawing->setWorksheet($sheet);
         }
 
         $contact1 = trim(collect([
             $info->phone ? "โทรศัพท์ : {$info->phone}" : null,
             $info->fax ? "โทรสาร : {$info->fax}" : null,
-        ])->filter()->implode('  '));
-        if ($contact1 !== '') {
-            $sheet->setCellValue('B3', $contact1);
-        }
-
+        ])->filter()->implode('   '));
         $contact2 = trim(collect([
             $info->website,
             $info->email ? "อีเมล์ : {$info->email}" : null,
-        ])->filter()->implode('  '));
-        if ($contact2 !== '') {
-            $sheet->setCellValue('B4', $contact2);
+        ])->filter()->implode('   '));
+
+        if ($contact1 !== '' || $contact2 !== '') {
+            $sheet->mergeCells("A2:{$lastCol}2");
+            $sheet->setCellValue('A2', $contact1);
+            $sheet->mergeCells("A3:{$lastCol}3");
+            $sheet->setCellValue('A3', $contact2);
+            $sheet->getStyle("A2:{$lastCol}3")->applyFromArray([
+                'font' => ['size' => 10, 'color' => ['rgb' => '666666']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+            ]);
         }
 
-        $sheet->setCellValue('B5', 'กรอกข้อมูลบุคลากรเริ่มจากแถวที่ 8 เป็นต้นไป (แถวที่ 1-7 ห้ามลบ/ห้ามแก้) — ต้องมีรหัสพนักงานทุกแถว');
+        $sheet->mergeCells("A5:{$lastCol}5");
+        $sheet->setCellValue('A5', 'กรอกข้อมูลบุคลากรเริ่มจากแถวที่ 8 เป็นต้นไป (แถวที่ 1-7 ห้ามลบ/ห้ามแก้) — ต้องมีรหัสพนักงานทุกแถว');
+        $sheet->getStyle('A5')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(5)->setRowHeight(20);
 
+        // ป้ายกลุ่มคอลัมน์ (แถวที่ 6) — เริ่มจากคอลัมน์ B เพราะคอลัมน์ A ("ลำดับ") รวมกับแถว 7 แยกไว้ต่างหาก
+        $groupStarts = array_keys(self::IMPORT_TEMPLATE_GROUPS);
         foreach (self::IMPORT_TEMPLATE_GROUPS as $startCol => $groupLabel) {
-            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($startCol);
-            $sheet->setCellValue("{$col}6", $groupLabel);
-            $sheet->getStyle("{$col}6")->getFont()->setBold(true);
+            $idx = array_search($startCol, $groupStarts);
+            $endCol = ($groupStarts[$idx + 1] ?? ($totalCols + 1)) - 1;
+            $startLetter = Coordinate::stringFromColumnIndex($startCol);
+            $endLetter = Coordinate::stringFromColumnIndex($endCol);
+            $sheet->mergeCells("{$startLetter}6:{$endLetter}6");
+            $sheet->setCellValue("{$startLetter}6", $groupLabel);
         }
+        $sheet->getStyle("B6:{$lastCol}6")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '34495E']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+        ]);
+        $sheet->getRowDimension(6)->setRowHeight(24);
 
+        // คอลัมน์ "ลำดับ" รวมสองแถวหัวตารางเป็นช่องเดียว
+        $sheet->mergeCells('A6:A7');
+        $sheet->setCellValue('A6', 'ลำดับ');
+        $sheet->getStyle('A6:A7')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '34495E']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+        ]);
+
+        // ชื่อคอลัมน์ (แถวที่ 7)
         foreach (self::IMPORT_TEMPLATE_HEADERS as $i => $header) {
-            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->getColumnDimension($col)->setWidth(15);
+            if ($i === 0) {
+                continue; // "ลำดับ" ถูกรวมไว้กับ A6 แล้ว
+            }
             $sheet->setCellValue("{$col}7", $header);
-            $sheet->getStyle("{$col}7")->getFont()->setBold(true);
-            $sheet->getColumnDimension($col)->setWidth(14);
         }
+        $sheet->getStyle("B7:{$lastCol}7")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
+        $sheet->getRowDimension(7)->setRowHeight(32);
+
         $sheet->freezePane('A8');
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'personnel_template') . '.xlsx';
