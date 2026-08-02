@@ -36,14 +36,22 @@ class LeavePersonnelController extends Controller
         $departments = Personnel::whereNotNull('department')->distinct()->orderBy('department')->pluck('department');
         $leaveTypes  = LeaveType::where('is_active', true)->orderBy('id')->get();
 
+        // คนที่พึ่งยื่นคำขอลาล่าสุด (ในช่วงที่กรองอยู่) ขึ้นก่อน — คนที่ไม่มีคำขอลาเลยไปอยู่ท้ายสุด
+        $latestLeaveSub = LeaveRequest::whereBetween('start_date', [$startAD, $endAD])
+            ->selectRaw('requester_id, MAX(created_at) as latest_leave_at')
+            ->groupBy('requester_id');
+
         $personnels = Personnel::query()
+            ->select('personnels.*')
             ->when($department, fn($q) => $q->where('department', $department))
             ->when($searchName, fn($q) => $q->where(function ($q2) use ($searchName) {
                 $q2->where('thai_firstname', 'like', "%{$searchName}%")
                    ->orWhere('thai_lastname',  'like', "%{$searchName}%")
                    ->orWhere('employee_code',  'like', "%{$searchName}%");
             }))
-            ->orderBy('thai_firstname')
+            ->leftJoinSub($latestLeaveSub, 'latest_leaves', 'latest_leaves.requester_id', '=', 'personnels.personnel_id')
+            ->orderByRaw('latest_leaves.latest_leave_at DESC NULLS LAST')
+            ->orderBy('personnels.thai_firstname')
             ->paginate(20)
             ->withQueryString();
 
