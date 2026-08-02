@@ -434,13 +434,15 @@ class PersonnelController extends Controller
         $totalCols = count(self::IMPORT_TEMPLATE_HEADERS);
         $lastCol = Coordinate::stringFromColumnIndex($totalCols);
 
-        // แถบหัวชื่อโรงเรียน
-        $sheet->mergeCells("A1:{$lastCol}1");
-        $sheet->setCellValue('A1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลบุคลากร');
-        $sheet->getStyle('A1')->applyFromArray([
-            'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']],
+        // แถบหัวชื่อโรงเรียน — เว้นคอลัมน์ A ไว้ให้ตราโรงเรียน ข้อความชิดซ้ายเริ่มที่คอลัมน์ B จะได้เห็นชัดเจนไม่ถูกโลโก้บัง
+        $sheet->mergeCells("B1:{$lastCol}1");
+        $sheet->setCellValue('B1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลบุคลากร');
+        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2C3E50']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getStyle('B1')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
         ]);
 
         $hasLogo = $info->logo_path && Storage::disk('public')->exists($info->logo_path);
@@ -466,13 +468,13 @@ class PersonnelController extends Controller
         ])->filter()->implode('   '));
 
         if ($contact1 !== '' || $contact2 !== '') {
-            $sheet->mergeCells("A2:{$lastCol}2");
-            $sheet->setCellValue('A2', $contact1);
-            $sheet->mergeCells("A3:{$lastCol}3");
-            $sheet->setCellValue('A3', $contact2);
-            $sheet->getStyle("A2:{$lastCol}3")->applyFromArray([
+            $sheet->mergeCells("B2:{$lastCol}2");
+            $sheet->setCellValue('B2', $contact1);
+            $sheet->mergeCells("B3:{$lastCol}3");
+            $sheet->setCellValue('B3', $contact2);
+            $sheet->getStyle("B2:{$lastCol}3")->applyFromArray([
                 'font' => ['size' => 10, 'color' => ['rgb' => '666666']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'indent' => 1],
             ]);
         }
 
@@ -481,7 +483,7 @@ class PersonnelController extends Controller
         $sheet->getStyle('A5')->applyFromArray([
             'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
         ]);
         $sheet->getRowDimension(5)->setRowHeight(20);
 
