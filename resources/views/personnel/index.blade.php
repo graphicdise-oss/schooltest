@@ -408,6 +408,11 @@
                     <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                         <li><a class="dropdown-item" href="{{ route('personnels.create') }}"><i
                                     class="bi bi-person-plus me-2"></i>เพิ่มข้อมูลบุคลากร</a></li>
+                        <li><a class="dropdown-item" href="{{ route('personnels.import-template') }}"><i
+                                    class="bi bi-download me-2"></i>ดาวน์โหลดแบบฟอร์ม Excel</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)"
+                                onclick="document.getElementById('personnelImportOverlay').classList.add('active')"><i
+                                    class="bi bi-upload me-2"></i>นำเข้าจาก Excel</a></li>
                     </ul>
                 </div>
             </div>
@@ -561,8 +566,58 @@
         </div>
     </div>
 
+    {{-- ===== Modal นำเข้าข้อมูลบุคลากรจาก Excel ===== --}}
+    <div id="personnelImportOverlay" onclick="if(event.target===this)closePersonnelImportModal()"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:24px; margin:16px;">
+            <h5 style="margin-bottom:4px;"><i class="bi bi-upload"></i> นำเข้าข้อมูลบุคลากรจาก Excel</h5>
+            <p style="font-size:0.85rem; color:#777; margin-bottom:16px;">
+                ใช้ไฟล์ที่ดาวน์โหลดจากปุ่ม "ดาวน์โหลดแบบฟอร์ม Excel" เท่านั้น (ตำแหน่งคอลัมน์ต้องตรงกัน)
+            </p>
+            <form method="POST" action="{{ route('personnels.import') }}" enctype="multipart/form-data" onsubmit="submitPersonnelImportForm()">
+                @csrf
+                <div style="margin-bottom:14px;">
+                    <input type="file" name="file" accept=".xlsx" required class="form-control">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label><input type="checkbox" name="dry_run" value="1"> ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง</label>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" onclick="closePersonnelImportModal()" style="padding:8px 16px; border:1px solid #ccc; border-radius:6px; background:#fff;">ยกเลิก</button>
+                    <button type="submit" id="personnelImportSubmitBtn" style="padding:8px 16px; border:none; border-radius:6px; background:#198754; color:#fff;">เริ่มนำเข้า</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (session('import_output'))
+        <div id="personnelImportResultOverlay"
+            style="position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; display:flex; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; width:100%; max-width:700px; max-height:80vh; padding:24px; margin:16px; display:flex; flex-direction:column;">
+                <h5 style="margin-bottom:12px;"><i class="bi bi-clipboard-check"></i> ผลการนำเข้าข้อมูล</h5>
+                <pre style="background:#f5f5f5; padding:12px; border-radius:8px; overflow:auto; flex:1; font-size:0.8rem; white-space:pre-wrap;">{{ session('import_output') }}</pre>
+                <div style="text-align:right; margin-top:12px;">
+                    <button type="button" onclick="document.getElementById('personnelImportResultOverlay').remove()"
+                        style="padding:8px 16px; border:none; border-radius:6px; background:#0d6efd; color:#fff;">ปิด</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <style>
+        #personnelImportOverlay.active { display: flex !important; }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function closePersonnelImportModal() {
+            document.getElementById('personnelImportOverlay').classList.remove('active');
+        }
+        function submitPersonnelImportForm() {
+            document.getElementById('personnelImportSubmitBtn').disabled = true;
+            document.getElementById('personnelImportSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่ (ไฟล์ใหญ่อาจใช้เวลาหลายนาที ห้ามปิดหน้านี้)';
+        }
+
         function openPwdModal(id, username, role) {
             document.getElementById('pwdForm').action = '/schooltest/public/personnels/' + id + '/credentials';
             document.getElementById('modalUsername').value = username;
