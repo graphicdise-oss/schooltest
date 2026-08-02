@@ -191,7 +191,7 @@
                         <a href="javascript:void(0)"
                            class="section-tab {{ $sectionId == $sec->section_id ? 'active' : '' }}"
                            onclick="selectSection({{ $sec->section_id }})">
-                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
+                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}{{ $sec->study_plan ? ' '.$sec->study_plan : '' }}
                             @if ($sec->curriculum)
                                 <span style="font-weight:400;font-size:0.78rem;">{{ $sec->curriculum->name ?? '' }}</span>
                             @endif
@@ -205,7 +205,7 @@
                         <div style="display:flex; gap:10px; flex-wrap:wrap;">
                             <span class="info-chip">
                                 <i class="fas fa-chalkboard"></i>
-                                ห้อง {{ $selectedSection->level->name ?? '' }}/{{ $selectedSection->section_number }}
+                                ห้อง {{ $selectedSection->level->name ?? '' }}/{{ $selectedSection->section_number }}{{ $selectedSection->study_plan ? ' '.$selectedSection->study_plan : '' }}
                             </span>
                             <span class="count-chip">
                                 <i class="fas fa-users"></i>
