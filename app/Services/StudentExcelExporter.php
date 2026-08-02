@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\SchoolInfoSetting;
 use Illuminate\Support\Collection;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
@@ -41,15 +40,16 @@ class StudentExcelExporter
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('ข้อมูลนักเรียนทั้งหมด');
 
-        $info = SchoolInfoSetting::getInstance();
-        $sheet->setCellValue('B1', $title ?: ($info->school_name ?: 'ข้อมูลนักเรียน'));
-        $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(14);
+        $totalCols = count(self::IMPORT_TEMPLATE_HEADERS);
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, $title);
 
         foreach (self::IMPORT_TEMPLATE_HEADERS as $i => $header) {
             $col = Coordinate::stringFromColumnIndex($i + 1);
             $sheet->setCellValue("{$col}6", $header);
             $sheet->getStyle("{$col}6")->getFont()->setBold(true);
-            $sheet->getColumnDimension($col)->setWidth(14);
+            if ($col !== 'A' || !$hasLogo) {
+                $sheet->getColumnDimension($col)->setWidth(14); // คอลัมน์ A ถ้ามีโลโก้ ใช้ความกว้างที่ตั้งไว้ก่อนหน้าแทน
+            }
         }
         $sheet->freezePane('A7');
 

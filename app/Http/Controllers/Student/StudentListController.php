@@ -8,15 +8,12 @@ use App\Models\SchoolInfoSetting;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\AcademicYear;
+use App\Services\ExcelSchoolHeader;
 use App\Services\StudentExcelExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
-use PhpOffice\PhpSpreadsheet\Worksheet\Drawing;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class StudentListController extends Controller
@@ -208,8 +205,6 @@ class StudentListController extends Controller
      */
     public function importTemplate()
     {
-        $info = SchoolInfoSetting::getInstance();
-
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('ข้อมูลนักเรียนทั้งหมด');
@@ -217,71 +212,8 @@ class StudentListController extends Controller
         $totalCols = count(StudentExcelExporter::IMPORT_TEMPLATE_HEADERS);
         $lastCol = Coordinate::stringFromColumnIndex($totalCols);
 
-        // แถบหัวชื่อโรงเรียน — เว้นคอลัมน์ A ไว้ให้ตราโรงเรียน ข้อความชิดซ้ายเริ่มที่คอลัมน์ B
-        $sheet->mergeCells("B1:{$lastCol}1");
-        $sheet->setCellValue('B1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลนักเรียน');
-        $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2C3E50']],
-        ]);
-        $sheet->getStyle('B1')->applyFromArray([
-            'font' => ['bold' => true, 'size' => 16, 'color' => ['rgb' => 'FFFFFF']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
-        ]);
-
-        $hasLogo = $info->logo_path && Storage::disk('public')->exists($info->logo_path);
-        if ($hasLogo) {
-            // ขยายคอลัมน์ A + รวมแถว 1-4 ให้เป็นช่องสี่เหลี่ยมจัตุรัสคร่าวๆ ไว้ใส่ตราโรงเรียนตัวใหญ่
-            // (แนะนำอัปโหลดรูปสี่เหลี่ยมจัตุรัส เช่น 500x500px จะได้ไม่ถูกบีบ/ไม่ต้องครอบตัดเอง)
-            $sheet->getColumnDimension('A')->setWidth(18);
-            $sheet->getRowDimension(1)->setRowHeight(30);
-            $sheet->getRowDimension(2)->setRowHeight(25);
-            $sheet->getRowDimension(3)->setRowHeight(25);
-            $sheet->getRowDimension(4)->setRowHeight(25);
-            $sheet->mergeCells('A1:A4');
-            $sheet->getStyle('A1:A4')->applyFromArray([
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2C3E50']],
-            ]);
-
-            $drawing = new Drawing();
-            $drawing->setName('ตราโรงเรียน');
-            $drawing->setPath(Storage::disk('public')->path($info->logo_path));
-            $drawing->setHeight(130);
-            $drawing->setCoordinates('A1');
-            $drawing->setOffsetX(6);
-            $drawing->setOffsetY(6);
-            $drawing->setWorksheet($sheet);
-        } else {
-            $sheet->getRowDimension(1)->setRowHeight(34);
-        }
-
-        $contact1 = trim(collect([
-            $info->phone ? "โทรศัพท์ : {$info->phone}" : null,
-            $info->fax ? "โทรสาร : {$info->fax}" : null,
-        ])->filter()->implode('   '));
-        $contact2 = trim(collect([
-            $info->website,
-            $info->email ? "อีเมล์ : {$info->email}" : null,
-        ])->filter()->implode('   '));
-
-        if ($contact1 !== '' || $contact2 !== '') {
-            $sheet->mergeCells("B2:{$lastCol}2");
-            $sheet->setCellValue('B2', $contact1);
-            $sheet->mergeCells("B3:{$lastCol}3");
-            $sheet->setCellValue('B3', $contact2);
-            $sheet->getStyle("B2:{$lastCol}3")->applyFromArray([
-                'font' => ['size' => 10, 'color' => ['rgb' => '666666']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'indent' => 1],
-            ]);
-        }
-
-        $sheet->mergeCells("A5:{$lastCol}5");
-        $sheet->setCellValue('A5', 'กรอกข้อมูลนักเรียนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้) — ต้องมีเลขบัตรประชาชนหรือรหัสนักศึกษาอย่างน้อย 1 อย่าง');
-        $sheet->getStyle('A5')->applyFromArray([
-            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
-        ]);
-        $sheet->getRowDimension(5)->setRowHeight(20);
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols);
+        ExcelSchoolHeader::applyInstructionRow($sheet, $totalCols, 'กรอกข้อมูลนักเรียนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้) — ต้องมีเลขบัตรประชาชนหรือรหัสนักศึกษาอย่างน้อย 1 อย่าง');
 
         foreach (StudentExcelExporter::IMPORT_TEMPLATE_HEADERS as $i => $header) {
             $col = Coordinate::stringFromColumnIndex($i + 1);
