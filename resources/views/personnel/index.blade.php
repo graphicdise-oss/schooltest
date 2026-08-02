@@ -401,7 +401,7 @@
             <div class="d-flex justify-content-between align-items-center mb-4 card-header-text">
                 <div>ข้อมูลบุคลากร</div>
                 <div class="d-flex gap-2" style="margin-top: -15px;">
-                    <button type="button" class="btn btn-outline-secondary px-3 py-2 rounded-1"
+                    <button type="button" class="btn px-3 py-2 rounded-1" style="background:#495057; color:#fff;"
                         onclick="document.getElementById('personnelSchoolInfoOverlay').classList.add('active')"
                         title="ตั้งค่าข้อมูลโรงเรียนที่จะแสดงบนแบบฟอร์ม">
                         <i class="bi bi-gear"></i>
