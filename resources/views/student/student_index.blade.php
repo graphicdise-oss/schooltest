@@ -144,9 +144,6 @@
                         <button type="button" class="si-btn-add" style="background:#198754;" onclick="document.getElementById('importOverlay').classList.add('active')">
                             <i class="bi bi-upload"></i> นำเข้าจาก Excel
                         </button>
-                        <a href="{{ route('students.export') }}?{{ http_build_query(request()->query()) }}" class="si-btn-add" style="background:#0d6efd;">
-                            <i class="bi bi-file-earmark-excel"></i> Export ข้อมูลนักเรียน
-                        </a>
                         <a href="{{ route('students.create') }}" class="si-btn-add">
                             <i class="bi bi-plus-lg"></i> เพิ่มข้อมูลนักเรียน
                         </a>
