@@ -400,20 +400,17 @@
             <div class="floating-icon bg-orange-custom"><i class="bi bi-person-fill"></i></div>
             <div class="d-flex justify-content-between align-items-center mb-4 card-header-text">
                 <div>ข้อมูลบุคลากร</div>
-                <div class="dropdown" style="margin-top: -15px;">
-                    <button class="btn btn-manage dropdown-toggle px-3 py-2 rounded-1" type="button"
-                        data-bs-toggle="dropdown">
-                        จัดการข้อมูล
+                <div class="d-flex gap-2" style="margin-top: -15px;">
+                    <a href="{{ route('personnels.import-template') }}" class="btn btn-secondary px-3 py-2 rounded-1">
+                        <i class="bi bi-download me-1"></i> ดาวน์โหลดแบบฟอร์ม Excel
+                    </a>
+                    <button type="button" class="btn btn-success px-3 py-2 rounded-1"
+                        onclick="document.getElementById('personnelImportOverlay').classList.add('active')">
+                        <i class="bi bi-upload me-1"></i> นำเข้าจาก Excel
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><a class="dropdown-item" href="{{ route('personnels.create') }}"><i
-                                    class="bi bi-person-plus me-2"></i>เพิ่มข้อมูลบุคลากร</a></li>
-                        <li><a class="dropdown-item" href="{{ route('personnels.import-template') }}"><i
-                                    class="bi bi-download me-2"></i>ดาวน์โหลดแบบฟอร์ม Excel</a></li>
-                        <li><a class="dropdown-item" href="javascript:void(0)"
-                                onclick="document.getElementById('personnelImportOverlay').classList.add('active')"><i
-                                    class="bi bi-upload me-2"></i>นำเข้าจาก Excel</a></li>
-                    </ul>
+                    <a href="{{ route('personnels.create') }}" class="btn btn-manage px-3 py-2 rounded-1">
+                        <i class="bi bi-person-plus me-1"></i> เพิ่มข้อมูลบุคลากร
+                    </a>
                 </div>
             </div>
 
