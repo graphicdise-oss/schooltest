@@ -206,6 +206,16 @@ class StudentListController extends Controller
         $sheet->setCellValue('B1', $info->school_name ?: 'แบบฟอร์มนำเข้าข้อมูลนักเรียน');
         $sheet->getStyle('B1')->getFont()->setBold(true)->setSize(14);
 
+        if ($info->logo_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($info->logo_path)) {
+            $sheet->getRowDimension(1)->setRowHeight(60);
+            $drawing = new \PhpOffice\PhpSpreadsheet\Worksheet\Drawing();
+            $drawing->setName('ตราโรงเรียน');
+            $drawing->setPath(\Illuminate\Support\Facades\Storage::disk('public')->path($info->logo_path));
+            $drawing->setHeight(75);
+            $drawing->setCoordinates('A1');
+            $drawing->setWorksheet($sheet);
+        }
+
         $contact1 = trim(collect([
             $info->phone ? "โทรศัพท์ : {$info->phone}" : null,
             $info->fax ? "โทรสาร : {$info->fax}" : null,
@@ -249,13 +259,23 @@ class StudentListController extends Controller
             'fax' => 'nullable|string|max:100',
             'website' => 'nullable|string|max:255',
             'email' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|max:2048',
         ]);
+        unset($data['logo']);
 
-        $setting = SchoolInfoSetting::first();
-        if ($setting) {
+        $setting = SchoolInfoSetting::first() ?? new SchoolInfoSetting();
+
+        if ($request->hasFile('logo')) {
+            if ($setting->logo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($setting->logo_path);
+            }
+            $data['logo_path'] = $request->file('logo')->store('school', 'public');
+        }
+
+        if ($setting->exists) {
             $setting->update($data);
         } else {
-            SchoolInfoSetting::create($data);
+            $setting->fill($data)->save();
         }
 
         return back()->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');

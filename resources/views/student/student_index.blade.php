@@ -284,8 +284,17 @@
             <p style="font-size:0.85rem; color:#777; margin-bottom:16px;">
                 ข้อมูลนี้จะแสดงที่หัวแบบฟอร์ม Excel ทุกครั้งที่กด "ดาวน์โหลดแบบฟอร์ม Excel"
             </p>
-            <form method="POST" action="{{ route('students.school-info') }}">
+            <form method="POST" action="{{ route('students.school-info') }}" enctype="multipart/form-data">
                 @csrf
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">ตราโรงเรียน</label>
+                    @if($schoolInfo->logo_path)
+                        <div style="margin-bottom:6px;">
+                            <img src="{{ asset('storage/' . $schoolInfo->logo_path) }}" alt="ตราโรงเรียน" style="height:50px;">
+                        </div>
+                    @endif
+                    <input type="file" name="logo" accept="image/*" class="form-control">
+                </div>
                 <div style="margin-bottom:10px;">
                     <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">ชื่อโรงเรียน</label>
                     <input type="text" name="school_name" value="{{ old('school_name', $schoolInfo->school_name) }}" class="form-control">

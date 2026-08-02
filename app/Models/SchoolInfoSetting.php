@@ -8,7 +8,7 @@ class SchoolInfoSetting extends Model
 {
     protected $table = 'school_info_settings';
 
-    protected $fillable = ['school_name', 'phone', 'fax', 'website', 'email'];
+    protected $fillable = ['school_name', 'logo_path', 'phone', 'fax', 'website', 'email'];
 
     public static function getInstance(): self
     {
