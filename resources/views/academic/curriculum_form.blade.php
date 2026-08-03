@@ -218,7 +218,7 @@
                 </div>
                 <div class="cf-field">
                     <label>ปีการศึกษา</label>
-                    <input type="text" name="year_applied" value="{{ $curriculum->year_applied ?? '' }}" placeholder="เช่น 2568">
+                    <input type="text" name="year_applied" value="{{ $curriculum->year_applied ?? ($yearApplied ?? '') }}" placeholder="เช่น 2568">
                 </div>
                 <div class="cf-field">
                     <label>คำอธิบาย</label>

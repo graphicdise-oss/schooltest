@@ -76,14 +76,19 @@ class CurriculumController extends Controller
 
         $program = null;
         $usedLevelIds = collect();
+        $yearApplied = $request->year_applied;
         if ($request->filled('program_id')) {
             $program = Program::find($request->program_id);
             if ($program) {
-                $usedLevelIds = $program->curriculums()->pluck('level_id');
+                // นับเฉพาะระดับที่ถูกใช้ไปแล้ว "ในปีการศึกษาเดียวกัน" เท่านั้น
+                // (คนละปีสร้างระดับเดิมซ้ำได้ เช่น "EP ป.1" ปี 2568 กับปี 2569)
+                $usedLevelIds = $program->curriculums()
+                    ->when($yearApplied, fn ($q) => $q->where('year_applied', $yearApplied))
+                    ->pluck('level_id');
             }
         }
 
-        return view('academic.curriculum_form', compact('levels', 'program', 'usedLevelIds'));
+        return view('academic.curriculum_form', compact('levels', 'program', 'usedLevelIds', 'yearApplied'));
     }
 
     public function store(Request $request)

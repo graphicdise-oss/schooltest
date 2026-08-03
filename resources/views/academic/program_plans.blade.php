@@ -92,9 +92,20 @@
                     จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
                 </span>
             </div>
-            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id]) }}" class="btn-add">
+            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'year_applied' => $yearName]) }}" class="btn-add">
                 <i class="bi bi-plus-lg"></i> สร้างแผน
             </a>
+        </div>
+
+        <div style="max-width:300px; margin-bottom:18px;">
+            <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:4px;">ปีการศึกษา</label>
+            <select onchange="window.location='?year_id='+this.value" style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:0.88rem;font-family:inherit">
+                @foreach($academicYears as $y)
+                    <option value="{{ $y->year_id }}" {{ (string)$currentYearId === (string)$y->year_id ? 'selected' : '' }}>
+                        {{ $y->year_name }} {{ $y->is_current ? '(ปีปัจจุบัน)' : '' }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <table class="pp-table">
