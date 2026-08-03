@@ -63,6 +63,7 @@ class CurriculumController extends Controller
                 'personnel_id'   => $cs->personnel_id,
                 'credits'        => $cs->credits,
                 'hours_per_year' => $cs->hours_per_year,
+                'hours_per_week' => $cs->hours_per_week,
             ]);
         }
         return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
@@ -114,6 +115,7 @@ class CurriculumController extends Controller
                 'personnel_id'   => $request->personnel_id ?: null,
                 'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
                 'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
+                'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
             ]
         );
         return redirect()->back()->with('success', 'เพิ่มวิชาในหลักสูตรสำเร็จ');
@@ -128,6 +130,7 @@ class CurriculumController extends Controller
                 'personnel_id'   => $request->personnel_id ?: null,
                 'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
                 'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
+                'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
             ]);
         return redirect()->back()->with('success', 'แก้ไขวิชาสำเร็จ');
     }
