@@ -40,6 +40,7 @@
                             <th>ระดับชั้น</th>
                             <th>ห้อง</th>
                             <th>ครูที่ปรึกษา</th>
+                            <th>แผนการเรียน</th>
                             <th>จำนวนนักเรียน</th>
                             <th>จำนวนสูงสุด</th>
                             <th>จัดการ</th>
@@ -53,6 +54,13 @@
                             <td style="font-weight:700; color:#4479DA">{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}{{ $sec->study_plan ? ' '.$sec->study_plan : '' }}</td>
                             <td>{{ $sec->homeroomTeacher ? $sec->homeroomTeacher->thai_firstname . ' ' . $sec->homeroomTeacher->thai_lastname : '-' }}</td>
                             <td>
+                                @if($sec->curriculum)
+                                    {{ $sec->curriculum->name }}
+                                @else
+                                    <span style="color:#bbb">-</span>
+                                @endif
+                            </td>
+                            <td>
                                 <span class="ac-badge ac-badge-info">
                                     {{ $sec->studentSections->where('status', 'กำลังศึกษา')->count() }} คน
                                 </span>
@@ -63,7 +71,7 @@
                                     <i class="bi bi-people"></i>
                                 </a>
                                 <button class="ac-action-btn ac-action-edit" title="แก้ไข"
-                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }})">
+                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }}, '{{ $sec->curriculum_id ?? '' }}')">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('class-sections.destroy', $sec->section_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบห้องเรียนนี้?')">
@@ -73,7 +81,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="ac-empty">ยังไม่มีห้องเรียนในเทอมนี้</td></tr>
+                        <tr><td colspan="8" class="ac-empty">ยังไม่มีห้องเรียนในเทอมนี้</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -109,6 +117,14 @@
                     @endforeach
                 </select>
 
+                <label>แผนการเรียน</label>
+                <select name="curriculum_id">
+                    <option value="">-- ไม่ระบุ --</option>
+                    @foreach($curriculums as $c)
+                        <option value="{{ $c->curriculum_id }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
+                    @endforeach
+                </select>
+
                 <label>จำนวนนักเรียนสูงสุด</label>
                 <input type="number" name="max_students" value="40" min="1">
             </div>
@@ -138,6 +154,14 @@
                     @endforeach
                 </select>
 
+                <label>แผนการเรียน</label>
+                <select name="curriculum_id" id="eCurriculum">
+                    <option value="">-- ไม่ระบุ --</option>
+                    @foreach($curriculums as $c)
+                        <option value="{{ $c->curriculum_id }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
+                    @endforeach
+                </select>
+
                 <label>จำนวนนักเรียนสูงสุด</label>
                 <input type="number" name="max_students" id="eMax" min="1">
             </div>
@@ -150,11 +174,12 @@
 </div>
 
 <script>
-function openEdit(id, roomLabel, teacherId, max) {
+function openEdit(id, roomLabel, teacherId, max, curriculumId) {
     document.getElementById('editForm').action = '{{ url("class-sections") }}/' + id;
     document.getElementById('eRoomLabel').value = roomLabel;
     document.getElementById('eTeacher').value = teacherId || '';
     document.getElementById('eMax').value = max;
+    document.getElementById('eCurriculum').value = curriculumId || '';
     document.getElementById('editOverlay').classList.add('active');
 }
 document.addEventListener('keydown', e => {

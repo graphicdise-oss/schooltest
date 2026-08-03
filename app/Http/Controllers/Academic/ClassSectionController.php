@@ -7,6 +7,7 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Level;
+use App\Models\Academic\Curriculum;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -18,7 +19,7 @@ class ClassSectionController extends Controller
         $levels = Level::orderBy('sort_order')->get();
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
 
-        $sections = ClassSection::with(['level', 'homeroomTeacher', 'studentSections'])
+        $sections = ClassSection::with(['level', 'homeroomTeacher', 'studentSections', 'curriculum'])
             ->where('semester_id', $semesterId)
             ->get()
             ->sortBy([
@@ -27,7 +28,10 @@ class ClassSectionController extends Controller
             ])
             ->values();
 
-        return view('academic.class_sections', compact('sections', 'semesters', 'levels', 'semesterId'));
+        $curriculums = Curriculum::with('level')->where('is_active', true)
+            ->orderBy('year_applied', 'desc')->orderBy('name')->get();
+
+        return view('academic.class_sections', compact('sections', 'semesters', 'levels', 'semesterId', 'curriculums'));
     }
 
     public function store(Request $request)
@@ -41,6 +45,7 @@ class ClassSectionController extends Controller
         ClassSection::create($request->only(['semester_id', 'level_id', 'homeroom_teacher_id', 'max_students']) + [
             'section_number' => $sectionNumber,
             'study_plan' => $studyPlan,
+            'curriculum_id' => $request->curriculum_id ?: null,
         ]);
         return redirect()->back()->with('success', 'เพิ่มห้องเรียนสำเร็จ');
     }
@@ -55,6 +60,7 @@ class ClassSectionController extends Controller
         ClassSection::findOrFail($id)->update($request->only(['homeroom_teacher_id', 'max_students']) + [
             'section_number' => $sectionNumber,
             'study_plan' => $studyPlan,
+            'curriculum_id' => $request->curriculum_id ?: null,
         ]);
         return redirect()->back()->with('success', 'แก้ไขสำเร็จ');
     }
