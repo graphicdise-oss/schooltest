@@ -91,6 +91,13 @@
 .ac-modal-body input:focus, .ac-modal-body select:focus { border-color:#4479DA; box-shadow:0 0 0 3px rgba(68,121,218,0.1); }
 .ac-modal-footer { display:flex; justify-content:flex-end; gap:10px; padding:14px 20px; border-top:1px solid #f0f0f0; }
 
+/* Room number field with a fixed level-name prefix merged into one box */
+.ac-room-input-group { display:flex; align-items:center; height:38px; border:1.5px solid #e0e0e0; border-radius:8px; padding:0 12px; margin-bottom:12px; background:#fff; }
+.ac-room-input-group:focus-within { border-color:#4479DA; box-shadow:0 0 0 3px rgba(68,121,218,0.1); }
+.ac-room-prefix { font-weight:700; color:#4479DA; white-space:nowrap; flex-shrink:0; }
+.ac-room-input-group input { flex:1; width:auto; height:36px; border:none; padding:0; margin:0; background:transparent; box-shadow:none; }
+.ac-room-input-group input:focus { border:none; box-shadow:none; }
+
 /* Score input */
 .score-input { width:70px !important; height:32px !important; text-align:center; font-size:0.82rem !important; padding:0 6px !important; margin:0 !important; }
 .score-input:focus { border-color:#4479DA; }

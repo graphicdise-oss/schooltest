@@ -107,9 +107,9 @@
                 </select>
 
                 <label>ห้องที่ *</label>
-                <div style="display:flex; align-items:center; gap:2px;">
-                    <span id="aLevelPrefix" style="font-weight:700; color:#4479DA; white-space:nowrap;"></span>
-                    <input type="text" name="room_label" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต" style="flex:1;">
+                <div class="ac-room-input-group">
+                    <span id="aLevelPrefix" class="ac-room-prefix"></span>
+                    <input type="text" name="room_label" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
                 </div>
 
                 <label>ครูที่ปรึกษา</label>
@@ -147,9 +147,9 @@
             @csrf @method('PUT')
             <div class="ac-modal-body">
                 <label>ห้องที่ *</label>
-                <div style="display:flex; align-items:center; gap:2px;">
-                    <span id="eLevelPrefix" style="font-weight:700; color:#4479DA; white-space:nowrap;"></span>
-                    <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต" style="flex:1;">
+                <div class="ac-room-input-group">
+                    <span id="eLevelPrefix" class="ac-room-prefix"></span>
+                    <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
                 </div>
 
                 <label>ครูที่ปรึกษา</label>
