@@ -100,7 +100,7 @@ body {
 
 .grades-table {
     width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed;
-    font-size: 12px; border: 1px solid #000;
+    font-size: 13px; border: 1px solid #000;
 }
 .grades-table th {
     border: 1px solid #000; padding: 2px 3px; vertical-align: middle;
@@ -113,7 +113,7 @@ body {
 .grades-table tbody tr.stretch-row td { height: 100%; }
 
 /* ของใหม่: ล็อคความกว้างเป็นหน่วย mm จะแคบลงชัดเจน */
-.col-subject { width: 45mm; font-size: 11px; overflow-wrap: break-word; word-break: break-word; } /* ส่วนชื่อวิชา */
+.col-subject { width: 45mm; font-size: 13px; overflow-wrap: break-word; word-break: break-word; } /* ส่วนชื่อวิชา */
 .col-credit  { width: 6mm; text-align: center; padding: 0 !important; } /* ส่วนหน่วยกิต */
 .col-grade   { width: 6mm; text-align: center; padding: 0 !important; } /* ส่วนผลการเรียน */
 
@@ -306,11 +306,11 @@ body {
                 @for($c = 0; $c < $numCols; $c++)
                 @php $row = $colRows[$c][$r] ?? ['type'=>'empty']; @endphp
                 @if($row['type'] === 'year')
-                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:14px;">{{ $row['label'] }}</td>
+                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:13px;">{{ $row['label'] }}</td>
                     <td class="col-credit"></td>
                     <td class="col-grade"></td>
                 @elseif($row['type'] === 'sem')
-                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:14px;">{{ $row['label'] }}</td>
+                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:13px;">{{ $row['label'] }}</td>
                     <td class="col-credit"></td>
                     <td class="col-grade"></td>
                 @elseif($row['type'] === 'subject')
