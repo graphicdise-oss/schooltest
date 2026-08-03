@@ -7,6 +7,7 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Level;
 use App\Models\Academic\Semester;
+use App\Models\Academic\StudentSection;
 use App\Models\Academic\Subject;
 use App\Models\Academic\TeachingAssign;
 use App\Models\Personne\Personnel;
@@ -16,9 +17,15 @@ use Illuminate\Support\Facades\DB;
 
 class SeedPor1DemoGrades extends Command
 {
+    // ใช้เลขห้อง/แผนการเรียนที่ไม่ซ้ำกับห้องจริงแน่ๆ กันไปปนกับห้องเรียนจริงของโรงเรียน
+    private const TEST_SECTION_NUMBER = 9999;
+    private const TEST_STUDY_PLAN = 'ทดสอบเกรด (ลบได้)';
+    private const TEST_TEACHER_CODE = 'GRADE-TEST';
+
     protected $signature = 'grade:seed-por1-demo
         {student_code : รหัสนักเรียน (student_code) ที่มีอยู่แล้วในระบบ}
-        {--dry-run : ทดสอบเฉยๆ ไม่บันทึกจริง}';
+        {--dry-run : ทดสอบเฉยๆ ไม่บันทึกจริง}
+        {--undo : ลบข้อมูลที่คำสั่งนี้เคยใส่ให้นักเรียนคนนี้ทิ้งทั้งหมด}';
 
     protected $description = 'ใส่ข้อมูลผลการเรียน (ตามไฟล์ตัวอย่างที่ผู้ใช้ให้มา) ให้นักเรียนคนที่ระบุ '
         . 'เพื่อทดสอบว่าใบ ปพ.1 แสดงผลถูกต้องไหม — ไม่แตะห้องเรียน/การลงทะเบียนจริงของนักเรียนคนนี้เลย '
@@ -146,6 +153,11 @@ class SeedPor1DemoGrades extends Command
         }
 
         $this->info("พบนักเรียน: {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} (student_id={$student->student_id})");
+
+        if ($this->option('undo')) {
+            return $this->undo($student, $dryRun);
+        }
+
         $this->info($dryRun ? '=== โหมดทดสอบ (dry-run) — จะไม่บันทึกข้อมูลจริง ===' : '=== กำลังบันทึกข้อมูลจริง ===');
 
         $created = 0;
@@ -163,14 +175,28 @@ class SeedPor1DemoGrades extends Command
                     foreach ($block['semesters'] as $semesterName => $subjects) {
                         $semester = Semester::firstOrCreate(['year_id' => $year->year_id, 'semester_name' => $semesterName]);
 
+                        // ใช้เลขห้อง/แผนการเรียนที่ตั้งใจให้ไม่ซ้ำกับห้องจริงของโรงเรียนเด็ดขาด
+                        // (กันไปปนกับรายชื่อห้องจริงในหน้าอื่นๆ เช่น class-roster)
                         $section = ClassSection::firstOrCreate(
-                            ['semester_id' => $semester->semester_id, 'level_id' => $level->level_id, 'section_number' => 1, 'study_plan' => ''],
+                            [
+                                'semester_id' => $semester->semester_id,
+                                'level_id' => $level->level_id,
+                                'section_number' => self::TEST_SECTION_NUMBER,
+                                'study_plan' => self::TEST_STUDY_PLAN,
+                            ],
                             []
                         );
 
                         $teacher = Personnel::firstOrCreate(
-                            ['employee_code' => 'GRADE-TEST'],
+                            ['employee_code' => self::TEST_TEACHER_CODE],
                             ['thai_prefix' => 'นางสาว', 'thai_firstname' => 'ทดสอบ', 'thai_lastname' => 'ระบบเกรด (ปพ.1)', 'personnel_type' => 'ครู', 'status' => 'ปฏิบัติงาน']
+                        );
+
+                        // ต้องมี student_sections ด้วย ไม่งั้นหน้า "ตั้งค่าการพิมพ์ ปพ.1" จะไม่รู้ว่านักเรียน
+                        // มีเกรดเทอมนี้อยู่ (ช่องติ๊กเลือกเทอมที่จะพิมพ์ อ่านจาก student_sections ไม่ใช่ final_grades)
+                        StudentSection::firstOrCreate(
+                            ['student_id' => $student->student_id, 'section_id' => $section->section_id],
+                            ['student_number' => 0, 'status' => 'กำลังศึกษา']
                         );
 
                         foreach ($subjects as [$code, $name, $credit, $grade]) {
@@ -233,6 +259,38 @@ class SeedPor1DemoGrades extends Command
             $this->comment('นี่คือผลทดสอบ ยังไม่มีข้อมูลถูกบันทึกจริง หากตรวจสอบแล้วถูกต้อง ให้รันคำสั่งเดิมโดยไม่ใส่ --dry-run');
         } else {
             $this->comment("เข้าไปดูใบ ปพ.1 ได้ที่: /por1/print/{$student->student_id}");
+        }
+
+        return self::SUCCESS;
+    }
+
+    /**
+     * ลบข้อมูลที่คำสั่งนี้เคยใส่ให้นักเรียนคนนี้ทิ้ง — ไล่จาก "ครูทดสอบ" (GRADE-TEST) ซึ่งมีแค่คำสั่งนี้เท่านั้นที่ใช้
+     * จึงครอบคลุมของเก่าที่เคยรันไปแล้วด้วย ไม่ว่าจะรันเวอร์ชันไหนของคำสั่งนี้มาก่อน
+     * ไม่ลบ subjects/teaching_assigns/class_sections ทิ้ง (อาจมีคนอื่นใช้ร่วม ปล่อยว่างไว้ไม่มีผลกระทบอะไร)
+     */
+    private function undo(Student $student, bool $dryRun): int
+    {
+        $teacher = Personnel::where('employee_code', self::TEST_TEACHER_CODE)->first();
+        if (!$teacher) {
+            $this->info('ไม่พบข้อมูลทดสอบของคำสั่งนี้ในระบบ (ไม่มีอะไรให้ลบ)');
+            return self::SUCCESS;
+        }
+
+        $assignIds = TeachingAssign::where('personnel_id', $teacher->personnel_id)->pluck('assign_id');
+        $sectionIds = TeachingAssign::whereIn('assign_id', $assignIds)->pluck('section_id')->unique();
+
+        $gradeCount = FinalGrade::where('student_id', $student->student_id)->whereIn('assign_id', $assignIds)->count();
+        $sectionMemberCount = StudentSection::where('student_id', $student->student_id)->whereIn('section_id', $sectionIds)->count();
+
+        $this->info($dryRun ? '=== โหมดทดสอบ (dry-run) — จะไม่ลบจริง ===' : '=== กำลังลบข้อมูลจริง ===');
+        $this->info(($dryRun ? 'จะลบผลการเรียน: ' : 'ลบผลการเรียน: ') . "{$gradeCount} รายวิชา");
+        $this->info(($dryRun ? 'จะลบการอยู่ในห้องทดสอบ: ' : 'ลบการอยู่ในห้องทดสอบ: ') . "{$sectionMemberCount} รายการ");
+
+        if (!$dryRun) {
+            FinalGrade::where('student_id', $student->student_id)->whereIn('assign_id', $assignIds)->delete();
+            StudentSection::where('student_id', $student->student_id)->whereIn('section_id', $sectionIds)->delete();
+            $this->comment('ลบเรียบร้อยแล้ว');
         }
 
         return self::SUCCESS;
