@@ -20,7 +20,7 @@ class GradeController extends Controller
     public function index(Request $request)
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $sections = ClassSection::with('level')
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number')->get();
@@ -229,7 +229,7 @@ class GradeController extends Controller
     public function gpaReport(Request $request)
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
 
         $gpaData = DB::table('final_grades as fg')
             ->join('teaching_assigns as ta', 'fg.assign_id', '=', 'ta.assign_id')

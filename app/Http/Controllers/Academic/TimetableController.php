@@ -19,7 +19,7 @@ class TimetableController extends Controller
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
         $levels     = Level::orderBy('sort_order')->get();
-        $semesters  = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters  = Semester::with('academicYear')->orderedByRecency()->get();
 
         $query = ClassSection::with(['level', 'homeroomTeacher', 'teachingAssigns.timetableSlots'])
             ->where('semester_id', $semesterId)
@@ -85,7 +85,7 @@ class TimetableController extends Controller
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
         $sections = ClassSection::with('level')->where('semester_id', $semesterId)->orderBy('level_id')->orderBy('section_number')->get();
         $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
 
         return view('academic.timetable_view', compact('slots', 'days', 'sections', 'teachers', 'semesters', 'semesterId', 'sectionId', 'teacherId'));
     }

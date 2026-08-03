@@ -15,7 +15,7 @@ class ClassSectionController extends Controller
 {
     public function index(Request $request)
     {
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $levels = Level::orderBy('sort_order')->get();
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
 

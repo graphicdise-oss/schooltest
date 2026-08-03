@@ -18,7 +18,7 @@ class PromotionController extends Controller
     public function index(Request $request)
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $levels = Level::orderBy('sort_order')->get();
 
         $fromSections = ClassSection::with(['level', 'studentSections.student'])

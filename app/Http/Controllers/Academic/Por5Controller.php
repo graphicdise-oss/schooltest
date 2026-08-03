@@ -29,7 +29,7 @@ class Por5Controller extends Controller
         $subjectId   = $request->subject_id;
         $personnelId = $request->personnel_id;
 
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $subjects  = Subject::where('is_active', true)->orderBy('code')->get();
         $teachers  = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
 
