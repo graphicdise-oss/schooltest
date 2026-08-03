@@ -280,7 +280,7 @@
                                 จัดการข้อมูล <i class="bi bi-chevron-down"></i>
                             </button>
                             <div class="cf-dropdown">
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, {{ $cs->credits ?? 'null' }}, {{ $cs->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? 'null' }})">
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -315,26 +315,31 @@
                 <div class="cf-modal-body">
                     <div>
                         <label>เลือกวิชา *</label>
-                        <select name="subject_id" required>
+                        <select name="subject_id" id="add_subject_id" required onchange="fillSubjectDefaults(this)">
                             <option value="">-- เลือกวิชา --</option>
                             @foreach($subjects as $sub)
-                                <option value="{{ $sub->subject_id }}">{{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)</option>
+                                <option value="{{ $sub->subject_id }}"
+                                    data-credits="{{ $sub->credits ?? '' }}"
+                                    data-hours-year="{{ $sub->hours_per_year ?? '' }}"
+                                    data-hours-week="{{ $sub->hours_per_week ?? '' }}">
+                                    {{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)
+                                </option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="cf-modal-hint" style="margin:-6px 0 0">(หน่วยกิต/ชั่วโมง 3 ช่องด้านล่าง เฉพาะแผนนี้ ไม่กรอก = ใช้ค่าของวิชา)</div>
+                    <div class="cf-modal-hint" style="margin:-6px 0 0">(ค่าเริ่มต้นดึงมาจากวิชาที่เลือก แก้ไขได้เฉพาะแผนนี้ ไม่กระทบข้อมูลวิชากลาง)</div>
                     <div class="cf-modal-row">
                         <div>
                             <label>หน่วยกิต</label>
-                            <input type="number" step="0.5" min="0" name="credits" placeholder="ค่าเริ่มต้นจากวิชา">
+                            <input type="number" step="0.5" min="0" name="credits" id="add_credits" placeholder="ค่าเริ่มต้นจากวิชา">
                         </div>
                         <div>
                             <label>ชั่วโมง/ปี</label>
-                            <input type="number" step="1" min="0" name="hours_per_year" placeholder="ค่าเริ่มต้นจากวิชา">
+                            <input type="number" step="1" min="0" name="hours_per_year" id="add_hours_per_year" placeholder="ค่าเริ่มต้นจากวิชา">
                         </div>
                         <div>
                             <label>ชั่วโมง/สัปดาห์</label>
-                            <input type="number" step="0.5" min="0" name="hours_per_week" placeholder="ค่าเริ่มต้นจากวิชา">
+                            <input type="number" step="0.5" min="0" name="hours_per_week" id="add_hours_per_week" placeholder="ค่าเริ่มต้นจากวิชา">
                         </div>
                     </div>
                     <div>
@@ -377,7 +382,7 @@
             <form method="POST" id="editSubjForm" action="">
                 @csrf @method('PUT')
                 <div class="cf-modal-body">
-                    <div class="cf-modal-hint" style="margin:-6px 0 0">(หน่วยกิต/ชั่วโมง 3 ช่องด้านล่าง เฉพาะแผนนี้)</div>
+                    <div class="cf-modal-hint" style="margin:-6px 0 0">(ค่าเริ่มต้นดึงมาจากวิชา แก้ไขได้เฉพาะแผนนี้ ไม่กระทบข้อมูลวิชากลาง)</div>
                     <div class="cf-modal-row">
                         <div>
                             <label>หน่วยกิต</label>
@@ -428,6 +433,12 @@
 
 </div>
 <script>
+function fillSubjectDefaults(select) {
+    const opt = select.options[select.selectedIndex];
+    document.getElementById('add_credits').value = opt.dataset.credits || '';
+    document.getElementById('add_hours_per_year').value = opt.dataset.hoursYear || '';
+    document.getElementById('add_hours_per_week').value = opt.dataset.hoursWeek || '';
+}
 function toggleDd(btn) {
     document.querySelectorAll('.cf-dropdown.open').forEach(d => {
         if (d !== btn.nextElementSibling) d.classList.remove('open');
