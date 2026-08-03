@@ -216,10 +216,19 @@
                                 {{ $students->count() }} คน
                             </span>
                         </div>
-                        <a href="{{ route('class-roster.index', array_merge(request()->query(), ['export' => 'excel'])) }}"
-                           class="btn-export">
-                            <i class="fas fa-file-excel"></i> EXPORT
-                        </a>
+                        <div style="display:flex; gap:8px;">
+                            <a href="{{ route('class-roster.index', array_merge(request()->query(), ['export' => 'excel'])) }}"
+                               class="btn-export" title="Export เฉพาะห้องนี้">
+                                <i class="fas fa-file-excel"></i> EXPORT ห้องนี้
+                            </a>
+                            @if ($levelId)
+                                <a href="{{ route('class-roster.index', array_merge(request()->query(), ['export' => 'level'])) }}"
+                                   class="btn-export" style="background:#00838f;"
+                                   title="รวมทุกห้องของ {{ $selectedSection->level->name ?? '' }} เรียงตามห้อง">
+                                    <i class="fas fa-layer-group"></i> EXPORT ทั้งชั้น
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 @endif
 
