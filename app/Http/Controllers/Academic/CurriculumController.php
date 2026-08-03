@@ -7,6 +7,7 @@ use App\Models\Academic\Curriculum;
 use App\Models\Academic\CurriculumSubject;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Level;
+use App\Models\Academic\Program;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 
@@ -69,16 +70,28 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $levels = Level::orderBy('sort_order')->get();
-        return view('academic.curriculum_form', compact('levels'));
+
+        $program = null;
+        $usedLevelIds = collect();
+        if ($request->filled('program_id')) {
+            $program = Program::find($request->program_id);
+            if ($program) {
+                $usedLevelIds = $program->curriculums()->pluck('level_id');
+            }
+        }
+
+        return view('academic.curriculum_form', compact('levels', 'program', 'usedLevelIds'));
     }
 
     public function store(Request $request)
     {
         $request->validate(['name' => 'required']);
-        $cur = Curriculum::create($request->only(['name', 'level_id', 'year_applied', 'description']));
+        $cur = Curriculum::create($request->only(['name', 'level_id', 'year_applied', 'description']) + [
+            'program_id' => $request->program_id ?: null,
+        ]);
         return redirect()->route('curriculums.edit', $cur->curriculum_id)->with('success', 'สร้างหลักสูตรสำเร็จ');
     }
 

@@ -390,7 +390,7 @@
                                         <li><a href="{{ route('subjects.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการรายวิชา</a>
                                         </li>
-                                        <li><a href="{{ route('curriculums.index') }}"
+                                        <li><a href="{{ route('programs.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการหลักสูตร</a>
                                         </li>
                                         <li><a href="{{ route('class-sections.index') }}"

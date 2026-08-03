@@ -12,6 +12,7 @@ use App\Http\Controllers\Personnel\PersonnelController;
 use App\Http\Controllers\Setting\PrefixController;
 use App\Http\Controllers\Academic\SubjectController;
 use App\Http\Controllers\Academic\CurriculumController;
+use App\Http\Controllers\Academic\ProgramController;
 use App\Http\Controllers\Academic\ClassSectionController;
 use App\Http\Controllers\Academic\TimetableController;
 use App\Http\Controllers\Academic\ScoreController;
@@ -199,6 +200,15 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
         Route::get('/year/{year}', 'byYear')->name('byYear');
         Route::post('/{id}/copy', 'copy')->name('copy');
+    });
+
+    // === 2b. จัดการหลักสูตร (กลุ่มหลักสูตร/โปรแกรม เช่น EP, IEP) ===
+    Route::controller(ProgramController::class)->prefix('programs')->name('programs.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+        Route::get('/{id}/plans', 'plans')->name('plans');
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===

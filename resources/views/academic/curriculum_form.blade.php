@@ -178,27 +178,39 @@
                     </button>
                 </form>
                 @endif
-                <a href="{{ route('curriculums.index') }}" class="btn-back">
+                <a href="{{ isset($program) && $program ? route('programs.plans', $program->program_id) : route('curriculums.index') }}" class="btn-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
             </div>
         </div>
 
+        @if(isset($program) && $program)
+        <div style="margin:-8px 0 18px 0; color:#43a047; font-weight:700; font-size:0.9rem;">
+            <i class="bi bi-journal-check"></i> หลักสูตร: {{ $program->name }}
+        </div>
+        @endif
+
         <form method="POST" action="{{ isset($curriculum) ? route('curriculums.update', $curriculum->curriculum_id) : route('curriculums.store') }}">
             @csrf
             @if(isset($curriculum)) @method('PUT') @endif
+            @if(isset($program) && $program)
+                <input type="hidden" name="program_id" value="{{ $program->program_id }}">
+            @endif
 
             <div class="cf-grid">
                 <div class="cf-field">
                     <label>ชื่อแผน *</label>
-                    <input type="text" name="name" value="{{ $curriculum->name ?? '' }}" required placeholder="เช่น EP ป.1">
+                    <input type="text" name="name" id="curriculumNameInput" value="{{ $curriculum->name ?? '' }}" required placeholder="เช่น EP ป.1">
                 </div>
                 <div class="cf-field">
                     <label>ระดับชั้น</label>
-                    <select name="level_id">
+                    <select name="level_id" id="levelSelect" onchange="onCurriculumLevelChange(this)">
                         <option value="">-- ทุกระดับ --</option>
                         @foreach($levels as $l)
-                            <option value="{{ $l->level_id }}" {{ ($curriculum->level_id ?? '') == $l->level_id ? 'selected' : '' }}>
+                            @if(!isset($curriculum) && isset($usedLevelIds) && $usedLevelIds->contains($l->level_id))
+                                @continue
+                            @endif
+                            <option value="{{ $l->level_id }}" data-name="{{ $l->name }}" {{ ($curriculum->level_id ?? '') == $l->level_id ? 'selected' : '' }}>
                                 {{ $l->name }}
                             </option>
                         @endforeach
@@ -433,6 +445,15 @@
 
 </div>
 <script>
+const curriculumProgramName = @json((isset($program) && $program) ? $program->name : null);
+function onCurriculumLevelChange(select) {
+    if (!curriculumProgramName) return;
+    const opt = select.options[select.selectedIndex];
+    const nameInput = document.getElementById('curriculumNameInput');
+    if (opt.dataset.name) {
+        nameInput.value = curriculumProgramName + ' ' + opt.dataset.name;
+    }
+}
 function fillSubjectDefaults(select) {
     const opt = select.options[select.selectedIndex];
     document.getElementById('add_credits').value = opt.dataset.credits || '';
