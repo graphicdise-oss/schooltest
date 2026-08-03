@@ -138,7 +138,10 @@ class SeedPor1DemoGrades extends Command
         'ศ' => 'ศิลปะ',
         'ง' => 'การงานอาชีพ',
         'อ' => 'ภาษาต่างประเทศ',
-        'IS' => 'กิจกรรมพัฒนาผู้เรียน',
+        // ห้ามเป็น "กิจกรรมพัฒนาผู้เรียน" เด็ดขาด — por1_print.blade.php กรองรายวิชากลุ่มนั้นออกจากตารางเกรดหลัก
+        // โดยตั้งใจ (ไปโผล่ที่ตารางกิจกรรมแยกต่างหากแทน) วิชา IS (การศึกษาค้นคว้าด้วยตนเอง) มีเกรด 0-4 จริง
+        // ต้องอยู่ในตารางหลัก จึงต้องใช้ชื่อกลุ่มอื่นที่ไม่ตรงกับคำนี้เป๊ะๆ
+        'IS' => 'การศึกษาค้นคว้าด้วยตนเอง',
     ];
 
     public function handle(): int
@@ -210,6 +213,12 @@ class SeedPor1DemoGrades extends Command
                                     'is_active' => true,
                                 ]
                             );
+
+                            // แก้ของเดิมที่เคยตั้ง subject_group ผิดไว้ (รันคำสั่งเวอร์ชันก่อนหน้านี้ตั้ง IS เป็น
+                            // "กิจกรรมพัฒนาผู้เรียน" ซึ่งถูกกรองออกจากตารางเกรดหลักไปโดยไม่ได้ตั้งใจ)
+                            if ($subject->subject_group === 'กิจกรรมพัฒนาผู้เรียน' && str_starts_with($code, 'IS')) {
+                                $subject->update(['subject_group' => $this->guessSubjectGroup($code)]);
+                            }
 
                             $assign = TeachingAssign::firstOrCreate([
                                 'personnel_id' => $teacher->personnel_id,
