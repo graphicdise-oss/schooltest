@@ -57,6 +57,14 @@
 }
 .btn-back:hover { background: #3949ab; color: #fff; }
 
+.btn-copy-plan {
+    background: #039be5; color: #fff; border: none; border-radius: 6px;
+    padding: 9px 20px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-copy-plan:hover { background: #0277bd; }
+
 /* Subject table */
 .cf-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .cf-table thead th {
@@ -131,6 +139,9 @@
     padding: 7px 4px; font-size: 0.88rem; font-family: inherit;
     outline: none; background: transparent;
 }
+.cf-modal-row { display: flex; gap: 14px; }
+.cf-modal-row > div { flex: 1; }
+.cf-modal-hint { font-size: 0.72rem; color: #999; font-weight: 400; margin-left: 4px; }
 .cf-modal-body select:focus { border-bottom-color: #43a047; }
 .cf-modal-footer {
     padding: 14px 22px 18px; display: flex; justify-content: flex-end; gap: 10px;
@@ -157,9 +168,20 @@
         <div class="cf-icon cf-icon-info"><i class="bi bi-search"></i></div>
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการหลักสูตร/แผน</span>
-            <a href="{{ route('curriculums.index') }}" class="btn-back">
-                <i class="bi bi-arrow-left"></i> ย้อนกลับ
-            </a>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                @if(isset($curriculum))
+                <form action="{{ route('curriculums.copy', $curriculum->curriculum_id) }}" method="POST" style="display:inline"
+                      onsubmit="return confirm('คัดลอกแผนการเรียน &quot;{{ addslashes($curriculum->name) }}&quot; เป็นแผนใหม่?')">
+                    @csrf
+                    <button type="submit" class="btn-copy-plan">
+                        <i class="bi bi-files"></i> คัดลอกแผนการเรียน
+                    </button>
+                </form>
+                @endif
+                <a href="{{ route('curriculums.index') }}" class="btn-back">
+                    <i class="bi bi-arrow-left"></i> ย้อนกลับ
+                </a>
+            </div>
         </div>
 
         <form method="POST" action="{{ isset($curriculum) ? route('curriculums.update', $curriculum->curriculum_id) : route('curriculums.store') }}">
@@ -215,6 +237,7 @@
                     <th style="width:50px">ลำดับ</th>
                     <th>รหัสวิชา</th>
                     <th style="text-align:center">หน่วยกิต</th>
+                    <th style="text-align:center">ชั่วโมง/ปี</th>
                     <th>ชื่อวิชา</th>
                     <th style="text-align:center">เทอม</th>
                     <th style="text-align:center">ประเภท</th>
@@ -227,7 +250,8 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td><strong>{{ $cs->subject->code ?? '-' }}</strong></td>
-                    <td style="text-align:center">{{ $cs->subject->credits ?? '-' }}</td>
+                    <td style="text-align:center">{{ $cs->credits ?? $cs->subject->credits ?? '-' }}</td>
+                    <td style="text-align:center">{{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? '-' }}</td>
                     <td>{{ $cs->subject->name_th ?? '-' }}</td>
                     <td style="text-align:center">
                         <span class="badge-sem">
@@ -254,7 +278,7 @@
                                 จัดการข้อมูล <i class="bi bi-chevron-down"></i>
                             </button>
                             <div class="cf-dropdown">
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }})">
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, {{ $cs->credits ?? 'null' }}, {{ $cs->hours_per_year ?? 'null' }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -270,7 +294,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="cf-empty">
+                    <td colspan="9" class="cf-empty">
                         <i class="bi bi-journal-x" style="font-size:1.8rem;display:block;margin-bottom:6px"></i>
                         ยังไม่มีวิชาในหลักสูตรนี้
                     </td>
@@ -295,6 +319,16 @@
                                 <option value="{{ $sub->subject_id }}">{{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)</option>
                             @endforeach
                         </select>
+                    </div>
+                    <div class="cf-modal-row">
+                        <div>
+                            <label>หน่วยกิต <span class="cf-modal-hint">(เฉพาะแผนนี้ ไม่กรอก = ใช้ค่าของวิชา)</span></label>
+                            <input type="number" step="0.5" min="0" name="credits" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                        <div>
+                            <label>ชั่วโมง/ปี <span class="cf-modal-hint">(เฉพาะแผนนี้)</span></label>
+                            <input type="number" step="1" min="0" name="hours_per_year" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
                     </div>
                     <div>
                         <label>เทอม</label>
@@ -336,6 +370,16 @@
             <form method="POST" id="editSubjForm" action="">
                 @csrf @method('PUT')
                 <div class="cf-modal-body">
+                    <div class="cf-modal-row">
+                        <div>
+                            <label>หน่วยกิต <span class="cf-modal-hint">(เฉพาะแผนนี้)</span></label>
+                            <input type="number" step="0.5" min="0" name="credits" id="edit_credits" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                        <div>
+                            <label>ชั่วโมง/ปี <span class="cf-modal-hint">(เฉพาะแผนนี้)</span></label>
+                            <input type="number" step="1" min="0" name="hours_per_year" id="edit_hours_per_year" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                    </div>
                     <div>
                         <label>เทอม</label>
                         <select name="semester_type" id="edit_semester_type">
@@ -390,12 +434,14 @@ document.addEventListener('keydown', e => {
     }
 });
 
-function openEditModal(csId, semType, isReq, personnelId) {
+function openEditModal(csId, semType, isReq, personnelId, credits, hoursPerYear) {
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
     document.getElementById('edit_semester_type').value = semType;
     document.getElementById('edit_is_required').value = isReq;
     document.getElementById('edit_personnel_id').value = personnelId || '';
+    document.getElementById('edit_credits').value = (credits === null || credits === undefined) ? '' : credits;
+    document.getElementById('edit_hours_per_year').value = (hoursPerYear === null || hoursPerYear === undefined) ? '' : hoursPerYear;
     document.querySelectorAll('.cf-dropdown.open').forEach(d => d.classList.remove('open'));
     document.getElementById('editSubjOverlay').classList.add('active');
 }

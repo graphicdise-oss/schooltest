@@ -57,9 +57,12 @@ class CurriculumController extends Controller
         $new->save();
         foreach ($original->curriculumSubjects as $cs) {
             $new->curriculumSubjects()->create([
-                'subject_id'    => $cs->subject_id,
-                'semester_type' => $cs->semester_type,
-                'is_required'   => $cs->is_required,
+                'subject_id'     => $cs->subject_id,
+                'semester_type'  => $cs->semester_type,
+                'is_required'    => $cs->is_required,
+                'personnel_id'   => $cs->personnel_id,
+                'credits'        => $cs->credits,
+                'hours_per_year' => $cs->hours_per_year,
             ]);
         }
         return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
@@ -106,9 +109,11 @@ class CurriculumController extends Controller
         CurriculumSubject::firstOrCreate(
             ['curriculum_id' => $id, 'subject_id' => $request->subject_id],
             [
-                'semester_type' => $request->semester_type ?? 'both',
-                'is_required'   => $request->boolean('is_required', true),
-                'personnel_id'  => $request->personnel_id ?: null,
+                'semester_type'  => $request->semester_type ?? 'both',
+                'is_required'    => $request->boolean('is_required', true),
+                'personnel_id'   => $request->personnel_id ?: null,
+                'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
+                'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
             ]
         );
         return redirect()->back()->with('success', 'เพิ่มวิชาในหลักสูตรสำเร็จ');
@@ -118,9 +123,11 @@ class CurriculumController extends Controller
     {
         CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)
             ->update([
-                'semester_type' => $request->semester_type ?? 'both',
-                'is_required'   => $request->boolean('is_required', true),
-                'personnel_id'  => $request->personnel_id ?: null,
+                'semester_type'  => $request->semester_type ?? 'both',
+                'is_required'    => $request->boolean('is_required', true),
+                'personnel_id'   => $request->personnel_id ?: null,
+                'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
+                'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
             ]);
         return redirect()->back()->with('success', 'แก้ไขวิชาสำเร็จ');
     }

@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Model;
 class CurriculumSubject extends Model
 {
     protected $table = 'curriculum_subjects';
-    protected $fillable = ['curriculum_id', 'subject_id', 'semester_type', 'is_required', 'personnel_id'];
+    protected $fillable = ['curriculum_id', 'subject_id', 'semester_type', 'is_required', 'personnel_id', 'credits', 'hours_per_year'];
     protected $casts = ['is_required' => 'boolean'];
     public function curriculum() { return $this->belongsTo(Curriculum::class, 'curriculum_id', 'curriculum_id'); }
     public function subject()    { return $this->belongsTo(Subject::class, 'subject_id', 'subject_id'); }
