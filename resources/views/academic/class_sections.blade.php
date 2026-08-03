@@ -71,7 +71,7 @@
                                     <i class="bi bi-people"></i>
                                 </a>
                                 <button class="ac-action-btn ac-action-edit" title="แก้ไข"
-                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }}, '{{ $sec->curriculum_id ?? '' }}')">
+                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }}, '{{ $sec->curriculum_id ?? '' }}', {{ Js::from($sec->level->name ?? '') }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('class-sections.destroy', $sec->section_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบห้องเรียนนี้?')">
@@ -99,15 +99,18 @@
             <input type="hidden" name="semester_id" value="{{ $semesterId }}">
             <div class="ac-modal-body">
                 <label>ระดับชั้น *</label>
-                <select name="level_id" required>
+                <select name="level_id" id="aLevel" required onchange="updateAddPrefix(this)">
                     <option value="">-- เลือก --</option>
                     @foreach($levels as $l)
-                        <option value="{{ $l->level_id }}">{{ $l->name }} ({{ $l->level_group }})</option>
+                        <option value="{{ $l->level_id }}" data-name="{{ $l->name }}">{{ $l->name }} ({{ $l->level_group }})</option>
                     @endforeach
                 </select>
 
                 <label>ห้องที่ *</label>
-                <input type="text" name="room_label" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
+                <div style="display:flex; align-items:center; gap:2px;">
+                    <span id="aLevelPrefix" style="font-weight:700; color:#4479DA; white-space:nowrap;"></span>
+                    <input type="text" name="room_label" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต" style="flex:1;">
+                </div>
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id">
@@ -144,7 +147,10 @@
             @csrf @method('PUT')
             <div class="ac-modal-body">
                 <label>ห้องที่ *</label>
-                <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
+                <div style="display:flex; align-items:center; gap:2px;">
+                    <span id="eLevelPrefix" style="font-weight:700; color:#4479DA; white-space:nowrap;"></span>
+                    <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต" style="flex:1;">
+                </div>
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id" id="eTeacher">
@@ -174,13 +180,18 @@
 </div>
 
 <script>
-function openEdit(id, roomLabel, teacherId, max, curriculumId) {
+function openEdit(id, roomLabel, teacherId, max, curriculumId, levelName) {
     document.getElementById('editForm').action = '{{ url("class-sections") }}/' + id;
     document.getElementById('eRoomLabel').value = roomLabel;
     document.getElementById('eTeacher').value = teacherId || '';
     document.getElementById('eMax').value = max;
     document.getElementById('eCurriculum').value = curriculumId || '';
+    document.getElementById('eLevelPrefix').textContent = levelName ? levelName + '/' : '';
     document.getElementById('editOverlay').classList.add('active');
+}
+function updateAddPrefix(select) {
+    const opt = select.options[select.selectedIndex];
+    document.getElementById('aLevelPrefix').textContent = opt.dataset.name ? opt.dataset.name + '/' : '';
 }
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.querySelectorAll('.ac-overlay.active').forEach(el => el.classList.remove('active'));
