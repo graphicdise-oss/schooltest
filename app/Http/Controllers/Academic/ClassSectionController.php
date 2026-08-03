@@ -37,7 +37,9 @@ class ClassSectionController extends Controller
     public function store(Request $request)
     {
         $request->validate(['semester_id' => 'required', 'level_id' => 'required', 'room_label' => 'required']);
-        [$sectionNumber, $studyPlan] = $this->parseRoomLabel($request->room_label);
+        $levelName = Level::find($request->level_id)->name ?? null;
+        $label = $this->stripLevelPrefix($request->room_label, $levelName);
+        [$sectionNumber, $studyPlan] = $this->parseRoomLabel($label);
         if ($sectionNumber === null) {
             return redirect()->back()->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
         }
@@ -52,17 +54,30 @@ class ClassSectionController extends Controller
 
     public function update(Request $request, $id)
     {
-        [$sectionNumber, $studyPlan] = $this->parseRoomLabel($request->room_label);
+        $section = ClassSection::findOrFail($id);
+        $levelName = $section->level->name ?? null;
+        $label = $this->stripLevelPrefix($request->room_label, $levelName);
+        [$sectionNumber, $studyPlan] = $this->parseRoomLabel($label);
         if ($sectionNumber === null) {
             return redirect()->back()->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
         }
 
-        ClassSection::findOrFail($id)->update($request->only(['homeroom_teacher_id', 'max_students']) + [
+        $section->update($request->only(['homeroom_teacher_id', 'max_students']) + [
             'section_number' => $sectionNumber,
             'study_plan' => $studyPlan,
             'curriculum_id' => $request->curriculum_id ?: null,
         ]);
         return redirect()->back()->with('success', 'แก้ไขสำเร็จ');
+    }
+
+    // ตัดคำนำหน้าชื่อระดับชั้นออก เช่น "ม.4/2 วิทย์-คณิต" -> "2 วิทย์-คณิต" (ถ้าไม่มีคำนำหน้าก็ปล่อยผ่าน)
+    private function stripLevelPrefix(?string $label, ?string $levelName): string
+    {
+        $label = trim((string) $label);
+        if ($levelName && str_starts_with($label, $levelName . '/')) {
+            return trim(substr($label, strlen($levelName) + 1));
+        }
+        return $label;
     }
 
     // แยก "2 วิทย์-คณิต" -> เลขห้อง 2 + แผนการเรียน "วิทย์-คณิต" (เว้นแผนการเรียนได้ เช่น "2" เฉยๆ)

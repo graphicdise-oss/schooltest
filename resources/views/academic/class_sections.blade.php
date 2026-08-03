@@ -107,10 +107,7 @@
                 </select>
 
                 <label>ห้องที่ *</label>
-                <div class="ac-room-input-group">
-                    <span id="aLevelPrefix" class="ac-room-prefix"></span>
-                    <input type="text" name="room_label" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
-                </div>
+                <input type="text" name="room_label" id="aRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id">
@@ -147,10 +144,7 @@
             @csrf @method('PUT')
             <div class="ac-modal-body">
                 <label>ห้องที่ *</label>
-                <div class="ac-room-input-group">
-                    <span id="eLevelPrefix" class="ac-room-prefix"></span>
-                    <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
-                </div>
+                <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id" id="eTeacher">
@@ -182,16 +176,19 @@
 <script>
 function openEdit(id, roomLabel, teacherId, max, curriculumId, levelName) {
     document.getElementById('editForm').action = '{{ url("class-sections") }}/' + id;
-    document.getElementById('eRoomLabel').value = roomLabel;
+    document.getElementById('eRoomLabel').value = (levelName ? levelName + '/' : '') + roomLabel;
     document.getElementById('eTeacher').value = teacherId || '';
     document.getElementById('eMax').value = max;
     document.getElementById('eCurriculum').value = curriculumId || '';
-    document.getElementById('eLevelPrefix').textContent = levelName ? levelName + '/' : '';
     document.getElementById('editOverlay').classList.add('active');
 }
 function updateAddPrefix(select) {
     const opt = select.options[select.selectedIndex];
-    document.getElementById('aLevelPrefix').textContent = opt.dataset.name ? opt.dataset.name + '/' : '';
+    const newPrefix = opt.dataset.name ? opt.dataset.name + '/' : '';
+    const input = document.getElementById('aRoomLabel');
+    const slashIdx = input.value.indexOf('/');
+    const rest = slashIdx >= 0 ? input.value.slice(slashIdx + 1) : input.value;
+    input.value = newPrefix + rest;
 }
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.querySelectorAll('.ac-overlay.active').forEach(el => el.classList.remove('active'));
