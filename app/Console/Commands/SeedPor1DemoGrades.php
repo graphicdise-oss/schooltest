@@ -128,6 +128,27 @@ class SeedPor1DemoGrades extends Command
         ],
     ];
 
+    // กิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — ไม่มีหน่วยกิต ไม่มีเกรด 0-4 มีแค่ "ผ่าน/ไม่ผ่าน"
+    // แสดงคนละตารางกับ "ผลการเรียนรายวิชา" (ตารางกิจกรรมพัฒนาผู้เรียนต่างหาก) ตาม subject_group นี้เป๊ะๆ
+    // รูปแบบ: ปี => ภาคเรียน => [รหัส, ชื่อกิจกรรม, ชั่วโมง]
+    private const ACTIVITIES = [
+        '2568' => [
+            'level' => 'ม.5',
+            'semesters' => [
+                '1' => [
+                    ['ก32101', 'แนะแนว', 20],
+                    ['ก32301', 'ชุมนุม', 20],
+                    ['ก32401', 'กิจกรรมเพื่อสังคมและสาธารณประโยชน์', 20],
+                ],
+                '2' => [
+                    ['ก32102', 'แนะแนว', 20],
+                    ['ก32302', 'ชุมนุม', 20],
+                    ['ก32402', 'กิจกรรมเพื่อสังคมและสาธารณประโยชน์', 20],
+                ],
+            ],
+        ],
+    ];
+
     // กลุ่มสาระ ตามอักษรนำหน้ารหัสวิชา (มาตรฐานกระทรวงศึกษาธิการ)
     private const SUBJECT_GROUPS = [
         'ท' => 'ภาษาไทย',
@@ -244,6 +265,42 @@ class SeedPor1DemoGrades extends Command
                             );
 
                             $existing ? $updated++ : $created++;
+                        }
+
+                        // กิจกรรมพัฒนาผู้เรียนของปี/เทอมนี้ (ถ้ามี) — ใช้ห้อง/ครูทดสอบตัวเดียวกับรายวิชาข้างบน
+                        // แต่ subject_group ตั้งใจให้เป็น "กิจกรรมพัฒนาผู้เรียน" ตรงตัว (กรองไปแสดงอีกตารางแทน)
+                        foreach ((self::ACTIVITIES[$yearName]['semesters'][$semesterName] ?? []) as [$code, $name, $hours]) {
+                            $activitySubject = Subject::firstOrCreate(
+                                ['code' => $code],
+                                [
+                                    'name_th' => $name,
+                                    'credits' => 0,
+                                    'subject_type' => 'กิจกรรมพัฒนาผู้เรียน',
+                                    'subject_group' => 'กิจกรรมพัฒนาผู้เรียน',
+                                    'hours_per_year' => $hours,
+                                    'is_active' => true,
+                                ]
+                            );
+
+                            $activityAssign = TeachingAssign::firstOrCreate([
+                                'personnel_id' => $teacher->personnel_id,
+                                'subject_id' => $activitySubject->subject_id,
+                                'section_id' => $section->section_id,
+                                'semester_id' => $semester->semester_id,
+                            ]);
+
+                            $existingActivity = FinalGrade::where([
+                                'student_id' => $student->student_id,
+                                'assign_id' => $activityAssign->assign_id,
+                                'semester_id' => $semester->semester_id,
+                            ])->exists();
+
+                            FinalGrade::updateOrCreate(
+                                ['student_id' => $student->student_id, 'assign_id' => $activityAssign->assign_id, 'semester_id' => $semester->semester_id],
+                                ['total_score' => null, 'grade' => 'ผ่าน', 'gpa_point' => null, 'remark' => 'ผ่าน']
+                            );
+
+                            $existingActivity ? $updated++ : $created++;
                         }
                     }
                 }
