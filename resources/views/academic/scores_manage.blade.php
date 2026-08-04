@@ -235,13 +235,19 @@
                     </table>
                 </div>
 
-               <div class="ac-save-wrap" style="display:flex; justify-content:center; gap:12px">
+               <div class="ac-save-wrap" style="display:flex; justify-content:center; gap:12px; flex-wrap:wrap;">
     <a href="{{ route('grades.excel', $assign->assign_id) }}" class="ac-btn" style="background:#1d6f42; color:#fff">
         <i class="bi bi-file-earmark-excel"></i> Export Excel
     </a>
     <a href="{{ route('scores.print', $assign->assign_id) }}" target="_blank" class="ac-btn ac-btn-secondary">
         <i class="bi bi-printer"></i> พิมพ์ใบบันทึกคะแนน
     </a>
+    <a href="{{ route('scores.importTemplate', $assign->assign_id) }}" class="ac-btn" style="background:#0d6efd; color:#fff">
+        <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์มนำเข้าคะแนน
+    </a>
+    <button type="button" class="ac-btn" style="background:#198754; color:#fff" onclick="document.getElementById('scoreImportOverlay').classList.add('active')">
+        <i class="bi bi-upload"></i> นำเข้าคะแนนจาก Excel
+    </button>
     <button type="submit" class="ac-btn ac-btn-primary">
         <i class="bi bi-save"></i> บันทึกคะแนน
     </button>
@@ -309,8 +315,48 @@
     </div>
 </div>
 
+{{-- ===== Modal นำเข้าคะแนนจาก Excel ===== --}}
+<div id="scoreImportOverlay" onclick="if(event.target===this)closeScoreImportModal()"
+    style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:24px; margin:16px;">
+        <h5 style="margin-bottom:4px;"><i class="bi bi-upload"></i> นำเข้าคะแนนจาก Excel</h5>
+        <p style="font-size:0.85rem; color:#777; margin-bottom:16px;">
+            ใช้ไฟล์ที่ดาวน์โหลดจากปุ่ม "ดาวน์โหลดแบบฟอร์มนำเข้าคะแนน" เท่านั้น (ตำแหน่งคอลัมน์ต้องตรงกัน)
+            เว้นว่างช่องคะแนนไหนไว้ = ไม่แก้คะแนนเดิมของช่องนั้น
+        </p>
+        <form method="POST" action="{{ route('scores.import', $assign->assign_id) }}" enctype="multipart/form-data" onsubmit="submitScoreImportForm()">
+            @csrf
+            <div style="margin-bottom:14px;">
+                <input type="file" name="file" accept=".xlsx" required class="form-control">
+            </div>
+            <div style="margin-bottom:16px;">
+                <label><input type="checkbox" name="dry_run" value="1"> ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง</label>
+            </div>
+            <div style="display:flex; justify-content:flex-end; gap:8px;">
+                <button type="button" onclick="closeScoreImportModal()" style="padding:8px 16px; border:1px solid #ccc; border-radius:6px; background:#fff;">ยกเลิก</button>
+                <button type="submit" id="scoreImportSubmitBtn" style="padding:8px 16px; border:none; border-radius:6px; background:#198754; color:#fff;">เริ่มนำเข้า</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (session('import_output'))
+<div id="scoreImportResultOverlay"
+    style="position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; display:flex; align-items:center; justify-content:center;">
+    <div style="background:#fff; border-radius:12px; width:100%; max-width:700px; max-height:80vh; padding:24px; margin:16px; display:flex; flex-direction:column;">
+        <h5 style="margin-bottom:12px;"><i class="bi bi-clipboard-check"></i> ผลการนำเข้าคะแนน</h5>
+        <pre style="background:#f5f5f5; padding:12px; border-radius:8px; overflow:auto; flex:1; font-size:0.8rem; white-space:pre-wrap;">{{ session('import_output') }}</pre>
+        <div style="text-align:right; margin-top:12px;">
+            <button type="button" onclick="document.getElementById('scoreImportResultOverlay').remove()"
+                style="padding:8px 16px; border:none; border-radius:6px; background:#0d6efd; color:#fff;">ปิด</button>
+        </div>
+    </div>
+</div>
+@endif
+
 <style>
 .cb-score { width: 22px; height: 22px; accent-color: #43a047; cursor: pointer; }
+#scoreImportOverlay.active { display: flex !important; }
 </style>
 
 <script>
@@ -353,8 +399,16 @@ function closeCatModal() {
     document.getElementById('catOverlay').classList.remove('active');
 }
 
+function closeScoreImportModal() {
+    document.getElementById('scoreImportOverlay').classList.remove('active');
+}
+function submitScoreImportForm() {
+    document.getElementById('scoreImportSubmitBtn').disabled = true;
+    document.getElementById('scoreImportSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่';
+}
+
 document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') closeCatModal();
+    if (e.key === 'Escape') { closeCatModal(); closeScoreImportModal(); }
 });
 
 // ===== Real-time grade calculation =====

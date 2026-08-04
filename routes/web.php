@@ -252,6 +252,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignId}/calculate', 'calculateGrades')->name('calculate');
         Route::post('/{assignId}/setup', 'setupCategories')->name('setup');
         Route::get('/{assignId}/print', 'printScoreSheet')->name('print');
+        Route::get('/{assignId}/import-template', 'importTemplate')->name('importTemplate');
+        Route::post('/{assignId}/import', 'importUpload')->name('import');
     });
 
     // === 6. ผลการเรียน / เกรด ===
