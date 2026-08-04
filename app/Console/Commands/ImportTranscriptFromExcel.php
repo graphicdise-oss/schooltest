@@ -30,9 +30,9 @@ class ImportTranscriptFromExcel extends Command
         {--dry-run : ทดสอบเฉยๆ ไม่บันทึกจริง}
         {--undo : ลบข้อมูลที่นำเข้าให้นักเรียนคนนี้ทิ้งทั้งหมด}';
 
-    protected $description = 'นำเข้าเกรดรวม (Transcript) ของนักเรียนคนเดียวจากไฟล์ Excel '
-        . 'รูปแบบ: สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน แต่ละกลุ่มมีแถวปีการศึกษา+ระดับชั้น, '
-        . 'แถวคั่นภาคเรียน "ภาคเรียนที่ 1"/"ภาคเรียนที่ 2", และแถววิชา "รหัสวิชา : ชื่อวิชา", หน่วยกิต, เกรด (0-4)';
+    protected $description = 'นำเข้าเกรดรวม (Transcript) ของนักเรียนคนเดียวจากไฟล์ Excel — '
+        . 'ตารางผลการเรียนรายวิชา (สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน) '
+        . 'และตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/ฯลฯ) แยกต่างหากด้านล่าง (ถ้ามี)';
 
     // กลุ่มสาระ ตามอักษรนำหน้ารหัสวิชา (มาตรฐานกระทรวงศึกษาธิการ)
     private const SUBJECT_GROUPS = [
@@ -69,9 +69,9 @@ class ImportTranscriptFromExcel extends Command
             return self::FAILURE;
         }
 
-        [$data, $warnings] = $this->parseFile($path);
+        [$data, $activities, $warnings] = $this->parseFile($path);
 
-        if (empty($data)) {
+        if (empty($data) && empty($activities)) {
             $this->error('ไม่พบข้อมูลผลการเรียนในไฟล์ที่อัปโหลด ตรวจสอบว่าใช้แบบฟอร์มที่ถูกต้อง (ต้องมีแถวที่มีคำว่า "ปีการศึกษา")');
             foreach ($warnings as $w) {
                 $this->line("  - {$w}");
@@ -83,9 +83,12 @@ class ImportTranscriptFromExcel extends Command
 
         $created = 0;
         $updated = 0;
+        $actCreated = 0;
+        $actUpdated = 0;
+        $consumedActivityKeys = [];
 
         try {
-            DB::transaction(function () use ($student, $data, &$created, &$updated) {
+            DB::transaction(function () use ($student, $data, $activities, &$created, &$updated, &$actCreated, &$actUpdated, &$consumedActivityKeys, &$warnings) {
                 foreach ($data as $yearName => $block) {
                     $year = AcademicYear::firstOrCreate(['year_name' => $yearName]);
                     $level = Level::firstOrCreate(
@@ -155,6 +158,54 @@ class ImportTranscriptFromExcel extends Command
 
                             $existing ? $updated++ : $created++;
                         }
+
+                        // กิจกรรมพัฒนาผู้เรียนของปี/เทอมนี้ (ถ้ามีในไฟล์) — ใช้ห้อง/ครูนำเข้าตัวเดียวกับรายวิชาข้างบน
+                        // แต่ subject_group ตั้งใจให้เป็น "กิจกรรมพัฒนาผู้เรียน" ตรงตัว (por1_print.blade.php แยกไปอีกตาราง)
+                        $consumedActivityKeys["{$yearName}|{$semesterName}"] = true;
+                        foreach (($activities[$yearName]['semesters'][$semesterName] ?? []) as [$actName, $hours, $actGrade, $actRemark]) {
+                            $actCode = 'ACT-' . strtoupper(substr(md5($yearName . '|' . $semesterName . '|' . $actName), 0, 8));
+
+                            $actSubject = Subject::firstOrCreate(
+                                ['code' => $actCode],
+                                [
+                                    'name_th' => $actName,
+                                    'credits' => 0,
+                                    'subject_type' => 'กิจกรรมพัฒนาผู้เรียน',
+                                    'subject_group' => 'กิจกรรมพัฒนาผู้เรียน',
+                                    'hours_per_year' => $hours,
+                                    'is_active' => true,
+                                ]
+                            );
+
+                            $actAssign = TeachingAssign::firstOrCreate([
+                                'personnel_id' => $teacher->personnel_id,
+                                'subject_id' => $actSubject->subject_id,
+                                'section_id' => $section->section_id,
+                                'semester_id' => $semester->semester_id,
+                            ]);
+
+                            $existingAct = FinalGrade::where([
+                                'student_id' => $student->student_id,
+                                'assign_id' => $actAssign->assign_id,
+                                'semester_id' => $semester->semester_id,
+                            ])->exists();
+
+                            FinalGrade::updateOrCreate(
+                                ['student_id' => $student->student_id, 'assign_id' => $actAssign->assign_id, 'semester_id' => $semester->semester_id],
+                                ['total_score' => null, 'grade' => $actGrade, 'gpa_point' => null, 'remark' => $actRemark]
+                            );
+
+                            $existingAct ? $actUpdated++ : $actCreated++;
+                        }
+                    }
+                }
+
+                // กิจกรรมของปี/เทอมที่ไม่มีตารางรายวิชาคู่กันเลย (ไฟล์กรอกไม่ครบ) — ข้ามไปพร้อมแจ้งเตือน กันสร้างปี/ห้องลอยๆ
+                foreach ($activities as $ayear => $ablock) {
+                    foreach ($ablock['semesters'] as $asem => $items) {
+                        if (!isset($consumedActivityKeys["{$ayear}|{$asem}"])) {
+                            $warnings[] = "กิจกรรมของปีการศึกษา {$ayear} ภาคเรียนที่ {$asem} ไม่มีตารางผลการเรียนรายวิชาของปี/เทอมเดียวกันในไฟล์ — ข้ามไป (ต้องกรอกวิชาอย่างน้อย 1 วิชาของปี/เทอมนั้นด้วย)";
+                        }
                     }
                 }
 
@@ -172,6 +223,12 @@ class ImportTranscriptFromExcel extends Command
         $this->info(($dryRun ? 'จะสร้างผลการเรียนใหม่: ' : 'สร้างผลการเรียนใหม่สำเร็จ: ') . "{$created} รายวิชา");
         if ($updated > 0) {
             $this->info(($dryRun ? 'จะอัปเดตของเดิม: ' : 'อัปเดตของเดิมสำเร็จ: ') . "{$updated} รายวิชา");
+        }
+        if ($actCreated > 0 || $actUpdated > 0) {
+            $this->info(($dryRun ? 'จะบันทึกกิจกรรมพัฒนาผู้เรียนใหม่: ' : 'บันทึกกิจกรรมพัฒนาผู้เรียนใหม่สำเร็จ: ') . "{$actCreated} รายการ");
+            if ($actUpdated > 0) {
+                $this->info(($dryRun ? 'จะอัปเดตกิจกรรมเดิม: ' : 'อัปเดตกิจกรรมเดิมสำเร็จ: ') . "{$actUpdated} รายการ");
+            }
         }
 
         if (!empty($warnings)) {
@@ -194,32 +251,67 @@ class ImportTranscriptFromExcel extends Command
     }
 
     /**
-     * อ่านไฟล์ Excel — หาแถว "หัวปีการศึกษา" ก่อน (แถวที่มีคำว่า "ปีการศึกษา" อยู่ในคอลัมน์ 1, 4 หรือ 7)
-     * เพื่อให้ใช้ได้ทั้งไฟล์ดิบ (หัวอยู่แถว 1) และไฟล์แบบฟอร์มที่ระบบสร้างให้ (หัวอยู่หลังแถบชื่อโรงเรียน)
-     * จากนั้นอ่านลงมาทีละแถว แยกทีละกลุ่ม (สูงสุด 3 กลุ่ม, กลุ่มละ 3 คอลัมน์) — แถวที่มีคำว่า "ภาคเรียน"
-     * คือการสลับภาคเรียนของกลุ่มนั้น ส่วนแถวอื่นๆ ที่มีรูปแบบ "รหัสวิชา : ชื่อวิชา" คือแถววิชา
+     * อ่านไฟล์ Excel — มี 2 ตารางที่แยกกันอิสระ:
+     *  1) ตารางผลการเรียนรายวิชา — หาแถว "ปีการศึกษา..." แถวแรกในไฟล์ก่อน (ไม่สนว่าอยู่แถวไหน กันปนกับ
+     *     แถบชื่อโรงเรียน/คำแนะนำที่แบบฟอร์มที่ระบบสร้างให้มีอยู่ก่อน) แล้วอ่านลงมาทีละแถว แยกทีละกลุ่ม
+     *     (สูงสุด 3 กลุ่ม, กลุ่มละ 3 คอลัมน์) — แถวที่มีคำว่า "ภาคเรียน" คือการสลับภาคเรียนของกลุ่มนั้น
+     *     ส่วนแถวอื่นๆ ที่มีรูปแบบ "รหัสวิชา : ชื่อวิชา" คือแถววิชา
+     *  2) ตารางกิจกรรมพัฒนาผู้เรียน (ถ้ามี) — เริ่มที่แถวซึ่งคอลัมน์แรกของกลุ่มใดกลุ่มหนึ่งเป็นคำว่า "กิจกรรม"
+     *     เป๊ะๆ (หัวคอลัมน์) จากนั้นมีโครงสร้างเหมือนตารางแรกทุกอย่าง ต่างกันแค่ 3 คอลัมน์คือ
+     *     ชื่อกิจกรรม / เวลา (ชั่วโมง) / ผลการประเมิน (ผ = ผ่าน, มผ = ไม่ผ่าน)
      */
     private function parseFile(string $path): array
     {
         $sheet = IOFactory::load($path)->getActiveSheet();
         $highestRow = $sheet->getHighestRow();
         $get = fn (int $col, int $row) => trim((string) ($sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue() ?? ''));
-
         $startsWithYear = fn (string $text): bool => str_starts_with(trim($text), 'ปีการศึกษา');
 
-        $headerRow = null;
-        for ($row = 1; $row <= min(20, $highestRow); $row++) {
-            if ($startsWithYear($get(1, $row)) || $startsWithYear($get(4, $row)) || $startsWithYear($get(7, $row))) {
-                $headerRow = $row;
+        $warnings = [];
+
+        $subjectHeaderRow = $this->findHeaderRow($get, $highestRow, $startsWithYear, 1);
+        if ($subjectHeaderRow === null) {
+            return [[], [], ['ไม่พบแถวที่มีคำว่า "ปีการศึกษา" ในไฟล์นี้เลย']];
+        }
+
+        $activityLabelRow = null;
+        for ($row = $subjectHeaderRow + 1; $row <= $highestRow; $row++) {
+            if ($get(1, $row) === 'กิจกรรม' || $get(4, $row) === 'กิจกรรม' || $get(7, $row) === 'กิจกรรม') {
+                $activityLabelRow = $row;
                 break;
             }
         }
+        $subjectEndRow = $activityLabelRow ? $activityLabelRow - 1 : $highestRow;
 
-        $warnings = [];
-        if ($headerRow === null) {
-            return [[], ['ไม่พบแถวที่มีคำว่า "ปีการศึกษา" ในไฟล์นี้เลย']];
+        $subjectGroups = $this->locateGroups($get, $subjectHeaderRow, $startsWithYear, $warnings);
+        $data = $this->readSubjectRows($get, $subjectGroups, $subjectHeaderRow + 1, $subjectEndRow, $warnings);
+
+        $activities = [];
+        if ($activityLabelRow !== null) {
+            $activityHeaderRow = $this->findHeaderRow($get, $highestRow, $startsWithYear, $activityLabelRow + 1);
+            if ($activityHeaderRow !== null) {
+                $activityGroups = $this->locateGroups($get, $activityHeaderRow, $startsWithYear, $warnings);
+                $activities = $this->readActivityRows($get, $activityGroups, $activityHeaderRow + 1, $highestRow, $warnings);
+            }
         }
 
+        return [$data, $activities, $warnings];
+    }
+
+    // หาแถวแรก (นับจาก $fromRow) ที่คอลัมน์ 1, 4 หรือ 7 ขึ้นต้นด้วยคำว่า "ปีการศึกษา"
+    private function findHeaderRow(callable $get, int $highestRow, callable $startsWithYear, int $fromRow): ?int
+    {
+        for ($row = $fromRow; $row <= min($fromRow + 20, $highestRow); $row++) {
+            if ($startsWithYear($get(1, $row)) || $startsWithYear($get(4, $row)) || $startsWithYear($get(7, $row))) {
+                return $row;
+            }
+        }
+        return null;
+    }
+
+    // อ่านแถวหัว "ปีการศึกษา XXXX ระดับชั้น" ของทั้ง 3 กลุ่ม (คอลัมน์ 1, 4, 7) ที่แถว $headerRow
+    private function locateGroups(callable $get, int $headerRow, callable $startsWithYear, array &$warnings): array
+    {
         $groups = [];
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
@@ -234,10 +326,14 @@ class ImportTranscriptFromExcel extends Command
             }
             $groups[] = ['col' => $col, 'year' => $year, 'level' => $level, 'semester' => '1'];
         }
+        return $groups;
+    }
 
+    private function readSubjectRows(callable $get, array $groups, int $fromRow, int $toRow, array &$warnings): array
+    {
         $data = [];
 
-        for ($row = $headerRow + 1; $row <= $highestRow; $row++) {
+        for ($row = $fromRow; $row <= $toRow; $row++) {
             foreach ($groups as $gi => $grp) {
                 $col = $grp['col'];
                 $c1 = $get($col, $row);
@@ -256,7 +352,11 @@ class ImportTranscriptFromExcel extends Command
                 }
 
                 if (!preg_match('/^(\S+)\s*:\s*(.+)$/u', $c1, $m)) {
-                    $warnings[] = "แถว {$row} ({$grp['year']} {$grp['level']}): อ่านชื่อวิชาไม่ได้จากค่า \"{$c1}\" — ข้าม";
+                    // มีแค่คอลัมน์แรก ไม่มีหน่วยกิต/เกรดเลย — เป็นข้อความอื่น (เช่น แถบคำแนะนำที่ทับเข้ามาในช่วงแถว)
+                    // ไม่ใช่ความตั้งใจกรอกวิชา จึงข้ามแบบเงียบๆ ไม่ต้องเตือน
+                    if ($c2 !== '' || $c3 !== '') {
+                        $warnings[] = "แถว {$row} ({$grp['year']} {$grp['level']}): อ่านชื่อวิชาไม่ได้จากค่า \"{$c1}\" — ข้าม";
+                    }
                     continue;
                 }
                 $code = trim($m[1]);
@@ -279,7 +379,61 @@ class ImportTranscriptFromExcel extends Command
             }
         }
 
-        return [$data, $warnings];
+        return $data;
+    }
+
+    private function readActivityRows(callable $get, array $groups, int $fromRow, int $toRow, array &$warnings): array
+    {
+        $activities = [];
+
+        for ($row = $fromRow; $row <= $toRow; $row++) {
+            foreach ($groups as $gi => $grp) {
+                $col = $grp['col'];
+                $c1 = $get($col, $row);
+                $c2 = $get($col + 1, $row);
+                $c3 = $get($col + 2, $row);
+
+                if ($c1 === '' && $c2 === '' && $c3 === '') {
+                    continue;
+                }
+
+                if (str_contains($c1, 'ภาคเรียน')) {
+                    if (preg_match('/(\d+)/u', $c1, $m)) {
+                        $groups[$gi]['semester'] = $m[1];
+                    }
+                    continue;
+                }
+
+                $name = $c1;
+                if ($name === '') {
+                    $warnings[] = "แถว {$row} ({$grp['year']} {$grp['level']}): ไม่มีชื่อกิจกรรม — ข้าม";
+                    continue;
+                }
+                $hours = is_numeric($c2) ? (float) $c2 : 0;
+
+                $resultRaw = trim($c3);
+                if ($resultRaw === '') {
+                    $warnings[] = "แถว {$row} กิจกรรม {$name}: ยังไม่มีผลการประเมิน — ข้าม";
+                    continue;
+                }
+                if ($resultRaw === 'มผ' || str_contains($resultRaw, 'ไม่ผ่าน')) {
+                    $grade = 'ไม่ผ่าน';
+                    $remark = 'ไม่ผ่าน';
+                } elseif ($resultRaw === 'ผ' || str_contains($resultRaw, 'ผ่าน')) {
+                    $grade = 'ผ่าน';
+                    $remark = 'ผ่าน';
+                } else {
+                    $grade = $resultRaw;
+                    $remark = $resultRaw;
+                }
+
+                $sem = $groups[$gi]['semester'];
+                $activities[$grp['year']]['level'] = $grp['level'];
+                $activities[$grp['year']]['semesters'][$sem][] = [$name, $hours, $grade, $remark];
+            }
+        }
+
+        return $activities;
     }
 
     // "ปีการศึกษา 2567 มัธยมศึกษาปีที่ 4" => ['2567', 'ม.4']
@@ -326,6 +480,7 @@ class ImportTranscriptFromExcel extends Command
 
     /**
      * ลบข้อมูลที่คำสั่งนี้เคยนำเข้าให้นักเรียนคนนี้ทิ้ง — ไล่จาก "ครูนำเข้า" (GRADE-IMPORT) ซึ่งมีแค่คำสั่งนี้เท่านั้นที่ใช้
+     * (ครอบคลุมทั้งรายวิชาและกิจกรรมพัฒนาผู้เรียน เพราะใช้ครู/ห้องชุดเดียวกันทั้งหมด)
      * ไม่ลบ subjects/teaching_assigns/class_sections ทิ้ง (อาจมีคนอื่นใช้ร่วม ปล่อยว่างไว้ไม่มีผลกระทบอะไร)
      */
     private function undo(Student $student, bool $dryRun): int
@@ -343,7 +498,7 @@ class ImportTranscriptFromExcel extends Command
         $sectionMemberCount = StudentSection::where('student_id', $student->student_id)->whereIn('section_id', $sectionIds)->count();
 
         $this->info($dryRun ? '=== โหมดทดสอบ (dry-run) — จะไม่ลบจริง ===' : '=== กำลังลบข้อมูลจริง ===');
-        $this->info(($dryRun ? 'จะลบผลการเรียน: ' : 'ลบผลการเรียน: ') . "{$gradeCount} รายวิชา");
+        $this->info(($dryRun ? 'จะลบผลการเรียน/กิจกรรม: ' : 'ลบผลการเรียน/กิจกรรม: ') . "{$gradeCount} รายการ");
         $this->info(($dryRun ? 'จะลบการอยู่ในห้องนำเข้า: ' : 'ลบการอยู่ในห้องนำเข้า: ') . "{$sectionMemberCount} รายการ");
 
         if (!$dryRun) {

@@ -108,60 +108,67 @@ class GradeController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('เกรด');
 
-        $totalCols = 9; // 3 กลุ่มปี x 3 คอลัมน์ (รหัสวิชา:ชื่อวิชา, หน่วยกิต, เกรด)
+        $totalCols = 9; // 3 กลุ่มปี x 3 คอลัมน์
 
         $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
         ExcelSchoolHeader::applyInstructionRow(
             $sheet, $totalCols,
             "แบบฟอร์มนำเข้าเกรดรวม (Transcript) ของ {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} — "
-            . 'กรอกได้สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน (กรอกไม่ครบ 3 กลุ่มก็ได้), '
+            . 'กรอกได้สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน (กรอกไม่ครบ 3 กลุ่มก็ได้ และแต่ละคนมีจำนวนวิชาไม่เท่ากันได้ ไม่ต้องกรอกให้ครบทุกแถว), '
             . 'แถวปีให้ใส่ "ปีการศึกษา XXXX ระดับชั้น" เช่น ปีการศึกษา 2567 มัธยมศึกษาปีที่ 4, '
-            . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2", แถววิชาใส่ "รหัสวิชา : ชื่อวิชา" หน่วยกิต เกรด(0-4) ตามลำดับ'
+            . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2", แถววิชาใส่ "รหัสวิชา : ชื่อวิชา" หน่วยกิต เกรด(0-4) ตามลำดับ, '
+            . 'ด้านล่างสุดเป็นตารางกิจกรรมพัฒนาผู้เรียนแยกต่างหาก'
         );
 
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
             $colLetter = Coordinate::stringFromColumnIndex($col);
-            $lastColLetter = Coordinate::stringFromColumnIndex($col + 2);
-
-            $sheet->mergeCells("{$colLetter}6:{$lastColLetter}6");
-            $sheet->setCellValue("{$colLetter}6", 'ปีการศึกษา ____ ระดับชั้น ____');
-            $sheet->getStyle("{$colLetter}6")->applyFromArray([
-                'font' => ['bold' => true, 'size' => 11],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
-                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
-            ]);
-
-            $sheet->mergeCells("{$colLetter}7:{$lastColLetter}7");
-            $sheet->setCellValue("{$colLetter}7", 'ภาคเรียนที่ 1');
-            $sheet->getStyle("{$colLetter}7")->applyFromArray([
-                'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-            ]);
-
-            $sheet->mergeCells("{$colLetter}28:{$lastColLetter}28");
-            $sheet->setCellValue("{$colLetter}28", 'ภาคเรียนที่ 2');
-            $sheet->getStyle("{$colLetter}28")->applyFromArray([
-                'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
-                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-            ]);
-
             ExcelSchoolHeader::setColumnWidth($sheet, $colLetter, 26, $hasLogo);
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col + 1))->setWidth(8);
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col + 2))->setWidth(8);
+
+            $this->writeTranscriptGroupHeader($sheet, $col, 6, 7, 8, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
         }
+        $this->writeTranscriptGroupBlanks($sheet, $totalCols, 9, 25);
+        for ($g = 0; $g < 3; $g++) {
+            $col = 1 + $g * 3;
+            $this->writeTranscriptSemesterMarker($sheet, $col, 26, 'ภาคเรียนที่ 2');
+        }
+        $this->writeTranscriptGroupBlanks($sheet, $totalCols, 27, 43);
 
-        $sheet->getStyle('A8:' . Coordinate::stringFromColumnIndex($totalCols) . '27')->applyFromArray([
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
-        ]);
-        $sheet->getStyle('A29:' . Coordinate::stringFromColumnIndex($totalCols) . '48')->applyFromArray([
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
+        // ตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — แยกจากตารางผลการเรียนข้างบน
+        $sheet->mergeCells("A45:" . Coordinate::stringFromColumnIndex($totalCols) . '45');
+        $sheet->setCellValue('A45', 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินให้ใส่ "ผ" (ผ่าน) หรือ "มผ" (ไม่ผ่าน)');
+        $sheet->getStyle('A45')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
         ]);
 
-        $sheet->freezePane('A8');
+        $activityRows = ['แนะแนว' => 20, 'ชุมนุม' => 20, 'กิจกรรมเพื่อสังคมและสาธารณประโยชน์' => 10];
+        for ($g = 0; $g < 3; $g++) {
+            $col = 1 + $g * 3;
+            $this->writeTranscriptGroupHeader($sheet, $col, 46, 47, 48, ['กิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน']);
+
+            $row = 49;
+            foreach ($activityRows as $actName => $hours) {
+                $colLetter = Coordinate::stringFromColumnIndex($col);
+                $sheet->setCellValue("{$colLetter}{$row}", $actName);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $row, $hours);
+                $row++;
+            }
+            $this->writeTranscriptSemesterMarker($sheet, $col, 52, 'ภาคเรียนที่ 2');
+            $row = 53;
+            foreach ($activityRows as $actName => $hours) {
+                $colLetter = Coordinate::stringFromColumnIndex($col);
+                $sheet->setCellValue("{$colLetter}{$row}", $actName);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $row, $hours);
+                $row++;
+            }
+        }
+        $this->writeTranscriptGroupBlanks($sheet, $totalCols, 49, 55);
+
+        $sheet->freezePane('A9');
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'transcript_template') . '.xlsx';
         (new Xlsx($spreadsheet))->save($tmpPath);
@@ -169,6 +176,57 @@ class GradeController extends Controller
         $filename = 'แบบฟอร์มนำเข้าเกรดรวม_' . ($student->student_code ?: $student->student_id) . '_' . now()->format('Ymd_His') . '.xlsx';
 
         return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    // เขียนหัวกลุ่ม 1 กลุ่ม (3 คอลัมน์ติดกัน) ของแบบฟอร์มนำเข้าเกรดรวม: แถวป้ายคอลัมน์ + แถวปีการศึกษา + แถวภาคเรียนที่ 1
+    private function writeTranscriptGroupHeader($sheet, int $col, int $labelRow, int $yearRow, int $semRow, array $labels): void
+    {
+        $colLetter = Coordinate::stringFromColumnIndex($col);
+        $lastColLetter = Coordinate::stringFromColumnIndex($col + 2);
+
+        foreach ($labels as $i => $label) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + $i) . $labelRow, $label);
+        }
+        $sheet->getStyle("{$colLetter}{$labelRow}:{$lastColLetter}{$labelRow}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 9],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+        ]);
+
+        $sheet->mergeCells("{$colLetter}{$yearRow}:{$lastColLetter}{$yearRow}");
+        $sheet->setCellValue("{$colLetter}{$yearRow}", 'ปีการศึกษา ____ ระดับชั้น ____');
+        $sheet->getStyle("{$colLetter}{$yearRow}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 11],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
+
+        $this->writeTranscriptSemesterMarker($sheet, $col, $semRow, 'ภาคเรียนที่ 1');
+    }
+
+    // แถวคั่นภาคเรียน (merge 3 คอลัมน์ในกลุ่มเดียวกัน) ของแบบฟอร์มนำเข้าเกรดรวม
+    private function writeTranscriptSemesterMarker($sheet, int $col, int $row, string $text): void
+    {
+        $colLetter = Coordinate::stringFromColumnIndex($col);
+        $lastColLetter = Coordinate::stringFromColumnIndex($col + 2);
+
+        $sheet->mergeCells("{$colLetter}{$row}:{$lastColLetter}{$row}");
+        $sheet->setCellValue("{$colLetter}{$row}", $text);
+        $sheet->getStyle("{$colLetter}{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+    }
+
+    // ใส่เส้นขอบบางๆ ให้ช่องกรอกข้อมูลว่างของแบบฟอร์มนำเข้าเกรดรวม
+    private function writeTranscriptGroupBlanks($sheet, int $totalCols, int $fromRow, int $toRow): void
+    {
+        $sheet->getStyle('A' . $fromRow . ':' . Coordinate::stringFromColumnIndex($totalCols) . $toRow)->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
+        ]);
     }
 
     // รับไฟล์ Excel เกรดรวมที่กรอกมา แล้วรันคำสั่งนำเข้าให้นักเรียนคนนี้
