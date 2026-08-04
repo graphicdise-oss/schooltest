@@ -135,7 +135,7 @@ class CurriculumController extends Controller
     public function destroy($id)
     {
         Curriculum::findOrFail($id)->delete();
-        return redirect()->route('curriculums.index')->with('success', 'ลบหลักสูตรสำเร็จ');
+        return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
     }
 
     public function addSubject(Request $request, $id)

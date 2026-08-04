@@ -271,9 +271,18 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <a href="{{ route('curriculums.edit', $ep->curriculum_id) }}" class="btn-action" style="text-decoration:none">
-                            <i class="bi bi-pencil"></i> แก้ไข
-                        </a>
+                        <div style="display:inline-flex; gap:6px;">
+                            <a href="{{ route('curriculums.edit', $ep->curriculum_id) }}" class="btn-action" style="text-decoration:none">
+                                <i class="bi bi-pencil"></i> แก้ไข
+                            </a>
+                            <form action="{{ route('curriculums.destroy', $ep->curriculum_id) }}" method="POST"
+                                  onsubmit="return confirm('ยืนยันลบแผน {{ addslashes($ep->name) }}?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" style="background:#e53935; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:5px;">
+                                    <i class="bi bi-trash"></i> ลบ
+                                </button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
                 @endforeach
