@@ -86,22 +86,6 @@ class CurriculumController extends Controller
                 $usedLevelIds = $program->curriculums()
                     ->when($yearApplied, fn ($q) => $q->where('year_applied', $yearApplied))
                     ->pluck('level_id');
-
-                // มาจากปุ่ม "สร้างแผน" ของหลักสูตรที่เจาะจงอยู่แล้ว: สร้างแผนร่างให้ทันที
-                // (ตั้งชื่อ+ระดับให้อัตโนมัติ แก้ทีหลังได้) แล้วพาไปหน้าจัดการวิชาเลย
-                // ไม่ต้องกรอกฟอร์มเปล่าๆ ก่อนถึงจะเห็นตารางวิชา
-                $nextLevel = $levels->first(fn ($l) => !$usedLevelIds->contains($l->level_id));
-                if ($nextLevel) {
-                    $draft = Curriculum::create([
-                        'name' => trim($program->name . ' ' . $nextLevel->name),
-                        'level_id' => $nextLevel->level_id,
-                        'program_id' => $program->program_id,
-                        'year_applied' => $yearApplied,
-                    ]);
-                    return redirect()->route('curriculums.edit', $draft->curriculum_id)
-                        ->with('success', 'สร้างแผนสำเร็จ เพิ่มวิชาได้เลย');
-                }
-                // ถ้าทุกระดับถูกใช้ไปหมดแล้วในหลักสูตร+ปีนี้ ให้ตกไปที่ฟอร์มกรอกเองด้านล่าง
             }
         }
 
