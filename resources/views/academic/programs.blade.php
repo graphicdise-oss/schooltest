@@ -127,20 +127,9 @@
             </button>
         </div>
 
-        <div style="max-width:300px; margin-bottom:18px;">
-            <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:4px;">ปีการศึกษา</label>
-            <select onchange="window.location='?year_id='+this.value" style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:0.88rem;font-family:inherit">
-                @foreach($academicYears as $y)
-                    <option value="{{ $y->year_id }}" {{ (string)$currentYearId === (string)$y->year_id ? 'selected' : '' }}>
-                        {{ $y->year_name }} {{ $y->is_current ? '(ปีปัจจุบัน)' : '' }}
-                    </option>
-                @endforeach
-            </select>
-        </div>
-
         @if($unassignedCount > 0)
         <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:12px 16px; margin-bottom:18px; color:#9a3412; font-size:0.85rem; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
-            <span><i class="bi bi-info-circle-fill"></i> มีแผนการเรียน {{ $unassignedCount }} แผน (ของปีนี้) ที่สร้างไว้ก่อนหน้านี้และยังไม่ได้ผูกกับหลักสูตรใด — ข้อมูลยังอยู่ครบ ไม่ได้หายไปไหน</span>
+            <span><i class="bi bi-info-circle-fill"></i> มีแผนการเรียน {{ $unassignedCount }} แผน ที่สร้างไว้ก่อนหน้านี้และยังไม่ได้ผูกกับหลักสูตรใด — ข้อมูลยังอยู่ครบ ไม่ได้หายไปไหน</span>
             <a href="{{ route('curriculums.index') }}" style="background:#ea580c;color:#fff;border-radius:6px;padding:6px 14px;font-weight:600;text-decoration:none;white-space:nowrap;">ดูแผนเหล่านี้</a>
         </div>
         @endif
@@ -165,13 +154,13 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <a href="{{ route('programs.plans', ['id' => $p->program_id, 'year_id' => $currentYearId]) }}" style="text-decoration:none">
+                        <a href="{{ route('programs.plans', $p->program_id) }}" style="text-decoration:none">
                             <span class="badge-plan">{{ $p->curriculums_count }}</span>
                         </a>
                     </td>
                     <td style="text-align:center">
                         <div class="btn-row" style="justify-content:center">
-                            <a href="{{ route('curriculums.create', ['program_id' => $p->program_id, 'year_applied' => $yearName]) }}" class="btn-createplan">
+                            <a href="{{ route('curriculums.create', ['program_id' => $p->program_id]) }}" class="btn-createplan">
                                 <i class="bi bi-plus-lg"></i> สร้างแผน
                             </a>
                             <button type="button" class="btn-editprogram"

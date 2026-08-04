@@ -92,20 +92,9 @@
                     จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
                 </span>
             </div>
-            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'year_applied' => $yearName]) }}" class="btn-add">
+            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id]) }}" class="btn-add">
                 <i class="bi bi-plus-lg"></i> สร้างแผน
             </a>
-        </div>
-
-        <div style="max-width:300px; margin-bottom:18px;">
-            <label style="font-size:0.82rem; font-weight:600; color:#555; display:block; margin-bottom:4px;">ปีการศึกษา</label>
-            <select onchange="window.location='?year_id='+this.value" style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:8px;padding:0 12px;font-size:0.88rem;font-family:inherit">
-                @foreach($academicYears as $y)
-                    <option value="{{ $y->year_id }}" {{ (string)$currentYearId === (string)$y->year_id ? 'selected' : '' }}>
-                        {{ $y->year_name }} {{ $y->is_current ? '(ปีปัจจุบัน)' : '' }}
-                    </option>
-                @endforeach
-            </select>
         </div>
 
         <table class="pp-table">
@@ -113,6 +102,7 @@
                 <tr>
                     <th style="width:50px">ลำดับ</th>
                     <th>แผน</th>
+                    <th style="text-align:center">ปีการศึกษา</th>
                     <th>ชั้นเรียน</th>
                     <th style="text-align:center">จัดการ</th>
                 </tr>
@@ -125,6 +115,7 @@
                         <strong>{{ $c->name }}</strong>
                         <div style="font-size:0.78rem;color:#999;margin-top:2px">{{ $c->level->name ?? '-' }}</div>
                     </td>
+                    <td style="text-align:center">{{ $c->year_applied ?: '-' }}</td>
                     <td>
                         @php $sections = $sectionsByCurriculum->get($c->curriculum_id); @endphp
                         @if($sections && $sections->count())
@@ -155,7 +146,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="4" class="pp-empty">
+                    <td colspan="5" class="pp-empty">
                         <i class="bi bi-journal-x" style="font-size:2rem;display:block;margin-bottom:8px"></i>
                         ยังไม่มีแผนในหลักสูตรนี้
                     </td>

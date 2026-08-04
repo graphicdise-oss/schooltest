@@ -6,36 +6,21 @@ use App\Http\Controllers\Controller;
 use App\Models\Academic\Program;
 use App\Models\Academic\Curriculum;
 use App\Models\Academic\ClassSection;
-use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
-    // เลือกปีการศึกษาที่กำลังดูอยู่ (จาก query string, ถ้าไม่ระบุใช้ปีปัจจุบัน)
-    private function resolveYear(Request $request): array
+    public function index()
     {
-        $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
-        $currentYearId = $request->year_id ?: (AcademicYear::current()->year_id ?? optional($academicYears->first())->year_id);
-        $selectedYear = $academicYears->firstWhere('year_id', $currentYearId);
-        return [$academicYears, $currentYearId, $selectedYear];
-    }
-
-    public function index(Request $request)
-    {
-        [$academicYears, $currentYearId, $selectedYear] = $this->resolveYear($request);
-        $yearName = $selectedYear->year_name ?? null;
-
-        $programs = Program::withCount(['curriculums' => function ($q) use ($yearName) {
-            $q->when($yearName, fn ($q2) => $q2->where('year_applied', $yearName));
-        }])->orderBy('name')->get();
+        // แสดงแผนทุกปีรวมกัน ไม่กรองตามปีการศึกษา — เพราะ "ปีการศึกษา" ของแผนเป็นข้อความ
+        // ที่พิมพ์เอง พอเลือกปีบนตัวกรองไม่ตรงกับที่พิมพ์ไว้เป๊ะๆ แผนจะหายไปจากลิสต์แบบไม่รู้สาเหตุ
+        $programs = Program::withCount('curriculums')->orderBy('name')->get();
 
         // แผนเก่าที่มีอยู่ก่อนฟีเจอร์หลักสูตรนี้ (หรือแผนที่ยังไม่ได้ผูกหลักสูตร) จะไม่โผล่ในลิสต์ด้านบน
         // เพราะยังไม่มี program_id — เก็บจำนวนไว้เตือน กันข้อมูลดูเหมือนหายไปทั้งที่ยังอยู่ในระบบ
-        $unassignedCount = Curriculum::whereNull('program_id')
-            ->when($yearName, fn ($q) => $q->where('year_applied', $yearName))
-            ->count();
+        $unassignedCount = Curriculum::whereNull('program_id')->count();
 
-        return view('academic.programs', compact('programs', 'academicYears', 'currentYearId', 'yearName', 'unassignedCount'));
+        return view('academic.programs', compact('programs', 'unassignedCount'));
     }
 
     public function store(Request $request)
@@ -62,15 +47,14 @@ class ProgramController extends Controller
         return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
     }
 
-    public function plans($id, Request $request)
+    public function plans($id)
     {
         $program = Program::findOrFail($id);
-        [$academicYears, $currentYearId, $selectedYear] = $this->resolveYear($request);
-        $yearName = $selectedYear->year_name ?? null;
 
-        $curriculums = $program->curriculums()
-            ->when($yearName, fn ($q) => $q->where('year_applied', $yearName))
-            ->with('level')->orderBy('level_id')->get();
+        // แสดงแผนของหลักสูตรนี้ "ทุกปี" รวมกัน (ไม่กรองปี กันแผนหายจากลิสต์แบบงงๆ)
+        // เรียงปีล่าสุดก่อน แล้วค่อยตามระดับชั้น
+        $curriculums = $program->curriculums()->with('level')
+            ->orderByDesc('year_applied')->orderBy('level_id')->get();
 
         $curriculumIds = $curriculums->pluck('curriculum_id');
         $sectionsByCurriculum = ClassSection::with('level')
@@ -78,6 +62,6 @@ class ProgramController extends Controller
             ->get()
             ->groupBy('curriculum_id');
 
-        return view('academic.program_plans', compact('program', 'curriculums', 'sectionsByCurriculum', 'academicYears', 'currentYearId', 'yearName'));
+        return view('academic.program_plans', compact('program', 'curriculums', 'sectionsByCurriculum'));
     }
 }
