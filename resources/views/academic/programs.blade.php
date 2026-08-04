@@ -154,7 +154,7 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <a href="{{ route('programs.plans', $p->program_id) }}" style="text-decoration:none">
+                        <a href="{{ route('curriculums.create', ['program_id' => $p->program_id]) }}" style="text-decoration:none">
                             <span class="badge-plan">{{ $p->curriculums_count }}</span>
                         </a>
                     </td>

@@ -8,6 +8,7 @@ use App\Models\Academic\CurriculumSubject;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Level;
 use App\Models\Academic\Program;
+use App\Models\Academic\ClassSection;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 
@@ -77,6 +78,8 @@ class CurriculumController extends Controller
 
         $program = null;
         $usedLevelIds = collect();
+        $existingPlans = collect();
+        $sectionsByCurriculum = collect();
         $yearApplied = $request->year_applied;
         if ($request->filled('program_id')) {
             $program = Program::find($request->program_id);
@@ -86,10 +89,19 @@ class CurriculumController extends Controller
                 $usedLevelIds = $program->curriculums()
                     ->when($yearApplied, fn ($q) => $q->where('year_applied', $yearApplied))
                     ->pluck('level_id');
+
+                // โชว์รายการแผนที่มีอยู่แล้วในหลักสูตรนี้ตรงนี้เลย ไม่ต้องมีหน้าลิสต์แยกต่างหาก
+                $existingPlans = $program->curriculums()->with('level')
+                    ->orderByDesc('year_applied')->orderBy('level_id')->get();
+                $sectionsByCurriculum = ClassSection::with('level')
+                    ->whereIn('curriculum_id', $existingPlans->pluck('curriculum_id'))
+                    ->get()->groupBy('curriculum_id');
             }
         }
 
-        return view('academic.curriculum_form', compact('levels', 'programs', 'program', 'usedLevelIds', 'yearApplied'));
+        return view('academic.curriculum_form', compact(
+            'levels', 'programs', 'program', 'usedLevelIds', 'yearApplied', 'existingPlans', 'sectionsByCurriculum'
+        ));
     }
 
     public function store(Request $request)

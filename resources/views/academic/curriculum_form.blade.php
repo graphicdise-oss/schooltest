@@ -235,6 +235,53 @@
         </form>
     </div>
 
+    {{-- ===== แผนที่มีอยู่แล้วในหลักสูตรนี้ (โชว์รวมในหน้าเดียว ไม่ต้องมีหน้าลิสต์แยก) ===== --}}
+    @if(!isset($curriculum) && isset($program) && $program && $existingPlans->count())
+    <div class="cf-card">
+        <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
+        <div class="cf-card-header">
+            <span class="cf-card-title">แผนที่มีอยู่แล้วในหลักสูตร {{ $program->name }}</span>
+        </div>
+
+        <table class="cf-table">
+            <thead>
+                <tr>
+                    <th style="width:50px">ลำดับ</th>
+                    <th>แผน</th>
+                    <th style="text-align:center">ปีการศึกษา</th>
+                    <th>ชั้นเรียน</th>
+                    <th style="text-align:center">จัดการ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($existingPlans as $i => $ep)
+                <tr>
+                    <td>{{ $i + 1 }}</td>
+                    <td>
+                        <strong>{{ $ep->name }}</strong>
+                        <div style="font-size:0.78rem;color:#999;margin-top:2px">{{ $ep->level->name ?? '-' }}</div>
+                    </td>
+                    <td style="text-align:center">{{ $ep->year_applied ?: '-' }}</td>
+                    <td>
+                        @php $epSections = $sectionsByCurriculum->get($ep->curriculum_id); @endphp
+                        @if($epSections && $epSections->count())
+                            {{ $epSections->map(fn($s) => $s->full_name)->implode(', ') }}
+                        @else
+                            <span style="color:#ccc">-</span>
+                        @endif
+                    </td>
+                    <td style="text-align:center">
+                        <a href="{{ route('curriculums.edit', $ep->curriculum_id) }}" class="btn-action" style="text-decoration:none">
+                            <i class="bi bi-pencil"></i> แก้ไข
+                        </a>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+    @endif
+
     {{-- ===== Card 2: วิชาเรียน (เฉพาะตอนแก้ไข) ===== --}}
     @if(isset($curriculum))
     <div class="cf-card">
