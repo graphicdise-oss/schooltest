@@ -138,6 +138,13 @@
             </select>
         </div>
 
+        @if($unassignedCount > 0)
+        <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:12px 16px; margin-bottom:18px; color:#9a3412; font-size:0.85rem; display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap;">
+            <span><i class="bi bi-info-circle-fill"></i> มีแผนการเรียน {{ $unassignedCount }} แผน (ของปีนี้) ที่สร้างไว้ก่อนหน้านี้และยังไม่ได้ผูกกับหลักสูตรใด — ข้อมูลยังอยู่ครบ ไม่ได้หายไปไหน</span>
+            <a href="{{ route('curriculums.index') }}" style="background:#ea580c;color:#fff;border-radius:6px;padding:6px 14px;font-weight:600;text-decoration:none;white-space:nowrap;">ดูแผนเหล่านี้</a>
+        </div>
+        @endif
+
         <table class="pg-table">
             <thead>
                 <tr>

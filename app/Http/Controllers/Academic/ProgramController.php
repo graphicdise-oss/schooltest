@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Academic;
 
 use App\Http\Controllers\Controller;
 use App\Models\Academic\Program;
+use App\Models\Academic\Curriculum;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
@@ -28,7 +29,13 @@ class ProgramController extends Controller
             $q->when($yearName, fn ($q2) => $q2->where('year_applied', $yearName));
         }])->orderBy('name')->get();
 
-        return view('academic.programs', compact('programs', 'academicYears', 'currentYearId', 'yearName'));
+        // แผนเก่าที่มีอยู่ก่อนฟีเจอร์หลักสูตรนี้ (หรือแผนที่ยังไม่ได้ผูกหลักสูตร) จะไม่โผล่ในลิสต์ด้านบน
+        // เพราะยังไม่มี program_id — เก็บจำนวนไว้เตือน กันข้อมูลดูเหมือนหายไปทั้งที่ยังอยู่ในระบบ
+        $unassignedCount = Curriculum::whereNull('program_id')
+            ->when($yearName, fn ($q) => $q->where('year_applied', $yearName))
+            ->count();
+
+        return view('academic.programs', compact('programs', 'academicYears', 'currentYearId', 'yearName', 'unassignedCount'));
     }
 
     public function store(Request $request)
