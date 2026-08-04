@@ -138,6 +138,12 @@
         <div class="ge-card-header">
             <span class="ge-card-title">แก้ไขเกรด — รายวิชาที่เรียน</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap">
+              <a href="{{ route('grades.importTranscriptTemplate', $student->student_id) }}" class="btn-back" style="background:#0d6efd">
+                <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์มนำเข้าเกรดรวม
+              </a>
+              <button type="button" class="btn-back" style="background:#198754" onclick="document.getElementById('transcriptImportOverlay').classList.add('active')">
+                <i class="bi bi-upload"></i> นำเข้าเกรดรวม
+              </button>
               <button type="button" class="btn-print" onclick="document.getElementById('printSettingsModal').classList.add('active')">
                 <i class="bi bi-printer"></i> พิมพ์ Transcript
             </button>
@@ -268,12 +274,65 @@
     </div>
 </div>
 
+{{-- นำเข้าเกรดรวม (Transcript) Modal --}}
+<div class="ge-overlay" id="transcriptImportOverlay" onclick="if(event.target===this)closeTranscriptImportModal()">
+    <div class="ge-modal">
+        <div class="ge-modal-header"><i class="bi bi-upload"></i> นำเข้าเกรดรวม (Transcript)</div>
+        <form method="POST" action="{{ route('grades.importTranscript', $student->student_id) }}"
+              enctype="multipart/form-data" onsubmit="submitTranscriptImportForm()">
+            @csrf
+            <div class="ge-modal-body">
+                <p style="font-size:0.8rem; color:#777; margin:0 0 4px">
+                    ใช้ไฟล์ที่ดาวน์โหลดจากปุ่ม "ดาวน์โหลดแบบฟอร์มนำเข้าเกรดรวม" แล้วกรอกข้อมูลตามช่อง
+                    (สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน) — เกรดที่นำเข้าจะไม่ผูกกับห้องเรียนจริง
+                </p>
+                <div>
+                    <input type="file" name="file" accept=".xlsx" required>
+                </div>
+                <div>
+                    <label style="display:flex; align-items:center; gap:6px; font-weight:400">
+                        <input type="checkbox" name="dry_run" value="1" style="width:auto">
+                        ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง
+                    </label>
+                </div>
+            </div>
+            <div class="ge-modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="closeTranscriptImportModal()">ยกเลิก</button>
+                <button type="submit" id="transcriptImportSubmitBtn" class="btn-modal-save" style="background:#198754">
+                    <i class="bi bi-upload"></i> เริ่มนำเข้า
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (session('transcript_import_output'))
+<div class="ge-overlay active" id="transcriptImportResultOverlay">
+    <div class="ge-modal" style="width:640px; max-width:95vw">
+        <div class="ge-modal-header"><i class="bi bi-clipboard-check"></i> ผลการนำเข้าเกรดรวม</div>
+        <div class="ge-modal-body">
+            <pre style="background:#f5f5f5; padding:12px; border-radius:8px; overflow:auto; max-height:60vh; font-size:0.8rem; white-space:pre-wrap">{{ session('transcript_import_output') }}</pre>
+        </div>
+        <div class="ge-modal-footer">
+            <button type="button" class="btn-modal-save" onclick="document.getElementById('transcriptImportResultOverlay').remove()">ปิด</button>
+        </div>
+    </div>
+</div>
+@endif
+
 <script>
 function openEdit(gradeId, score, grade) {
     document.getElementById('editGradeForm').action = '/grades/' + gradeId;
     document.getElementById('edit_score').value = score;
     document.getElementById('edit_grade').value = '';
     document.getElementById('editGradeOverlay').classList.add('active');
+}
+function closeTranscriptImportModal() {
+    document.getElementById('transcriptImportOverlay').classList.remove('active');
+}
+function submitTranscriptImportForm() {
+    document.getElementById('transcriptImportSubmitBtn').disabled = true;
+    document.getElementById('transcriptImportSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่';
 }
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.querySelectorAll('.ge-overlay.active').forEach(el => el.classList.remove('active'));

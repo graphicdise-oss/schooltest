@@ -11,8 +11,17 @@ use App\Models\Academic\StudentSection;
 use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\TeachingAssign;
 use App\Models\Student;
+use App\Services\ExcelSchoolHeader;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class GradeController extends Controller
 {
@@ -88,6 +97,108 @@ class GradeController extends Controller
         $student = Student::findOrFail($studentId);
         [$grades, $gpa, $totalCredits] = $this->buildTranscriptData($studentId);
         return view('academic.grades_edit', compact('student', 'grades', 'gpa', 'totalCredits'));
+    }
+
+    // ดาวน์โหลดแบบฟอร์มนำเข้าเกรดรวม (Transcript) เปล่า — สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน สำหรับนักเรียนคนนี้คนเดียว
+    public function importTranscriptTemplate($studentId)
+    {
+        $student = Student::findOrFail($studentId);
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('เกรด');
+
+        $totalCols = 9; // 3 กลุ่มปี x 3 คอลัมน์ (รหัสวิชา:ชื่อวิชา, หน่วยกิต, เกรด)
+
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
+        ExcelSchoolHeader::applyInstructionRow(
+            $sheet, $totalCols,
+            "แบบฟอร์มนำเข้าเกรดรวม (Transcript) ของ {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} — "
+            . 'กรอกได้สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน (กรอกไม่ครบ 3 กลุ่มก็ได้), '
+            . 'แถวปีให้ใส่ "ปีการศึกษา XXXX ระดับชั้น" เช่น ปีการศึกษา 2567 มัธยมศึกษาปีที่ 4, '
+            . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2", แถววิชาใส่ "รหัสวิชา : ชื่อวิชา" หน่วยกิต เกรด(0-4) ตามลำดับ'
+        );
+
+        for ($g = 0; $g < 3; $g++) {
+            $col = 1 + $g * 3;
+            $colLetter = Coordinate::stringFromColumnIndex($col);
+            $lastColLetter = Coordinate::stringFromColumnIndex($col + 2);
+
+            $sheet->mergeCells("{$colLetter}6:{$lastColLetter}6");
+            $sheet->setCellValue("{$colLetter}6", 'ปีการศึกษา ____ ระดับชั้น ____');
+            $sheet->getStyle("{$colLetter}6")->applyFromArray([
+                'font' => ['bold' => true, 'size' => 11],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+            ]);
+
+            $sheet->mergeCells("{$colLetter}7:{$lastColLetter}7");
+            $sheet->setCellValue("{$colLetter}7", 'ภาคเรียนที่ 1');
+            $sheet->getStyle("{$colLetter}7")->applyFromArray([
+                'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+
+            $sheet->mergeCells("{$colLetter}28:{$lastColLetter}28");
+            $sheet->setCellValue("{$colLetter}28", 'ภาคเรียนที่ 2');
+            $sheet->getStyle("{$colLetter}28")->applyFromArray([
+                'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+
+            ExcelSchoolHeader::setColumnWidth($sheet, $colLetter, 26, $hasLogo);
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col + 1))->setWidth(8);
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col + 2))->setWidth(8);
+        }
+
+        $sheet->getStyle('A8:' . Coordinate::stringFromColumnIndex($totalCols) . '27')->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
+        ]);
+        $sheet->getStyle('A29:' . Coordinate::stringFromColumnIndex($totalCols) . '48')->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
+        ]);
+
+        $sheet->freezePane('A8');
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'transcript_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = 'แบบฟอร์มนำเข้าเกรดรวม_' . ($student->student_code ?: $student->student_id) . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    // รับไฟล์ Excel เกรดรวมที่กรอกมา แล้วรันคำสั่งนำเข้าให้นักเรียนคนนี้
+    public function importTranscriptUpload(Request $request, $studentId)
+    {
+        Student::findOrFail($studentId);
+
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0);
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['studentId' => $studentId, 'file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:transcript', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('transcript_import_output', $output);
     }
 
     // อัปเดตเกรด
