@@ -106,7 +106,7 @@
         <div class="cby-icon cby-icon-list"><i class="bi bi-journal-text"></i></div>
         <div class="cby-card-header">
             <div>
-                <a href="{{ route('curriculums.index') }}" class="cby-back">
+                <a href="{{ route('programs.index') }}" class="cby-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
                 <span class="cby-card-title" style="margin-left:12px">

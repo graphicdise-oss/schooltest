@@ -6,21 +6,36 @@ use App\Http\Controllers\Controller;
 use App\Models\Academic\Program;
 use App\Models\Academic\Curriculum;
 use App\Models\Academic\ClassSection;
+use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        // แสดงแผนทุกปีรวมกัน ไม่กรองตามปีการศึกษา — เพราะ "ปีการศึกษา" ของแผนเป็นข้อความ
-        // ที่พิมพ์เอง พอเลือกปีบนตัวกรองไม่ตรงกับที่พิมพ์ไว้เป๊ะๆ แผนจะหายไปจากลิสต์แบบไม่รู้สาเหตุ
-        $programs = Program::withCount('curriculums')->orderBy('name')->get();
+        $academicYears = AcademicYear::with('semesters')->orderBy('year_name', 'desc')->get();
+
+        // ค่าเริ่มต้นคือ "ทั้งหมด" (ไม่กรอง) โดยตั้งใจ ไม่ใช่ปีปัจจุบัน — เพราะ "ปีการศึกษา" ของแผนเป็นข้อความ
+        // ที่พิมพ์เอง พอเลือกปีบนตัวกรองไม่ตรงกับที่พิมพ์ไว้เป๊ะๆ แผนจะหายไปจากลิสต์แบบไม่รู้สาเหตุ —
+        // ให้ผู้ใช้กดเลือกปีเองถ้าต้องการกรองจริงๆ เท่านั้น
+        $currentYearId = $request->year_id ?? 'all';
+        $selectedYear = $currentYearId !== 'all' ? $academicYears->where('year_id', $currentYearId)->first() : null;
+
+        // จำนวน "แผน" ต่อหลักสูตร: ถ้าเลือกปีไว้ ให้นับเฉพาะแผนของปีนั้น (กรองจากคอลัมน์ year_applied
+        // ให้ตรงกับชื่อปีการศึกษา เช่น 2568) ไม่งั้นนับรวมทุกปีเหมือนเดิม
+        $programs = Program::withCount(['curriculums' => function ($q) use ($selectedYear) {
+            if ($selectedYear) {
+                $q->where('year_applied', $selectedYear->year_name);
+            }
+        }])->orderBy('name')->get();
 
         // แผนเก่าที่มีอยู่ก่อนฟีเจอร์หลักสูตรนี้ (หรือแผนที่ยังไม่ได้ผูกหลักสูตร) จะไม่โผล่ในลิสต์ด้านบน
         // เพราะยังไม่มี program_id — เก็บจำนวนไว้เตือน กันข้อมูลดูเหมือนหายไปทั้งที่ยังอยู่ในระบบ
         $unassignedCount = Curriculum::whereNull('program_id')->count();
 
-        return view('academic.programs', compact('programs', 'unassignedCount'));
+        return view('academic.programs', compact(
+            'programs', 'unassignedCount', 'academicYears', 'currentYearId', 'selectedYear'
+        ));
     }
 
     public function store(Request $request)

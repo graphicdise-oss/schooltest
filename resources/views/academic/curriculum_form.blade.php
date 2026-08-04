@@ -178,7 +178,7 @@
                     </button>
                 </form>
                 @endif
-                <a href="{{ isset($program) && $program ? route('programs.plans', $program->program_id) : route('curriculums.index') }}" class="btn-back">
+                <a href="{{ isset($program) && $program ? route('programs.plans', $program->program_id) : route('programs.index') }}" class="btn-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
             </div>

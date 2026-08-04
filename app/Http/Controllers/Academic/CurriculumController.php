@@ -14,34 +14,6 @@ use Illuminate\Http\Request;
 
 class CurriculumController extends Controller
 {
-  // แก้ไขฟังก์ชันนี้
-  public function index(Request $request)
-    {
-        // 1. ดึงปีการศึกษาทั้งหมดเพื่อนำไปโชว์ใน Dropdown
-        $academicYears = \App\Models\Academic\AcademicYear::with('semesters')->orderBy('year_name', 'desc')->get();
-        
-        // 2. รับค่าปีที่เลือกมาจากหน้าเว็บ (ถ้าไม่มี ให้ดึงปีปัจจุบันมาเป็นค่าเริ่มต้น)
-        $currentYearId = $request->year_id;
-        if ($currentYearId === null) {
-            $currentYearId = $academicYears->where('is_current', true)->first()->year_id ?? 'all';
-        }
-        
-        $query = Curriculum::with('level');
-        
-        // 3. ถ้าไม่ได้เลือก "ดูทั้งหมด" ให้กรองหลักสูตรเฉพาะปีนั้นๆ
-        if ($currentYearId !== 'all') {
-            $selectedYear = $academicYears->where('year_id', $currentYearId)->first();
-            if ($selectedYear) {
-                // กรองจากคอลัมน์ year_applied ให้ตรงกับชื่อปีการศึกษา (เช่น 2568)
-                $query->where('year_applied', $selectedYear->year_name);
-            }
-        }
-        
-        $curriculums = $query->orderBy('curriculum_id', 'desc')->paginate(20);
-        
-        return view('academic.curriculums', compact('curriculums', 'academicYears', 'currentYearId'));
-    }
-
     public function byYear($year)
     {
         $curriculums = Curriculum::with(['level', 'curriculumSubjects'])
