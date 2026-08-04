@@ -31,7 +31,10 @@ class ClassSectionController extends Controller
         $curriculums = Curriculum::with('level')->where('is_active', true)
             ->orderBy('year_applied', 'desc')->orderBy('name')->get();
 
-        return view('academic.class_sections', compact('sections', 'semesters', 'levels', 'semesterId', 'curriculums'));
+        // ปีของเทอมที่กำลังดูอยู่ — ใช้กรอง dropdown "แผนการเรียน" ให้ขึ้นเฉพาะแผนของปี+ระดับชั้นห้องนั้นจริงๆ
+        $currentYearName = $semesters->firstWhere('semester_id', $semesterId)?->academicYear?->year_name;
+
+        return view('academic.class_sections', compact('sections', 'semesters', 'levels', 'semesterId', 'curriculums', 'currentYearName'));
     }
 
     public function store(Request $request)

@@ -71,7 +71,7 @@
                                     <i class="bi bi-people"></i>
                                 </a>
                                 <button class="ac-action-btn ac-action-edit" title="แก้ไข"
-                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }}, '{{ $sec->curriculum_id ?? '' }}', {{ Js::from($sec->level->name ?? '') }})">
+                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }}, '{{ $sec->curriculum_id ?? '' }}', {{ Js::from($sec->level->name ?? '') }}, {{ $sec->level_id ?? 'null' }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('class-sections.destroy', $sec->section_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบห้องเรียนนี้?')">
@@ -118,10 +118,10 @@
                 </select>
 
                 <label>แผนการเรียน</label>
-                <select name="curriculum_id">
+                <select name="curriculum_id" id="aCurriculum">
                     <option value="">-- ไม่ระบุ --</option>
                     @foreach($curriculums as $c)
-                        <option value="{{ $c->curriculum_id }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
+                        <option value="{{ $c->curriculum_id }}" data-level="{{ $c->level_id }}" data-year="{{ $c->year_applied }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
                     @endforeach
                 </select>
 
@@ -158,7 +158,7 @@
                 <select name="curriculum_id" id="eCurriculum">
                     <option value="">-- ไม่ระบุ --</option>
                     @foreach($curriculums as $c)
-                        <option value="{{ $c->curriculum_id }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
+                        <option value="{{ $c->curriculum_id }}" data-level="{{ $c->level_id }}" data-year="{{ $c->year_applied }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
                     @endforeach
                 </select>
 
@@ -174,12 +174,27 @@
 </div>
 
 <script>
-function openEdit(id, roomLabel, teacherId, max, curriculumId, levelName) {
+const currentYearName = @json($currentYearName);
+// ให้ dropdown "แผนการเรียน" ขึ้นเฉพาะแผนของระดับชั้น + ปีการศึกษาที่ตรงกับห้องนี้เท่านั้น
+function filterCurriculumOptions(selectEl, levelId) {
+    const prevValue = selectEl.value;
+    let stillValid = false;
+    Array.from(selectEl.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; } // "-- ไม่ระบุ --"
+        const matches = String(opt.dataset.level) === String(levelId) && opt.dataset.year === currentYearName;
+        opt.hidden = !matches;
+        if (matches && opt.value === prevValue) stillValid = true;
+    });
+    if (!stillValid) selectEl.value = '';
+}
+function openEdit(id, roomLabel, teacherId, max, curriculumId, levelName, levelId) {
     document.getElementById('editForm').action = '{{ url("class-sections") }}/' + id;
     document.getElementById('eRoomLabel').value = (levelName ? levelName + '/' : '') + roomLabel;
     document.getElementById('eTeacher').value = teacherId || '';
     document.getElementById('eMax').value = max;
-    document.getElementById('eCurriculum').value = curriculumId || '';
+    const eCurriculum = document.getElementById('eCurriculum');
+    filterCurriculumOptions(eCurriculum, levelId);
+    eCurriculum.value = curriculumId || '';
     document.getElementById('editOverlay').classList.add('active');
 }
 function updateAddPrefix(select) {
@@ -189,6 +204,7 @@ function updateAddPrefix(select) {
     const slashIdx = input.value.indexOf('/');
     const rest = slashIdx >= 0 ? input.value.slice(slashIdx + 1) : input.value;
     input.value = newPrefix + rest;
+    filterCurriculumOptions(document.getElementById('aCurriculum'), select.value);
 }
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.querySelectorAll('.ac-overlay.active').forEach(el => el.classList.remove('active'));
