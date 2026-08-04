@@ -310,6 +310,9 @@ class ImportTranscriptFromExcel extends Command
     }
 
     // อ่านแถวหัว "ปีการศึกษา XXXX ระดับชั้น" ของทั้ง 3 กลุ่ม (คอลัมน์ 1, 4, 7) ที่แถว $headerRow
+    // รองรับ 2 รูปแบบ: (1) ข้อความรวมกันในช่องเดียว เช่น "ปีการศึกษา 2567 ระดับชั้น มัธยมศึกษาปีที่ 4" (ไฟล์จริงจากโรงเรียน)
+    // (2) แบบฟอร์มที่ระบบสร้างให้ ซึ่งแยกเป็น 2 แถวคนละช่องกรอก: แถว "ปีการศึกษา" (ปีอยู่ช่องถัดไปในแถวเดียวกัน)
+    //     ตามด้วยแถว "ระดับชั้น" (ระดับชั้นอยู่ช่องถัดไปในแถวถัดไป) — ตรวจจากการที่แถวหัวไม่มีตัวเลขปีอยู่ในตัวเอง
     private function locateGroups(callable $get, int $headerRow, callable $startsWithYear, array &$warnings): array
     {
         $groups = [];
@@ -318,6 +321,11 @@ class ImportTranscriptFromExcel extends Command
             $header = $get($col, $headerRow);
             if ($header === '' || !$startsWithYear($header)) {
                 continue;
+            }
+            if (!preg_match('/\d{4}/u', $header)) {
+                $yearInput = $get($col + 1, $headerRow);
+                $levelInput = $get($col + 1, $headerRow + 1);
+                $header = trim("ปีการศึกษา {$yearInput} {$levelInput}");
             }
             [$year, $level] = $this->parseYearLevel($header);
             if (!$year || !$level) {
@@ -348,6 +356,11 @@ class ImportTranscriptFromExcel extends Command
                     if (preg_match('/(\d+)/u', $c1, $m)) {
                         $groups[$gi]['semester'] = $m[1];
                     }
+                    continue;
+                }
+
+                if (str_starts_with($c1, 'ระดับชั้น')) {
+                    // แถวช่องกรอกระดับชั้นของแบบฟอร์มที่ระบบสร้างให้ (อ่านไปแล้วตอน locateGroups) — ไม่ใช่แถววิชา ข้าม
                     continue;
                 }
 
@@ -401,6 +414,11 @@ class ImportTranscriptFromExcel extends Command
                     if (preg_match('/(\d+)/u', $c1, $m)) {
                         $groups[$gi]['semester'] = $m[1];
                     }
+                    continue;
+                }
+
+                if (str_starts_with($c1, 'ระดับชั้น')) {
+                    // แถวช่องกรอกระดับชั้นของแบบฟอร์มที่ระบบสร้างให้ (อ่านไปแล้วตอน locateGroups) — ไม่ใช่แถวกิจกรรม ข้าม
                     continue;
                 }
 
