@@ -73,6 +73,7 @@ class CurriculumController extends Controller
     public function create(Request $request)
     {
         $levels = Level::orderBy('sort_order')->get();
+        $programs = Program::orderBy('name')->get();
 
         $program = null;
         $usedLevelIds = collect();
@@ -88,7 +89,7 @@ class CurriculumController extends Controller
             }
         }
 
-        return view('academic.curriculum_form', compact('levels', 'program', 'usedLevelIds', 'yearApplied'));
+        return view('academic.curriculum_form', compact('levels', 'programs', 'program', 'usedLevelIds', 'yearApplied'));
     }
 
     public function store(Request $request)
@@ -104,15 +105,18 @@ class CurriculumController extends Controller
     {
         $curriculum = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])->findOrFail($id);
         $levels     = Level::orderBy('sort_order')->get();
+        $programs   = Program::orderBy('name')->get();
         $subjects   = Subject::where('is_active', true)->orderBy('code')->get();
         $personnels = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
-        return view('academic.curriculum_form', compact('curriculum', 'levels', 'subjects', 'personnels'));
+        return view('academic.curriculum_form', compact('curriculum', 'levels', 'programs', 'subjects', 'personnels'));
     }
 
     public function update(Request $request, $id)
     {
         $cur = Curriculum::findOrFail($id);
-        $cur->update($request->only(['name', 'level_id', 'year_applied', 'description']));
+        $cur->update($request->only(['name', 'level_id', 'year_applied', 'description']) + [
+            'program_id' => $request->program_id ?: null,
+        ]);
         return redirect()->back()->with('success', 'แก้ไขหลักสูตรสำเร็จ');
     }
 
