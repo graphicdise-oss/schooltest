@@ -444,6 +444,18 @@
             </form>
         </div>
     </div>
+    @else
+    {{-- ===== Card 2 (ตอนสร้างแผนใหม่): แสดงให้เห็นว่าจะมาเพิ่มวิชาตรงนี้ แต่ต้องบันทึกข้อมูลด้านบนก่อน ===== --}}
+    <div class="cf-card">
+        <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
+        <div class="cf-card-header">
+            <span class="cf-card-title">จัดการวิชาเรียน</span>
+        </div>
+        <div class="cf-empty" style="padding:28px 20px;">
+            <i class="bi bi-arrow-up-circle" style="font-size:1.8rem;display:block;margin-bottom:8px;color:#43a047"></i>
+            กด "บันทึกหลักสูตร" ด้านบนก่อน แล้วจะกลับมาที่หน้านี้พร้อมเพิ่มวิชาได้ทันที
+        </div>
+    </div>
     @endif
 
 </div>
