@@ -103,81 +103,7 @@
         </div>
     </div>
 
-    <div class="ac-card">
-        <div class="ac-card-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-            <span><i class="bi bi-clipboard2-check"></i> เช็คชื่อรวมทั้งห้อง (ตรวจเช็คการเข้าเรียน)</span>
-            <button type="button" class="att-btn-up" onclick="document.getElementById('attRoomImportOverlay').classList.add('active')">
-                <i class="bi bi-upload"></i> นำเข้าไฟล์ Excel ที่กรอกแล้ว
-            </button>
-        </div>
-        <div class="ac-card-body">
-            <p style="font-size:.82rem;color:#777;margin:0 0 12px">
-                เช็คชื่อทั้งห้องครั้งเดียวต่อวัน ไม่ต้องเปิดเช็คทีละวิชา มีแค่ 2 สถานะ (มา/ไม่มา) —
-                เช็คออนไลน์ได้ทันที หรือดาวน์โหลดไฟล์ไปกรอกออฟไลน์แล้วนำเข้ากลับทีหลังก็ได้ (นำเข้าไฟล์เดิมซ้ำได้ ไม่สร้างข้อมูลซ้ำ)
-            </p>
-            <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap">
-                <div class="ac-field" style="margin:0">
-                    <label>ห้องเรียน</label>
-                    <select class="ac-select" id="attSummarySection">
-                        <option value="">-- เลือกห้องเรียน --</option>
-                        @foreach($sections as $sec)
-                        <option value="{{ $sec->section_id }}">{{ $sec->full_name }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="ac-field" style="margin:0">
-                    <label>เดือน</label>
-                    <input type="month" id="attSummaryMonth" class="ac-input" value="{{ now()->format('Y-m') }}">
-                </div>
-                <button type="button" class="ac-btn ac-btn-primary" style="height:38px;white-space:nowrap" onclick="attGoRoomMark()"><i class="bi bi-check2-square"></i> เช็คชื่อออนไลน์</button>
-                <button type="button" class="ac-btn ac-btn-primary" style="height:38px;white-space:nowrap;background:#0d6efd" onclick="attSubmitSummary()"><i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์ม/รายงาน</button>
-            </div>
-        </div>
-    </div>
 </div>
-
-{{-- นำเข้าไฟล์ Excel เช็คชื่อรวมทั้งห้อง --}}
-<div class="att-xl-overlay" id="attRoomImportOverlay" onclick="if(event.target===this)closeRoomImportModal()">
-    <div class="att-xl-modal">
-        <div class="att-xl-modal-header"><i class="bi bi-upload"></i> นำเข้าไฟล์เช็คชื่อรวมทั้งห้อง</div>
-        <form method="POST" action="{{ route('attendance.importRoomExcel') }}" enctype="multipart/form-data" onsubmit="submitRoomImportForm()">
-            @csrf
-            <div class="att-xl-modal-body">
-                <p style="font-size:.8rem;color:#777;margin:0">
-                    ใช้ไฟล์ที่ดาวน์โหลดจากปุ่ม "ดาวน์โหลดแบบฟอร์ม/รายงาน" ด้านบนแล้วกรอกข้อมูล — ไฟล์มีชีตแยกให้คนละห้อง/เดือน อัปโหลดไฟล์เดียว
-                    ก็นำเข้าได้หลายห้อง/เดือนพร้อมกัน (ถ้าเอาหลายชีตมารวมไว้ในไฟล์เดียวกันเอง)
-                </p>
-                <div><input type="file" name="file" accept=".xlsx" required></div>
-                <div>
-                    <label style="display:flex;align-items:center;gap:6px;font-weight:400;font-size:.85rem;color:#444">
-                        <input type="checkbox" name="dry_run" value="1" style="width:auto">
-                        ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง
-                    </label>
-                </div>
-            </div>
-            <div class="att-xl-modal-footer">
-                <button type="button" class="att-btn-cancel" onclick="closeRoomImportModal()">ยกเลิก</button>
-                <button type="submit" id="attRoomImportSubmitBtn" class="att-btn-go" style="background:#198754">
-                    <i class="bi bi-upload"></i> เริ่มนำเข้า
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-@if (session('room_import_output'))
-<div class="att-xl-overlay active" id="attRoomImportResultOverlay">
-    <div class="att-xl-modal" style="width:640px;max-width:95vw">
-        <div class="att-xl-modal-header"><i class="bi bi-clipboard-check"></i> ผลการนำเข้าเช็คชื่อรวมทั้งห้อง</div>
-        <div class="att-xl-modal-body">
-            <pre style="background:#f5f5f5;padding:12px;border-radius:8px;overflow:auto;max-height:60vh;font-size:.8rem;white-space:pre-wrap">{{ session('room_import_output') }}</pre>
-        </div>
-        <div class="att-xl-modal-footer">
-            <button type="button" class="att-btn-go" onclick="document.getElementById('attRoomImportResultOverlay').remove()">ปิด</button>
-        </div>
-    </div>
-</div>
-@endif
 
 {{-- ดาวน์โหลดแบบฟอร์ม Excel (เลือกเดือน หรือทุกเดือนในเทอม) --}}
 <div class="att-xl-overlay" id="attExportOverlay" onclick="if(event.target===this)closeExportModal()">
@@ -246,31 +172,6 @@
 @endif
 
 <script>
-function attGetRoomAndMonth() {
-    var sectionId = document.getElementById('attSummarySection').value;
-    if (!sectionId) { alert('กรุณาเลือกห้องเรียน'); return null; }
-    var month = document.getElementById('attSummaryMonth').value;
-    if (!month) { alert('กรุณาเลือกเดือน'); return null; }
-    return { sectionId: sectionId, month: month };
-}
-function attSubmitSummary() {
-    var v = attGetRoomAndMonth();
-    if (!v) return;
-    var url = "{{ url('/attendance/report') }}/" + v.sectionId + "?month=" + encodeURIComponent(v.month);
-    window.open(url, '_blank');
-}
-function attGoRoomMark() {
-    var v = attGetRoomAndMonth();
-    if (!v) return;
-    var url = "{{ url('/attendance/room') }}/" + v.sectionId + "?month=" + encodeURIComponent(v.month);
-    window.location.href = url;
-}
-function closeRoomImportModal() { document.getElementById('attRoomImportOverlay').classList.remove('active'); }
-function submitRoomImportForm() {
-    document.getElementById('attRoomImportSubmitBtn').disabled = true;
-    document.getElementById('attRoomImportSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่';
-}
-var attExportAssignId = null;
 var attExportAssignId = null;
 function openExportModal(assignId, label) {
     attExportAssignId = assignId;
