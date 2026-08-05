@@ -395,9 +395,15 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <span class="{{ $cs->is_active ? 'badge-req' : 'badge-opt' }}">
-                            {{ $cs->is_active ? 'ใช้งาน' : 'ปิดใช้งาน' }}
-                        </span>
+                        <form action="{{ route('curriculums.toggleSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST" style="display:inline">
+                            @csrf
+                            <button type="submit" class="{{ $cs->is_active ? 'badge-req' : 'badge-opt' }}"
+                                style="border:none;cursor:pointer;font-family:inherit"
+                                title="{{ $cs->is_active ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน' }}">
+                                <i class="bi {{ $cs->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                                {{ $cs->is_active ? 'ใช้งาน' : 'ปิดใช้งาน' }}
+                            </button>
+                        </form>
                     </td>
                     <td style="text-align:center">
                         <div class="cf-action-wrap">
@@ -413,13 +419,6 @@
                                 <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}')">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
-                                <form action="{{ route('curriculums.toggleSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST">
-                                    @csrf
-                                    <button type="submit">
-                                        <i class="bi {{ $cs->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
-                                        {{ $cs->is_active ? 'ปิดใช้งาน' : 'เปิดใช้งาน' }}
-                                    </button>
-                                </form>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
                                       onsubmit="return confirm('ลบวิชา {{ addslashes($cs->subject->name_th ?? '') }} ออกจากหลักสูตร?')">
                                     @csrf @method('DELETE')
