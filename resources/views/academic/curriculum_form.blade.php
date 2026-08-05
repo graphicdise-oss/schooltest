@@ -433,6 +433,7 @@
                                     data-credits="{{ $sub->credits ?? '' }}"
                                     data-hours-year="{{ $sub->hours_per_year ?? '' }}"
                                     data-hours-week="{{ $sub->hours_per_week ?? '' }}"
+                                    data-subject-type="{{ $sub->subject_type ?? '' }}"
                                     onclick="selectSubjectCombo(this)">
                                     {{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)
                                 </div>
@@ -465,7 +466,7 @@
                     </div>
                     <div>
                         <label>ประเภทวิชา</label>
-                        <select name="is_required">
+                        <select name="is_required" id="add_is_required">
                             <option value="1">บังคับ</option>
                             <option value="0">เลือก</option>
                         </select>
@@ -609,8 +610,13 @@ function openAddSubjectModal() {
     document.getElementById('add_credits').value = '';
     document.getElementById('add_hours_per_year').value = '';
     document.getElementById('add_hours_per_week').value = '';
+    document.getElementById('add_is_required').value = '1';
     document.getElementById('add_subject_list').classList.remove('open');
     document.getElementById('addSubjOverlay').classList.add('active');
+}
+// พื้นฐาน/กิจกรรม = บังคับ โดยปริยาย, เพิ่มเติม = เลือก โดยปริยาย (ยังแก้เองได้เสมอ แค่ตั้งค่าเริ่มต้นให้)
+function defaultIsRequiredFor(subjectType) {
+    return subjectType === 'เพิ่มเติม' ? '0' : '1';
 }
 function openSubjectCombo() {
     document.getElementById('add_subject_list').classList.add('open');
@@ -635,6 +641,7 @@ function selectSubjectCombo(item) {
     document.getElementById('add_credits').value = item.dataset.credits || '';
     document.getElementById('add_hours_per_year').value = item.dataset.hoursYear || '';
     document.getElementById('add_hours_per_week').value = item.dataset.hoursWeek || '';
+    document.getElementById('add_is_required').value = defaultIsRequiredFor(item.dataset.subjectType || '');
     document.getElementById('add_subject_list').classList.remove('open');
 }
 function validateAddSubjectForm() {
