@@ -171,8 +171,8 @@ class AttendanceController extends Controller
         $firstSheet = true;
         $usedTitles = [];
         foreach ($months as $ym) {
-            $dates = $this->schoolDaysInMonth($ym['year'], $ym['month'], $semester?->year_id, $semStart, $semEnd);
-            if ($dates->isEmpty()) {
+            $allDays = $this->monthDaysWithSchoolFlag($ym['year'], $ym['month'], $semester?->year_id, $semStart, $semEnd);
+            if ($allDays->isEmpty() || !$allDays->contains(fn ($d) => $d->is_school_day)) {
                 continue;
             }
 
@@ -181,11 +181,11 @@ class AttendanceController extends Controller
             $sheet->setTitle($this->uniqueMonthTitle($ym['year'], $ym['month'], $usedTitles));
 
             $existing = ClassAttendance::where('assign_id', $assignId)
-                ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
+                ->whereBetween('class_date', [$allDays->first()->date->format('Y-m-d'), $allDays->last()->date->format('Y-m-d')])
                 ->get()
                 ->groupBy(fn($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
 
-            $this->buildAttendanceSheet($sheet, $assign, $students, $dates, $existing, $ym['year'], $ym['month']);
+            $this->buildAttendanceSheet($sheet, $assign, $students, $allDays, $existing, $ym['year'], $ym['month']);
         }
 
         if ($firstSheet) {
@@ -216,8 +216,18 @@ class AttendanceController extends Controller
     }
 
     // วันเรียนจริงของเดือนนั้น — ตัดวันเสาร์-อาทิตย์ + วันหยุดตามปฏิทิน (Holiday ของปีการศึกษานี้) ออก
-    // แล้วครอบด้วยช่วงเปิดเทอมจริง (ถ้ามี) กันเผลอสร้างคอลัมน์วันที่นอกเทอม
+    // แล้วครอบด้วยช่วงเปิดเทอมจริง (ถ้ามี) กันเผลอสร้างคอลัมน์วันที่นอกเทอม — ใช้กับหน้าเช็คชื่อออนไลน์
     private function schoolDaysInMonth(int $year, int $month, $yearId, $semStart, $semEnd)
+    {
+        return $this->monthDaysWithSchoolFlag($year, $month, $yearId, $semStart, $semEnd)
+            ->filter(fn ($d) => $d->is_school_day)
+            ->map(fn ($d) => $d->date)
+            ->values();
+    }
+
+    // ทุกวันของเดือนนั้น "รวมเสาร์-อาทิตย์" ด้วย (ครอบด้วยช่วงเทอมเหมือนกัน) พร้อมบอกว่าวันไหนเป็นวันเรียนจริง —
+    // ใช้ตอนสร้างไฟล์ Excel เท่านั้น ให้คอลัมน์วันที่ในไฟล์ครบทุกวันไม่กระโดดข้าม วันหยุดจะโชว์คำว่า "วันหยุด" แทน
+    private function monthDaysWithSchoolFlag(int $year, int $month, $yearId, $semStart, $semEnd)
     {
         $monthStart = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
         $monthEnd = $monthStart->copy()->endOfMonth();
@@ -238,13 +248,14 @@ class AttendanceController extends Controller
 
         $days = collect();
         for ($d = $monthStart->copy(); $d->lte($monthEnd); $d->addDay()) {
-            if ($d->isWeekend()) continue;
             $isHoliday = $holidays->contains(function ($h) use ($d) {
                 if (!$h->start_date) return false;
                 return $d->between($h->start_date, $h->end_date ?? $h->start_date);
             });
-            if ($isHoliday) continue;
-            $days->push($d->copy());
+            $days->push((object) [
+                'date' => $d->copy(),
+                'is_school_day' => !$d->isWeekend() && !$isHoliday,
+            ]);
         }
         return $days;
     }
@@ -296,6 +307,7 @@ class AttendanceController extends Controller
     private function buildAttendanceSheet($sheet, TeachingAssign $assign, $students, $dates, $existing, int $year, int $month): void
     {
         $n = $dates->count();
+        $schoolDayCount = $dates->filter(fn ($d) => $d->is_school_day)->count();
         $firstDateCol = 4; // D
         $lastDateCol = 3 + $n;
         $sumCol = $lastDateCol + 1;
@@ -303,7 +315,7 @@ class AttendanceController extends Controller
         $pctCol = $absentCol + 1;
         $lastCol = Coordinate::stringFromColumnIndex($pctCol);
         $dateColLetter = fn (int $i) => Coordinate::stringFromColumnIndex($firstDateCol + $i);
-        $dateKeys = $dates->map(fn ($d) => $d->format('Y-m-d'));
+        $datesList = $dates->values();
 
         $teacherName = trim(($assign->personnel->thai_prefix ?? '') . ($assign->personnel->thai_firstname ?? '') . ' ' . ($assign->personnel->thai_lastname ?? ''));
 
@@ -329,11 +341,11 @@ class AttendanceController extends Controller
         $sheet->setCellValue("A{$headerRow}", 'เลขที่');
         $sheet->setCellValue("B{$headerRow}", 'เลขประจำตัวนักเรียน');
         $sheet->setCellValue("C{$headerRow}", 'ชื่อ - สกุล');
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $headerRow, "รวม {$n} คาบ");
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $headerRow, "รวม {$schoolDayCount} คาบ");
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $headerRow, 'ขาด');
         $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $headerRow, 'เข้าเรียนร้อยละ');
-        foreach ($dates as $i => $date) {
-            $sheet->setCellValue($dateColLetter($i) . $headerRow, (int) $date->format('j'));
+        foreach ($datesList as $i => $d) {
+            $sheet->setCellValue($dateColLetter($i) . $headerRow, (int) $d->date->format('j'));
         }
         $sheet->getStyle("A{$headerRow}:{$lastCol}{$headerRow}")->applyFromArray([
             'font' => ['bold' => true, 'size' => 10],
@@ -341,6 +353,14 @@ class AttendanceController extends Controller
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
         ]);
+        // แถวหัวตารางเอง: คอลัมน์วันหยุด (เสาร์-อาทิตย์/วันหยุดตามปฏิทิน) แรเงาเข้มกว่าปกติเล็กน้อยให้สังเกตง่าย
+        foreach ($datesList as $i => $d) {
+            if (!$d->is_school_day) {
+                $sheet->getStyle($dateColLetter($i) . $headerRow)->applyFromArray([
+                    'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'E0E0E0']],
+                ]);
+            }
+        }
 
         $firstDataRow = $headerRow + 1;
         $row = $firstDataRow;
@@ -359,17 +379,30 @@ class AttendanceController extends Controller
             $validation->setFormula1('"' . implode(',', ClassAttendance::STATUSES) . '"');
         };
 
+        // ช่องวันหยุด (เสาร์-อาทิตย์/วันหยุดตามปฏิทิน) ใส่ป้าย "วันหยุด" ตายตัวแทนดรอปดาวน์ ไม่ต้องเช็คชื่อวันนั้น
+        $applyHolidayCell = function ($cell) {
+            $cell->setValue(ClassAttendance::HOLIDAY_LABEL);
+            $cell->getStyle()->applyFromArray([
+                'font' => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '999999']],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F2F2']],
+            ]);
+        };
+
         foreach ($students as $ss) {
             $student = $ss->student;
             $sheet->setCellValue("A{$row}", $ss->student_number);
             $sheet->setCellValue("B{$row}", $student->student_code ?? '');
             $sheet->setCellValue("C{$row}", trim(($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . ' ' . ($student->thai_lastname ?? '')));
 
-            foreach ($dateKeys as $i => $dateStr) {
+            foreach ($datesList as $i => $d) {
                 $col = $dateColLetter($i);
-                $key = $student->student_id . '|' . $dateStr;
-                $prior = $existing->get($key)?->first()?->status ?? '';
                 $cell = $sheet->getCell("{$col}{$row}");
+                if (!$d->is_school_day) {
+                    $applyHolidayCell($cell);
+                    continue;
+                }
+                $key = $student->student_id . '|' . $d->date->format('Y-m-d');
+                $prior = $existing->get($key)?->first()?->status ?? '';
                 $cell->setValue($prior);
                 $applyStatusValidation($cell);
             }
@@ -378,35 +411,40 @@ class AttendanceController extends Controller
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $row, "=COUNTIF({$rowRange},\"มา\")");
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $row, "=COUNTIF({$rowRange},\"ขาด\")");
             $sumCell = Coordinate::stringFromColumnIndex($sumCol) . $row;
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $row, "=IF({$n}=0,0,({$sumCell}*100)/{$n})");
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $row, "=IF({$schoolDayCount}=0,0,({$sumCell}*100)/{$schoolDayCount})");
             $row++;
         }
         $lastDataRow = $row - 1;
 
-        // เว้นแถวว่างไว้ 3 แถวเผื่อมีนักเรียนเข้าใหม่ — มีดรอปดาวน์/สูตรสรุปรายแถวพร้อมใช้ทันทีที่กรอกชื่อ
+        // เว้นแถวว่างไว้ 3 แถวเผื่อมีนักเรียนเข้าใหม่ — มีดรอปดาวน์ (เฉพาะช่องวันเรียนจริง)/สูตรสรุปรายแถวพร้อมใช้ทันทีที่กรอกชื่อ
         for ($k = 0; $k < 3; $k++) {
-            foreach ($dateKeys as $i => $dateStr) {
-                $applyStatusValidation($sheet->getCell($dateColLetter($i) . $row));
+            foreach ($datesList as $i => $d) {
+                $cell = $sheet->getCell($dateColLetter($i) . $row);
+                if ($d->is_school_day) {
+                    $applyStatusValidation($cell);
+                } else {
+                    $applyHolidayCell($cell);
+                }
             }
             $rowRange = "{$firstDateColLetter}{$row}:{$lastDateColLetter}{$row}";
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $row, "=COUNTIF({$rowRange},\"มา\")");
             $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $row, "=COUNTIF({$rowRange},\"ขาด\")");
             $sumCell = Coordinate::stringFromColumnIndex($sumCol) . $row;
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $row, "=IF({$n}=0,0,({$sumCell}*100)/{$n})");
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $row, "=IF({$schoolDayCount}=0,0,({$sumCell}*100)/{$schoolDayCount})");
             $row++;
         }
         $lastBufferRow = $row - 1;
 
         $sheet->setCellValue("A{$row}", 'มาเรียนรวม');
         $sheet->mergeCells("A{$row}:C{$row}");
-        foreach ($dateKeys as $i => $dateStr) {
+        foreach ($datesList as $i => $d) {
             $col = $dateColLetter($i);
             $sheet->setCellValue("{$col}{$row}", "=COUNTIF({$col}{$firstDataRow}:{$col}{$lastBufferRow},\"มา\")");
         }
         $row++;
         $sheet->setCellValue("A{$row}", 'ขาดเรียนรวม');
         $sheet->mergeCells("A{$row}:C{$row}");
-        foreach ($dateKeys as $i => $dateStr) {
+        foreach ($datesList as $i => $d) {
             $col = $dateColLetter($i);
             $sheet->setCellValue("{$col}{$row}", "=COUNTIF({$col}{$firstDataRow}:{$col}{$lastBufferRow},\"ขาด\")");
         }

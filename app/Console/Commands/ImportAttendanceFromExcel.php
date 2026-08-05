@@ -178,8 +178,8 @@ class ImportAttendanceFromExcel extends Command
                 }
                 foreach ($dateColumns as $col => $date) {
                     $raw = trim((string) ($sheet->getCell("{$col}{$row}")->getValue() ?? ''));
-                    if ($raw === '') {
-                        continue; // ไม่ได้กรอกวันนี้ ข้ามเงียบๆ (ไม่ใช่ error)
+                    if ($raw === '' || $raw === ClassAttendance::HOLIDAY_LABEL) {
+                        continue; // ไม่ได้กรอกวันนี้ หรือเป็นช่องวันหยุด (เสาร์-อาทิตย์/วันหยุดตามปฏิทิน) ข้ามเงียบๆ (ไม่ใช่ error)
                     }
                     if (!in_array($raw, ClassAttendance::STATUSES, true)) {
                         $warnings[] = "ชีต \"{$sheet->getTitle()}\" แถว {$row} คอลัมน์ {$col}: ค่า \"{$raw}\" ไม่ใช่สถานะที่รู้จัก (" . implode('/', ClassAttendance::STATUSES) . ") — ข้ามช่องนี้";
