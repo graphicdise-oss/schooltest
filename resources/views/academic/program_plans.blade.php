@@ -84,17 +84,17 @@
     <div class="pp-card">
         <div class="pp-icon"><i class="bi bi-journal-check"></i></div>
         <div class="pp-card-header">
-            <div>
+            <span class="pp-card-title">
+                จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
+            </span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'return_to' => url()->full()]) }}" class="btn-add">
+                    <i class="bi bi-plus-lg"></i> สร้างแผน
+                </a>
                 <a href="{{ route('programs.index') }}" class="pp-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
-                <span class="pp-card-title" style="margin-left:12px">
-                    จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
-                </span>
             </div>
-            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'return_to' => url()->full()]) }}" class="btn-add">
-                <i class="bi bi-plus-lg"></i> สร้างแผน
-            </a>
         </div>
 
         <table class="pp-table">
