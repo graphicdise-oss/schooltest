@@ -188,6 +188,11 @@
                     <i class="bi bi-files"></i> คัดลอกแผนการเรียน
                 </button>
                 @endif
+                @if(isset($program) && $program)
+                <a href="{{ route('programs.plans', $program->program_id) }}" class="btn-copy-plan" style="background:#5c6bc0">
+                    <i class="bi bi-journal-check"></i> ดูแผน
+                </a>
+                @endif
                 @php
                     // ย้อนกลับไปหน้าที่มาจริงๆ ตามที่ส่งมาชัดๆ ผ่าน return_to (จากลิงก์ต้นทาง เช่น /programs
                     // หรือ /programs/{id}/plans) — เชื่อถือได้กว่า url()->previous() ที่พึ่งพา referer/session

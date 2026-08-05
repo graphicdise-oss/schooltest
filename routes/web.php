@@ -202,7 +202,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{id}/subjects/{csId}/toggle', 'toggleSubject')->name('toggleSubject');
         Route::get('/year/{year}', 'byYear')->name('byYear');
         Route::post('/{id}/copy', 'copy')->name('copy');
-        Route::get('/{id}/sections', 'sections')->name('sections');
     });
 
     // === 2b. จัดการหลักสูตร (กลุ่มหลักสูตร/โปรแกรม เช่น EP, IEP) ===
