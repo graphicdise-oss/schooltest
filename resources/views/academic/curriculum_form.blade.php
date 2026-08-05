@@ -390,7 +390,7 @@
                                         ? addslashes(($cs->personnel->thai_prefix ?? '') . $cs->personnel->thai_firstname . ' ' . $cs->personnel->thai_lastname)
                                         : '';
                                 @endphp
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }})">
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}')">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -470,11 +470,14 @@
                         </select>
                     </div>
                     <div>
-                        <label>ประเภทวิชา</label>
+                        <label>ประเภทวิชา (บังคับ/เลือก สำหรับแผนนี้)</label>
                         <select name="is_required" id="add_is_required">
                             <option value="1">บังคับ</option>
                             <option value="0">เลือก</option>
                         </select>
+                        <div class="cf-modal-hint" style="margin:4px 0 0">
+                            ประเภทรายวิชาจริง (ตามที่ตั้งไว้ในหน้าจัดการวิชา): <strong id="add_subject_type_display">-</strong>
+                        </div>
                     </div>
                     <div>
                         <label>ครูผู้สอน</label>
@@ -538,11 +541,14 @@
                         </select>
                     </div>
                     <div>
-                        <label>ประเภทวิชา</label>
+                        <label>ประเภทวิชา (บังคับ/เลือก สำหรับแผนนี้)</label>
                         <select name="is_required" id="edit_is_required">
                             <option value="1">บังคับ</option>
                             <option value="0">เลือก</option>
                         </select>
+                        <div class="cf-modal-hint" style="margin:4px 0 0">
+                            ประเภทรายวิชาจริง (ตามที่ตั้งไว้ในหน้าจัดการวิชา): <strong id="edit_subject_type_display">-</strong>
+                        </div>
                     </div>
                     <div>
                         <label>ครูผู้สอน</label>
@@ -642,6 +648,7 @@ function openAddSubjectModal() {
     document.getElementById('add_hours_per_year').value = '';
     document.getElementById('add_hours_per_week').value = '';
     document.getElementById('add_is_required').value = '1';
+    document.getElementById('add_subject_type_display').textContent = '-';
     document.getElementById('add_personnel_id').value = '';
     document.getElementById('add_personnel_search').value = '';
     document.getElementById('add_subject_list').classList.remove('open');
@@ -676,6 +683,7 @@ function selectSubjectCombo(item) {
     document.getElementById('add_hours_per_year').value = item.dataset.hoursYear || '';
     document.getElementById('add_hours_per_week').value = item.dataset.hoursWeek || '';
     document.getElementById('add_is_required').value = defaultIsRequiredFor(item.dataset.subjectType || '');
+    document.getElementById('add_subject_type_display').textContent = item.dataset.subjectType || '-';
     document.getElementById('add_subject_list').classList.remove('open');
 }
 function validateAddSubjectForm() {
@@ -747,11 +755,12 @@ document.addEventListener('keydown', e => {
     }
 });
 
-function openEditModal(csId, semType, isReq, personnelId, personnelName, credits, hoursPerYear, hoursPerWeek) {
+function openEditModal(csId, semType, isReq, personnelId, personnelName, credits, hoursPerYear, hoursPerWeek, subjectType) {
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
     document.getElementById('edit_semester_type').value = semType;
     document.getElementById('edit_is_required').value = isReq;
+    document.getElementById('edit_subject_type_display').textContent = subjectType || '-';
     document.getElementById('edit_personnel_id').value = personnelId || '';
     document.getElementById('edit_personnel_search').value = personnelName || '';
     document.getElementById('edit_personnel_list').classList.remove('open');
