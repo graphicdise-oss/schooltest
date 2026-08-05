@@ -2,30 +2,31 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ParsesWideTranscriptSheet;
 use App\Console\Commands\Concerns\WritesTranscriptGrades;
 use App\Models\Student;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
  * นำเข้าเกรดรวม (Transcript) ของนักเรียน "หลายคนพร้อมกัน" (เช่น ทั้งห้อง) จากไฟล์ Excel เดียว —
- * ต่างจาก import:transcript (ทีละคน, 3 ปีเคียงกันเป็นคอลัมน์) ตรงที่ไฟล์นี้เป็นตารางแถวเรียงยาว
- * (flat table) คอลัมน์แรกสุดคือ "เลขประจำตัวนักเรียน" เพื่อบอกว่าแต่ละแถวเป็นของใคร —
- * ดูโครงสร้างคอลัมน์ที่คาดหวังในคอมเมนต์ parseFile()
+ * ไฟล์นี้เป็นเวิร์กบุ๊กหลายชีต ชีตละ 1 คน (แต่ละชีตหน้าตาเดียวกับแบบฟอร์มของ import:transcript ทุก
+ * ประการ แค่มีแถว "ชื่อ-สกุล"/"รหัสนักศึกษา" เพิ่มมาบอกว่าชีตนี้เป็นของใคร) — ดู GradeController::
+ * importBulkTemplate()/buildTranscriptSheet() สำหรับตอนสร้างไฟล์
  */
 class ImportTranscriptBulkFromExcel extends Command
 {
     use WritesTranscriptGrades;
+    use ParsesWideTranscriptSheet;
 
     protected $signature = 'import:transcript-bulk
         {file : พาธไฟล์ .xlsx}
         {--dry-run : ทดสอบเฉยๆ ไม่บันทึกจริง}';
 
-    protected $description = 'นำเข้าเกรดรวม (Transcript) ของนักเรียนหลายคน/ทั้งห้องพร้อมกันจากไฟล์ Excel '
-        . '(ตารางแถวเรียงยาว มีคอลัมน์เลขประจำตัวนักเรียนระบุเจ้าของแต่ละแถว) — '
-        . 'ถ้าจะนำเข้าทีละคนแบบ 3 ปีเคียงกัน ใช้ import:transcript แทน';
+    protected $description = 'นำเข้าเกรดรวม (Transcript) ของนักเรียนหลายคน/ทั้งห้องพร้อมกันจากไฟล์ Excel เดียว '
+        . '(เวิร์กบุ๊กหลายชีต ชีตละ 1 คน มีแถวเลขประจำตัวนักเรียนบอกเจ้าของแต่ละชีต) — '
+        . 'ถ้าจะนำเข้าทีละคนไฟล์เดียว ใช้ import:transcript แทน';
 
     public function handle(): int
     {
@@ -38,7 +39,7 @@ class ImportTranscriptBulkFromExcel extends Command
         [$rowsByStudentCode, $activitiesByStudentCode, $warnings] = $this->parseFile($path);
 
         if (empty($rowsByStudentCode) && empty($activitiesByStudentCode)) {
-            $this->error('ไม่พบข้อมูลผลการเรียนในไฟล์ที่อัปโหลด ตรวจสอบว่าใช้แบบฟอร์มที่ถูกต้อง (ต้องมีคอลัมน์ "เลขประจำตัวนักเรียน")');
+            $this->error('ไม่พบข้อมูลผลการเรียนในไฟล์ที่อัปโหลด ตรวจสอบว่าใช้แบบฟอร์มที่ถูกต้อง (แต่ละชีตต้องมีแถว "รหัสนักศึกษา" และแถว "ปีการศึกษา")');
             foreach ($warnings as $w) {
                 $this->line("  - {$w}");
             }
@@ -127,192 +128,60 @@ class ImportTranscriptBulkFromExcel extends Command
     }
 
     /**
-     * อ่านไฟล์ Excel แบบตารางแถวเรียงยาว (flat table) มี 2 ตารางแยกกัน คั่นด้วยแถว "ตารางกิจกรรมพัฒนาผู้เรียน":
-     *  1) ตารางผลการเรียนรายวิชา — แถวหัวคอลัมน์คือแถวแรกที่คอลัมน์ A ขึ้นต้นด้วย "เลขประจำตัวนักเรียน"
-     *     คอลัมน์ที่คาดหวัง (เรียงตามลำดับ ไม่สนชื่อหัวคอลัมน์เป๊ะๆ): เลขประจำตัวนักเรียน, ปีการศึกษา,
-     *     ระดับชั้น, ภาคเรียน, รหัสวิชา : ชื่อวิชา, หน่วยกิต, เกรด(0-4)
-     *  2) ตารางกิจกรรมพัฒนาผู้เรียน — เริ่มที่แถวซึ่งคอลัมน์ A ขึ้นต้นด้วย "ตารางกิจกรรมพัฒนาผู้เรียน" เป๊ะๆ
-     *     แถวถัดไปเป็นแถวหัวคอลัมน์ (เหมือนกันแต่คอลัมน์ 5-7 เป็น ชื่อกิจกรรม, เวลา(ชั่วโมง), ผลการประเมิน)
-     *
-     * คืนค่า [ผลการเรียนแยกตามเลขประจำตัว, กิจกรรมแยกตามเลขประจำตัว, คำเตือน] — แต่ละ "ผลการเรียนของคนหนึ่ง"
-     * มีโครงสร้างแบบเดียวกับที่ import:transcript ใช้ (year => ['level'=>, 'semesters'=>[sem => [[code,name,credit,grade],...]]])
-     * เพื่อให้ WritesTranscriptGrades::writeStudentTranscript() เรียกใช้ร่วมกันได้ทันที
+     * โหลดไฟล์แล้ววนอ่านทีละชีต — แต่ละชีตแยกอิสระ ใช้ parseTranscriptSheet() (ตัวเดียวกับ
+     * import:transcript) อ่านตารางวิชา/กิจกรรมแบบ "3 ปีเคียงกัน" ตามปกติ แล้วหาว่าชีตนี้เป็นของใคร
+     * จากแถว "รหัสนักศึกษา" ที่ GradeController::buildTranscriptSheet() เขียนไว้ให้ทุกชีต — ชีตไหน
+     * ไม่มีทั้งตารางวิชา/กิจกรรมเลย (เช่น ชีตสารบัญ/รายชื่อ) ข้ามไปเงียบๆ ไม่ใช่ error
      */
     private function parseFile(string $path): array
     {
-        $sheet = IOFactory::load($path)->getActiveSheet();
-        $highestRow = $sheet->getHighestRow();
-        $get = fn (int $col, int $row) => trim((string) ($sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue() ?? ''));
+        $spreadsheet = IOFactory::load($path);
 
+        $data = [];
+        $activities = [];
         $warnings = [];
 
-        $subjectHeaderRow = null;
-        for ($row = 1; $row <= $highestRow; $row++) {
-            if (str_starts_with($get(1, $row), 'เลขประจำตัวนักเรียน')) {
-                $subjectHeaderRow = $row;
-                break;
+        foreach ($spreadsheet->getAllSheets() as $sheet) {
+            [$sheetData, $sheetActivities, $sheetWarnings] = $this->parseTranscriptSheet($sheet);
+            if (empty($sheetData) && empty($sheetActivities)) {
+                continue;
             }
-        }
-        if ($subjectHeaderRow === null) {
-            return [[], [], ['ไม่พบแถวหัวตาราง (คอลัมน์แรกต้องขึ้นต้นด้วย "เลขประจำตัวนักเรียน") ในไฟล์นี้เลย']];
-        }
 
-        $activityDividerRow = null;
-        for ($row = $subjectHeaderRow + 1; $row <= $highestRow; $row++) {
-            if (str_starts_with($get(1, $row), 'ตารางกิจกรรมพัฒนาผู้เรียน')) {
-                $activityDividerRow = $row;
-                break;
+            $code = $this->extractStudentCodeFromSheet($sheet);
+            if (!$code) {
+                $warnings[] = "ชีต \"{$sheet->getTitle()}\": อ่านค่า \"รหัสนักศึกษา\" ไม่ได้ — ข้ามทั้งชีต";
+                continue;
             }
-        }
-        $subjectEndRow = $activityDividerRow ? $activityDividerRow - 1 : $highestRow;
 
-        $data = $this->readFlatSubjectRows($get, $subjectHeaderRow + 1, $subjectEndRow, $warnings);
-
-        $activities = [];
-        if ($activityDividerRow !== null) {
-            // แถวถัดจากตัวคั่นคือแถวหัวคอลัมน์ของตารางกิจกรรม ข้ามไป 1 แถว
-            $activities = $this->readFlatActivityRows($get, $activityDividerRow + 2, $highestRow, $warnings);
+            if (isset($data[$code]) || isset($activities[$code])) {
+                $warnings[] = "รหัสนักศึกษา {$code} มีมากกว่า 1 ชีตในไฟล์นี้ (ชีต \"{$sheet->getTitle()}\") — ใช้ข้อมูลจากชีตนี้ทับของชีตก่อนหน้า";
+            }
+            if (!empty($sheetData)) {
+                $data[$code] = $sheetData;
+            }
+            if (!empty($sheetActivities)) {
+                $activities[$code] = $sheetActivities;
+            }
+            foreach ($sheetWarnings as $w) {
+                $warnings[] = "ชีต \"{$sheet->getTitle()}\" (รหัส {$code}): {$w}";
+            }
         }
 
         return [$data, $activities, $warnings];
     }
 
-    private function readFlatSubjectRows(callable $get, int $fromRow, int $toRow, array &$warnings): array
+    // หาค่า "รหัสนักศึกษา" ของชีตนี้ — สแกนคอลัมน์ A แถว 1-15 หาแถวที่ตรงกับป้าย "รหัสนักศึกษา" เป๊ะๆ
+    // (เขียนไว้โดย GradeController::writeIdentityRow()) แล้วอ่านค่าที่คอลัมน์ B ของแถวเดียวกัน
+    private function extractStudentCodeFromSheet($sheet): ?string
     {
-        $data = [];
-
-        for ($row = $fromRow; $row <= $toRow; $row++) {
-            $code = $get(1, $row);
-            $yearRaw = $get(2, $row);
-            $levelRaw = $get(3, $row);
-            $semRaw = $get(4, $row);
-            $subjectRaw = $get(5, $row);
-            $creditRaw = $get(6, $row);
-            $gradeRaw = $get(7, $row);
-
-            if ($code === '' && $yearRaw === '' && $subjectRaw === '') {
-                continue;
+        $highestRow = min($sheet->getHighestRow(), 15);
+        for ($row = 1; $row <= $highestRow; $row++) {
+            $label = trim((string) ($sheet->getCell("A{$row}")->getValue() ?? ''));
+            if ($label === 'รหัสนักศึกษา') {
+                $value = trim((string) ($sheet->getCell("B{$row}")->getValue() ?? ''));
+                return $value !== '' ? $value : null;
             }
-            // แถวเริ่มต้นที่ฟอร์มใส่เลขประจำตัวไว้ให้แต่ยังไม่ได้กรอกอะไรต่อเลย (คนนั้นไม่ได้ใช้แถวนี้) — ข้ามแบบเงียบๆ
-            if ($yearRaw === '' && $levelRaw === '' && $semRaw === '' && $subjectRaw === '' && $creditRaw === '' && $gradeRaw === '') {
-                continue;
-            }
-            if ($code === '') {
-                $warnings[] = "แถว {$row}: ไม่มีเลขประจำตัวนักเรียน — ข้าม";
-                continue;
-            }
-            if (!preg_match('/^(\S+)\s*:\s*(.+)$/u', $subjectRaw, $m)) {
-                $warnings[] = "แถว {$row} (เลขประจำตัว {$code}): อ่านรหัส/ชื่อวิชาไม่ได้จากค่า \"{$subjectRaw}\" (ต้องเป็นรูปแบบ \"รหัสวิชา : ชื่อวิชา\") — ข้าม";
-                continue;
-            }
-            $subjectCode = trim($m[1]);
-            $subjectName = trim($m[2]);
-
-            if (!preg_match('/\d{4}/u', $yearRaw)) {
-                $warnings[] = "แถว {$row} (เลขประจำตัว {$code}): ปีการศึกษา \"{$yearRaw}\" ต้องเป็นปี พ.ศ. 4 หลัก เช่น 2567 — ข้าม";
-                continue;
-            }
-            $year = substr(preg_replace('/\D/u', '', $yearRaw), 0, 4);
-
-            $level = $this->shortenLevel($levelRaw);
-            if ($level === '') {
-                $warnings[] = "แถว {$row} (เลขประจำตัว {$code}): ไม่มีระดับชั้น — ข้าม";
-                continue;
-            }
-
-            if (!preg_match('/(\d+)/u', $semRaw, $sm)) {
-                $warnings[] = "แถว {$row} (เลขประจำตัว {$code}): ภาคเรียน \"{$semRaw}\" ต้องมีตัวเลข (1 หรือ 2) — ข้าม";
-                continue;
-            }
-            $sem = $sm[1];
-
-            $credit = is_numeric($creditRaw) ? (float) $creditRaw : 0;
-
-            if (!is_numeric($gradeRaw)) {
-                $warnings[] = "แถว {$row} วิชา {$subjectCode} {$subjectName} (เลขประจำตัว {$code}): เกรด \"{$gradeRaw}\" ไม่ใช่ตัวเลข (0-4) — ข้าม";
-                continue;
-            }
-            $grade = (float) $gradeRaw;
-            if ($grade < 0 || $grade > 4) {
-                $warnings[] = "แถว {$row} วิชา {$subjectCode} {$subjectName} (เลขประจำตัว {$code}): เกรด {$grade} ต้องอยู่ระหว่าง 0-4 — ข้าม";
-                continue;
-            }
-
-            $data[$code][$year]['level'] = $level;
-            $data[$code][$year]['semesters'][$sem][] = [$subjectCode, $subjectName, $credit, $grade];
         }
-
-        return $data;
-    }
-
-    private function readFlatActivityRows(callable $get, int $fromRow, int $toRow, array &$warnings): array
-    {
-        $activities = [];
-
-        for ($row = $fromRow; $row <= $toRow; $row++) {
-            $code = $get(1, $row);
-            $yearRaw = $get(2, $row);
-            $levelRaw = $get(3, $row);
-            $semRaw = $get(4, $row);
-            $actName = $get(5, $row);
-            $hoursRaw = $get(6, $row);
-            $resultRaw = trim($get(7, $row));
-
-            if ($code === '' && $yearRaw === '' && $actName === '') {
-                continue;
-            }
-            // แถวเริ่มต้นที่ฟอร์มใส่เลขประจำตัว/ชื่อกิจกรรม/เวลาไว้ให้ล่วงหน้า แต่คนนั้นไม่ได้กรอกปี/ระดับ/เทอม/
-            // ผลประเมินต่อเลย (ไม่ได้ใช้แถวนี้) — ข้ามแบบเงียบๆ ไม่ต้องเตือนทุกแถวที่เหลือของทุกคนที่ไม่ได้กรอกกิจกรรม
-            if ($yearRaw === '' && $levelRaw === '' && $semRaw === '' && $resultRaw === '') {
-                continue;
-            }
-            if ($code === '') {
-                $warnings[] = "แถว {$row}: ไม่มีเลขประจำตัวนักเรียน — ข้าม";
-                continue;
-            }
-            if ($actName === '') {
-                $warnings[] = "แถว {$row} (เลขประจำตัว {$code}): ไม่มีชื่อกิจกรรม — ข้าม";
-                continue;
-            }
-            if (!preg_match('/\d{4}/u', $yearRaw)) {
-                $warnings[] = "แถว {$row} กิจกรรม {$actName} (เลขประจำตัว {$code}): ปีการศึกษา \"{$yearRaw}\" ต้องเป็นปี พ.ศ. 4 หลัก — ข้าม";
-                continue;
-            }
-            $year = substr(preg_replace('/\D/u', '', $yearRaw), 0, 4);
-
-            $level = $this->shortenLevel($levelRaw);
-            if ($level === '') {
-                $warnings[] = "แถว {$row} กิจกรรม {$actName} (เลขประจำตัว {$code}): ไม่มีระดับชั้น — ข้าม";
-                continue;
-            }
-
-            if (!preg_match('/(\d+)/u', $semRaw, $sm)) {
-                $warnings[] = "แถว {$row} กิจกรรม {$actName} (เลขประจำตัว {$code}): ภาคเรียน \"{$semRaw}\" ต้องมีตัวเลข (1 หรือ 2) — ข้าม";
-                continue;
-            }
-            $sem = $sm[1];
-
-            $hours = is_numeric($hoursRaw) ? (float) $hoursRaw : 0;
-
-            if ($resultRaw === '') {
-                $warnings[] = "แถว {$row} กิจกรรม {$actName} (เลขประจำตัว {$code}): ยังไม่มีผลการประเมิน — ข้าม";
-                continue;
-            }
-            if ($resultRaw === 'มผ' || str_contains($resultRaw, 'ไม่ผ่าน')) {
-                $grade = 'ไม่ผ่าน';
-                $remark = 'ไม่ผ่าน';
-            } elseif ($resultRaw === 'ผ' || str_contains($resultRaw, 'ผ่าน')) {
-                $grade = 'ผ่าน';
-                $remark = 'ผ่าน';
-            } else {
-                $grade = $resultRaw;
-                $remark = $resultRaw;
-            }
-
-            $activities[$code][$year]['level'] = $level;
-            $activities[$code][$year]['semesters'][$sem][] = [$actName, $hours, $grade, $remark];
-        }
-
-        return $activities;
+        return null;
     }
 }

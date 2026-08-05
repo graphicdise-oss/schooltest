@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Console\Commands\Concerns\ParsesWideTranscriptSheet;
 use App\Console\Commands\Concerns\WritesTranscriptGrades;
 use App\Models\Academic\TeachingAssign;
 use App\Models\Academic\FinalGrade;
@@ -10,12 +11,12 @@ use App\Models\Personne\Personnel;
 use App\Models\Student;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
-use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class ImportTranscriptFromExcel extends Command
 {
     use WritesTranscriptGrades;
+    use ParsesWideTranscriptSheet;
 
     protected $signature = 'import:transcript
         {studentId : student_id ของนักเรียนที่มีอยู่แล้วในระบบ}
@@ -116,212 +117,18 @@ class ImportTranscriptFromExcel extends Command
         return self::SUCCESS;
     }
 
-    /**
-     * อ่านไฟล์ Excel — มี 2 ตารางที่แยกกันอิสระ:
-     *  1) ตารางผลการเรียนรายวิชา — หาแถว "ปีการศึกษา..." แถวแรกในไฟล์ก่อน (ไม่สนว่าอยู่แถวไหน กันปนกับ
-     *     แถบชื่อโรงเรียน/คำแนะนำที่แบบฟอร์มที่ระบบสร้างให้มีอยู่ก่อน) แล้วอ่านลงมาทีละแถว แยกทีละกลุ่ม
-     *     (สูงสุด 3 กลุ่ม, กลุ่มละ 3 คอลัมน์) — แถวที่มีคำว่า "ภาคเรียน" คือการสลับภาคเรียนของกลุ่มนั้น
-     *     ส่วนแถวอื่นๆ ที่มีรูปแบบ "รหัสวิชา : ชื่อวิชา" คือแถววิชา
-     *  2) ตารางกิจกรรมพัฒนาผู้เรียน (ถ้ามี) — เริ่มที่แถวซึ่งคอลัมน์แรกของกลุ่มใดกลุ่มหนึ่งเป็นคำว่า "กิจกรรม"
-     *     เป๊ะๆ (หัวคอลัมน์) จากนั้นมีโครงสร้างเหมือนตารางแรกทุกอย่าง ต่างกันแค่ 3 คอลัมน์คือ
-     *     ชื่อกิจกรรม / เวลา (ชั่วโมง) / ผลการประเมิน (ผ = ผ่าน, มผ = ไม่ผ่าน)
-     */
+    // โหลดไฟล์ (มีชีตเดียว) แล้วอ่านด้วย parseTranscriptSheet() ที่ ParsesWideTranscriptSheet ให้มา —
+    // ต่างจาก import:transcript-bulk (หลายชีต) ตรงที่ไฟล์เดี่ยวไม่เจอ "ปีการศึกษา" เลยถือเป็น error ทันที
     private function parseFile(string $path): array
     {
         $sheet = IOFactory::load($path)->getActiveSheet();
-        $highestRow = $sheet->getHighestRow();
-        $get = fn (int $col, int $row) => trim((string) ($sheet->getCell(Coordinate::stringFromColumnIndex($col) . $row)->getValue() ?? ''));
-        $startsWithYear = fn (string $text): bool => str_starts_with(trim($text), 'ปีการศึกษา');
+        [$data, $activities, $warnings] = $this->parseTranscriptSheet($sheet);
 
-        $warnings = [];
-
-        $subjectHeaderRow = $this->findHeaderRow($get, $highestRow, $startsWithYear, 1);
-        if ($subjectHeaderRow === null) {
+        if (empty($data) && empty($activities) && empty($warnings)) {
             return [[], [], ['ไม่พบแถวที่มีคำว่า "ปีการศึกษา" ในไฟล์นี้เลย']];
         }
 
-        $activityLabelRow = null;
-        for ($row = $subjectHeaderRow + 1; $row <= $highestRow; $row++) {
-            if ($get(1, $row) === 'กิจกรรม' || $get(4, $row) === 'กิจกรรม' || $get(7, $row) === 'กิจกรรม') {
-                $activityLabelRow = $row;
-                break;
-            }
-        }
-        $subjectEndRow = $activityLabelRow ? $activityLabelRow - 1 : $highestRow;
-
-        $subjectGroups = $this->locateGroups($get, $subjectHeaderRow, $startsWithYear, $warnings);
-        $data = $this->readSubjectRows($get, $subjectGroups, $subjectHeaderRow + 1, $subjectEndRow, $warnings);
-
-        $activities = [];
-        if ($activityLabelRow !== null) {
-            $activityHeaderRow = $this->findHeaderRow($get, $highestRow, $startsWithYear, $activityLabelRow + 1);
-            if ($activityHeaderRow !== null) {
-                $activityGroups = $this->locateGroups($get, $activityHeaderRow, $startsWithYear, $warnings);
-                $activities = $this->readActivityRows($get, $activityGroups, $activityHeaderRow + 1, $highestRow, $warnings);
-            }
-        }
-
         return [$data, $activities, $warnings];
-    }
-
-    // หาแถวแรก (นับจาก $fromRow) ที่คอลัมน์ 1, 4 หรือ 7 ขึ้นต้นด้วยคำว่า "ปีการศึกษา"
-    private function findHeaderRow(callable $get, int $highestRow, callable $startsWithYear, int $fromRow): ?int
-    {
-        for ($row = $fromRow; $row <= min($fromRow + 20, $highestRow); $row++) {
-            if ($startsWithYear($get(1, $row)) || $startsWithYear($get(4, $row)) || $startsWithYear($get(7, $row))) {
-                return $row;
-            }
-        }
-        return null;
-    }
-
-    // อ่านแถวหัว "ปีการศึกษา XXXX ระดับชั้น" ของทั้ง 3 กลุ่ม (คอลัมน์ 1, 4, 7) ที่แถว $headerRow
-    // รองรับ 2 รูปแบบ: (1) ข้อความรวมกันในช่องเดียว เช่น "ปีการศึกษา 2567 ระดับชั้น มัธยมศึกษาปีที่ 4" (ไฟล์จริงจากโรงเรียน)
-    // (2) แบบฟอร์มที่ระบบสร้างให้ ซึ่งแยกเป็น 2 แถวคนละช่องกรอก: แถว "ปีการศึกษา" (ปีอยู่ช่องถัดไปในแถวเดียวกัน)
-    //     ตามด้วยแถว "ระดับชั้น" (ระดับชั้นอยู่ช่องถัดไปในแถวถัดไป) — ตรวจจากการที่แถวหัวไม่มีตัวเลขปีอยู่ในตัวเอง
-    private function locateGroups(callable $get, int $headerRow, callable $startsWithYear, array &$warnings): array
-    {
-        $groups = [];
-        for ($g = 0; $g < 3; $g++) {
-            $col = 1 + $g * 3;
-            $header = $get($col, $headerRow);
-            if ($header === '' || !$startsWithYear($header)) {
-                continue;
-            }
-            if (!preg_match('/\d{4}/u', $header)) {
-                $yearInput = $get($col + 1, $headerRow);
-                $levelInput = $get($col + 1, $headerRow + 1);
-                $header = trim("ปีการศึกษา {$yearInput} {$levelInput}");
-            }
-            [$year, $level] = $this->parseYearLevel($header);
-            if (!$year || !$level) {
-                $warnings[] = "อ่านปีการศึกษา/ระดับชั้นจากข้อความ \"{$header}\" ไม่ได้ — ข้ามกลุ่มนี้ทั้งกลุ่ม";
-                continue;
-            }
-            $groups[] = ['col' => $col, 'year' => $year, 'level' => $level, 'semester' => '1'];
-        }
-        return $groups;
-    }
-
-    private function readSubjectRows(callable $get, array $groups, int $fromRow, int $toRow, array &$warnings): array
-    {
-        $data = [];
-
-        for ($row = $fromRow; $row <= $toRow; $row++) {
-            foreach ($groups as $gi => $grp) {
-                $col = $grp['col'];
-                $c1 = $get($col, $row);
-                $c2 = $get($col + 1, $row);
-                $c3 = $get($col + 2, $row);
-
-                if ($c1 === '' && $c2 === '' && $c3 === '') {
-                    continue;
-                }
-
-                // ต้องขึ้นต้นด้วย "ภาคเรียน" เป๊ะๆ (ไม่ใช่แค่มีคำนี้อยู่ตรงไหนก็ได้) กันข้อความหมายเหตุ/บันทึกที่บังเอิญ
-                // พูดถึงคำว่า "ภาคเรียน" ปนตัวเลขอยู่ในประโยค ถูกเข้าใจผิดว่าเป็นแถวสลับภาคเรียนแบบเงียบๆ
-                if (str_starts_with($c1, 'ภาคเรียน')) {
-                    if (preg_match('/(\d+)/u', $c1, $m)) {
-                        $groups[$gi]['semester'] = $m[1];
-                    }
-                    continue;
-                }
-
-                if (str_starts_with($c1, 'ระดับชั้น')) {
-                    // แถวช่องกรอกระดับชั้นของแบบฟอร์มที่ระบบสร้างให้ (อ่านไปแล้วตอน locateGroups) — ไม่ใช่แถววิชา ข้าม
-                    continue;
-                }
-
-                if (!preg_match('/^(\S+)\s*:\s*(.+)$/u', $c1, $m)) {
-                    // มีแค่คอลัมน์แรก ไม่มีหน่วยกิต/เกรดเลย — เป็นข้อความอื่น (เช่น แถบคำแนะนำที่ทับเข้ามาในช่วงแถว)
-                    // ไม่ใช่ความตั้งใจกรอกวิชา จึงข้ามแบบเงียบๆ ไม่ต้องเตือน
-                    if ($c2 !== '' || $c3 !== '') {
-                        $warnings[] = "แถว {$row} ({$grp['year']} {$grp['level']}): อ่านชื่อวิชาไม่ได้จากค่า \"{$c1}\" — ข้าม";
-                    }
-                    continue;
-                }
-                $code = trim($m[1]);
-                $name = trim($m[2]);
-                $credit = is_numeric($c2) ? (float) $c2 : 0;
-
-                if (!is_numeric($c3)) {
-                    $warnings[] = "แถว {$row} วิชา {$code} {$name}: เกรด \"{$c3}\" ไม่ใช่ตัวเลข (0-4) — ข้าม";
-                    continue;
-                }
-                $grade = (float) $c3;
-                if ($grade < 0 || $grade > 4) {
-                    $warnings[] = "แถว {$row} วิชา {$code} {$name}: เกรด {$grade} ต้องอยู่ระหว่าง 0-4 — ข้าม";
-                    continue;
-                }
-
-                $sem = $groups[$gi]['semester'];
-                $data[$grp['year']]['level'] = $grp['level'];
-                $data[$grp['year']]['semesters'][$sem][] = [$code, $name, $credit, $grade];
-            }
-        }
-
-        return $data;
-    }
-
-    private function readActivityRows(callable $get, array $groups, int $fromRow, int $toRow, array &$warnings): array
-    {
-        $activities = [];
-
-        for ($row = $fromRow; $row <= $toRow; $row++) {
-            foreach ($groups as $gi => $grp) {
-                $col = $grp['col'];
-                $c1 = $get($col, $row);
-                $c2 = $get($col + 1, $row);
-                $c3 = $get($col + 2, $row);
-
-                if ($c1 === '' && $c2 === '' && $c3 === '') {
-                    continue;
-                }
-
-                // ต้องขึ้นต้นด้วย "ภาคเรียน" เป๊ะๆ (ไม่ใช่แค่มีคำนี้อยู่ตรงไหนก็ได้) กันข้อความหมายเหตุ/บันทึกที่บังเอิญ
-                // พูดถึงคำว่า "ภาคเรียน" ปนตัวเลขอยู่ในประโยค ถูกเข้าใจผิดว่าเป็นแถวสลับภาคเรียนแบบเงียบๆ
-                if (str_starts_with($c1, 'ภาคเรียน')) {
-                    if (preg_match('/(\d+)/u', $c1, $m)) {
-                        $groups[$gi]['semester'] = $m[1];
-                    }
-                    continue;
-                }
-
-                if (str_starts_with($c1, 'ระดับชั้น')) {
-                    // แถวช่องกรอกระดับชั้นของแบบฟอร์มที่ระบบสร้างให้ (อ่านไปแล้วตอน locateGroups) — ไม่ใช่แถวกิจกรรม ข้าม
-                    continue;
-                }
-
-                $name = $c1;
-                if ($name === '') {
-                    $warnings[] = "แถว {$row} ({$grp['year']} {$grp['level']}): ไม่มีชื่อกิจกรรม — ข้าม";
-                    continue;
-                }
-                $hours = is_numeric($c2) ? (float) $c2 : 0;
-
-                $resultRaw = trim($c3);
-                if ($resultRaw === '') {
-                    $warnings[] = "แถว {$row} กิจกรรม {$name}: ยังไม่มีผลการประเมิน — ข้าม";
-                    continue;
-                }
-                if ($resultRaw === 'มผ' || str_contains($resultRaw, 'ไม่ผ่าน')) {
-                    $grade = 'ไม่ผ่าน';
-                    $remark = 'ไม่ผ่าน';
-                } elseif ($resultRaw === 'ผ' || str_contains($resultRaw, 'ผ่าน')) {
-                    $grade = 'ผ่าน';
-                    $remark = 'ผ่าน';
-                } else {
-                    $grade = $resultRaw;
-                    $remark = $resultRaw;
-                }
-
-                $sem = $groups[$gi]['semester'];
-                $activities[$grp['year']]['level'] = $grp['level'];
-                $activities[$grp['year']]['semesters'][$sem][] = [$name, $hours, $grade, $remark];
-            }
-        }
-
-        return $activities;
     }
 
     /**

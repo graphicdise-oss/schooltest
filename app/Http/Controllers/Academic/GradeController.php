@@ -108,7 +108,26 @@ class GradeController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('เกรด');
+        $this->buildTranscriptSheet($sheet, $student);
 
+        $tmpPath = tempnam(sys_get_temp_dir(), 'transcript_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = 'แบบฟอร์มนำเข้าเกรดรวม_' . ($student->student_code ?: $student->student_id) . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    /**
+     * เขียนแบบฟอร์มนำเข้าเกรดรวม (Transcript) ของนักเรียน 1 คนลงชีตที่ให้มา — ใช้ร่วมกันทั้ง
+     * importTranscriptTemplate() (ไฟล์ 1 ชีตต่อ 1 คน) และ importBulkTemplate() (ไฟล์เดียวหลายชีต
+     * เรียกเมธอดนี้วนทีละคน) ให้หน้าตา/โครงสร้างเหมือนกันเป๊ะๆ ไม่ต้องแก้ 2 ที่เวลาปรับฟอร์ม
+     *
+     * มีแถว "ชื่อ-สกุล"/"รหัสนักศึกษา" บอกไว้ชัดๆ ว่าชีตนี้เป็นของใคร — import:transcript-bulk ใช้แถว
+     * "รหัสนักศึกษา" นี้เองหาว่าแต่ละชีตในไฟล์ทั้งห้องเป็นของนักเรียนคนไหน (ดู ParsesWideTranscriptSheet)
+     */
+    private function buildTranscriptSheet($sheet, Student $student): void
+    {
         $totalCols = 9; // 3 กลุ่มปี x 3 คอลัมน์
 
         $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
@@ -127,13 +146,23 @@ class GradeController extends Controller
             ExcelSchoolHeader::setColumnWidth($sheet, $colLetter, 26, $hasLogo);
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col + 1))->setWidth(8);
             $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col + 2))->setWidth(8);
+        }
 
-            $this->writeTranscriptGroupHeader($sheet, $col, 6, 7, 9, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
+        // แถวชื่อ-สกุล / รหัสนักศึกษา — บอกไว้ชัดๆ ว่าแผ่นนี้ของใคร (จำเป็นมากตอนไฟล์ทั้งห้องมีหลายชีต)
+        $studentName = trim("{$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname}");
+        $identityRow1 = 6;
+        $identityRow2 = 7;
+        $this->writeIdentityRow($sheet, $totalCols, $identityRow1, 'ชื่อ-สกุล', $studentName);
+        $this->writeIdentityRow($sheet, $totalCols, $identityRow2, 'รหัสนักศึกษา', (string) ($student->student_code ?? ''));
+
+        for ($g = 0; $g < 3; $g++) {
+            $col = 1 + $g * 3;
+            $this->writeTranscriptGroupHeader($sheet, $col, $identityRow2 + 1, $identityRow2 + 2, $identityRow2 + 4, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
         }
         // เผื่อแถวว่างต่อภาคเรียนไว้เยอะๆ (30 แถว) กันกรณีเทอมนั้นมีวิชาเยอะ (เช่น มีวิชาเพิ่มเติมหลายตัว) ล้นไปทับ
         // แถวคั่นภาคเรียนถัดไปพอดี — ของจริงเจอเคสเทอมเดียวมีถึง 19 วิชา เผื่อ 17 แถวเดิมไม่พอ
         $subjectRowsPerSemester = 30;
-        $sem1From = 10;
+        $sem1From = $identityRow2 + 5;
         $sem1To   = $sem1From + $subjectRowsPerSemester - 1;
         $sem2MarkerRow = $sem1To + 1;
         $sem2From = $sem2MarkerRow + 1;
@@ -189,14 +218,31 @@ class GradeController extends Controller
         }
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $actSem1From, $actSem2To);
 
-        $sheet->freezePane('A10');
+        $sheet->freezePane('A' . $sem1From);
+    }
 
-        $tmpPath = tempnam(sys_get_temp_dir(), 'transcript_template') . '.xlsx';
-        (new Xlsx($spreadsheet))->save($tmpPath);
+    // แถว "ชื่อ-สกุล" หรือ "รหัสนักศึกษา" ของแบบฟอร์มนำเข้าเกรดรวม — เต็มความกว้างตาราง (ไม่ใช่แค่กลุ่มเดียว
+    // เหมือนแถวปีการศึกษา/ระดับชั้น เพราะเป็นค่าเดียวของทั้งชีต) ป้ายชื่ออยู่คอลัมน์แรก ที่เหลือ merge เป็นช่องค่า
+    private function writeIdentityRow($sheet, int $totalCols, int $row, string $label, string $value): void
+    {
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
 
-        $filename = 'แบบฟอร์มนำเข้าเกรดรวม_' . ($student->student_code ?: $student->student_id) . '_' . now()->format('Ymd_His') . '.xlsx';
+        $sheet->setCellValue("A{$row}", $label);
+        $sheet->getStyle("A{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 11],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
 
-        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+        $sheet->mergeCells("B{$row}:{$lastCol}{$row}");
+        $sheet->setCellValue("B{$row}", $value);
+        $sheet->getStyle("B{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 11],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFFF']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
     }
 
     // เขียนหัวกลุ่ม 1 กลุ่ม (3 คอลัมน์ติดกัน) ของแบบฟอร์มนำเข้าเกรดรวม:
@@ -338,9 +384,10 @@ class GradeController extends Controller
         ));
     }
 
-    // ดาวน์โหลดแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง (Bulk) — ตารางแถวเรียงยาว มีคอลัมน์เลขประจำตัวนักเรียนระบุเจ้าของแถว
-    // ต่างจาก importTranscriptTemplate() (สร้างฟอร์มแบบ 3 ปีเคียงกันให้นักเรียนคนเดียว) ตรงที่ไฟล์นี้ใส่ได้หลายคน/
-    // หลายปีปนกันในตารางเดียว เพราะมีคอลัมน์เลขประจำตัวนักเรียนบอกเจ้าของแต่ละแถวอยู่แล้ว
+    // ดาวน์โหลดแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง (Bulk) — เวิร์กบุ๊กเดียว หลายชีต ชีตละ 1 คนในห้องนั้น
+    // (ชีตที่ 1 เป็นสารบัญ) แต่ละชีตหน้าตาเหมือน importTranscriptTemplate() ทุกประการเพราะเรียก
+    // buildTranscriptSheet() ตัวเดียวกัน แค่มีแถว "รหัสนักศึกษา" ให้ import:transcript-bulk ใช้แยกว่า
+    // ชีตไหนเป็นของใครตอนอัปโหลดกลับเข้ามา
     public function importBulkTemplate($sectionId)
     {
         $section = ClassSection::with('level')->findOrFail($sectionId);
@@ -351,93 +398,32 @@ class GradeController extends Controller
 
         $spreadsheet = new Spreadsheet();
 
-        // ชีตที่ 1: ตารางกรอกข้อมูล (parser อ่านชีตนี้เป็นหลัก)
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('เกรด');
-
-        $totalCols = 7;
-        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
-        ExcelSchoolHeader::applyInstructionRow(
-            $sheet, $totalCols,
-            "แบบฟอร์มนำเข้าเกรดรวมทั้งห้อง (Bulk) — ห้อง {$section->full_name} ({$roster->count()} คน) — "
-            . 'แต่ละแถวคือ 1 วิชาของ 1 คน ระบุด้วย "เลขประจำตัวนักเรียน" คอลัมน์แรก (คัดลอกเลขจากชีต "รายชื่อนักเรียน" ด้านล่างได้เลย), '
-            . 'กรอกได้หลายปี/หลายระดับชั้นปนกันในตารางเดียว ไม่ต้องเรียงตามคน, '
-            . '"ปีการศึกษา" ใส่ปี พ.ศ. เช่น 2567, "ระดับชั้น" ใส่แบบย่อเช่น ม.4, "ภาคเรียน" ใส่ 1 หรือ 2, '
-            . '"รหัสวิชา : ชื่อวิชา" ตามด้วยหน่วยกิตและเกรด(0-4), แต่ละคนกรอกได้กี่วิชาก็ได้ ไม่ต้องเท่ากัน — '
-            . 'ด้านล่างสุดเป็นตารางกิจกรรมพัฒนาผู้เรียนแยกต่างหาก (ผ = ผ่าน, มผ = ไม่ผ่าน)'
-        );
-
-        $colWidths = [26, 12, 10, 10, 30, 10, 10];
-        $colLetters = [];
-        foreach ($colWidths as $i => $w) {
-            $letter = Coordinate::stringFromColumnIndex($i + 1);
-            $colLetters[] = $letter;
-            if ($i === 0) {
-                ExcelSchoolHeader::setColumnWidth($sheet, $letter, $w, $hasLogo);
-            } else {
-                $sheet->getColumnDimension($letter)->setWidth($w);
-            }
-        }
-
-        $headerRow = 6;
-        $labels = ['เลขประจำตัวนักเรียน', 'ปีการศึกษา', 'ระดับชั้น', 'ภาคเรียน', 'รหัสวิชา : ชื่อวิชา', 'หน่วยกิต', 'ผลการเรียน'];
-        $this->writeBulkTableHeader($sheet, $headerRow, $totalCols, $labels);
-
-        // แถวเริ่มต้นให้ทีละคน (ใส่เลขประจำตัวไว้ให้แล้ว) — ลากคัดลอกแถวลงเพิ่มได้เลยถ้าคนนั้นมีหลายวิชา
-        $row = $headerRow + 1;
-        foreach ($roster as $ss) {
-            $sheet->setCellValue("A{$row}", $ss->student->student_code ?? '');
-            $sheet->getStyle("A{$row}")->applyFromArray(['font' => ['bold' => true]]);
-            $row++;
-        }
-        $this->writeBulkTableBlanks($sheet, $totalCols, $headerRow + 1, max($row - 1, $headerRow + 1));
-
-        // ตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — แยกจากตารางผลการเรียนข้างบน
-        $actInstructionRow = $row + 1;
-        $sheet->mergeCells("A{$actInstructionRow}:" . Coordinate::stringFromColumnIndex($totalCols) . $actInstructionRow);
-        $sheet->setCellValue("A{$actInstructionRow}", 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินให้ใส่ "ผ" (ผ่าน) หรือ "มผ" (ไม่ผ่าน)');
-        $sheet->getStyle("A{$actInstructionRow}")->applyFromArray([
-            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
-        ]);
-
-        $actHeaderRow = $actInstructionRow + 1;
-        $actLabels = ['เลขประจำตัวนักเรียน', 'ปีการศึกษา', 'ระดับชั้น', 'ภาคเรียน', 'ชื่อกิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน'];
-        $this->writeBulkTableHeader($sheet, $actHeaderRow, $totalCols, $actLabels);
-
-        $activityRows = ['แนะแนว' => 20, 'ชุมนุม' => 20, 'กิจกรรมเพื่อสังคมและสาธารณประโยชน์' => 10];
-        $actRow = $actHeaderRow + 1;
-        foreach ($roster as $ss) {
-            foreach ($activityRows as $actName => $hours) {
-                $sheet->setCellValue("A{$actRow}", $ss->student->student_code ?? '');
-                $sheet->setCellValue("E{$actRow}", $actName);
-                $sheet->setCellValue("F{$actRow}", $hours);
-                $actRow++;
-            }
-        }
-        $this->writeBulkTableBlanks($sheet, $totalCols, $actHeaderRow + 1, max($actRow - 1, $actHeaderRow + 1));
-
-        $sheet->freezePane('A' . ($headerRow + 1));
-
-        // ชีตที่ 2: รายชื่อนักเรียนในห้องนี้ไว้อ้างอิง (parser ไม่แตะชีตนี้เลย)
-        $rosterSheet = $spreadsheet->createSheet();
-        $rosterSheet->setTitle('รายชื่อนักเรียน');
-        $rosterSheet->fromArray(['เลขที่', 'เลขประจำตัวนักเรียน', 'ชื่อ-สกุล'], null, 'A1');
-        $rosterSheet->getStyle('A1:C1')->applyFromArray([
+        // ชีตแรก: สารบัญ/รายชื่อนักเรียนในห้องนี้ (parser ข้ามชีตนี้ไปเองเพราะไม่มีแถว "รหัสนักศึกษา"/"ปีการศึกษา")
+        $indexSheet = $spreadsheet->getActiveSheet();
+        $indexSheet->setTitle('รายชื่อ');
+        $indexSheet->fromArray(['เลขที่', 'รหัสนักศึกษา', 'ชื่อ-สกุล'], null, 'A1');
+        $indexSheet->getStyle('A1:C1')->applyFromArray([
             'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
         ]);
+        $indexSheet->getColumnDimension('A')->setWidth(8);
+        $indexSheet->getColumnDimension('B')->setWidth(20);
+        $indexSheet->getColumnDimension('C')->setWidth(30);
+
+        $usedTitles = ['รายชื่อ' => true];
         $rr = 2;
         foreach ($roster as $ss) {
-            $rosterSheet->setCellValue("A{$rr}", $ss->student_number);
-            $rosterSheet->setCellValue("B{$rr}", $ss->student->student_code ?? '');
-            $rosterSheet->setCellValue("C{$rr}", trim(($ss->student->thai_prefix ?? '') . ($ss->student->thai_firstname ?? '') . ' ' . ($ss->student->thai_lastname ?? '')));
+            $student = $ss->student;
+            $indexSheet->setCellValue("A{$rr}", $ss->student_number);
+            $indexSheet->setCellValue("B{$rr}", $student->student_code ?? '');
+            $indexSheet->setCellValue("C{$rr}", trim(($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . ' ' . ($student->thai_lastname ?? '')));
             $rr++;
+
+            $sheet = $spreadsheet->createSheet();
+            $sheet->setTitle($this->uniqueSheetTitle($student->student_code ?: ('student-' . $student->student_id), $usedTitles));
+            $this->buildTranscriptSheet($sheet, $student);
         }
-        $rosterSheet->getColumnDimension('A')->setWidth(8);
-        $rosterSheet->getColumnDimension('B')->setWidth(20);
-        $rosterSheet->getColumnDimension('C')->setWidth(30);
+
         $spreadsheet->setActiveSheetIndex(0);
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'transcript_bulk_template') . '.xlsx';
@@ -448,28 +434,22 @@ class GradeController extends Controller
         return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
     }
 
-    // เขียนแถวหัวตาราง (bold + พื้นหลังเทา) ของแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง
-    private function writeBulkTableHeader($sheet, int $row, int $totalCols, array $labels): void
+    // ทำให้ชื่อชีตปลอดภัย/ไม่ซ้ำกัน — Excel ห้ามใช้ : \ / ? * [ ] และจำกัดไม่เกิน 31 ตัวอักษร,
+    // ชื่อซ้ำ (เช่น เลขประจำตัวนักเรียนซ้ำกันโดยไม่ตั้งใจ) จะเติมลำดับต่อท้ายกันชนกัน
+    private function uniqueSheetTitle(string $raw, array &$usedTitles): string
     {
-        foreach ($labels as $i => $label) {
-            $sheet->setCellValue(Coordinate::stringFromColumnIndex($i + 1) . $row, $label);
-        }
-        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
-        $sheet->getStyle("A{$row}:{$lastCol}{$row}")->applyFromArray([
-            'font' => ['bold' => true, 'size' => 10],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
-        ]);
-    }
+        $title = preg_replace('/[:\\\\\/?*\[\]]/u', '-', $raw);
+        $title = mb_substr($title !== '' ? $title : 'sheet', 0, 31);
 
-    // ใส่เส้นขอบบางๆ ให้ช่องกรอกข้อมูลว่างของแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง
-    private function writeBulkTableBlanks($sheet, int $totalCols, int $fromRow, int $toRow): void
-    {
-        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
-        $sheet->getStyle("A{$fromRow}:{$lastCol}{$toRow}")->applyFromArray([
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
-        ]);
+        $base = $title;
+        $i = 2;
+        while (isset($usedTitles[$title])) {
+            $suffix = "-{$i}";
+            $title = mb_substr($base, 0, 31 - mb_strlen($suffix)) . $suffix;
+            $i++;
+        }
+        $usedTitles[$title] = true;
+        return $title;
     }
 
     // รับไฟล์ Excel เกรดรวมทั้งห้องที่กรอกมา แล้วรันคำสั่งนำเข้าให้หลายคนพร้อมกัน
