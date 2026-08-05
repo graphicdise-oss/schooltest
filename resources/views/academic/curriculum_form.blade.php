@@ -385,7 +385,12 @@
                                 จัดการข้อมูล <i class="bi bi-chevron-down"></i>
                             </button>
                             <div class="cf-dropdown">
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }})">
+                                @php
+                                    $csPersonnelName = $cs->personnel
+                                        ? addslashes(($cs->personnel->thai_prefix ?? '') . $cs->personnel->thai_firstname . ' ' . $cs->personnel->thai_lastname)
+                                        : '';
+                                @endphp
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -473,12 +478,25 @@
                     </div>
                     <div>
                         <label>ครูผู้สอน</label>
-                        <select name="personnel_id">
-                            <option value="">-- ยังไม่กำหนด --</option>
-                            @foreach($personnels ?? [] as $p)
-                            <option value="{{ $p->personnel_id }}">{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</option>
-                            @endforeach
-                        </select>
+                        <div class="cf-combo" id="add_personnel_combo">
+                            <input type="text" id="add_personnel_search" class="cf-combo-input" autocomplete="off"
+                                placeholder="พิมพ์ชื่อครูเพื่อค้นหา..."
+                                onfocus="openPersonnelCombo('add_')" oninput="filterPersonnelCombo('add_')">
+                            <input type="hidden" name="personnel_id" id="add_personnel_id">
+                            <div class="cf-combo-list" id="add_personnel_list">
+                                <div class="cf-combo-item" data-id="" data-search="" data-label="-- ยังไม่กำหนด --" onclick="selectPersonnelCombo('add_', this)">-- ยังไม่กำหนด --</div>
+                                @foreach($personnels ?? [] as $p)
+                                <div class="cf-combo-item"
+                                    data-id="{{ $p->personnel_id }}"
+                                    data-search="{{ \Illuminate\Support\Str::lower(($p->thai_prefix ?? '') . $p->thai_firstname . ' ' . $p->thai_lastname) }}"
+                                    data-label="{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}"
+                                    onclick="selectPersonnelCombo('add_', this)">
+                                    {{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                                </div>
+                                @endforeach
+                                <div class="cf-combo-empty" id="add_personnel_empty" style="display:none">ไม่พบครูที่ค้นหา</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="cf-modal-footer">
@@ -528,12 +546,25 @@
                     </div>
                     <div>
                         <label>ครูผู้สอน</label>
-                        <select name="personnel_id" id="edit_personnel_id">
-                            <option value="">-- ยังไม่กำหนด --</option>
-                            @foreach($personnels ?? [] as $p)
-                            <option value="{{ $p->personnel_id }}">{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</option>
-                            @endforeach
-                        </select>
+                        <div class="cf-combo" id="edit_personnel_combo">
+                            <input type="text" id="edit_personnel_search" class="cf-combo-input" autocomplete="off"
+                                placeholder="พิมพ์ชื่อครูเพื่อค้นหา..."
+                                onfocus="openPersonnelCombo('edit_')" oninput="filterPersonnelCombo('edit_')">
+                            <input type="hidden" name="personnel_id" id="edit_personnel_id">
+                            <div class="cf-combo-list" id="edit_personnel_list">
+                                <div class="cf-combo-item" data-id="" data-search="" data-label="-- ยังไม่กำหนด --" onclick="selectPersonnelCombo('edit_', this)">-- ยังไม่กำหนด --</div>
+                                @foreach($personnels ?? [] as $p)
+                                <div class="cf-combo-item"
+                                    data-id="{{ $p->personnel_id }}"
+                                    data-search="{{ \Illuminate\Support\Str::lower(($p->thai_prefix ?? '') . $p->thai_firstname . ' ' . $p->thai_lastname) }}"
+                                    data-label="{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}"
+                                    onclick="selectPersonnelCombo('edit_', this)">
+                                    {{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                                </div>
+                                @endforeach
+                                <div class="cf-combo-empty" id="edit_personnel_empty" style="display:none">ไม่พบครูที่ค้นหา</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div class="cf-modal-footer">
@@ -611,7 +642,10 @@ function openAddSubjectModal() {
     document.getElementById('add_hours_per_year').value = '';
     document.getElementById('add_hours_per_week').value = '';
     document.getElementById('add_is_required').value = '1';
+    document.getElementById('add_personnel_id').value = '';
+    document.getElementById('add_personnel_search').value = '';
     document.getElementById('add_subject_list').classList.remove('open');
+    document.getElementById('add_personnel_list').classList.remove('open');
     document.getElementById('addSubjOverlay').classList.add('active');
 }
 // พื้นฐาน/กิจกรรม = บังคับ โดยปริยาย, เพิ่มเติม = เลือก โดยปริยาย (ยังแก้เองได้เสมอ แค่ตั้งค่าเริ่มต้นให้)
@@ -652,19 +686,48 @@ function validateAddSubjectForm() {
     }
     return true;
 }
+function openPersonnelCombo(prefix) {
+    document.getElementById(prefix + 'personnel_list').classList.add('open');
+    filterPersonnelCombo(prefix);
+}
+function filterPersonnelCombo(prefix) {
+    // เหมือนวิชา — พิมพ์เองแล้วล้างค่าที่เคยเลือกไว้ กันส่ง personnel_id เก่าที่ไม่ตรงกับข้อความที่เห็น
+    document.getElementById(prefix + 'personnel_id').value = '';
+    const q = document.getElementById(prefix + 'personnel_search').value.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('#' + prefix + 'personnel_list .cf-combo-item').forEach(item => {
+        const match = !q || item.dataset.search.includes(q);
+        item.classList.toggle('hidden', !match);
+        if (match) anyVisible = true;
+    });
+    document.getElementById(prefix + 'personnel_empty').style.display = anyVisible ? 'none' : 'block';
+}
+function selectPersonnelCombo(prefix, item) {
+    document.getElementById(prefix + 'personnel_id').value = item.dataset.id;
+    document.getElementById(prefix + 'personnel_search').value = item.dataset.label;
+    document.getElementById(prefix + 'personnel_list').classList.remove('open');
+}
+function bindComboKeydown(inputId, listId, onSelect) {
+    document.getElementById(inputId)?.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const firstVisible = document.querySelector('#' + listId + ' .cf-combo-item:not(.hidden)');
+            if (firstVisible) onSelect(firstVisible);
+        } else if (e.key === 'Escape') {
+            document.getElementById(listId).classList.remove('open');
+        }
+    });
+}
+bindComboKeydown('add_subject_search', 'add_subject_list', selectSubjectCombo);
+bindComboKeydown('add_personnel_search', 'add_personnel_list', item => selectPersonnelCombo('add_', item));
+bindComboKeydown('edit_personnel_search', 'edit_personnel_list', item => selectPersonnelCombo('edit_', item));
 document.addEventListener('click', e => {
-    if (!e.target.closest('#add_subject_combo')) {
-        document.getElementById('add_subject_list').classList.remove('open');
-    }
-});
-document.getElementById('add_subject_search')?.addEventListener('keydown', function (e) {
-    if (e.key === 'Enter') {
-        e.preventDefault();
-        const firstVisible = document.querySelector('#add_subject_list .cf-combo-item:not(.hidden)');
-        if (firstVisible) selectSubjectCombo(firstVisible);
-    } else if (e.key === 'Escape') {
-        document.getElementById('add_subject_list').classList.remove('open');
-    }
+    const insideCombo = e.target.closest('.cf-combo');
+    document.querySelectorAll('.cf-combo-list.open').forEach(list => {
+        if (!insideCombo || list.closest('.cf-combo') !== insideCombo) {
+            list.classList.remove('open');
+        }
+    });
 });
 function toggleDd(btn) {
     document.querySelectorAll('.cf-dropdown.open').forEach(d => {
@@ -684,12 +747,14 @@ document.addEventListener('keydown', e => {
     }
 });
 
-function openEditModal(csId, semType, isReq, personnelId, credits, hoursPerYear, hoursPerWeek) {
+function openEditModal(csId, semType, isReq, personnelId, personnelName, credits, hoursPerYear, hoursPerWeek) {
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
     document.getElementById('edit_semester_type').value = semType;
     document.getElementById('edit_is_required').value = isReq;
     document.getElementById('edit_personnel_id').value = personnelId || '';
+    document.getElementById('edit_personnel_search').value = personnelName || '';
+    document.getElementById('edit_personnel_list').classList.remove('open');
     document.getElementById('edit_credits').value = (credits === null || credits === undefined) ? '' : credits;
     document.getElementById('edit_hours_per_year').value = (hoursPerYear === null || hoursPerYear === undefined) ? '' : hoursPerYear;
     document.getElementById('edit_hours_per_week').value = (hoursPerWeek === null || hoursPerWeek === undefined) ? '' : hoursPerWeek;
