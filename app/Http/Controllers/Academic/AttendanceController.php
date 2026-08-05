@@ -30,6 +30,7 @@ class AttendanceController extends Controller
         $semesterId  = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
         $subjectId   = $request->subject_id;
         $personnelId = $request->personnel_id;
+        $sectionId   = $request->section_id;
 
         $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $subjects  = Subject::where('is_active', true)->orderBy('code')->get();
@@ -41,6 +42,7 @@ class AttendanceController extends Controller
 
         if ($subjectId)   $query->where('subject_id', $subjectId);
         if ($personnelId) $query->where('personnel_id', $personnelId);
+        if ($sectionId)   $query->where('section_id', $sectionId);
 
         $assigns = $query->get()->map(function ($a) {
             $a->attendance_days = ClassAttendance::where('assign_id', $a->assign_id)
@@ -54,7 +56,7 @@ class AttendanceController extends Controller
             ->get();
 
         return view('academic.attendance_index', compact(
-            'assigns', 'semesters', 'subjects', 'teachers', 'semesterId', 'subjectId', 'personnelId', 'sections'
+            'assigns', 'semesters', 'subjects', 'teachers', 'semesterId', 'subjectId', 'personnelId', 'sections', 'sectionId'
         ));
     }
 

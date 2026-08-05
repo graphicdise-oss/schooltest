@@ -33,7 +33,7 @@
             ไม่มีเน็ตตอนสอน? กด "Excel" ที่แถววิชาด้านล่างเพื่อดาวน์โหลดแบบฟอร์มไปกรอกออฟไลน์ แล้วค่อยอัปโหลดย้อนหลังด้วยปุ่ม "นำเข้าไฟล์ Excel" ด้านบนได้ทีหลัง
         </p>
         <div class="ac-card-body">
-            <form method="GET" action="{{ route('attendance.index') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:12px;align-items:flex-end;max-width:900px;margin-bottom:20px">
+            <form method="GET" action="{{ route('attendance.index') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:flex-end;max-width:1120px;margin-bottom:20px">
                 <div class="ac-field" style="margin:0">
                     <label>ปีการศึกษา / เทอม</label>
                     <select class="ac-select" name="semester_id">
@@ -41,6 +41,15 @@
                         <option value="{{ $sem->semester_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>
                             {{ $sem->academicYear->year_name }} เทอม {{ $sem->semester_name }}
                         </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="ac-field" style="margin:0">
+                    <label>ห้องเรียน</label>
+                    <select class="ac-select" name="section_id">
+                        <option value="">-- ทุกห้อง --</option>
+                        @foreach($sections as $sec)
+                        <option value="{{ $sec->section_id }}" {{ $sectionId==$sec->section_id?'selected':'' }}>{{ $sec->full_name }}</option>
                         @endforeach
                     </select>
                 </div>
