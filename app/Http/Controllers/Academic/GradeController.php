@@ -129,36 +129,56 @@ class GradeController extends Controller
 
             $this->writeTranscriptGroupHeader($sheet, $col, 6, 7, 9, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
         }
-        $this->writeTranscriptGroupBlanks($sheet, $totalCols, 10, 26);
+        // เผื่อแถวว่างต่อภาคเรียนไว้เยอะๆ (30 แถว) กันกรณีเทอมนั้นมีวิชาเยอะ (เช่น มีวิชาเพิ่มเติมหลายตัว) ล้นไปทับ
+        // แถวคั่นภาคเรียนถัดไปพอดี — ของจริงเจอเคสเทอมเดียวมีถึง 19 วิชา เผื่อ 17 แถวเดิมไม่พอ
+        $subjectRowsPerSemester = 30;
+        $sem1From = 10;
+        $sem1To   = $sem1From + $subjectRowsPerSemester - 1;
+        $sem2MarkerRow = $sem1To + 1;
+        $sem2From = $sem2MarkerRow + 1;
+        $sem2To   = $sem2From + $subjectRowsPerSemester - 1;
+
+        $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem1From, $sem1To);
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
-            $this->writeTranscriptSemesterMarker($sheet, $col, 27, 'ภาคเรียนที่ 2');
+            $this->writeTranscriptSemesterMarker($sheet, $col, $sem2MarkerRow, 'ภาคเรียนที่ 2');
         }
-        $this->writeTranscriptGroupBlanks($sheet, $totalCols, 28, 44);
+        $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem2From, $sem2To);
 
         // ตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — แยกจากตารางผลการเรียนข้างบน
-        $sheet->mergeCells("A46:" . Coordinate::stringFromColumnIndex($totalCols) . '46');
-        $sheet->setCellValue('A46', 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินให้ใส่ "ผ" (ผ่าน) หรือ "มผ" (ไม่ผ่าน)');
-        $sheet->getStyle('A46')->applyFromArray([
+        $actInstructionRow = $sem2To + 2;
+        $sheet->mergeCells("A{$actInstructionRow}:" . Coordinate::stringFromColumnIndex($totalCols) . $actInstructionRow);
+        $sheet->setCellValue("A{$actInstructionRow}", 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินให้ใส่ "ผ" (ผ่าน) หรือ "มผ" (ไม่ผ่าน)');
+        $sheet->getStyle("A{$actInstructionRow}")->applyFromArray([
             'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
         ]);
 
         $activityRows = ['แนะแนว' => 20, 'ชุมนุม' => 20, 'กิจกรรมเพื่อสังคมและสาธารณประโยชน์' => 10];
+        $actRowsPerSemester = 6; // เผื่อแถวว่างเกินจำนวนกิจกรรมเริ่มต้น (3 อย่าง) ไว้เผื่อโรงเรียนมีกิจกรรมเพิ่มเติม
+        $actLabelRow = $actInstructionRow + 1;
+        $actYearRow  = $actLabelRow + 1;
+        $actSemRow   = $actYearRow + 2;
+        $actSem1From = $actSemRow + 1;
+        $actSem1To   = $actSem1From + $actRowsPerSemester - 1;
+        $actSem2MarkerRow = $actSem1To + 1;
+        $actSem2From = $actSem2MarkerRow + 1;
+        $actSem2To   = $actSem2From + $actRowsPerSemester - 1;
+
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
-            $this->writeTranscriptGroupHeader($sheet, $col, 47, 48, 50, ['กิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน']);
+            $this->writeTranscriptGroupHeader($sheet, $col, $actLabelRow, $actYearRow, $actSemRow, ['กิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน']);
 
-            $row = 51;
+            $row = $actSem1From;
             foreach ($activityRows as $actName => $hours) {
                 $colLetter = Coordinate::stringFromColumnIndex($col);
                 $sheet->setCellValue("{$colLetter}{$row}", $actName);
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $row, $hours);
                 $row++;
             }
-            $this->writeTranscriptSemesterMarker($sheet, $col, 54, 'ภาคเรียนที่ 2');
-            $row = 55;
+            $this->writeTranscriptSemesterMarker($sheet, $col, $actSem2MarkerRow, 'ภาคเรียนที่ 2');
+            $row = $actSem2From;
             foreach ($activityRows as $actName => $hours) {
                 $colLetter = Coordinate::stringFromColumnIndex($col);
                 $sheet->setCellValue("{$colLetter}{$row}", $actName);
@@ -166,7 +186,7 @@ class GradeController extends Controller
                 $row++;
             }
         }
-        $this->writeTranscriptGroupBlanks($sheet, $totalCols, 51, 57);
+        $this->writeTranscriptGroupBlanks($sheet, $totalCols, $actSem1From, $actSem2To);
 
         $sheet->freezePane('A10');
 
