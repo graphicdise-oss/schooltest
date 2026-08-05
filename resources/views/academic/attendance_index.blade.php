@@ -93,6 +93,38 @@
             </div>
         </div>
     </div>
+
+    <div class="ac-card">
+        <div class="ac-card-header"><i class="bi bi-file-earmark-bar-graph"></i> รายงานสรุปการเข้าเรียนรายห้อง (ตรวจเช็คการเข้าเรียน)</div>
+        <div class="ac-card-body">
+            <p style="font-size:.82rem;color:#777;margin:0 0 12px">
+                สรุปจากข้อมูลเช็คชื่อรายวิชาที่มีอยู่แล้วทุกวิชาของห้องนั้น เหลือ 2 สถานะ (มา/ไม่มา) ต่อวัน —
+                วันไหนมาอย่างน้อย 1 วิชา นับเป็น "มา" คอลัมน์ 1, 2, 3... คือลำดับวันที่มีการเช็คชื่อจริงในช่วงที่เลือก
+            </p>
+            <form method="GET" id="attSummaryForm" action="{{ url('/attendance/report') }}" target="_blank"
+                style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap" onsubmit="return attSubmitSummary(event)">
+                <div class="ac-field" style="margin:0">
+                    <label>ห้องเรียน</label>
+                    <select class="ac-select" id="attSummarySection" required>
+                        <option value="">-- เลือกห้องเรียน --</option>
+                        @foreach($sections as $sec)
+                        <option value="{{ $sec->section_id }}">{{ $sec->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="ac-field" style="margin:0">
+                    <label>จากวันที่</label>
+                    <input type="date" name="from" class="ac-input">
+                </div>
+                <div class="ac-field" style="margin:0">
+                    <label>ถึงวันที่</label>
+                    <input type="date" name="to" class="ac-input">
+                </div>
+                <button type="submit" class="ac-btn ac-btn-primary" style="height:38px;white-space:nowrap"><i class="bi bi-download"></i> ดาวน์โหลดรายงาน</button>
+            </form>
+            <p style="font-size:.76rem;color:#999;margin:8px 0 0">เว้นวันที่ไว้ = ใช้ช่วงเปิด-ปิดเทอมของห้องนั้นทั้งหมด</p>
+        </div>
+    </div>
 </div>
 
 {{-- ดาวน์โหลดแบบฟอร์ม Excel (เลือกเดือน หรือทุกเดือนในเทอม) --}}
@@ -162,6 +194,21 @@
 @endif
 
 <script>
+function attSubmitSummary(e) {
+    e.preventDefault();
+    var sectionId = document.getElementById('attSummarySection').value;
+    if (!sectionId) { alert('กรุณาเลือกห้องเรียน'); return false; }
+    var form = document.getElementById('attSummaryForm');
+    var from = form.querySelector('input[name=from]').value;
+    var to = form.querySelector('input[name=to]').value;
+    var url = "{{ url('/attendance/report') }}/" + sectionId;
+    var params = [];
+    if (from) params.push('from=' + encodeURIComponent(from));
+    if (to) params.push('to=' + encodeURIComponent(to));
+    if (params.length) url += '?' + params.join('&');
+    window.open(url, '_blank');
+    return false;
+}
 var attExportAssignId = null;
 function openExportModal(assignId, label) {
     attExportAssignId = assignId;

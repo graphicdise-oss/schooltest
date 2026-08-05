@@ -413,6 +413,7 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/export-template/{assign}', 'exportTemplate')->name('exportTemplate');
             Route::post('/import-excel', 'importExcel')->name('importExcel');
+            Route::get('/report/{section}', 'exportRoomSummary')->name('exportRoomSummary');
             Route::get('/{assign}', 'mark')->name('mark');
             Route::post('/{assign}', 'store')->name('store');
         });
