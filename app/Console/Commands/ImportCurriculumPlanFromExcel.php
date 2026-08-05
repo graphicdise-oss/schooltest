@@ -172,7 +172,8 @@ class ImportCurriculumPlanFromExcel extends Command
             $name = trim((string) ($sheet->getCell("B{$r}")->getValue() ?? ''));
             $typeRaw = trim((string) ($sheet->getCell("C{$r}")->getValue() ?? ''));
             $group = trim((string) ($sheet->getCell("D{$r}")->getValue() ?? ''));
-            $credits = $this->numOrNull($sheet->getCell("E{$r}")->getValue());
+            // subjects.credits เป็น NOT NULL ในฐานข้อมูลจริง (แถวกิจกรรมพัฒนาผู้เรียนบางแถวในไฟล์ไม่กรอกหน่วยกิตไว้เลย) จึงต้อง default เป็น 0 แทน null
+            $credits = $this->numOrNull($sheet->getCell("E{$r}")->getValue()) ?? 0;
             $semester = trim((string) ($sheet->getCell("F{$r}")->getValue() ?? ''));
             $hoursPerWeek = $this->numOrNull($sheet->getCell("G{$r}")->getValue());
             $hoursPerYear = $this->numOrNull($sheet->getCell("H{$r}")->getValue());
