@@ -150,7 +150,8 @@ class AttendanceController extends Controller
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'attendance_template') . '.xlsx';
         (new Xlsx($spreadsheet))->save($tmpPath);
-        $filename = 'แบบฟอร์มเช็คชื่อ_' . $assign->subject->code . '_' . $assign->classSection->full_name . '_' . now()->format('Ymd_His') . '.xlsx';
+        $roomLabel = str_replace(['/', '\\'], '-', $assign->classSection->full_name);
+        $filename = 'แบบฟอร์มเช็คชื่อ_' . $assign->subject->code . '_' . $roomLabel . '_' . now()->format('Ymd_His') . '.xlsx';
         return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
     }
 
