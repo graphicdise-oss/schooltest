@@ -153,34 +153,49 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
     }
 
+    // อ่าน personnel_ids[] จากฟอร์ม (สูงสุด 3 ช่องจากหน้าเว็บ) กรองค่าว่าง/ซ้ำออก
+    private function teacherIdsFromRequest(Request $request): array
+    {
+        return collect($request->input('personnel_ids', []))
+            ->filter(fn ($v) => $v !== null && $v !== '')
+            ->map(fn ($v) => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
+    }
+
     public function addSubject(Request $request, $id)
     {
         $request->validate(['subject_id' => 'required|exists:subjects,subject_id']);
-        CurriculumSubject::firstOrCreate(
+        $teacherIds = $this->teacherIdsFromRequest($request);
+        $cs = CurriculumSubject::firstOrCreate(
             ['curriculum_id' => $id, 'subject_id' => $request->subject_id],
             [
                 'semester_type'  => $request->semester_type ?? 'both',
                 'is_required'    => $request->boolean('is_required', true),
-                'personnel_id'   => $request->personnel_id ?: null,
+                'personnel_id'   => $teacherIds[0] ?? null,
                 'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
                 'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
                 'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
             ]
         );
+        $cs->teachers()->sync($teacherIds);
         return redirect()->back()->with('success', 'เพิ่มวิชาในหลักสูตรสำเร็จ');
     }
 
     public function updateSubject(Request $request, $id, $csId)
     {
-        CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)
-            ->update([
-                'semester_type'  => $request->semester_type ?? 'both',
-                'is_required'    => $request->boolean('is_required', true),
-                'personnel_id'   => $request->personnel_id ?: null,
-                'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
-                'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
-                'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
-            ]);
+        $cs = CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)->firstOrFail();
+        $teacherIds = $this->teacherIdsFromRequest($request);
+        $cs->update([
+            'semester_type'  => $request->semester_type ?? 'both',
+            'is_required'    => $request->boolean('is_required', true),
+            'personnel_id'   => $teacherIds[0] ?? null,
+            'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
+            'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
+            'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
+        ]);
+        $cs->teachers()->sync($teacherIds);
         return redirect()->back()->with('success', 'แก้ไขวิชาสำเร็จ');
     }
 

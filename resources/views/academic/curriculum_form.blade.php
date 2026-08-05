@@ -388,6 +388,9 @@
                     <td style="font-size:0.82rem;color:#555">
                         @if($cs->teachers->isNotEmpty())
                             {{ $cs->teachers->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}
+                            @if($cs->teachers->count() > 3)
+                                <div style="color:#e65100;font-size:0.72rem;margin-top:2px">(แก้ไขผ่านฟอร์มได้สูงสุด 3 คน — เกิน 3 คนต้องนำเข้าจาก Excel)</div>
+                            @endif
                         @elseif($cs->personnel)
                             {{ $cs->personnel->thai_prefix ?? '' }}{{ $cs->personnel->thai_firstname }} {{ $cs->personnel->thai_lastname }}
                         @else
@@ -411,11 +414,13 @@
                             </button>
                             <div class="cf-dropdown">
                                 @php
-                                    $csPersonnelName = $cs->personnel
-                                        ? addslashes(($cs->personnel->thai_prefix ?? '') . $cs->personnel->thai_firstname . ' ' . $cs->personnel->thai_lastname)
-                                        : '';
+                                    $csTeachers = $cs->teachers->isNotEmpty() ? $cs->teachers : ($cs->personnel ? collect([$cs->personnel]) : collect());
+                                    $csTeachersJson = $csTeachers->take(3)->map(fn($t) => [
+                                        'id' => $t->personnel_id,
+                                        'name' => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname,
+                                    ])->values();
                                 @endphp
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}')">
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}', {{ $csTeachersJson->toJson() }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -546,26 +551,22 @@
                         <input type="hidden" name="is_required" id="add_is_required" value="1">
                     </div>
                     <div>
-                        <label>ครูผู้สอน</label>
-                        <div class="cf-combo" id="add_personnel_combo">
-                            <input type="text" id="add_personnel_search" class="cf-combo-input" autocomplete="off"
-                                placeholder="พิมพ์ชื่อครูเพื่อค้นหา..."
-                                onfocus="openPersonnelCombo('add_')" oninput="filterPersonnelCombo('add_')">
-                            <input type="hidden" name="personnel_id" id="add_personnel_id">
-                            <div class="cf-combo-list" id="add_personnel_list">
-                                <div class="cf-combo-item" data-id="" data-search="" data-label="-- ยังไม่กำหนด --" onclick="selectPersonnelCombo('add_', this)">-- ยังไม่กำหนด --</div>
-                                @foreach($personnels ?? [] as $p)
-                                <div class="cf-combo-item"
-                                    data-id="{{ $p->personnel_id }}"
-                                    data-search="{{ \Illuminate\Support\Str::lower(($p->thai_prefix ?? '') . $p->thai_firstname . ' ' . $p->thai_lastname) }}"
-                                    data-label="{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}"
-                                    onclick="selectPersonnelCombo('add_', this)">
-                                    {{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                                </div>
-                                @endforeach
-                                <div class="cf-combo-empty" id="add_personnel_empty" style="display:none">ไม่พบครูที่ค้นหา</div>
-                            </div>
+                        <label>ครูผู้สอน (สูงสุด 3 คน)</label>
+                        <div id="add_teacher_row_0" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'add_0_', 'personnels' => $personnels ?? []])</div>
                         </div>
+                        <div id="add_teacher_row_1" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'add_1_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('add_', 1)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <div id="add_teacher_row_2" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'add_2_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('add_', 2)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <button type="button" id="add_teacher_add_btn" onclick="addTeacherSlot('add_')"
+                            style="border:1px dashed #999;background:none;color:#666;border-radius:6px;padding:5px 12px;font-size:0.8rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px">
+                            <i class="bi bi-plus-lg"></i> เพิ่มครูผู้สอน
+                        </button>
                     </div>
                 </div>
                 <div class="cf-modal-footer">
@@ -612,26 +613,22 @@
                         <input type="hidden" name="is_required" id="edit_is_required" value="1">
                     </div>
                     <div>
-                        <label>ครูผู้สอน</label>
-                        <div class="cf-combo" id="edit_personnel_combo">
-                            <input type="text" id="edit_personnel_search" class="cf-combo-input" autocomplete="off"
-                                placeholder="พิมพ์ชื่อครูเพื่อค้นหา..."
-                                onfocus="openPersonnelCombo('edit_')" oninput="filterPersonnelCombo('edit_')">
-                            <input type="hidden" name="personnel_id" id="edit_personnel_id">
-                            <div class="cf-combo-list" id="edit_personnel_list">
-                                <div class="cf-combo-item" data-id="" data-search="" data-label="-- ยังไม่กำหนด --" onclick="selectPersonnelCombo('edit_', this)">-- ยังไม่กำหนด --</div>
-                                @foreach($personnels ?? [] as $p)
-                                <div class="cf-combo-item"
-                                    data-id="{{ $p->personnel_id }}"
-                                    data-search="{{ \Illuminate\Support\Str::lower(($p->thai_prefix ?? '') . $p->thai_firstname . ' ' . $p->thai_lastname) }}"
-                                    data-label="{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}"
-                                    onclick="selectPersonnelCombo('edit_', this)">
-                                    {{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                                </div>
-                                @endforeach
-                                <div class="cf-combo-empty" id="edit_personnel_empty" style="display:none">ไม่พบครูที่ค้นหา</div>
-                            </div>
+                        <label>ครูผู้สอน (สูงสุด 3 คน)</label>
+                        <div id="edit_teacher_row_0" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'edit_0_', 'personnels' => $personnels ?? []])</div>
                         </div>
+                        <div id="edit_teacher_row_1" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'edit_1_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('edit_', 1)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <div id="edit_teacher_row_2" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'edit_2_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('edit_', 2)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <button type="button" id="edit_teacher_add_btn" onclick="addTeacherSlot('edit_')"
+                            style="border:1px dashed #999;background:none;color:#666;border-radius:6px;padding:5px 12px;font-size:0.8rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px">
+                            <i class="bi bi-plus-lg"></i> เพิ่มครูผู้สอน
+                        </button>
                     </div>
                 </div>
                 <div class="cf-modal-footer">
@@ -714,11 +711,44 @@ function openAddSubjectModal() {
     document.getElementById('add_hours_per_week').value = '';
     document.getElementById('add_is_required').value = '1';
     document.getElementById('add_subject_type_display').textContent = '-';
-    document.getElementById('add_personnel_id').value = '';
-    document.getElementById('add_personnel_search').value = '';
     document.getElementById('add_subject_list').classList.remove('open');
-    document.getElementById('add_personnel_list').classList.remove('open');
+    resetTeacherSlots('add_');
     document.getElementById('addSubjOverlay').classList.add('active');
+}
+// เคลียร์ครูผู้สอนทุกช่อง (0-2) แล้วยุบช่องที่ 2 กับ 3 กลับไปซ่อน — ใช้ตอนเปิด modal ใหม่ทั้งเพิ่ม/แก้ไข
+function resetTeacherSlots(formPrefix) {
+    ['0', '1', '2'].forEach(i => {
+        const p = formPrefix + i + '_';
+        document.getElementById(p + 'personnel_id').value = '';
+        document.getElementById(p + 'personnel_search').value = '';
+        document.getElementById(p + 'personnel_list').classList.remove('open');
+    });
+    document.getElementById(formPrefix + 'teacher_row_1').style.display = 'none';
+    document.getElementById(formPrefix + 'teacher_row_2').style.display = 'none';
+    updateAddTeacherBtn(formPrefix);
+}
+function addTeacherSlot(formPrefix) {
+    for (let i = 1; i <= 2; i++) {
+        const row = document.getElementById(formPrefix + 'teacher_row_' + i);
+        if (row.style.display === 'none') {
+            row.style.display = 'flex';
+            updateAddTeacherBtn(formPrefix);
+            return;
+        }
+    }
+}
+function removeTeacherSlot(formPrefix, index) {
+    const p = formPrefix + index + '_';
+    document.getElementById(p + 'personnel_id').value = '';
+    document.getElementById(p + 'personnel_search').value = '';
+    document.getElementById(p + 'personnel_list').classList.remove('open');
+    document.getElementById(formPrefix + 'teacher_row_' + index).style.display = 'none';
+    updateAddTeacherBtn(formPrefix);
+}
+function updateAddTeacherBtn(formPrefix) {
+    const anyHidden = ['1', '2'].some(i => document.getElementById(formPrefix + 'teacher_row_' + i).style.display === 'none');
+    const btn = document.getElementById(formPrefix + 'teacher_add_btn');
+    if (btn) btn.style.display = anyHidden ? 'inline-flex' : 'none';
 }
 // พื้นฐาน/กิจกรรม = บังคับ โดยปริยาย, เพิ่มเติม = เลือก โดยปริยาย (ยังแก้เองได้เสมอ แค่ตั้งค่าเริ่มต้นให้)
 function defaultIsRequiredFor(subjectType) {
@@ -792,8 +822,9 @@ function bindComboKeydown(inputId, listId, onSelect) {
     });
 }
 bindComboKeydown('add_subject_search', 'add_subject_list', selectSubjectCombo);
-bindComboKeydown('add_personnel_search', 'add_personnel_list', item => selectPersonnelCombo('add_', item));
-bindComboKeydown('edit_personnel_search', 'edit_personnel_list', item => selectPersonnelCombo('edit_', item));
+['add_0_', 'add_1_', 'add_2_', 'edit_0_', 'edit_1_', 'edit_2_'].forEach(p => {
+    bindComboKeydown(p + 'personnel_search', p + 'personnel_list', item => selectPersonnelCombo(p, item));
+});
 document.addEventListener('click', e => {
     const insideCombo = e.target.closest('.cf-combo');
     document.querySelectorAll('.cf-combo-list.open').forEach(list => {
@@ -820,18 +851,25 @@ document.addEventListener('keydown', e => {
     }
 });
 
-function openEditModal(csId, semType, personnelId, personnelName, credits, hoursPerYear, hoursPerWeek, subjectType) {
+function openEditModal(csId, semType, credits, hoursPerYear, hoursPerWeek, subjectType, teachers) {
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
     document.getElementById('edit_semester_type').value = semType;
     document.getElementById('edit_is_required').value = defaultIsRequiredFor(subjectType || '');
     document.getElementById('edit_subject_type_display').textContent = subjectType || '-';
-    document.getElementById('edit_personnel_id').value = personnelId || '';
-    document.getElementById('edit_personnel_search').value = personnelName || '';
-    document.getElementById('edit_personnel_list').classList.remove('open');
     document.getElementById('edit_credits').value = (credits === null || credits === undefined) ? '' : credits;
     document.getElementById('edit_hours_per_year').value = (hoursPerYear === null || hoursPerYear === undefined) ? '' : hoursPerYear;
     document.getElementById('edit_hours_per_week').value = (hoursPerWeek === null || hoursPerWeek === undefined) ? '' : hoursPerWeek;
+
+    resetTeacherSlots('edit_');
+    (teachers || []).slice(0, 3).forEach((t, i) => {
+        const p = 'edit_' + i + '_';
+        document.getElementById(p + 'personnel_id').value = t.id;
+        document.getElementById(p + 'personnel_search').value = t.name;
+        if (i > 0) document.getElementById('edit_teacher_row_' + i).style.display = 'flex';
+    });
+    updateAddTeacherBtn('edit_');
+
     document.querySelectorAll('.cf-dropdown.open').forEach(d => d.classList.remove('open'));
     document.getElementById('editSubjOverlay').classList.add('active');
 }
