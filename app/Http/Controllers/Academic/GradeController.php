@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Academic;
 
 use App\Http\Controllers\Controller;
+use App\Models\Academic\AcademicYear;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\Semester;
@@ -293,6 +294,205 @@ class GradeController extends Controller
         }
 
         Artisan::call('import:transcript', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('transcript_import_output', $output);
+    }
+
+    // หน้ารวม "นำเข้าเกรดรวมทั้งห้อง" — เลือกปี/เทอม/ระดับ/ห้อง แล้วโหลดฟอร์ม/อัปโหลดไฟล์รวมของทั้งห้องได้
+    public function importBulkIndex(Request $request)
+    {
+        $academicYears = AcademicYear::orderBy('year_name', 'desc')->get();
+
+        $currentSem = Semester::where('is_current', true)->with('academicYear')->first();
+        $yearId    = $request->year_id ?? ($currentSem->year_id ?? $academicYears->first()?->year_id);
+        $term      = $request->term ?? ($currentSem->semester_name ?? '1');
+        $levelId   = $request->level_id;
+        $sectionId = $request->section_id;
+
+        $semester = Semester::where('year_id', $yearId)->where('semester_name', $term)->first();
+        $semesterId = $semester?->semester_id;
+
+        $levels = Level::whereHas('classSections', fn($q) => $q->where('semester_id', $semesterId))
+            ->orderBy('sort_order')->get();
+
+        $sections = ClassSection::with('level')
+            ->where('semester_id', $semesterId)
+            ->when($levelId, fn($q) => $q->where('level_id', $levelId))
+            ->orderBy('level_id')->orderBy('section_number')->get();
+
+        $students = collect();
+        $currentSection = null;
+        if ($sectionId) {
+            $currentSection = ClassSection::with('level')->find($sectionId);
+            $students = StudentSection::with('student')
+                ->where('section_id', $sectionId)
+                ->where('status', 'กำลังศึกษา')
+                ->orderBy('student_number')->get();
+        }
+
+        return view('academic.grades_import_bulk', compact(
+            'academicYears', 'yearId', 'term', 'levelId', 'sectionId', 'levels', 'sections', 'students', 'currentSection'
+        ));
+    }
+
+    // ดาวน์โหลดแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง (Bulk) — ตารางแถวเรียงยาว มีคอลัมน์เลขประจำตัวนักเรียนระบุเจ้าของแถว
+    // ต่างจาก importTranscriptTemplate() (สร้างฟอร์มแบบ 3 ปีเคียงกันให้นักเรียนคนเดียว) ตรงที่ไฟล์นี้ใส่ได้หลายคน/
+    // หลายปีปนกันในตารางเดียว เพราะมีคอลัมน์เลขประจำตัวนักเรียนบอกเจ้าของแต่ละแถวอยู่แล้ว
+    public function importBulkTemplate($sectionId)
+    {
+        $section = ClassSection::with('level')->findOrFail($sectionId);
+        $roster = StudentSection::with('student')
+            ->where('section_id', $sectionId)
+            ->where('status', 'กำลังศึกษา')
+            ->orderBy('student_number')->get();
+
+        $spreadsheet = new Spreadsheet();
+
+        // ชีตที่ 1: ตารางกรอกข้อมูล (parser อ่านชีตนี้เป็นหลัก)
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('เกรด');
+
+        $totalCols = 7;
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
+        ExcelSchoolHeader::applyInstructionRow(
+            $sheet, $totalCols,
+            "แบบฟอร์มนำเข้าเกรดรวมทั้งห้อง (Bulk) — ห้อง {$section->full_name} ({$roster->count()} คน) — "
+            . 'แต่ละแถวคือ 1 วิชาของ 1 คน ระบุด้วย "เลขประจำตัวนักเรียน" คอลัมน์แรก (คัดลอกเลขจากชีต "รายชื่อนักเรียน" ด้านล่างได้เลย), '
+            . 'กรอกได้หลายปี/หลายระดับชั้นปนกันในตารางเดียว ไม่ต้องเรียงตามคน, '
+            . '"ปีการศึกษา" ใส่ปี พ.ศ. เช่น 2567, "ระดับชั้น" ใส่แบบย่อเช่น ม.4, "ภาคเรียน" ใส่ 1 หรือ 2, '
+            . '"รหัสวิชา : ชื่อวิชา" ตามด้วยหน่วยกิตและเกรด(0-4), แต่ละคนกรอกได้กี่วิชาก็ได้ ไม่ต้องเท่ากัน — '
+            . 'ด้านล่างสุดเป็นตารางกิจกรรมพัฒนาผู้เรียนแยกต่างหาก (ผ = ผ่าน, มผ = ไม่ผ่าน)'
+        );
+
+        $colWidths = [26, 12, 10, 10, 30, 10, 10];
+        $colLetters = [];
+        foreach ($colWidths as $i => $w) {
+            $letter = Coordinate::stringFromColumnIndex($i + 1);
+            $colLetters[] = $letter;
+            if ($i === 0) {
+                ExcelSchoolHeader::setColumnWidth($sheet, $letter, $w, $hasLogo);
+            } else {
+                $sheet->getColumnDimension($letter)->setWidth($w);
+            }
+        }
+
+        $headerRow = 6;
+        $labels = ['เลขประจำตัวนักเรียน', 'ปีการศึกษา', 'ระดับชั้น', 'ภาคเรียน', 'รหัสวิชา : ชื่อวิชา', 'หน่วยกิต', 'ผลการเรียน'];
+        $this->writeBulkTableHeader($sheet, $headerRow, $totalCols, $labels);
+
+        // แถวเริ่มต้นให้ทีละคน (ใส่เลขประจำตัวไว้ให้แล้ว) — ลากคัดลอกแถวลงเพิ่มได้เลยถ้าคนนั้นมีหลายวิชา
+        $row = $headerRow + 1;
+        foreach ($roster as $ss) {
+            $sheet->setCellValue("A{$row}", $ss->student->student_code ?? '');
+            $sheet->getStyle("A{$row}")->applyFromArray(['font' => ['bold' => true]]);
+            $row++;
+        }
+        $this->writeBulkTableBlanks($sheet, $totalCols, $headerRow + 1, max($row - 1, $headerRow + 1));
+
+        // ตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — แยกจากตารางผลการเรียนข้างบน
+        $actInstructionRow = $row + 1;
+        $sheet->mergeCells("A{$actInstructionRow}:" . Coordinate::stringFromColumnIndex($totalCols) . $actInstructionRow);
+        $sheet->setCellValue("A{$actInstructionRow}", 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินให้ใส่ "ผ" (ผ่าน) หรือ "มผ" (ไม่ผ่าน)');
+        $sheet->getStyle("A{$actInstructionRow}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT, 'vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
+        ]);
+
+        $actHeaderRow = $actInstructionRow + 1;
+        $actLabels = ['เลขประจำตัวนักเรียน', 'ปีการศึกษา', 'ระดับชั้น', 'ภาคเรียน', 'ชื่อกิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน'];
+        $this->writeBulkTableHeader($sheet, $actHeaderRow, $totalCols, $actLabels);
+
+        $activityRows = ['แนะแนว' => 20, 'ชุมนุม' => 20, 'กิจกรรมเพื่อสังคมและสาธารณประโยชน์' => 10];
+        $actRow = $actHeaderRow + 1;
+        foreach ($roster as $ss) {
+            foreach ($activityRows as $actName => $hours) {
+                $sheet->setCellValue("A{$actRow}", $ss->student->student_code ?? '');
+                $sheet->setCellValue("E{$actRow}", $actName);
+                $sheet->setCellValue("F{$actRow}", $hours);
+                $actRow++;
+            }
+        }
+        $this->writeBulkTableBlanks($sheet, $totalCols, $actHeaderRow + 1, max($actRow - 1, $actHeaderRow + 1));
+
+        $sheet->freezePane('A' . ($headerRow + 1));
+
+        // ชีตที่ 2: รายชื่อนักเรียนในห้องนี้ไว้อ้างอิง (parser ไม่แตะชีตนี้เลย)
+        $rosterSheet = $spreadsheet->createSheet();
+        $rosterSheet->setTitle('รายชื่อนักเรียน');
+        $rosterSheet->fromArray(['เลขที่', 'เลขประจำตัวนักเรียน', 'ชื่อ-สกุล'], null, 'A1');
+        $rosterSheet->getStyle('A1:C1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '37474F']],
+        ]);
+        $rr = 2;
+        foreach ($roster as $ss) {
+            $rosterSheet->setCellValue("A{$rr}", $ss->student_number);
+            $rosterSheet->setCellValue("B{$rr}", $ss->student->student_code ?? '');
+            $rosterSheet->setCellValue("C{$rr}", trim(($ss->student->thai_prefix ?? '') . ($ss->student->thai_firstname ?? '') . ' ' . ($ss->student->thai_lastname ?? '')));
+            $rr++;
+        }
+        $rosterSheet->getColumnDimension('A')->setWidth(8);
+        $rosterSheet->getColumnDimension('B')->setWidth(20);
+        $rosterSheet->getColumnDimension('C')->setWidth(30);
+        $spreadsheet->setActiveSheetIndex(0);
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'transcript_bulk_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = 'แบบฟอร์มนำเข้าเกรดรวมทั้งห้อง_' . str_replace('/', '-', $section->full_name) . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    // เขียนแถวหัวตาราง (bold + พื้นหลังเทา) ของแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง
+    private function writeBulkTableHeader($sheet, int $row, int $totalCols, array $labels): void
+    {
+        foreach ($labels as $i => $label) {
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($i + 1) . $row, $label);
+        }
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
+        $sheet->getStyle("A{$row}:{$lastCol}{$row}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+        ]);
+    }
+
+    // ใส่เส้นขอบบางๆ ให้ช่องกรอกข้อมูลว่างของแบบฟอร์มนำเข้าเกรดรวมทั้งห้อง
+    private function writeBulkTableBlanks($sheet, int $totalCols, int $fromRow, int $toRow): void
+    {
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
+        $sheet->getStyle("A{$fromRow}:{$lastCol}{$toRow}")->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'EEEEEE']]],
+        ]);
+    }
+
+    // รับไฟล์ Excel เกรดรวมทั้งห้องที่กรอกมา แล้วรันคำสั่งนำเข้าให้หลายคนพร้อมกัน
+    public function importBulkUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0);
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:transcript-bulk', $options);
         $output = Artisan::output();
 
         @unlink($fullPath);

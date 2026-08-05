@@ -144,6 +144,9 @@
               <button type="button" class="btn-back" style="background:#198754" onclick="document.getElementById('transcriptImportOverlay').classList.add('active')">
                 <i class="bi bi-upload"></i> นำเข้าเกรดรวม
               </button>
+              <a href="{{ route('grades.importBulkIndex') }}" class="btn-back" style="background:#6c5ce7" title="นำเข้าหลายคน/ทั้งห้องในไฟล์เดียว แทนที่จะทำทีละคน">
+                <i class="bi bi-people-fill"></i> นำเข้าทีเดียวทั้งห้อง
+              </a>
               <button type="button" class="btn-print" onclick="document.getElementById('printSettingsModal').classList.add('active')">
                 <i class="bi bi-printer"></i> พิมพ์ Transcript
             </button>

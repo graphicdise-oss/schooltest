@@ -264,6 +264,9 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/student/{studentId}/edit', 'editStudentGrades')->name('student.edit');
         Route::get('/student/{studentId}/import-template', 'importTranscriptTemplate')->name('importTranscriptTemplate');
         Route::post('/student/{studentId}/import', 'importTranscriptUpload')->name('importTranscript');
+        Route::get('/import-bulk', 'importBulkIndex')->name('importBulkIndex');
+        Route::get('/section/{sectionId}/import-bulk-template', 'importBulkTemplate')->name('importBulkTemplate');
+        Route::post('/import-bulk/upload', 'importBulkUpload')->name('importBulkUpload');
         Route::put('/{gradeId}', 'updateGrade')->name('update');
         Route::delete('/{gradeId}', 'destroyGrade')->name('destroy');
         Route::get('/section/{sectionId}', 'sectionReport')->name('section');
