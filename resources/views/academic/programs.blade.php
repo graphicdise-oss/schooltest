@@ -224,6 +224,13 @@
                 </tr>
             </thead>
             <tbody>
+                @php
+                    // ถ้าเลือกปีไว้ในการ์ดด้านบนแล้ว ส่งปีนั้นแนบไปให้แบบฟอร์มสร้างแผนด้วยเลย
+                    // ผู้ใช้จะได้ไม่ต้องพิมพ์ปีซ้ำอีกรอบ (ปีเดียวกับที่กรองอยู่ตรงนี้)
+                    $createPlanParams = fn ($programId) => $selectedYear
+                        ? ['program_id' => $programId, 'year_applied' => $selectedYear->year_name]
+                        : ['program_id' => $programId];
+                @endphp
                 @forelse($programs as $i => $p)
                 <tr>
                     <td>{{ $i + 1 }}</td>
@@ -234,13 +241,13 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <a href="{{ route('curriculums.create', ['program_id' => $p->program_id]) }}" style="text-decoration:none">
+                        <a href="{{ route('curriculums.create', $createPlanParams($p->program_id)) }}" style="text-decoration:none">
                             <span class="badge-plan">{{ $p->curriculums_count }}</span>
                         </a>
                     </td>
                     <td style="text-align:center">
                         <div class="btn-row" style="justify-content:center">
-                            <a href="{{ route('curriculums.create', ['program_id' => $p->program_id]) }}" class="btn-createplan">
+                            <a href="{{ route('curriculums.create', $createPlanParams($p->program_id)) }}" class="btn-createplan">
                                 <i class="bi bi-plus-lg"></i> สร้างแผน
                             </a>
                             <button type="button" class="btn-editprogram"

@@ -220,8 +220,18 @@
                     </select>
                 </div>
                 <div class="cf-field">
-                    <label>ปีการศึกษา</label>
-                    <input type="text" name="year_applied" value="{{ $curriculum->year_applied ?? ($yearApplied ?? '') }}" placeholder="เช่น 2568">
+                    <label>
+                        ปีการศึกษา
+                        @if(!isset($curriculum) && !empty($yearApplied))
+                            <button type="button" onclick="document.getElementById('yearAppliedInput').readOnly=false; this.remove();"
+                                style="border:none;background:none;color:#00bcd4;font-size:0.75rem;font-weight:600;cursor:pointer;padding:0;margin-left:6px;">
+                                (มาจากปีที่เลือกไว้แล้ว — แก้ไขได้)
+                            </button>
+                        @endif
+                    </label>
+                    <input type="text" name="year_applied" id="yearAppliedInput"
+                        value="{{ $curriculum->year_applied ?? ($yearApplied ?? '') }}" placeholder="เช่น 2568"
+                        {{ (!isset($curriculum) && !empty($yearApplied)) ? 'readonly style="background:#f5f5f5;color:#666;"' : '' }}>
                 </div>
                 <div class="cf-field">
                     <label>คำอธิบาย</label>
