@@ -157,6 +157,20 @@
     display: inline-flex; align-items: center; gap: 5px;
 }
 .btn-modal-ok:hover { background: #2e7d32; }
+
+/* Searchable subject combobox */
+.cf-combo { position: relative; }
+.cf-combo-list {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    max-height: 240px; overflow-y: auto; background: #fff;
+    border: 1px solid #e0e0e0; border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.14); z-index: 600;
+}
+.cf-combo-list.open { display: block; }
+.cf-combo-item { padding: 9px 12px; font-size: 0.85rem; color: #444; cursor: pointer; }
+.cf-combo-item:hover, .cf-combo-item.active { background: #f1f8f1; }
+.cf-combo-item.hidden { display: none; }
+.cf-combo-empty { padding: 14px 12px; font-size: 0.82rem; color: #aaa; text-align: center; }
 </style>
 @endpush
 
@@ -317,7 +331,7 @@
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการวิชาเรียน</span>
-            <button class="btn-add-subj" onclick="document.getElementById('addSubjOverlay').classList.add('active')">
+            <button class="btn-add-subj" onclick="openAddSubjectModal()">
                 <i class="bi bi-plus-lg"></i> เพิ่มวิชา
             </button>
         </div>
@@ -401,22 +415,30 @@
     <div class="cf-overlay" id="addSubjOverlay" onclick="if(event.target===this)this.classList.remove('active')">
         <div class="cf-modal">
             <div class="cf-modal-header"><i class="bi bi-plus-circle"></i> เพิ่มวิชาในหลักสูตร</div>
-            <form method="POST" action="{{ route('curriculums.addSubject', $curriculum->curriculum_id) }}">
+            <form method="POST" action="{{ route('curriculums.addSubject', $curriculum->curriculum_id) }}" onsubmit="return validateAddSubjectForm()">
                 @csrf
                 <div class="cf-modal-body">
-                    <div>
+                    <div class="cf-combo" id="add_subject_combo">
                         <label>เลือกวิชา *</label>
-                        <select name="subject_id" id="add_subject_id" required onchange="fillSubjectDefaults(this)">
-                            <option value="">-- เลือกวิชา --</option>
+                        <input type="text" id="add_subject_search" class="cf-combo-input" autocomplete="off"
+                            placeholder="พิมพ์รหัสวิชาหรือชื่อวิชาเพื่อค้นหา..."
+                            onfocus="openSubjectCombo()" oninput="filterSubjectCombo()">
+                        <input type="hidden" name="subject_id" id="add_subject_id">
+                        <div class="cf-combo-list" id="add_subject_list">
                             @foreach($subjects as $sub)
-                                <option value="{{ $sub->subject_id }}"
+                                <div class="cf-combo-item"
+                                    data-id="{{ $sub->subject_id }}"
+                                    data-search="{{ \Illuminate\Support\Str::lower($sub->code . ' ' . $sub->name_th) }}"
+                                    data-label="{{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)"
                                     data-credits="{{ $sub->credits ?? '' }}"
                                     data-hours-year="{{ $sub->hours_per_year ?? '' }}"
-                                    data-hours-week="{{ $sub->hours_per_week ?? '' }}">
+                                    data-hours-week="{{ $sub->hours_per_week ?? '' }}"
+                                    onclick="selectSubjectCombo(this)">
                                     {{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)
-                                </option>
+                                </div>
                             @endforeach
-                        </select>
+                            <div class="cf-combo-empty" id="add_subject_empty" style="display:none">ไม่พบวิชาที่ค้นหา</div>
+                        </div>
                     </div>
                     <div class="cf-modal-hint" style="margin:-6px 0 0">(ค่าเริ่มต้นดึงมาจากวิชาที่เลือก แก้ไขได้เฉพาะแผนนี้ ไม่กระทบข้อมูลวิชากลาง)</div>
                     <div class="cf-modal-row">
@@ -581,12 +603,62 @@ function onCurriculumLevelChange(select) {
 function onCurriculumProgramChange(select) {
     onCurriculumLevelChange(document.getElementById('levelSelect'));
 }
-function fillSubjectDefaults(select) {
-    const opt = select.options[select.selectedIndex];
-    document.getElementById('add_credits').value = opt.dataset.credits || '';
-    document.getElementById('add_hours_per_year').value = opt.dataset.hoursYear || '';
-    document.getElementById('add_hours_per_week').value = opt.dataset.hoursWeek || '';
+function openAddSubjectModal() {
+    document.getElementById('add_subject_id').value = '';
+    document.getElementById('add_subject_search').value = '';
+    document.getElementById('add_credits').value = '';
+    document.getElementById('add_hours_per_year').value = '';
+    document.getElementById('add_hours_per_week').value = '';
+    document.getElementById('add_subject_list').classList.remove('open');
+    document.getElementById('addSubjOverlay').classList.add('active');
 }
+function openSubjectCombo() {
+    document.getElementById('add_subject_list').classList.add('open');
+    filterSubjectCombo();
+}
+function filterSubjectCombo() {
+    // ผู้ใช้เพิ่งพิมพ์เอง (ไม่ใช่จากการคลิกเลือกในลิสต์) ล้างค่าที่เคยเลือกไว้ กันส่ง subject_id เก่า
+    // ที่ไม่ตรงกับข้อความที่เห็นตอนนี้แล้ว
+    document.getElementById('add_subject_id').value = '';
+    const q = document.getElementById('add_subject_search').value.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('#add_subject_list .cf-combo-item').forEach(item => {
+        const match = !q || item.dataset.search.includes(q);
+        item.classList.toggle('hidden', !match);
+        if (match) anyVisible = true;
+    });
+    document.getElementById('add_subject_empty').style.display = anyVisible ? 'none' : 'block';
+}
+function selectSubjectCombo(item) {
+    document.getElementById('add_subject_id').value = item.dataset.id;
+    document.getElementById('add_subject_search').value = item.dataset.label;
+    document.getElementById('add_credits').value = item.dataset.credits || '';
+    document.getElementById('add_hours_per_year').value = item.dataset.hoursYear || '';
+    document.getElementById('add_hours_per_week').value = item.dataset.hoursWeek || '';
+    document.getElementById('add_subject_list').classList.remove('open');
+}
+function validateAddSubjectForm() {
+    if (!document.getElementById('add_subject_id').value) {
+        alert('กรุณาเลือกวิชาจากลิสต์ก่อน');
+        document.getElementById('add_subject_search').focus();
+        return false;
+    }
+    return true;
+}
+document.addEventListener('click', e => {
+    if (!e.target.closest('#add_subject_combo')) {
+        document.getElementById('add_subject_list').classList.remove('open');
+    }
+});
+document.getElementById('add_subject_search')?.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        const firstVisible = document.querySelector('#add_subject_list .cf-combo-item:not(.hidden)');
+        if (firstVisible) selectSubjectCombo(firstVisible);
+    } else if (e.key === 'Escape') {
+        document.getElementById('add_subject_list').classList.remove('open');
+    }
+});
 function toggleDd(btn) {
     document.querySelectorAll('.cf-dropdown.open').forEach(d => {
         if (d !== btn.nextElementSibling) d.classList.remove('open');
