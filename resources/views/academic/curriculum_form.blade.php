@@ -397,8 +397,8 @@
                     <td style="text-align:center">
                         <form action="{{ route('curriculums.toggleSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST" style="display:inline">
                             @csrf
-                            <button type="submit" class="{{ $cs->is_active ? 'badge-req' : 'badge-opt' }}"
-                                style="border:none;cursor:pointer;font-family:inherit;font-size:1.1rem;line-height:1;padding:2px 8px"
+                            <button type="submit"
+                                style="border:none;background:none;cursor:pointer;padding:2px;color:{{ $cs->is_active ? '#2e7d32' : '#e65100' }};font-size:1.6rem;line-height:1"
                                 title="{{ $cs->is_active ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน' }}">
                                 <i class="bi {{ $cs->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
                             </button>
