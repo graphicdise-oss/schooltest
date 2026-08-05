@@ -368,9 +368,16 @@
                         </span>
                     </td>
                     <td style="text-align:center">
-                        <span class="{{ $cs->is_required ? 'badge-req' : 'badge-opt' }}">
-                            {{ $cs->is_required ? 'บังคับ' : 'เลือก' }}
-                        </span>
+                        @php
+                            $subjType = $cs->subject->subject_type ?? '-';
+                            $typeBadgeClass = match($subjType) {
+                                'พื้นฐาน' => 'badge-req',
+                                'เพิ่มเติม' => 'badge-opt',
+                                'กิจกรรม' => 'badge-sem',
+                                default => 'badge-opt',
+                            };
+                        @endphp
+                        <span class="{{ $typeBadgeClass }}">{{ $subjType }}</span>
                     </td>
                     <td style="font-size:0.82rem;color:#555">
                         @if($cs->personnel)
