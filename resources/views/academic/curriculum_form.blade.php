@@ -178,7 +178,16 @@
                     </button>
                 </form>
                 @endif
-                <a href="{{ isset($program) && $program ? route('programs.plans', $program->program_id) : route('programs.index') }}" class="btn-back">
+                @php
+                    // ย้อนกลับไปหน้าที่มาจริงๆ (เช่น /programs หรือ /programs/{id}/plans) แทนที่จะย้อนไป
+                    // programs.plans ตายตัวเสมอ — เผื่อไว้กรณี referrer ใช้ไม่ได้ (เช่น เข้าลิงก์ตรงๆ หรือ
+                    // เพิ่งถูก redirect กลับมาหน้าเดิมจาก validation error) ค่อย fallback ไปที่เดิม
+                    $backUrl = url()->previous();
+                    if (!$backUrl || $backUrl === url()->full() || $backUrl === url()->current()) {
+                        $backUrl = isset($program) && $program ? route('programs.plans', $program->program_id) : route('programs.index');
+                    }
+                @endphp
+                <a href="{{ $backUrl }}" class="btn-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
             </div>
