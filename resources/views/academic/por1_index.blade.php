@@ -173,7 +173,7 @@
                         <option value="all" {{ $sectionId == 'all' ? 'selected' : '' }}>-- ทุกชั้นเรียน --</option>
                         @foreach($sections as $sec)
                         <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
+                            {{ $sec->full_name }}
                         </option>
                         @endforeach
                     </select>
@@ -202,7 +202,7 @@
         <div class="p1-card-title" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-right:0">
             <span>ระเบียนแสดงผลการเรียน (ปพ.1)
                 @if($currentSection)
-                — {{ $currentSection->level->name ?? '' }}/{{ $currentSection->section_number }}
+                — {{ $currentSection->full_name }}
                 @endif
                 ({{ $students->count() }} คน)
             </span>

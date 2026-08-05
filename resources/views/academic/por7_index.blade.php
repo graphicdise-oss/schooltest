@@ -139,7 +139,7 @@
                         <option value="">-- ทุกชั้นเรียน --</option>
                         @foreach($sections as $sec)
                         <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
+                            {{ $sec->full_name }}
                         </option>
                         @endforeach
                     </select>
@@ -173,7 +173,7 @@
         <div class="p7-card-title">
             ใบรับรองการเป็นนักเรียน (ปพ.7)
             @if($currentSection)
-            — {{ $currentSection->level->name ?? '' }}/{{ $currentSection->section_number }}
+            — {{ $currentSection->full_name }}
             @endif
             ({{ $students->count() }} คน)
         </div>
@@ -198,7 +198,7 @@
                     <td>{{ $stu->student_code }}</td>
                     <td>{{ $stu->thai_prefix }}{{ $stu->thai_firstname }} {{ $stu->thai_lastname }}</td>
                     <td>{{ $stu->id_card_number }}</td>
-                    <td>{{ $sec->level->name ?? '' }}/{{ $sec->section_number ?? '' }}</td>
+                    <td>{{ $sec->full_name ?? '' }}</td>
                     <td style="text-align:center">
                         <button type="button" class="btn-print-por7"
                             onclick="openPrintModal({{ $stu->student_id }}, {{ $semesterId ?? 0 }})">

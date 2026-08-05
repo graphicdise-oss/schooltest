@@ -8,7 +8,7 @@
 <div class="ac-page">
     <nav class="ac-breadcrumb">
         <a href="{{ route('por5.index') }}">ปพ.5</a><i class="bi bi-chevron-right"></i>
-        <span>{{ $assign->subject->name_th }} — {{ $assign->classSection->level->name ?? '' }}/{{ $assign->classSection->section_number }}</span>
+        <span>{{ $assign->subject->name_th }} — {{ $assign->classSection->full_name ?? '' }}</span>
     </nav>
 
     @if(session('success'))<div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
