@@ -118,10 +118,6 @@
 @section('content')
 <div class="pg-page">
 
-    @php
-        $currentYearText = $selectedYear->year_name ?? '';
-    @endphp
-
     {{-- การ์ดตั้งค่าปีการศึกษา/ภาคเรียน — ตัวเลือกปีที่นี่ใช้กรองจำนวน "แผน" ในตารางด้านล่างด้วยในตัว --}}
     <div class="ac-card">
         <div class="ac-card-header" style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; color: #334155;">
@@ -132,31 +128,34 @@
 
                 <div style="flex: 1; min-width: 300px; padding-right: 20px; border-right: 1px dashed #cbd5e1;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569;">1. เลือกปีการศึกษา (พิมพ์ค้นหาได้ — ใช้กรองจำนวน "แผน" ในตารางด้านล่างด้วย)</label>
+                        <label style="font-size: 0.85rem; font-weight: 700; color: #475569;">1. เลือกปีการศึกษา (ใช้กรองจำนวน "แผน" ในตารางด้านล่างด้วย)</label>
                         <button type="button" class="ac-btn ac-btn-sm" style="background:#f1f5f9; color:#475569; padding:4px 10px; font-size:0.75rem; border:1px solid #cbd5e1;" onclick="document.getElementById('addYearOverlay').classList.add('active')">
                             <i class="bi bi-plus-circle"></i> เพิ่มปีใหม่
                         </button>
                     </div>
 
-                    <input type="text" id="yearInput" list="yearList" class="ac-input" placeholder="-- พิมพ์ตัวเลขปีการศึกษาเพื่อค้นหา --" value="{{ $currentYearText }}" oninput="handleYearChange(this)" onfocus="this.value=''" autocomplete="off" style="background:#fff; font-size:0.9rem; width:100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px;">
-                    <datalist id="yearList">
+                    <select id="yearSelect" class="ac-select" onchange="window.location.href = '{{ url()->current() }}?year_id=' + this.value" style="background:#fff; font-size:0.9rem; width:100%;">
                         @foreach($academicYears as $year)
-                            <option data-id="{{ $year->year_id }}" data-current="{{ $year->is_current ? '1' : '0' }}" value="{{ $year->year_name }}">
-                                {{ $year->is_current ? '⭐ ปีปัจจุบัน' : '' }}
+                            <option value="{{ $year->year_id }}" {{ (string) $year->year_id === (string) $currentYearId ? 'selected' : '' }}>
+                                {{ $year->year_name }}{{ $year->is_current ? ' ⭐ (ปีปัจจุบัน)' : '' }}
                             </option>
                         @endforeach
-                    </datalist>
+                    </select>
 
-                    <div id="yearActionButtons" style="margin-top: 10px; display: none; gap: 8px;">
-                        <form id="formSetYear" method="POST" style="display:inline;">
-                            @csrf @method('PUT')
-                            <button type="submit" class="ac-btn ac-btn-sm" style="background:#10b981; color:white; font-size:0.75rem;"><i class="bi bi-check-circle"></i> ตั้งเป็นปีปัจจุบัน</button>
-                        </form>
-                        <form id="formDelYear" method="POST" style="display:inline;" onsubmit="return confirm('ยืนยันการลบปีการศึกษานี้?')">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="ac-btn ac-btn-sm" style="background:#ef4444; color:white; font-size:0.75rem;"><i class="bi bi-trash"></i> ลบปีนี้</button>
-                        </form>
-                    </div>
+                    @if($selectedYear)
+                        <div style="margin-top: 10px; display: flex; gap: 8px;">
+                            @unless($selectedYear->is_current)
+                                <form method="POST" action="{{ url('academic-years') }}/{{ $selectedYear->year_id }}/current" style="display:inline;">
+                                    @csrf @method('PUT')
+                                    <button type="submit" class="ac-btn ac-btn-sm" style="background:#10b981; color:white; font-size:0.75rem;"><i class="bi bi-check-circle"></i> ตั้งเป็นปีปัจจุบัน</button>
+                                </form>
+                            @endunless
+                            <form method="POST" action="{{ url('academic-years') }}/{{ $selectedYear->year_id }}" style="display:inline;" onsubmit="return confirm('ยืนยันการลบปีการศึกษานี้?')">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="ac-btn ac-btn-sm" style="background:#ef4444; color:white; font-size:0.75rem;"><i class="bi bi-trash"></i> ลบปีนี้</button>
+                            </form>
+                        </div>
+                    @endif
                 </div>
 
                 <div style="flex: 1; min-width: 300px;">
@@ -171,11 +170,15 @@
                         <div style="padding: 8px 12px; background:#f8fafc; color:#64748b; font-size:0.85rem; border-radius:6px; border:1px solid #e2e8f0;">
                             <i class="bi bi-info-circle"></i> กรุณาเลือกปีการศึกษาทางซ้ายก่อน เพื่อจัดการภาคเรียน
                         </div>
+                    @elseif($selectedYear->semesters->isEmpty())
+                        <div style="padding: 8px 12px; background:#f8fafc; color:#64748b; font-size:0.85rem; border-radius:6px; border:1px solid #e2e8f0;">
+                            <i class="bi bi-info-circle"></i> ปีนี้ยังไม่มีภาคเรียน — กด "เพิ่มเทอมใหม่" ด้านบนเพื่อเพิ่ม
+                        </div>
                     @else
+                        {{-- เลือกภาคเรียนปัจจุบัน (ถ้ามี) เป็นค่าเริ่มต้นให้อัตโนมัติ ไม่ให้ค้างที่ช่องว่างทั้งที่มีเทอมปัจจุบันอยู่แล้ว --}}
                         <select id="semSelect" class="ac-select" onchange="handleSemChange(this)" style="background:#fff; font-size:0.9rem; width:100%;">
-                            <option value="">-- เลือกเทอม (เฉพาะปี {{ $selectedYear->year_name }}) --</option>
                             @foreach($selectedYear->semesters->sortBy('semester_name') as $sem)
-                                <option value="{{ $sem->semester_id }}" data-current="{{ $sem->is_current ? '1' : '0' }}">
+                                <option value="{{ $sem->semester_id }}" data-current="{{ $sem->is_current ? '1' : '0' }}" {{ $sem->is_current ? 'selected' : '' }}>
                                     เทอม {{ $sem->semester_name }} {{ $sem->is_current ? '⭐ (ปัจจุบัน)' : '' }}
                                 </option>
                             @endforeach
@@ -387,34 +390,6 @@ function openEditProgram(id, name, description) {
     document.getElementById('editProgramOverlay').classList.add('active');
 }
 
-function handleYearChange(inputObj) {
-    const actionDiv = document.getElementById('yearActionButtons');
-    const options = document.getElementById('yearList').options;
-    let selectedId = null;
-    let isCurrent = false;
-
-    for (let i = 0; i < options.length; i++) {
-        if (options[i].value === inputObj.value) {
-            selectedId = options[i].getAttribute('data-id');
-            isCurrent = options[i].getAttribute('data-current') === '1';
-            break;
-        }
-    }
-
-    if (!selectedId) { actionDiv.style.display = 'none'; return; }
-
-    // ถ้ารหัสปีที่เลือก ไม่ตรงกับที่กำลังแสดงอยู่ ให้โหลดเว็บใหม่ (เปลี่ยนตัวกรอง "แผน" ในตารางไปด้วย)
-    if ('{{ $currentYearId }}' !== selectedId) {
-        window.location.href = '?year_id=' + selectedId;
-        return;
-    }
-
-    document.getElementById('formSetYear').action = `{{ url('academic-years') }}/${selectedId}/current`;
-    document.getElementById('formDelYear').action = `{{ url('academic-years') }}/${selectedId}`;
-    actionDiv.style.display = 'flex';
-    document.getElementById('formSetYear').style.display = isCurrent ? 'none' : 'inline-block';
-}
-
 function handleSemChange(selectObj) {
     const actionDiv = document.getElementById('semActionButtons');
     if (!selectObj.value) { actionDiv.style.display = 'none'; return; }
@@ -431,9 +406,6 @@ function handleSemChange(selectObj) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    const yInput = document.getElementById('yearInput');
-    if (yInput && yInput.value) handleYearChange(yInput);
-
     const sSelect = document.getElementById('semSelect');
     if (sSelect && sSelect.value) handleSemChange(sSelect);
 });
