@@ -15,11 +15,15 @@ class ProgramController extends Controller
     {
         $academicYears = AcademicYear::with('semesters')->orderBy('year_name', 'desc')->get();
 
-        // ค่าเริ่มต้นคือ "ทั้งหมด" (ไม่กรอง) โดยตั้งใจ ไม่ใช่ปีปัจจุบัน — เพราะ "ปีการศึกษา" ของแผนเป็นข้อความ
-        // ที่พิมพ์เอง พอเลือกปีบนตัวกรองไม่ตรงกับที่พิมพ์ไว้เป๊ะๆ แผนจะหายไปจากลิสต์แบบไม่รู้สาเหตุ —
-        // ให้ผู้ใช้กดเลือกปีเองถ้าต้องการกรองจริงๆ เท่านั้น
-        $currentYearId = $request->year_id ?? 'all';
-        $selectedYear = $currentYearId !== 'all' ? $academicYears->where('year_id', $currentYearId)->first() : null;
+        // ไม่มีโหมด "ดูทุกปี" แล้ว ต้องมีปีที่เลือกอยู่เสมอ — ค่าเริ่มต้นคือปีการศึกษาปัจจุบัน
+        // (ถ้ายังไม่เคยตั้งปีปัจจุบันไว้เลย ใช้ปีล่าสุดในลิสต์แทน, ถ้ายังไม่มีปีในระบบเลยก็ปล่อยว่าง)
+        $currentYearId = $request->year_id;
+        if ($currentYearId === null) {
+            $currentYearId = $academicYears->where('is_current', true)->first()->year_id
+                ?? $academicYears->first()->year_id
+                ?? null;
+        }
+        $selectedYear = $currentYearId !== null ? $academicYears->where('year_id', $currentYearId)->first() : null;
 
         // จำนวน "แผน" ต่อหลักสูตร: ถ้าเลือกปีไว้ ให้นับเฉพาะแผนของปีนั้น (กรองจากคอลัมน์ year_applied
         // ให้ตรงกับชื่อปีการศึกษา เช่น 2568) ไม่งั้นนับรวมทุกปีเหมือนเดิม

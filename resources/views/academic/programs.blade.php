@@ -119,7 +119,7 @@
 <div class="pg-page">
 
     @php
-        $currentYearText = $currentYearId === 'all' ? '-- ดูทุกปี --' : ($selectedYear->year_name ?? '');
+        $currentYearText = $selectedYear->year_name ?? '';
     @endphp
 
     {{-- การ์ดตั้งค่าปีการศึกษา/ภาคเรียน — ตัวเลือกปีที่นี่ใช้กรองจำนวน "แผน" ในตารางด้านล่างด้วยในตัว --}}
@@ -138,9 +138,8 @@
                         </button>
                     </div>
 
-                    <input type="text" id="yearInput" list="yearList" class="ac-input" placeholder="-- พิมพ์ตัวเลขปีการศึกษาเพื่อค้นหา หรือเว้นว่างไว้เพื่อดูทุกปี --" value="{{ $currentYearText }}" oninput="handleYearChange(this)" onfocus="this.value=''" autocomplete="off" style="background:#fff; font-size:0.9rem; width:100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px;">
+                    <input type="text" id="yearInput" list="yearList" class="ac-input" placeholder="-- พิมพ์ตัวเลขปีการศึกษาเพื่อค้นหา --" value="{{ $currentYearText }}" oninput="handleYearChange(this)" onfocus="this.value=''" autocomplete="off" style="background:#fff; font-size:0.9rem; width:100%; border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px;">
                     <datalist id="yearList">
-                        <option data-id="all" data-current="0" value="-- ดูทุกปี --"></option>
                         @foreach($academicYears as $year)
                             <option data-id="{{ $year->year_id }}" data-current="{{ $year->is_current ? '1' : '0' }}" value="{{ $year->year_name }}">
                                 {{ $year->is_current ? '⭐ ปีปัจจุบัน' : '' }}
@@ -168,7 +167,7 @@
                         </button>
                     </div>
 
-                    @if($currentYearId === 'all' || !isset($selectedYear))
+                    @if(!$selectedYear)
                         <div style="padding: 8px 12px; background:#f8fafc; color:#64748b; font-size:0.85rem; border-radius:6px; border:1px solid #e2e8f0;">
                             <i class="bi bi-info-circle"></i> กรุณาเลือกปีการศึกษาทางซ้ายก่อน เพื่อจัดการภาคเรียน
                         </div>
@@ -219,7 +218,7 @@
                 <tr>
                     <th style="width:50px">ลำดับ</th>
                     <th>หลักสูตร</th>
-                    <th style="text-align:center">แผน{{ $currentYearId !== 'all' && $selectedYear ? ' (ปี ' . $selectedYear->year_name . ')' : '' }}</th>
+                    <th style="text-align:center">แผน{{ $selectedYear ? ' (ปี ' . $selectedYear->year_name . ')' : '' }}</th>
                     <th style="text-align:center">จัดการ</th>
                 </tr>
             </thead>
@@ -410,14 +409,10 @@ function handleYearChange(inputObj) {
         return;
     }
 
-    if (selectedId === 'all') {
-        actionDiv.style.display = 'none';
-    } else {
-        document.getElementById('formSetYear').action = `{{ url('academic-years') }}/${selectedId}/current`;
-        document.getElementById('formDelYear').action = `{{ url('academic-years') }}/${selectedId}`;
-        actionDiv.style.display = 'flex';
-        document.getElementById('formSetYear').style.display = isCurrent ? 'none' : 'inline-block';
-    }
+    document.getElementById('formSetYear').action = `{{ url('academic-years') }}/${selectedId}/current`;
+    document.getElementById('formDelYear').action = `{{ url('academic-years') }}/${selectedId}`;
+    actionDiv.style.display = 'flex';
+    document.getElementById('formSetYear').style.display = isCurrent ? 'none' : 'inline-block';
 }
 
 function handleSemChange(selectObj) {
