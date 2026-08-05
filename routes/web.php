@@ -409,6 +409,8 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(\App\Http\Controllers\Academic\AttendanceController::class)
         ->prefix('attendance')->name('attendance.')->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/export-template/{assign}', 'exportTemplate')->name('exportTemplate');
+            Route::post('/import-excel', 'importExcel')->name('importExcel');
             Route::get('/{assign}', 'mark')->name('mark');
             Route::post('/{assign}', 'store')->name('store');
         });
