@@ -112,17 +112,21 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>
-                        <strong>{{ $c->name }}</strong>
+                        <a href="{{ route('curriculums.sections', ['id' => $c->curriculum_id, 'return_to' => url()->full()]) }}" style="font-weight:700;color:#2e7d32;text-decoration:none">
+                            {{ $c->name }}
+                        </a>
                         <div style="font-size:0.78rem;color:#999;margin-top:2px">{{ $c->level->name ?? '-' }}</div>
                     </td>
                     <td style="text-align:center">{{ $c->year_applied ?: '-' }}</td>
                     <td>
                         @php $sections = $sectionsByCurriculum->get($c->curriculum_id); @endphp
-                        @if($sections && $sections->count())
-                            {{ $sections->map(fn($s) => $s->full_name)->implode(', ') }}
-                        @else
-                            <span style="color:#ccc">-</span>
-                        @endif
+                        <a href="{{ route('curriculums.sections', ['id' => $c->curriculum_id, 'return_to' => url()->full()]) }}" style="text-decoration:none">
+                            @if($sections && $sections->count())
+                                {{ $sections->map(fn($s) => $s->full_name)->implode(', ') }}
+                            @else
+                                <span style="color:#43a047"><i class="bi bi-plus-circle"></i> เพิ่มห้องเรียน</span>
+                            @endif
+                        </a>
                     </td>
                     <td style="text-align:center">
                         <div class="pp-action-wrap">
@@ -130,6 +134,9 @@
                                 จัดการ/แก้ไข <i class="bi bi-chevron-down"></i>
                             </button>
                             <div class="pp-dropdown">
+                                <a href="{{ route('curriculums.sections', ['id' => $c->curriculum_id, 'return_to' => url()->full()]) }}">
+                                    <i class="bi bi-door-open"></i> ห้องเรียน
+                                </a>
                                 <a href="{{ route('curriculums.edit', $c->curriculum_id) }}">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </a>

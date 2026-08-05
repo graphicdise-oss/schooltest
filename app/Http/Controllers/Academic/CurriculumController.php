@@ -10,6 +10,7 @@ use App\Models\Academic\Level;
 use App\Models\Academic\Program;
 use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassSection;
+use App\Models\Academic\Semester;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -151,6 +152,31 @@ class CurriculumController extends Controller
     {
         Curriculum::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
+    }
+
+    // ห้องเรียนของแผนนี้ (เช่น ม.4 -> ม.4/1, ม.4/2, ...) — คลิกจากหน้า "แผนของหลักสูตร" เข้ามาดู/เพิ่มห้อง
+    public function sections(Request $request, $id)
+    {
+        $curriculum = Curriculum::with(['level', 'program'])->findOrFail($id);
+        $semesters  = Semester::with('academicYear')->orderedByRecency()->get();
+        $teachers   = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+        $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
+
+        $sections = ClassSection::with(['level', 'homeroomTeacher', 'semester.academicYear', 'studentSections'])
+            ->where('curriculum_id', $id)
+            ->get()
+            ->sortBy([
+                fn ($s) => -$s->semester_id,
+                fn ($s) => $s->section_number,
+            ])
+            ->values();
+
+        $returnTo = $this->sanitizeReturnTo($request->query('return_to'))
+            ?? ($curriculum->program_id ? route('programs.plans', $curriculum->program_id) : route('programs.index'));
+
+        return view('academic.curriculum_sections', compact(
+            'curriculum', 'sections', 'semesters', 'teachers', 'semesterId', 'returnTo'
+        ));
     }
 
     // อ่าน personnel_ids[] จากฟอร์ม (สูงสุด 3 ช่องจากหน้าเว็บ) กรองค่าว่าง/ซ้ำออก
