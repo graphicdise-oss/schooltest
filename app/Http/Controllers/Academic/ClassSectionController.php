@@ -13,6 +13,23 @@ use Illuminate\Http\Request;
 
 class ClassSectionController extends Controller
 {
+    // เหมือนกับ CurriculumController::sanitizeReturnTo() — หน้านี้ถูกเรียกทั้งจาก /class-sections
+    // (ไม่ส่ง return_to มา ใช้ back() แบบเดิม) และจากหน้า "ห้องเรียนของแผน" ที่ซ้อนอยู่ใต้ /curriculums/{id}/sections
+    // ซึ่ง back()/referer ไม่น่าเชื่อถือพอ (พาไปหน้าอื่นแทนที่จะกลับมาหน้าห้องเรียนของแผนเดิม) จึงรับ return_to ตรงๆ
+    private function sanitizeReturnTo(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+        return str_starts_with($url, url('/')) ? $url : null;
+    }
+
+    private function backTo(Request $request)
+    {
+        $returnTo = $this->sanitizeReturnTo($request->input('return_to'));
+        return $returnTo ? redirect($returnTo) : redirect()->back();
+    }
+
     public function index(Request $request)
     {
         $semesters = Semester::with('academicYear')->orderedByRecency()->get();
@@ -44,7 +61,7 @@ class ClassSectionController extends Controller
         $label = $this->stripLevelPrefix($request->room_label, $levelName);
         [$sectionNumber, $studyPlan] = $this->parseRoomLabel($label);
         if ($sectionNumber === null) {
-            return redirect()->back()->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
+            return $this->backTo($request)->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
         }
 
         ClassSection::create($request->only(['semester_id', 'level_id', 'homeroom_teacher_id', 'max_students']) + [
@@ -52,7 +69,7 @@ class ClassSectionController extends Controller
             'study_plan' => $studyPlan,
             'curriculum_id' => $request->curriculum_id ?: null,
         ]);
-        return redirect()->back()->with('success', 'เพิ่มห้องเรียนสำเร็จ');
+        return $this->backTo($request)->with('success', 'เพิ่มห้องเรียนสำเร็จ');
     }
 
     public function update(Request $request, $id)
@@ -62,7 +79,7 @@ class ClassSectionController extends Controller
         $label = $this->stripLevelPrefix($request->room_label, $levelName);
         [$sectionNumber, $studyPlan] = $this->parseRoomLabel($label);
         if ($sectionNumber === null) {
-            return redirect()->back()->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
+            return $this->backTo($request)->withErrors(['room_label' => 'กรุณากรอกห้องที่เป็นตัวเลข เช่น 1 หรือ 2 วิทย์-คณิต']);
         }
 
         $section->update($request->only(['homeroom_teacher_id', 'max_students']) + [
@@ -70,7 +87,7 @@ class ClassSectionController extends Controller
             'study_plan' => $studyPlan,
             'curriculum_id' => $request->curriculum_id ?: null,
         ]);
-        return redirect()->back()->with('success', 'แก้ไขสำเร็จ');
+        return $this->backTo($request)->with('success', 'แก้ไขสำเร็จ');
     }
 
     // ตัดคำนำหน้าชื่อระดับชั้นออก เช่น "ม.4/2 วิทย์-คณิต" -> "2 วิทย์-คณิต" (ถ้าไม่มีคำนำหน้าก็ปล่อยผ่าน)
@@ -94,10 +111,10 @@ class ClassSectionController extends Controller
         return [(int) $m[1], trim($m[2])];
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         ClassSection::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'ลบห้องเรียนสำเร็จ');
+        return $this->backTo($request)->with('success', 'ลบห้องเรียนสำเร็จ');
     }
 
     // หน้าจัดนักเรียนเข้าห้อง

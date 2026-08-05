@@ -148,10 +148,11 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'แก้ไขหลักสูตรสำเร็จ');
     }
 
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
         Curriculum::findOrFail($id)->delete();
-        return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
+        $returnTo = $this->sanitizeReturnTo($request->input('return_to'));
+        return ($returnTo ? redirect($returnTo) : redirect()->back())->with('success', 'ลบหลักสูตรสำเร็จ');
     }
 
     // ห้องเรียนของแผนนี้ (เช่น ม.4 -> ม.4/1, ม.4/2, ...) — คลิกจากหน้า "แผนของหลักสูตร" เข้ามาดู/เพิ่มห้อง

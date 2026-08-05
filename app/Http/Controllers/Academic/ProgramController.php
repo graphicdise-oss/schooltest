@@ -78,6 +78,7 @@ class ProgramController extends Controller
         $curriculumIds = $curriculums->pluck('curriculum_id');
         $sectionsByCurriculum = ClassSection::with('level')
             ->whereIn('curriculum_id', $curriculumIds)
+            ->orderBy('section_number')
             ->get()
             ->groupBy('curriculum_id');
 

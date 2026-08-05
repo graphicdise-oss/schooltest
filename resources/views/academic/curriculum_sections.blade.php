@@ -105,6 +105,7 @@
                         </button>
                         <form action="{{ route('class-sections.destroy', $sec->section_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบห้องเรียน {{ addslashes($sec->full_name) }}?')">
                             @csrf @method('DELETE')
+                            <input type="hidden" name="return_to" value="{{ url()->full() }}">
                             <button type="submit" class="ac-action-btn ac-action-delete"><i class="bi bi-trash"></i></button>
                         </form>
                     </td>
@@ -131,6 +132,7 @@
             @csrf
             <input type="hidden" name="level_id" value="{{ $curriculum->level_id }}">
             <input type="hidden" name="curriculum_id" value="{{ $curriculum->curriculum_id }}">
+            <input type="hidden" name="return_to" value="{{ url()->full() }}">
             <div class="ac-modal-body">
                 <label>ภาคเรียน *</label>
                 <select name="semester_id" required>
@@ -171,6 +173,7 @@
         <form method="POST" id="editSectionForm">
             @csrf @method('PUT')
             <input type="hidden" name="curriculum_id" value="{{ $curriculum->curriculum_id }}">
+            <input type="hidden" name="return_to" value="{{ url()->full() }}">
             <div class="ac-modal-body">
                 <label>ห้องที่ *</label>
                 <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น {{ $curriculum->level->name ?? '' }}/1">

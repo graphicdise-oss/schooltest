@@ -137,12 +137,13 @@
                                 <a href="{{ route('curriculums.sections', ['id' => $c->curriculum_id, 'return_to' => url()->full()]) }}">
                                     <i class="bi bi-door-open"></i> ห้องเรียน
                                 </a>
-                                <a href="{{ route('curriculums.edit', $c->curriculum_id) }}">
+                                <a href="{{ route('curriculums.edit', ['id' => $c->curriculum_id, 'return_to' => url()->full()]) }}">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </a>
                                 <form action="{{ route('curriculums.destroy', $c->curriculum_id) }}" method="POST"
                                       onsubmit="return confirm('ยืนยันลบแผน {{ addslashes($c->name) }}?')">
                                     @csrf @method('DELETE')
+                                    <input type="hidden" name="return_to" value="{{ url()->full() }}">
                                     <button type="submit" class="dd-delete">
                                         <i class="bi bi-trash"></i> ลบ
                                     </button>
