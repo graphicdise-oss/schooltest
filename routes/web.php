@@ -190,7 +190,6 @@ Route::middleware(['auth'])->group(function () {
     // === 2. จัดการหลักสูตร ===
     // ไม่มี curriculums.index แล้ว (ลบหน้าลิสต์รวมทิ้งไปเพราะซ้ำกับ /programs) — เข้าถึงแผนทีละหลักสูตรผ่าน /programs แทน
     Route::controller(CurriculumController::class)->prefix('curriculums')->name('curriculums.')->group(function () {
-        Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');

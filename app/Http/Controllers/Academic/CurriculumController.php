@@ -8,7 +8,6 @@ use App\Models\Academic\CurriculumSubject;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Level;
 use App\Models\Academic\Program;
-use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassSection;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
@@ -70,39 +69,6 @@ class CurriculumController extends Controller
                 ->with('success', "คัดลอกแผนการเรียนไปปีการศึกษา {$targetYear} สำเร็จ");
         }
         return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
-    }
-
-    public function create(Request $request)
-    {
-        $levels = Level::orderBy('sort_order')->get();
-        $programs = Program::orderBy('name')->get();
-
-        $program = null;
-        $existingPlans = collect();
-        // จำหน้าที่ผู้ใช้กดมาจริงๆ ไว้ (เช่น /programs หรือ /programs/{id}/plans) ให้ปุ่ม "ย้อนกลับ" พาไปที่นั่น
-        // แทนที่จะเดาว่าน่าจะมาจากไหน — ส่งต่อผ่านฟอร์มเป็นทอดๆ ไปจนถึงหน้าแก้ไขด้วย
-        $returnTo = $this->sanitizeReturnTo($request->query('return_to'));
-        // ถ้ามากับปุ่ม "สร้างแผน" จากหน้าแผนของชั้นเรียนหนึ่ง (/programs/{id}/plans/{levelId}) จะส่ง level_id
-        // แนบมาด้วย ใช้เลือกระดับชั้นในฟอร์มไว้ล่วงหน้าให้เลย ไม่ต้องเลือกซ้ำ
-        $levelId = $request->query('level_id');
-        // ถ้าไม่ได้ส่งปีมากับลิงก์ (เช่น มาจากหน้าที่ยังไม่ได้เลือกปีไว้) ให้ใช้ปีการศึกษาปัจจุบันเป็นค่าเริ่มต้นแทน
-        // กันไม่ให้ต้องพิมพ์ปีเองทุกครั้ง — ถ้ายังไม่มีปีปัจจุบันตั้งไว้เลย ก็ปล่อยว่างให้พิมพ์เองเหมือนเดิม
-        $yearApplied = $request->year_applied ?: AcademicYear::where('is_current', true)->value('year_name');
-        if ($request->filled('program_id')) {
-            $program = Program::find($request->program_id);
-            if ($program) {
-                // โชว์รายการแผนที่มีอยู่แล้วในหลักสูตรนี้ตรงนี้เลย ไม่ต้องมีหน้าลิสต์แยกต่างหาก
-                // กรองเฉพาะปีที่กำลังจะสร้างแผนนี้ (กันงงว่าทำไมมีปีอื่นโผล่มาปนด้วย) — ถ้าอยากดูแผนทุกปี
-                // ของหลักสูตรนี้ ไปดูได้ที่หน้า "แผน" ของหลักสูตร (ไม่กรองปี อยู่แล้วโดยตั้งใจ)
-                $existingPlans = $program->curriculums()->with('level')
-                    ->when($yearApplied, fn ($q) => $q->where('year_applied', $yearApplied))
-                    ->orderByDesc('year_applied')->orderBy('level_id')->get();
-            }
-        }
-
-        return view('academic.curriculum_form', compact(
-            'levels', 'programs', 'program', 'yearApplied', 'existingPlans', 'returnTo', 'levelId'
-        ));
     }
 
     public function store(Request $request)

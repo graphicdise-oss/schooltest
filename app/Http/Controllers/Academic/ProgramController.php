@@ -87,7 +87,11 @@ class ProgramController extends Controller
             ->sortBy(fn ($g) => $g->level->sort_order ?? 999)
             ->values();
 
-        return view('academic.program_levels', compact('program', 'levelGroups'));
+        // สำหรับป๊อปอัพ "เพิ่มแผน" ในหน้านี้ — ยังไม่รู้ว่าจะเพิ่มแผนให้ชั้นไหน เลยต้องมี dropdown เลือกชั้นในป๊อปอัพเอง
+        $levels = Level::orderBy('sort_order')->get();
+        $currentYearName = AcademicYear::where('is_current', true)->value('year_name');
+
+        return view('academic.program_levels', compact('program', 'levelGroups', 'levels', 'currentYearName'));
     }
 
     // แผนของ "ชั้นเรียนเดียว" ในหลักสูตรนี้ (เช่น ม.4 -> ม.4/1, ม.4/2, ... ทุกปีการศึกษา) — กดเข้ามาจากหน้ารายการชั้นเรียน
@@ -100,6 +104,8 @@ class ProgramController extends Controller
             ->where('level_id', $levelId)
             ->orderByDesc('year_applied')->orderBy('name')->get();
 
-        return view('academic.program_plans', compact('program', 'level', 'curriculums'));
+        $currentYearName = AcademicYear::where('is_current', true)->value('year_name');
+
+        return view('academic.program_plans', compact('program', 'level', 'curriculums', 'currentYearName'));
     }
 }

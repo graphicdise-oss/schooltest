@@ -64,6 +64,44 @@
     display: inline-flex; align-items: center; gap: 5px;
 }
 .btn-viewlevel:hover { background: #0097a7; color: #fff; }
+
+/* ป๊อปอัพเพิ่มแผน */
+.pp-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.45); z-index: 500;
+    align-items: center; justify-content: center;
+}
+.pp-overlay.active { display: flex; }
+.pp-modal {
+    background: #fff; border-radius: 8px; width: 440px; max-width: 95vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+}
+.pp-modal-header {
+    padding: 18px 22px 14px; font-size: 1rem; font-weight: 700;
+    border-bottom: 1px solid #eee; color: #333;
+    display: flex; align-items: center; gap: 8px;
+}
+.pp-modal-body { padding: 18px 22px; display: flex; flex-direction: column; gap: 14px; }
+.pp-modal-body label { font-size: 0.82rem; font-weight: 600; color: #555; margin-bottom: 2px; display: block; }
+.pp-modal-body select, .pp-modal-body input {
+    width: 100%; border: 1.5px solid #d0d7e5; border-radius: 6px;
+    padding: 8px 10px; font-size: 0.88rem; font-family: inherit;
+    outline: none; box-sizing: border-box;
+}
+.pp-modal-footer {
+    padding: 14px 22px 18px; display: flex; justify-content: flex-end; gap: 10px;
+    border-top: 1px solid #eee;
+}
+.btn-modal-cancel {
+    background: #eee; color: #555; border: none; border-radius: 6px;
+    padding: 8px 20px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+}
+.btn-modal-ok {
+    background: #43a047; color: #fff; border: none; border-radius: 6px;
+    padding: 8px 22px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-modal-ok:hover { background: #2e7d32; }
 </style>
 @endpush
 
@@ -77,9 +115,9 @@
                 จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
             </span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'return_to' => url()->full()]) }}" class="btn-add">
+                <button type="button" class="btn-add" onclick="document.getElementById('addPlanOverlay').classList.add('active')">
                     <i class="bi bi-plus-lg"></i> สร้างแผน
-                </a>
+                </button>
                 <a href="{{ route('programs.index') }}" class="pp-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
@@ -122,4 +160,48 @@
     </div>
 
 </div>
+
+{{-- ป๊อปอัพ เพิ่มแผน --}}
+<div class="pp-overlay" id="addPlanOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="pp-modal">
+        <div class="pp-modal-header"><i class="bi bi-plus-circle"></i> สร้างแผน — หลักสูตร {{ $program->name }}</div>
+        <form method="POST" action="{{ route('curriculums.store') }}">
+            @csrf
+            <input type="hidden" name="program_id" value="{{ $program->program_id }}">
+            <input type="hidden" name="return_to" value="{{ url()->full() }}">
+            <div class="pp-modal-body">
+                <div>
+                    <label>ระดับชั้น *</label>
+                    <select name="level_id" required>
+                        <option value="">-- เลือกระดับชั้น --</option>
+                        @foreach($levels as $l)
+                        <option value="{{ $l->level_id }}">{{ $l->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label>ชื่อแผน *</label>
+                    <input type="text" name="name" required placeholder="เช่น วิทย์-คณิต ม.4/1">
+                </div>
+                <div>
+                    <label>ปีการศึกษา</label>
+                    <input type="text" name="year_applied" value="{{ $currentYearName }}" placeholder="เช่น 2569">
+                </div>
+                <div>
+                    <label>คำอธิบาย</label>
+                    <input type="text" name="description" placeholder="(ไม่บังคับ)">
+                </div>
+            </div>
+            <div class="pp-modal-footer">
+                <button type="button" class="btn-modal-cancel" onclick="document.getElementById('addPlanOverlay').classList.remove('active')">ยกเลิก</button>
+                <button type="submit" class="btn-modal-ok"><i class="bi bi-check-lg"></i> สร้างแผน</button>
+            </div>
+        </form>
+    </div>
+</div>
+<script>
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.pp-overlay.active').forEach(el => el.classList.remove('active'));
+});
+</script>
 @endsection

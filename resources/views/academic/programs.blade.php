@@ -43,14 +43,6 @@
 }
 .btn-add:hover { background: #2e7d32; color: #fff; }
 
-.btn-createplan {
-    background: #43a047; color: #fff; border: none; border-radius: 6px;
-    padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
-    font-family: inherit; text-decoration: none;
-    display: inline-flex; align-items: center; gap: 4px;
-}
-.btn-createplan:hover { background: #2e7d32; color: #fff; }
-
 .btn-editprogram {
     background: #039be5; color: #fff; border: none; border-radius: 6px;
     padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
@@ -234,16 +226,6 @@
                 </tr>
             </thead>
             <tbody>
-                @php
-                    // ถ้าเลือกปีไว้ในการ์ดด้านบนแล้ว ส่งปีนั้นแนบไปให้แบบฟอร์มสร้างแผนด้วยเลย ผู้ใช้จะได้ไม่ต้อง
-                    // พิมพ์ปีซ้ำอีกรอบ (ปีเดียวกับที่กรองอยู่ตรงนี้) — และส่ง return_to ไปด้วยเสมอ กันปุ่ม
-                    // "ย้อนกลับ" ในหน้าสร้างแผนพาไปผิดที่ (referer/session เพียวๆ ไม่น่าเชื่อถือพอ)
-                    $createPlanParams = fn ($programId) => array_filter([
-                        'program_id' => $programId,
-                        'year_applied' => $selectedYear->year_name ?? null,
-                        'return_to' => url()->full(),
-                    ]);
-                @endphp
                 @forelse($programs as $i => $p)
                 <tr>
                     <td>{{ $i + 1 }}</td>
@@ -254,7 +236,7 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <a href="{{ route('curriculums.create', $createPlanParams($p->program_id)) }}" style="text-decoration:none">
+                        <a href="{{ route('programs.plans', $p->program_id) }}" style="text-decoration:none">
                             <span class="badge-plan">{{ $p->curriculums_count }}</span>
                         </a>
                     </td>
@@ -262,9 +244,6 @@
                         <div class="btn-row" style="justify-content:center">
                             <a href="{{ route('programs.plans', $p->program_id) }}" class="btn-viewplans">
                                 <i class="bi bi-journal-check"></i> ดูแผน
-                            </a>
-                            <a href="{{ route('curriculums.create', $createPlanParams($p->program_id)) }}" class="btn-createplan">
-                                <i class="bi bi-plus-lg"></i> สร้างแผน
                             </a>
                             <button type="button" class="btn-editprogram"
                                 onclick="openEditProgram({{ $p->program_id }}, {{ Js::from($p->name) }}, {{ Js::from($p->description ?? '') }})">

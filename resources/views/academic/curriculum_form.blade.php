@@ -183,11 +183,9 @@
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการหลักสูตร/แผน</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                @if(isset($curriculum))
                 <button type="button" class="btn-copy-plan" onclick="document.getElementById('copyPlanOverlay').classList.add('active')">
                     <i class="bi bi-files"></i> คัดลอกแผนการเรียน
                 </button>
-                @endif
                 @if(isset($program) && $program)
                 <a href="{{ route('programs.plans', $program->program_id) }}" class="btn-copy-plan" style="background:#5c6bc0">
                     <i class="bi bi-journal-check"></i> ดูแผน
@@ -205,23 +203,21 @@
             </div>
         </div>
 
-        <form method="POST" action="{{ isset($curriculum) ? route('curriculums.update', $curriculum->curriculum_id) : route('curriculums.store') }}">
-            @csrf
-            @if(isset($curriculum)) @method('PUT') @endif
+        <form method="POST" action="{{ route('curriculums.update', $curriculum->curriculum_id) }}">
+            @csrf @method('PUT')
             <input type="hidden" name="return_to" value="{{ $returnTo ?? '' }}">
 
             <div class="cf-grid">
                 <div class="cf-field">
                     <label>ชื่อแผน *</label>
-                    <input type="text" name="name" id="curriculumNameInput" value="{{ $curriculum->name ?? '' }}" required placeholder="เช่น EP ป.1">
+                    <input type="text" name="name" id="curriculumNameInput" value="{{ $curriculum->name }}" required placeholder="เช่น EP ป.1">
                 </div>
                 <div class="cf-field">
                     <label>หลักสูตร</label>
                     <select name="program_id" id="programSelect" onchange="onCurriculumProgramChange(this)">
                         <option value="">-- ไม่ระบุ --</option>
                         @foreach($programs as $p)
-                            <option value="{{ $p->program_id }}"
-                                {{ (string)($curriculum->program_id ?? optional($program ?? null)->program_id ?? '') === (string)$p->program_id ? 'selected' : '' }}>
+                            <option value="{{ $p->program_id }}" {{ (string)($curriculum->program_id ?? '') === (string)$p->program_id ? 'selected' : '' }}>
                                 {{ $p->name }}
                             </option>
                         @endforeach
@@ -232,26 +228,15 @@
                     <select name="level_id" id="levelSelect" onchange="onCurriculumLevelChange(this)">
                         <option value="">-- ทุกระดับ --</option>
                         @foreach($levels as $l)
-                            <option value="{{ $l->level_id }}" data-name="{{ $l->name }}"
-                                {{ (string)($curriculum->level_id ?? $levelId ?? '') === (string)$l->level_id ? 'selected' : '' }}>
+                            <option value="{{ $l->level_id }}" data-name="{{ $l->name }}" {{ (string)($curriculum->level_id ?? '') === (string)$l->level_id ? 'selected' : '' }}>
                                 {{ $l->name }}
                             </option>
                         @endforeach
                     </select>
                 </div>
                 <div class="cf-field">
-                    <label>
-                        ปีการศึกษา
-                        @if(!isset($curriculum) && !empty($yearApplied))
-                            <button type="button" onclick="document.getElementById('yearAppliedInput').readOnly=false; this.remove();"
-                                style="border:none;background:none;color:#00bcd4;font-size:0.75rem;font-weight:600;cursor:pointer;padding:0;margin-left:6px;">
-                                (มาจากปีที่เลือกไว้แล้ว — แก้ไขได้)
-                            </button>
-                        @endif
-                    </label>
-                    <input type="text" name="year_applied" id="yearAppliedInput"
-                        value="{{ $curriculum->year_applied ?? ($yearApplied ?? '') }}" placeholder="เช่น 2568"
-                        {{ (!isset($curriculum) && !empty($yearApplied)) ? 'readonly style="background:#f5f5f5;color:#666;"' : '' }}>
+                    <label>ปีการศึกษา</label>
+                    <input type="text" name="year_applied" id="yearAppliedInput" value="{{ $curriculum->year_applied ?? '' }}" placeholder="เช่น 2568">
                 </div>
                 <div class="cf-field">
                     <label>คำอธิบาย</label>
@@ -265,62 +250,7 @@
         </form>
     </div>
 
-    {{-- ===== แผนที่มีอยู่แล้วในหลักสูตรนี้ (โชว์รวมในหน้าเดียว ไม่ต้องมีหน้าลิสต์แยก) ===== --}}
-    @if(!isset($curriculum) && isset($program) && $program && $existingPlans->count())
-    <div class="cf-card">
-        <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
-        <div class="cf-card-header">
-            <span class="cf-card-title">
-                แผนที่มีอยู่แล้วในหลักสูตร {{ $program->name }}{{ !empty($yearApplied) ? ' (ปีการศึกษา ' . $yearApplied . ')' : '' }}
-            </span>
-            @if(!empty($yearApplied))
-                <a href="{{ route('programs.plans', $program->program_id) }}" class="btn-copy-plan" style="background:#00bcd4">
-                    <i class="bi bi-journal-check"></i> ดูแผนทุกปีของหลักสูตรนี้
-                </a>
-            @endif
-        </div>
-
-        <table class="cf-table">
-            <thead>
-                <tr>
-                    <th style="width:50px">ลำดับ</th>
-                    <th>แผน</th>
-                    <th style="text-align:center">ปีการศึกษา</th>
-                    <th style="text-align:center">จัดการ</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($existingPlans as $i => $ep)
-                <tr>
-                    <td>{{ $i + 1 }}</td>
-                    <td>
-                        <strong>{{ $ep->name }}</strong>
-                        <div style="font-size:0.78rem;color:#999;margin-top:2px">{{ $ep->level->name ?? '-' }}</div>
-                    </td>
-                    <td style="text-align:center">{{ $ep->year_applied ?: '-' }}</td>
-                    <td style="text-align:center">
-                        <div style="display:inline-flex; gap:6px;">
-                            <a href="{{ route('curriculums.edit', ['id' => $ep->curriculum_id, 'return_to' => url()->full()]) }}" class="btn-action" style="text-decoration:none">
-                                <i class="bi bi-pencil"></i> แก้ไข
-                            </a>
-                            <form action="{{ route('curriculums.destroy', $ep->curriculum_id) }}" method="POST"
-                                  onsubmit="return confirm('ยืนยันลบแผน {{ addslashes($ep->name) }}?')">
-                                @csrf @method('DELETE')
-                                <input type="hidden" name="return_to" value="{{ url()->full() }}">
-                                <button type="submit" style="background:#e53935; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:5px;">
-                                    <i class="bi bi-trash"></i> ลบ
-                                </button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    @endif
-
-    {{-- ===== Card 2: วิชาเรียน (เฉพาะตอนแก้ไข) ===== --}}
+    {{-- ===== Card 2: วิชาเรียน ===== --}}
     @if(isset($curriculum))
     <div class="cf-card">
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>

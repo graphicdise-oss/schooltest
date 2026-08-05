@@ -109,9 +109,6 @@
                 หลักสูตร ปีการศึกษา <strong>{{ $year }}</strong>
             </span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a href="{{ route('curriculums.create') }}" class="btn-add">
-                    <i class="bi bi-plus-lg"></i> เพิ่มหลักสูตร
-                </a>
                 <a href="{{ route('programs.index') }}" class="cby-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
