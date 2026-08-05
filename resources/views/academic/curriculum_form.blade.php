@@ -259,7 +259,14 @@
     <div class="cf-card">
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
         <div class="cf-card-header">
-            <span class="cf-card-title">แผนที่มีอยู่แล้วในหลักสูตร {{ $program->name }}</span>
+            <span class="cf-card-title">
+                แผนที่มีอยู่แล้วในหลักสูตร {{ $program->name }}{{ !empty($yearApplied) ? ' (ปีการศึกษา ' . $yearApplied . ')' : '' }}
+            </span>
+            @if(!empty($yearApplied))
+                <a href="{{ route('programs.plans', $program->program_id) }}" style="font-size:0.78rem;color:#00bcd4;text-decoration:none;font-weight:600;">
+                    ดูแผนทุกปีของหลักสูตรนี้ &raquo;
+                </a>
+            @endif
         </div>
 
         <table class="cf-table">

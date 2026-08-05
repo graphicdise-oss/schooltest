@@ -66,7 +66,10 @@ class CurriculumController extends Controller
                     ->pluck('level_id');
 
                 // โชว์รายการแผนที่มีอยู่แล้วในหลักสูตรนี้ตรงนี้เลย ไม่ต้องมีหน้าลิสต์แยกต่างหาก
+                // กรองเฉพาะปีที่กำลังจะสร้างแผนนี้ (กันงงว่าทำไมมีปีอื่นโผล่มาปนด้วย) — ถ้าอยากดูแผนทุกปี
+                // ของหลักสูตรนี้ ไปดูได้ที่หน้า "แผน" ของหลักสูตร (ไม่กรองปี อยู่แล้วโดยตั้งใจ)
                 $existingPlans = $program->curriculums()->with('level')
+                    ->when($yearApplied, fn ($q) => $q->where('year_applied', $yearApplied))
                     ->orderByDesc('year_applied')->orderBy('level_id')->get();
                 $sectionsByCurriculum = ClassSection::with('level')
                     ->whereIn('curriculum_id', $existingPlans->pluck('curriculum_id'))
