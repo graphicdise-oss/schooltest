@@ -8,6 +8,7 @@ use App\Models\Academic\CurriculumSubject;
 use App\Models\Academic\Subject;
 use App\Models\Academic\Level;
 use App\Models\Academic\Program;
+use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassSection;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
@@ -52,7 +53,9 @@ class CurriculumController extends Controller
         $usedLevelIds = collect();
         $existingPlans = collect();
         $sectionsByCurriculum = collect();
-        $yearApplied = $request->year_applied;
+        // ถ้าไม่ได้ส่งปีมากับลิงก์ (เช่น มาจากหน้าที่ยังไม่ได้เลือกปีไว้) ให้ใช้ปีการศึกษาปัจจุบันเป็นค่าเริ่มต้นแทน
+        // กันไม่ให้ต้องพิมพ์ปีเองทุกครั้ง — ถ้ายังไม่มีปีปัจจุบันตั้งไว้เลย ก็ปล่อยว่างให้พิมพ์เองเหมือนเดิม
+        $yearApplied = $request->year_applied ?: AcademicYear::where('is_current', true)->value('year_name');
         if ($request->filled('program_id')) {
             $program = Program::find($request->program_id);
             if ($program) {
