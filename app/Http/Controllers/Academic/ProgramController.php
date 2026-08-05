@@ -5,7 +5,7 @@ namespace App\Http\Controllers\Academic;
 use App\Http\Controllers\Controller;
 use App\Models\Academic\Program;
 use App\Models\Academic\Curriculum;
-use App\Models\Academic\ClassSection;
+use App\Models\Academic\Level;
 use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
 
@@ -66,22 +66,40 @@ class ProgramController extends Controller
         return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
     }
 
+    // ขั้นแรกของหน้า "แผน" ของหลักสูตร — โชว์แค่ "ชั้นเรียน" ที่มีแผนอยู่แล้ว (ม.4, ม.5, ม.6, ...)
+    // ไม่โชว์แผนแต่ละห้อง (เช่น ม.4/1, ม.4/2) ปนกันตรงนี้ — ต้องกดเข้าไปดูทีละชั้นก่อน
     public function plans($id)
     {
         $program = Program::findOrFail($id);
 
-        // แสดงแผนของหลักสูตรนี้ "ทุกปี" รวมกัน (ไม่กรองปี กันแผนหายจากลิสต์แบบงงๆ)
-        // เรียงปีล่าสุดก่อน แล้วค่อยตามระดับชั้น
+        $curriculums = $program->curriculums()->with('level')->get();
+
+        $levelGroups = $curriculums
+            ->groupBy('level_id')
+            ->map(function ($group) {
+                return (object) [
+                    'level_id' => $group->first()->level_id,
+                    'level'    => $group->first()->level,
+                    'count'    => $group->count(),
+                    'years'    => $group->pluck('year_applied')->filter()->unique()->sortDesc()->values(),
+                ];
+            })
+            ->sortBy(fn ($g) => $g->level->sort_order ?? 999)
+            ->values();
+
+        return view('academic.program_levels', compact('program', 'levelGroups'));
+    }
+
+    // แผนของ "ชั้นเรียนเดียว" ในหลักสูตรนี้ (เช่น ม.4 -> ม.4/1, ม.4/2, ... ทุกปีการศึกษา) — กดเข้ามาจากหน้ารายการชั้นเรียน
+    public function levelPlans($id, $levelId)
+    {
+        $program = Program::findOrFail($id);
+        $level   = Level::findOrFail($levelId);
+
         $curriculums = $program->curriculums()->with('level')
-            ->orderByDesc('year_applied')->orderBy('level_id')->get();
+            ->where('level_id', $levelId)
+            ->orderByDesc('year_applied')->orderBy('name')->get();
 
-        $curriculumIds = $curriculums->pluck('curriculum_id');
-        $sectionsByCurriculum = ClassSection::with('level')
-            ->whereIn('curriculum_id', $curriculumIds)
-            ->orderBy('section_number')
-            ->get()
-            ->groupBy('curriculum_id');
-
-        return view('academic.program_plans', compact('program', 'curriculums', 'sectionsByCurriculum'));
+        return view('academic.program_plans', compact('program', 'level', 'curriculums'));
     }
 }

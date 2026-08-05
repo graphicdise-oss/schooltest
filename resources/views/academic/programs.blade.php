@@ -59,6 +59,14 @@
 }
 .btn-editprogram:hover { background: #0277bd; }
 
+.btn-viewplans {
+    background: #5c6bc0; color: #fff; border: none; border-radius: 6px;
+    padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+}
+.btn-viewplans:hover { background: #3949ab; color: #fff; }
+
 .btn-delete {
     background: #e53935; color: #fff; border: none; border-radius: 6px;
     padding: 6px 14px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
@@ -252,6 +260,9 @@
                     </td>
                     <td style="text-align:center">
                         <div class="btn-row" style="justify-content:center">
+                            <a href="{{ route('programs.plans', $p->program_id) }}" class="btn-viewplans">
+                                <i class="bi bi-journal-check"></i> ดูแผน
+                            </a>
                             <a href="{{ route('curriculums.create', $createPlanParams($p->program_id)) }}" class="btn-createplan">
                                 <i class="bi bi-plus-lg"></i> สร้างแผน
                             </a>

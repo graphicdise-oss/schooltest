@@ -211,6 +211,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::get('/{id}/plans', 'plans')->name('plans');
+        Route::get('/{id}/plans/{levelId}', 'levelPlans')->name('levelPlans');
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===

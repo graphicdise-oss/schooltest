@@ -22,6 +22,7 @@
     flex-wrap: wrap; gap: 10px;
 }
 .pp-card-title { font-size: 1.05rem; color: #555; }
+.pp-card-title small { display:block; font-size:0.78rem; color:#999; font-weight:400; margin-top:2px; }
 
 .pp-back {
     background: #5c6bc0; color: #fff; border: none; border-radius: 6px;
@@ -85,13 +86,14 @@
         <div class="pp-icon"><i class="bi bi-journal-check"></i></div>
         <div class="pp-card-header">
             <span class="pp-card-title">
-                จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
+                แผนของ <strong>{{ $level->name }}</strong>
+                <small>หลักสูตร {{ $program->name }}</small>
             </span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
-                <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'return_to' => url()->full()]) }}" class="btn-add">
+                <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'level_id' => $level->level_id, 'return_to' => url()->full()]) }}" class="btn-add">
                     <i class="bi bi-plus-lg"></i> สร้างแผน
                 </a>
-                <a href="{{ route('programs.index') }}" class="pp-back">
+                <a href="{{ route('programs.plans', $program->program_id) }}" class="pp-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
             </div>
@@ -103,7 +105,6 @@
                     <th style="width:50px">ลำดับ</th>
                     <th>แผน</th>
                     <th style="text-align:center">ปีการศึกษา</th>
-                    <th>ชั้นเรียน</th>
                     <th style="text-align:center">จัดการ</th>
                 </tr>
             </thead>
@@ -111,19 +112,8 @@
                 @forelse($curriculums as $i => $c)
                 <tr>
                     <td>{{ $i + 1 }}</td>
-                    <td>
-                        <strong>{{ $c->name }}</strong>
-                        <div style="font-size:0.78rem;color:#999;margin-top:2px">{{ $c->level->name ?? '-' }}</div>
-                    </td>
+                    <td><strong>{{ $c->name }}</strong></td>
                     <td style="text-align:center">{{ $c->year_applied ?: '-' }}</td>
-                    <td>
-                        @php $sections = $sectionsByCurriculum->get($c->curriculum_id); @endphp
-                        @if($sections && $sections->count())
-                            {{ $sections->map(fn($s) => $s->full_name)->implode(', ') }}
-                        @else
-                            <span style="color:#ccc">-</span>
-                        @endif
-                    </td>
                     <td style="text-align:center">
                         <div class="pp-action-wrap">
                             <button class="btn-action" onclick="toggleDd(this)">
@@ -147,9 +137,9 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="5" class="pp-empty">
+                    <td colspan="4" class="pp-empty">
                         <i class="bi bi-journal-x" style="font-size:2rem;display:block;margin-bottom:8px"></i>
-                        ยังไม่มีแผนในหลักสูตรนี้
+                        ยังไม่มีแผนของ {{ $level->name }} ในหลักสูตรนี้
                     </td>
                 </tr>
                 @endforelse

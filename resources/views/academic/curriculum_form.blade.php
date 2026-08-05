@@ -232,10 +232,8 @@
                     <select name="level_id" id="levelSelect" onchange="onCurriculumLevelChange(this)">
                         <option value="">-- ทุกระดับ --</option>
                         @foreach($levels as $l)
-                            @if(!isset($curriculum) && isset($usedLevelIds) && $usedLevelIds->contains($l->level_id))
-                                @continue
-                            @endif
-                            <option value="{{ $l->level_id }}" data-name="{{ $l->name }}" {{ ($curriculum->level_id ?? '') == $l->level_id ? 'selected' : '' }}>
+                            <option value="{{ $l->level_id }}" data-name="{{ $l->name }}"
+                                {{ (string)($curriculum->level_id ?? $levelId ?? '') === (string)$l->level_id ? 'selected' : '' }}>
                                 {{ $l->name }}
                             </option>
                         @endforeach
@@ -276,8 +274,8 @@
                 แผนที่มีอยู่แล้วในหลักสูตร {{ $program->name }}{{ !empty($yearApplied) ? ' (ปีการศึกษา ' . $yearApplied . ')' : '' }}
             </span>
             @if(!empty($yearApplied))
-                <a href="{{ route('programs.plans', $program->program_id) }}" style="font-size:0.78rem;color:#00bcd4;text-decoration:none;font-weight:600;">
-                    ดูแผนทุกปีของหลักสูตรนี้ &raquo;
+                <a href="{{ route('programs.plans', $program->program_id) }}" class="btn-copy-plan" style="background:#00bcd4">
+                    <i class="bi bi-journal-check"></i> ดูแผนทุกปีของหลักสูตรนี้
                 </a>
             @endif
         </div>
@@ -288,7 +286,6 @@
                     <th style="width:50px">ลำดับ</th>
                     <th>แผน</th>
                     <th style="text-align:center">ปีการศึกษา</th>
-                    <th>ชั้นเรียน</th>
                     <th style="text-align:center">จัดการ</th>
                 </tr>
             </thead>
@@ -301,22 +298,15 @@
                         <div style="font-size:0.78rem;color:#999;margin-top:2px">{{ $ep->level->name ?? '-' }}</div>
                     </td>
                     <td style="text-align:center">{{ $ep->year_applied ?: '-' }}</td>
-                    <td>
-                        @php $epSections = $sectionsByCurriculum->get($ep->curriculum_id); @endphp
-                        @if($epSections && $epSections->count())
-                            {{ $epSections->map(fn($s) => $s->full_name)->implode(', ') }}
-                        @else
-                            <span style="color:#ccc">-</span>
-                        @endif
-                    </td>
                     <td style="text-align:center">
                         <div style="display:inline-flex; gap:6px;">
-                            <a href="{{ route('curriculums.edit', $ep->curriculum_id) }}" class="btn-action" style="text-decoration:none">
+                            <a href="{{ route('curriculums.edit', ['id' => $ep->curriculum_id, 'return_to' => url()->full()]) }}" class="btn-action" style="text-decoration:none">
                                 <i class="bi bi-pencil"></i> แก้ไข
                             </a>
                             <form action="{{ route('curriculums.destroy', $ep->curriculum_id) }}" method="POST"
                                   onsubmit="return confirm('ยืนยันลบแผน {{ addslashes($ep->name) }}?')">
                                 @csrf @method('DELETE')
+                                <input type="hidden" name="return_to" value="{{ url()->full() }}">
                                 <button type="submit" style="background:#e53935; color:#fff; border:none; border-radius:6px; padding:6px 14px; font-size:0.8rem; font-weight:600; cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:5px;">
                                     <i class="bi bi-trash"></i> ลบ
                                 </button>
