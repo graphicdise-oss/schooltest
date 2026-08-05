@@ -331,9 +331,14 @@
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการวิชาเรียน</span>
-            <button class="btn-add-subj" onclick="openAddSubjectModal()">
-                <i class="bi bi-plus-lg"></i> เพิ่มวิชา
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn-add-subj" style="background:#039be5" onclick="document.getElementById('importSubjOverlay').classList.add('active')">
+                    <i class="bi bi-file-earmark-excel"></i> นำเข้าจาก Excel
+                </button>
+                <button class="btn-add-subj" onclick="openAddSubjectModal()">
+                    <i class="bi bi-plus-lg"></i> เพิ่มวิชา
+                </button>
+            </div>
         </div>
 
         <table class="cf-table">
@@ -380,7 +385,9 @@
                         <span class="{{ $typeBadgeClass }}">{{ $subjType }}</span>
                     </td>
                     <td style="font-size:0.82rem;color:#555">
-                        @if($cs->personnel)
+                        @if($cs->teachers->isNotEmpty())
+                            {{ $cs->teachers->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}
+                        @elseif($cs->personnel)
                             {{ $cs->personnel->thai_prefix ?? '' }}{{ $cs->personnel->thai_firstname }} {{ $cs->personnel->thai_lastname }}
                         @else
                             <span style="color:#ccc">—</span>
@@ -422,6 +429,52 @@
             </tbody>
         </table>
     </div>
+
+    {{-- Modal นำเข้าวิชาจาก Excel --}}
+    <div class="cf-overlay" id="importSubjOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="cf-modal">
+            <div class="cf-modal-header"><i class="bi bi-file-earmark-excel"></i> นำเข้ารายวิชาจาก Excel</div>
+            <form method="POST" action="{{ route('curriculums.importSubjects', $curriculum->curriculum_id) }}"
+                  enctype="multipart/form-data" onsubmit="submitImportSubjForm()">
+                @csrf
+                <div class="cf-modal-body">
+                    <p style="font-size:0.8rem; color:#777; margin:0">
+                        รองรับไฟล์รูปแบบ PlanCourses (.xlsx) — วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ (จับคู่ด้วยรหัสวิชา)
+                        วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์ ครูผู้สอนจับคู่ด้วยเลขบัตรประชาชน — คนไหนหาไม่เจอในระบบจะข้ามเฉพาะคนนั้น ไม่กระทบข้อมูลส่วนอื่นของแถวนั้น
+                    </p>
+                    <div>
+                        <input type="file" name="file" accept=".xlsx" required>
+                    </div>
+                    <div>
+                        <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:0.85rem; color:#444">
+                            <input type="checkbox" name="dry_run" value="1" style="width:auto">
+                            ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง
+                        </label>
+                    </div>
+                </div>
+                <div class="cf-modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="document.getElementById('importSubjOverlay').classList.remove('active')">ยกเลิก</button>
+                    <button type="submit" id="importSubjSubmitBtn" class="btn-modal-ok">
+                        <i class="bi bi-upload"></i> เริ่มนำเข้า
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (session('curriculum_import_output'))
+    <div class="cf-overlay active" id="importSubjResultOverlay">
+        <div class="cf-modal" style="width:640px; max-width:95vw">
+            <div class="cf-modal-header"><i class="bi bi-clipboard-check"></i> ผลการนำเข้ารายวิชา</div>
+            <div class="cf-modal-body">
+                <pre style="background:#f5f5f5; padding:12px; border-radius:8px; overflow:auto; max-height:60vh; font-size:0.8rem; white-space:pre-wrap">{{ session('curriculum_import_output') }}</pre>
+            </div>
+            <div class="cf-modal-footer">
+                <button type="button" class="btn-modal-ok" onclick="document.getElementById('importSubjResultOverlay').remove()">ปิด</button>
+            </div>
+        </div>
+    </div>
+    @endif
 
     {{-- Modal เพิ่มวิชา --}}
     <div class="cf-overlay" id="addSubjOverlay" onclick="if(event.target===this)this.classList.remove('active')">
@@ -637,6 +690,10 @@ function onCurriculumLevelChange(select) {
 }
 function onCurriculumProgramChange(select) {
     onCurriculumLevelChange(document.getElementById('levelSelect'));
+}
+function submitImportSubjForm() {
+    document.getElementById('importSubjSubmitBtn').disabled = true;
+    document.getElementById('importSubjSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่';
 }
 function openAddSubjectModal() {
     document.getElementById('add_subject_id').value = '';

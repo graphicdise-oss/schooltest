@@ -12,6 +12,8 @@ use App\Models\Academic\AcademicYear;
 use App\Models\Academic\ClassSection;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
 
 class CurriculumController extends Controller
 {
@@ -124,7 +126,7 @@ class CurriculumController extends Controller
 
     public function edit(Request $request, $id)
     {
-        $curriculum = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])->findOrFail($id);
+        $curriculum = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel', 'curriculumSubjects.teachers'])->findOrFail($id);
         $levels     = Level::orderBy('sort_order')->get();
         $programs   = Program::orderBy('name')->get();
         $subjects   = Subject::where('is_active', true)->orderBy('code')->get();
@@ -188,6 +190,31 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'ลบวิชาออกจากหลักสูตรสำเร็จ');
     }
 
-    // --- เพิ่มฟังก์ชันนี้ลงไปใหม่ ---
-  
+    // นำเข้ารายวิชา (พร้อมครูผู้สอนหลายคน จับคู่ด้วยเลขบัตรประชาชน) เข้าแผนนี้จากไฟล์ Excel รูปแบบ PlanCourses
+    public function importSubjects(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0);
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['curriculum_id' => $id, 'file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:curriculum-plan', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('curriculum_import_output', $output);
+    }
 }

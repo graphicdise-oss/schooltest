@@ -10,4 +10,15 @@ class CurriculumSubject extends Model
     public function curriculum() { return $this->belongsTo(Curriculum::class, 'curriculum_id', 'curriculum_id'); }
     public function subject()    { return $this->belongsTo(Subject::class, 'subject_id', 'subject_id'); }
     public function personnel()  { return $this->belongsTo(\App\Models\Personne\Personnel::class, 'personnel_id', 'personnel_id'); }
+
+    // ครูผู้สอนทุกคนของวิชานี้ในแผน (personnel_id ด้านบนคือครูคนหลัก/เดิม เก็บไว้ให้เข้ากันได้ของเดิม)
+    public function teachers()
+    {
+        return $this->belongsToMany(
+            \App\Models\Personne\Personnel::class,
+            'curriculum_subject_teachers',
+            'curriculum_subject_id',
+            'personnel_id'
+        )->withTimestamps();
+    }
 }

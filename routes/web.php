@@ -196,6 +196,7 @@ Route::middleware(['auth'])->group(function () {
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::post('/{id}/subjects', 'addSubject')->name('addSubject');
+        Route::post('/{id}/import-subjects', 'importSubjects')->name('importSubjects');
         Route::put('/{id}/subjects/{csId}', 'updateSubject')->name('updateSubject');
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
         Route::get('/year/{year}', 'byYear')->name('byYear');
