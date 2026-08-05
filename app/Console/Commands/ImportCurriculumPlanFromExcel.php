@@ -111,6 +111,12 @@ class ImportCurriculumPlanFromExcel extends Command
                         'credits'        => $row['credits'],
                         'hours_per_year' => $row['hours_per_year'],
                         'hours_per_week' => $row['hours_per_week'],
+                        'teacher_can_edit_score_ratio'    => $row['teacher_can_edit_score_ratio'],
+                        'score_collect_pct'               => $row['score_collect_pct'],
+                        'score_collect_after_midterm_pct' => $row['score_collect_after_midterm_pct'],
+                        'midterm_pct'                      => $row['midterm_pct'],
+                        'final_pct'                        => $row['final_pct'],
+                        'pass_threshold_pct'               => $row['pass_threshold_pct'],
                     ];
                     if ($cs) {
                         $cs->update($csData);
@@ -177,6 +183,12 @@ class ImportCurriculumPlanFromExcel extends Command
             $semester = trim((string) ($sheet->getCell("F{$r}")->getValue() ?? ''));
             $hoursPerWeek = $this->numOrNull($sheet->getCell("G{$r}")->getValue());
             $hoursPerYear = $this->numOrNull($sheet->getCell("H{$r}")->getValue());
+            $teacherCanEdit = trim((string) ($sheet->getCell("I{$r}")->getValue() ?? '')) !== 'ไม่';
+            $scoreCollectPct = $this->numOrNull($sheet->getCell("J{$r}")->getValue());
+            $scoreCollectAfterMidtermPct = $this->numOrNull($sheet->getCell("K{$r}")->getValue());
+            $midtermPct = $this->numOrNull($sheet->getCell("L{$r}")->getValue());
+            $finalPct = $this->numOrNull($sheet->getCell("M{$r}")->getValue());
+            $passThresholdPct = $this->numOrNull($sheet->getCell("N{$r}")->getValue());
 
             if ($name === '') {
                 $warnings[] = "แถว {$r} (รหัสวิชา {$code}): ไม่มีชื่อวิชา — ข้ามทั้งแถว";
@@ -203,6 +215,12 @@ class ImportCurriculumPlanFromExcel extends Command
                 'semester_type' => $semesterType,
                 'hours_per_week' => $hoursPerWeek,
                 'hours_per_year' => $hoursPerYear,
+                'teacher_can_edit_score_ratio' => $teacherCanEdit,
+                'score_collect_pct' => $scoreCollectPct,
+                'score_collect_after_midterm_pct' => $scoreCollectAfterMidtermPct,
+                'midterm_pct' => $midtermPct,
+                'final_pct' => $finalPct,
+                'pass_threshold_pct' => $passThresholdPct,
                 'teacher_id_cards' => $teacherIdCards,
             ];
         }

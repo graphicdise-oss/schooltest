@@ -414,8 +414,11 @@
                                     $csPersonnelName = $cs->personnel
                                         ? addslashes(($cs->personnel->thai_prefix ?? '') . $cs->personnel->thai_firstname . ' ' . $cs->personnel->thai_lastname)
                                         : '';
+                                    $authUser = auth()->user();
+                                    $isAdminUser = $authUser && $authUser->isAdmin();
+                                    $canEditRatio = $isAdminUser || ($cs->teacher_can_edit_score_ratio && $cs->isTaughtBy($authUser->personnel_id ?? null));
                                 @endphp
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}')">
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->personnel_id ?? 'null' }}, '{{ $csPersonnelName }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}', {{ $cs->teacher_can_edit_score_ratio ? 1 : 0 }}, {{ $cs->score_collect_pct ?? 'null' }}, {{ $cs->score_collect_after_midterm_pct ?? 'null' }}, {{ $cs->midterm_pct ?? 'null' }}, {{ $cs->final_pct ?? 'null' }}, {{ $cs->pass_threshold_pct ?? 'null' }}, {{ $isAdminUser ? 1 : 0 }}, {{ $canEditRatio ? 1 : 0 }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -567,6 +570,42 @@
                             </div>
                         </div>
                     </div>
+                    <div style="border-top:1px solid #eee;margin-top:4px;padding-top:14px">
+                        <div class="cf-modal-hint" style="margin:0 0 8px">
+                            สัดส่วนคะแนน (ข้อมูลอ้างอิงของแผน — ไม่ผูกกับหน้ากรอกคะแนนจริงที่ครูตั้งเองต่อห้อง)
+                        </div>
+                        <div>
+                            <label>ครูได้รับอนุญาตให้แก้ไขสัดส่วนคะแนนหรือไม่</label>
+                            <select name="teacher_can_edit_score_ratio" id="add_teacher_can_edit_score_ratio">
+                                <option value="1">ใช่</option>
+                                <option value="0">ไม่</option>
+                            </select>
+                        </div>
+                        <div class="cf-modal-row" style="margin-top:14px">
+                            <div>
+                                <label>คะแนนเก็บ (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="score_collect_pct" id="add_score_collect_pct">
+                            </div>
+                            <div>
+                                <label>คะแนนเก็บหลังกลางภาค (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="score_collect_after_midterm_pct" id="add_score_collect_after_midterm_pct">
+                            </div>
+                        </div>
+                        <div class="cf-modal-row" style="margin-top:14px">
+                            <div>
+                                <label>กลางภาค (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="midterm_pct" id="add_midterm_pct">
+                            </div>
+                            <div>
+                                <label>ปลายภาค (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="final_pct" id="add_final_pct">
+                            </div>
+                        </div>
+                        <div style="margin-top:14px">
+                            <label>% ตัดผ่านของคะแนนเก็บแต่ละจุด</label>
+                            <input type="number" step="0.1" min="0" max="100" name="pass_threshold_pct" id="add_pass_threshold_pct">
+                        </div>
+                    </div>
                 </div>
                 <div class="cf-modal-footer">
                     <button type="button" class="btn-modal-cancel" onclick="document.getElementById('addSubjOverlay').classList.remove('active')">ยกเลิก</button>
@@ -631,6 +670,45 @@
                                 @endforeach
                                 <div class="cf-combo-empty" id="edit_personnel_empty" style="display:none">ไม่พบครูที่ค้นหา</div>
                             </div>
+                        </div>
+                    </div>
+                    <div style="border-top:1px solid #eee;margin-top:4px;padding-top:14px">
+                        <div class="cf-modal-hint" style="margin:0 0 8px">
+                            สัดส่วนคะแนน (ข้อมูลอ้างอิงของแผน — ไม่ผูกกับหน้ากรอกคะแนนจริงที่ครูตั้งเองต่อห้อง)
+                        </div>
+                        <p id="edit_score_ratio_note" style="display:none;font-size:0.78rem;color:#e65100;margin:0 0 8px">
+                            ตัวเลข % ด้านล่างแก้ไขได้เฉพาะแอดมิน หรือครูผู้สอนวิชานี้ (ที่ได้รับอนุญาต) เท่านั้น
+                        </p>
+                        <div>
+                            <label>ครูได้รับอนุญาตให้แก้ไขสัดส่วนคะแนนหรือไม่</label>
+                            <select name="teacher_can_edit_score_ratio" id="edit_teacher_can_edit_score_ratio">
+                                <option value="1">ใช่</option>
+                                <option value="0">ไม่</option>
+                            </select>
+                        </div>
+                        <div class="cf-modal-row" style="margin-top:14px">
+                            <div>
+                                <label>คะแนนเก็บ (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="score_collect_pct" id="edit_score_collect_pct">
+                            </div>
+                            <div>
+                                <label>คะแนนเก็บหลังกลางภาค (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="score_collect_after_midterm_pct" id="edit_score_collect_after_midterm_pct">
+                            </div>
+                        </div>
+                        <div class="cf-modal-row" style="margin-top:14px">
+                            <div>
+                                <label>กลางภาค (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="midterm_pct" id="edit_midterm_pct">
+                            </div>
+                            <div>
+                                <label>ปลายภาค (%)</label>
+                                <input type="number" step="0.1" min="0" max="100" name="final_pct" id="edit_final_pct">
+                            </div>
+                        </div>
+                        <div style="margin-top:14px">
+                            <label>% ตัดผ่านของคะแนนเก็บแต่ละจุด</label>
+                            <input type="number" step="0.1" min="0" max="100" name="pass_threshold_pct" id="edit_pass_threshold_pct">
                         </div>
                     </div>
                 </div>
@@ -718,6 +796,9 @@ function openAddSubjectModal() {
     document.getElementById('add_personnel_search').value = '';
     document.getElementById('add_subject_list').classList.remove('open');
     document.getElementById('add_personnel_list').classList.remove('open');
+    document.getElementById('add_teacher_can_edit_score_ratio').value = '1';
+    ['add_score_collect_pct', 'add_score_collect_after_midterm_pct', 'add_midterm_pct', 'add_final_pct', 'add_pass_threshold_pct']
+        .forEach(id => document.getElementById(id).value = '');
     document.getElementById('addSubjOverlay').classList.add('active');
 }
 // พื้นฐาน/กิจกรรม = บังคับ โดยปริยาย, เพิ่มเติม = เลือก โดยปริยาย (ยังแก้เองได้เสมอ แค่ตั้งค่าเริ่มต้นให้)
@@ -820,7 +901,11 @@ document.addEventListener('keydown', e => {
     }
 });
 
-function openEditModal(csId, semType, personnelId, personnelName, credits, hoursPerYear, hoursPerWeek, subjectType) {
+function openEditModal(csId, semType, personnelId, personnelName, credits, hoursPerYear, hoursPerWeek, subjectType,
+    teacherCanEditRatio, scoreCollectPct, scoreCollectAfterMidtermPct, midtermPct, finalPct, passThresholdPct,
+    isAdminUser, canEditRatio) {
+    const val = (v) => (v === null || v === undefined) ? '' : v;
+
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
     document.getElementById('edit_semester_type').value = semType;
@@ -829,9 +914,21 @@ function openEditModal(csId, semType, personnelId, personnelName, credits, hours
     document.getElementById('edit_personnel_id').value = personnelId || '';
     document.getElementById('edit_personnel_search').value = personnelName || '';
     document.getElementById('edit_personnel_list').classList.remove('open');
-    document.getElementById('edit_credits').value = (credits === null || credits === undefined) ? '' : credits;
-    document.getElementById('edit_hours_per_year').value = (hoursPerYear === null || hoursPerYear === undefined) ? '' : hoursPerYear;
-    document.getElementById('edit_hours_per_week').value = (hoursPerWeek === null || hoursPerWeek === undefined) ? '' : hoursPerWeek;
+    document.getElementById('edit_credits').value = val(credits);
+    document.getElementById('edit_hours_per_year').value = val(hoursPerYear);
+    document.getElementById('edit_hours_per_week').value = val(hoursPerWeek);
+
+    document.getElementById('edit_teacher_can_edit_score_ratio').value = teacherCanEditRatio ? '1' : '0';
+    document.getElementById('edit_teacher_can_edit_score_ratio').disabled = !isAdminUser;
+    document.getElementById('edit_score_collect_pct').value = val(scoreCollectPct);
+    document.getElementById('edit_score_collect_after_midterm_pct').value = val(scoreCollectAfterMidtermPct);
+    document.getElementById('edit_midterm_pct').value = val(midtermPct);
+    document.getElementById('edit_final_pct').value = val(finalPct);
+    document.getElementById('edit_pass_threshold_pct').value = val(passThresholdPct);
+    ['edit_score_collect_pct', 'edit_score_collect_after_midterm_pct', 'edit_midterm_pct', 'edit_final_pct', 'edit_pass_threshold_pct']
+        .forEach(id => document.getElementById(id).disabled = !canEditRatio);
+    document.getElementById('edit_score_ratio_note').style.display = canEditRatio ? 'none' : 'block';
+
     document.querySelectorAll('.cf-dropdown.open').forEach(d => d.classList.remove('open'));
     document.getElementById('editSubjOverlay').classList.add('active');
 }

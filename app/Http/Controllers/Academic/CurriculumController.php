@@ -153,9 +153,21 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'ลบหลักสูตรสำเร็จ');
     }
 
+    // ตัวเลข % 5 ค่า (คะแนนเก็บ/คะแนนเก็บหลังกลางภาค/กลางภาค/ปลายภาค/% ตัดผ่าน) — ใช้ร่วมกันทั้ง add/update
+    private function scoreRatioFields(Request $request): array
+    {
+        $fields = ['score_collect_pct', 'score_collect_after_midterm_pct', 'midterm_pct', 'final_pct', 'pass_threshold_pct'];
+        $data = [];
+        foreach ($fields as $f) {
+            $data[$f] = $request->input($f) !== null && $request->input($f) !== '' ? $request->input($f) : null;
+        }
+        return $data;
+    }
+
     public function addSubject(Request $request, $id)
     {
         $request->validate(['subject_id' => 'required|exists:subjects,subject_id']);
+        $user = auth()->user();
         CurriculumSubject::firstOrCreate(
             ['curriculum_id' => $id, 'subject_id' => $request->subject_id],
             [
@@ -165,22 +177,39 @@ class CurriculumController extends Controller
                 'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
                 'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
                 'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
-            ]
+                // "อนุญาตให้ครูแก้สัดส่วนคะแนนเอง" ตั้งค่าตอนสร้างได้เฉพาะแอดมิน/ซูเปอร์แอดมิน (คนอื่นได้ค่าเริ่มต้น "ใช่")
+                'teacher_can_edit_score_ratio' => ($user && $user->isAdmin()) ? $request->boolean('teacher_can_edit_score_ratio', true) : true,
+            ] + $this->scoreRatioFields($request)
         );
         return redirect()->back()->with('success', 'เพิ่มวิชาในหลักสูตรสำเร็จ');
     }
 
     public function updateSubject(Request $request, $id, $csId)
     {
-        CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)
-            ->update([
-                'semester_type'  => $request->semester_type ?? 'both',
-                'is_required'    => $request->boolean('is_required', true),
-                'personnel_id'   => $request->personnel_id ?: null,
-                'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
-                'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
-                'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
-            ]);
+        $cs = CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)->firstOrFail();
+        $user = auth()->user();
+        $isAdmin = $user && $user->isAdmin();
+        $isAssignedTeacher = $user && $cs->isTaughtBy($user->personnel_id ?? null);
+
+        $data = [
+            'semester_type'  => $request->semester_type ?? 'both',
+            'is_required'    => $request->boolean('is_required', true),
+            'personnel_id'   => $request->personnel_id ?: null,
+            'credits'        => $request->credits !== null && $request->credits !== '' ? $request->credits : null,
+            'hours_per_year' => $request->hours_per_year !== null && $request->hours_per_year !== '' ? $request->hours_per_year : null,
+            'hours_per_week' => $request->hours_per_week !== null && $request->hours_per_week !== '' ? $request->hours_per_week : null,
+        ];
+
+        // สัดส่วนคะแนน: ตัวเลข % แก้ได้ถ้าเป็นแอดมิน หรือเป็นครูที่สอนวิชานี้และได้รับอนุญาต
+        // ส่วนสวิตช์ "อนุญาตให้ครูแก้เอง" แก้ได้เฉพาะแอดมิน/ซูเปอร์แอดมินเท่านั้น (กันครูปลดล็อกสิทธิ์ตัวเอง)
+        if ($isAdmin) {
+            $data['teacher_can_edit_score_ratio'] = $request->boolean('teacher_can_edit_score_ratio', true);
+        }
+        if ($isAdmin || ($cs->teacher_can_edit_score_ratio && $isAssignedTeacher)) {
+            $data += $this->scoreRatioFields($request);
+        }
+
+        $cs->update($data);
         return redirect()->back()->with('success', 'แก้ไขวิชาสำเร็จ');
     }
 
