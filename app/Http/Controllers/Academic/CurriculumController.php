@@ -190,6 +190,14 @@ class CurriculumController extends Controller
         return redirect()->back()->with('success', 'ลบวิชาออกจากหลักสูตรสำเร็จ');
     }
 
+    // เปิด/ปิดใช้งานวิชานี้เฉพาะในแผนนี้ (ไม่กระทบวิชากลางหรือแผนอื่น) — ปิดแล้วจะไม่ถูกเสนอเป็นตัวเลือกตอนจัดตารางสอน
+    public function toggleSubject($id, $csId)
+    {
+        $cs = CurriculumSubject::where('id', $csId)->where('curriculum_id', $id)->firstOrFail();
+        $cs->update(['is_active' => !$cs->is_active]);
+        return redirect()->back()->with('success', $cs->is_active ? 'เปิดใช้งานวิชาแล้ว' : 'ปิดใช้งานวิชาแล้ว');
+    }
+
     // นำเข้ารายวิชา (พร้อมครูผู้สอนหลายคน จับคู่ด้วยเลขบัตรประชาชน) เข้าแผนนี้จากไฟล์ Excel รูปแบบ PlanCourses
     public function importSubjects(Request $request, $id)
     {

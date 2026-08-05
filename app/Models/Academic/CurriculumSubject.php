@@ -5,8 +5,8 @@ use Illuminate\Database\Eloquent\Model;
 class CurriculumSubject extends Model
 {
     protected $table = 'curriculum_subjects';
-    protected $fillable = ['curriculum_id', 'subject_id', 'semester_type', 'is_required', 'personnel_id', 'credits', 'hours_per_year', 'hours_per_week'];
-    protected $casts = ['is_required' => 'boolean'];
+    protected $fillable = ['curriculum_id', 'subject_id', 'semester_type', 'is_required', 'personnel_id', 'credits', 'hours_per_year', 'hours_per_week', 'is_active'];
+    protected $casts = ['is_required' => 'boolean', 'is_active' => 'boolean'];
     public function curriculum() { return $this->belongsTo(Curriculum::class, 'curriculum_id', 'curriculum_id'); }
     public function subject()    { return $this->belongsTo(Subject::class, 'subject_id', 'subject_id'); }
     public function personnel()  { return $this->belongsTo(\App\Models\Personne\Personnel::class, 'personnel_id', 'personnel_id'); }

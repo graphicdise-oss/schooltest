@@ -133,7 +133,11 @@ class TimetableController extends Controller
     $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
     $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
 
-    $curriculums = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])
+    $curriculums = Curriculum::with([
+            'curriculumSubjects' => fn ($q) => $q->where('is_active', true),
+            'curriculumSubjects.subject',
+            'curriculumSubjects.personnel',
+        ])
         ->where('level_id', $section->level_id)
         ->where('is_active', true)
         ->orderBy('year_applied', 'desc')
