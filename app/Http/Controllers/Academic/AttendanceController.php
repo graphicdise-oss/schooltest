@@ -51,10 +51,11 @@ class AttendanceController extends Controller
         ));
     }
 
-    // หน้าเช็คชื่อของวิชา-ห้องนั้น (เลือกวันที่)
+    // หน้าเช็คชื่อของวิชา-ห้องนั้น — ตารางรายเดือน (นักเรียน x วันเรียนของเดือนนั้น)
+    // ตัดวันเสาร์-อาทิตย์และวันหยุดตามปฏิทินออกให้อัตโนมัติ เหมือนแบบฟอร์ม Excel
     public function mark(Request $request, $assignId)
     {
-        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'classSection.semester.academicYear'])
+        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'semester.academicYear'])
             ->findOrFail($assignId);
 
         $user = auth()->user();
@@ -62,10 +63,16 @@ class AttendanceController extends Controller
             return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์เช็คชื่อวิชานี้ (เฉพาะครูประจำวิชาเท่านั้น)');
         }
 
-        $semester = $assign->classSection->semester;
-        $date = $request->get('date', now()->toDateString());
-        if ($semester->start_date && $date < $semester->start_date->toDateString()) $date = $semester->start_date->toDateString();
-        if ($semester->end_date && $date > $semester->end_date->toDateString())   $date = $semester->end_date->toDateString();
+        $semester = $assign->semester;
+        $month = $request->get('month');
+        if ($month && preg_match('/^(\d{4})-(\d{1,2})$/', $month, $m)) {
+            [$year, $mon] = [(int) $m[1], (int) $m[2]];
+        } else {
+            [$year, $mon] = [(int) now()->year, (int) now()->month];
+        }
+        $monthValue = sprintf('%04d-%02d', $year, $mon);
+
+        $dates = $this->schoolDaysInMonth($year, $mon, $semester?->year_id, $semester?->start_date, $semester?->end_date);
 
         $students = StudentSection::with('student')
             ->where('section_id', $assign->section_id)
@@ -73,18 +80,15 @@ class AttendanceController extends Controller
             ->orderBy('student_number')
             ->get();
 
-        $existing = ClassAttendance::where('assign_id', $assignId)
-            ->where('class_date', $date)
-            ->get()->keyBy('student_id');
+        $existing = collect();
+        if ($dates->isNotEmpty()) {
+            $existing = ClassAttendance::where('assign_id', $assignId)
+                ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
+                ->get()
+                ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
+        }
 
-        $recentDates = ClassAttendance::where('assign_id', $assignId)
-            ->selectRaw('class_date, count(*) as total')
-            ->groupBy('class_date')
-            ->orderByDesc('class_date')
-            ->limit(10)
-            ->get();
-
-        return view('academic.attendance_mark', compact('assign', 'students', 'date', 'existing', 'recentDates'));
+        return view('academic.attendance_mark', compact('assign', 'students', 'dates', 'existing', 'monthValue'));
     }
 
     public function store(Request $request, $assignId)
@@ -96,20 +100,24 @@ class AttendanceController extends Controller
             return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์เช็คชื่อวิชานี้');
         }
 
-        $request->validate(['date' => 'required|date']);
-        $statuses = $request->input('status', []);
-
-        foreach ($statuses as $studentId => $status) {
-            if (!in_array($status, ClassAttendance::STATUSES, true)) continue;
-            ClassAttendance::updateOrCreate(
-                ['assign_id' => $assignId, 'student_id' => $studentId, 'class_date' => $request->date],
-                ['status' => $status]
-            );
+        // status[วันที่][student_id] = สถานะ — ช่องไหนเว้นว่าง/ไม่ใช่สถานะที่รู้จัก ข้ามเงียบๆ (ไม่บันทึก ไม่ error)
+        $grid = $request->input('status', []);
+        $saved = 0;
+        foreach ($grid as $date => $byStudent) {
+            if (!is_array($byStudent)) continue;
+            foreach ($byStudent as $studentId => $status) {
+                if (!in_array($status, ClassAttendance::STATUSES, true)) continue;
+                ClassAttendance::updateOrCreate(
+                    ['assign_id' => $assignId, 'student_id' => $studentId, 'class_date' => $date],
+                    ['status' => $status]
+                );
+                $saved++;
+            }
         }
 
         return redirect()
-            ->route('attendance.mark', ['assign' => $assignId, 'date' => $request->date])
-            ->with('success', 'บันทึกการเช็คชื่อสำเร็จ');
+            ->route('attendance.mark', ['assign' => $assignId, 'month' => $request->input('month')])
+            ->with('success', "บันทึกการเช็คชื่อสำเร็จ ({$saved} ช่อง)");
     }
 
     private const THAI_MONTHS_SHORT = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];

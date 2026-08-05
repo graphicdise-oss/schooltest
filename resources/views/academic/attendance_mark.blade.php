@@ -2,19 +2,24 @@
 @push('styles')
 <link rel="stylesheet" href="{{ asset('css/academic/academic.css') }}?v={{ time() }}">
 <style>
-    .att-status-group { display:flex; gap:6px; flex-wrap:wrap; }
-    .att-status-opt { display:inline-flex; }
-    .att-status-opt input { display:none; }
-    .att-status-opt span {
-        padding:6px 14px; border-radius:20px; font-size:.82rem; font-weight:600; cursor:pointer;
-        border:1.5px solid #d0d7e5; color:#666; user-select:none;
+    .att-grid-wrap { overflow-x:auto; }
+    .att-grid { border-collapse:collapse; font-size:.82rem; white-space:nowrap; }
+    .att-grid th, .att-grid td { border:1px solid #e5e9f0; padding:4px 6px; text-align:center; }
+    .att-grid thead th { background:#eaf2f8; font-weight:600; position:sticky; top:0; z-index:2; }
+    .att-grid th.att-sticky-col, .att-grid td.att-sticky-col { position:sticky; left:0; background:#fff; z-index:1; text-align:left; }
+    .att-grid thead th.att-sticky-col { background:#eaf2f8; z-index:3; }
+    .att-grid td.att-name-col { min-width:160px; }
+    .att-grid select.att-cell {
+        width:56px; font-size:.78rem; padding:3px 2px; border-radius:4px; border:1px solid #d0d7e5;
+        background:#fff; color:#444; font-family:inherit; cursor:pointer;
     }
-    .att-status-opt input:checked + span.s-มา { background:#dcfce7; border-color:#16a34a; color:#16a34a; }
-    .att-status-opt input:checked + span.s-ป่วย { background:#fff7ed; border-color:#d97706; color:#d97706; }
-    .att-status-opt input:checked + span.s-ลา { background:#eef4ff; border-color:#2563eb; color:#2563eb; }
-    .att-status-opt input:checked + span.s-ขาด { background:#fee2e2; border-color:#dc2626; color:#dc2626; }
-    .recent-date-pill { display:inline-block; background:#eef4ff; color:#2563eb; border-radius:20px; padding:4px 12px; font-size:.8rem; margin:2px; text-decoration:none; }
-    .recent-date-pill:hover { background:#dbe8ff; }
+    .att-cell.s-มา  { background:#dcfce7; border-color:#16a34a; color:#15803d; }
+    .att-cell.s-ป่วย { background:#fff7ed; border-color:#d97706; color:#b45309; }
+    .att-cell.s-ลา  { background:#eef4ff; border-color:#2563eb; color:#1d4ed8; }
+    .att-cell.s-ขาด { background:#fee2e2; border-color:#dc2626; color:#b91c1c; }
+    .att-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; color:#555; margin-top:10px; }
+    .att-legend span { display:inline-flex; align-items:center; gap:5px; }
+    .att-legend i { width:12px; height:12px; border-radius:3px; display:inline-block; }
 </style>
 @endpush
 
@@ -22,66 +27,79 @@
 <div class="ac-page">
     <nav class="ac-breadcrumb">
         <a href="{{ route('attendance.index') }}">เช็คชื่อ/ลา</a><i class="bi bi-chevron-right"></i>
-        <span>{{ $assign->subject->name_th }} — {{ $assign->classSection->level->name ?? '' }}/{{ $assign->classSection->section_number }}</span>
+        <span>{{ $assign->subject->name_th }} — {{ $assign->classSection->full_name ?? '' }}</span>
     </nav>
 
     @if(session('success'))<div class="alert alert-success alert-dismissible fade show">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
     @if(session('error'))<div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>@endif
 
     <div class="ac-card">
-        <div class="ac-card-header"><i class="bi bi-calendar-check"></i> เลือกวันที่เช็คชื่อ</div>
+        <div class="ac-card-header"><i class="bi bi-calendar-month"></i> เลือกเดือน</div>
         <div class="ac-card-body">
-            <form method="GET" action="{{ route('attendance.mark', $assign->assign_id) }}" style="display:flex; gap:12px; align-items:flex-end; margin-bottom:12px;">
+            <form method="GET" action="{{ route('attendance.mark', $assign->assign_id) }}" style="display:flex; gap:12px; align-items:flex-end;">
                 <div class="ac-field" style="margin:0">
-                    <label>วันที่</label>
-                    <input type="date" name="date" value="{{ $date }}" class="ac-input" onchange="this.form.submit()">
+                    <label>เดือน</label>
+                    <input type="month" name="month" value="{{ $monthValue }}" class="ac-input" onchange="this.form.submit()">
                 </div>
             </form>
-            @if($recentDates->isNotEmpty())
-                <div>
-                    <span style="font-size:.85rem; color:#6b7a99;">เช็คชื่อล่าสุด:</span>
-                    @foreach($recentDates as $rd)
-                        <a class="recent-date-pill" href="{{ route('attendance.mark', ['assign' => $assign->assign_id, 'date' => $rd->class_date]) }}">
-                            {{ \Carbon\Carbon::parse($rd->class_date)->format('d/m/Y') }} ({{ $rd->total }})
-                        </a>
-                    @endforeach
-                </div>
-            @endif
+            <p style="font-size:.8rem;color:#999;margin:10px 0 0">
+                ตัดวันเสาร์-อาทิตย์และวันหยุดตามปฏิทินออกให้อัตโนมัติ เหลือเฉพาะวันเรียนจริงของเดือนนี้ ({{ $dates->count() }} วัน)
+            </p>
         </div>
     </div>
 
     <div class="ac-card">
-        <div class="ac-card-header"><i class="bi bi-people"></i> รายชื่อนักเรียน — วันที่ {{ \Carbon\Carbon::parse($date)->format('d/m/Y') }}</div>
+        <div class="ac-card-header"><i class="bi bi-people"></i> รายชื่อนักเรียน</div>
         <div class="ac-card-body">
             @if($students->isEmpty())
                 <p class="ac-empty">ไม่มีนักเรียนในห้องนี้</p>
+            @elseif($dates->isEmpty())
+                <p class="ac-empty">ไม่มีวันเรียนในเดือนนี้ (อาจอยู่นอกภาคเรียน หรือเป็นวันหยุดทั้งเดือน)</p>
             @else
-                <form method="POST" action="{{ route('attendance.store', $assign->assign_id) }}">
+                <form method="POST" action="{{ route('attendance.store', $assign->assign_id) }}" id="attMarkForm">
                     @csrf
-                    <input type="hidden" name="date" value="{{ $date }}">
-                    <div class="ac-table-wrap">
-                        <table class="ac-table">
-                            <thead><tr><th style="width:60px;">เลขที่</th><th>ชื่อ - สกุล</th><th style="width:340px;">สถานะ</th></tr></thead>
+                    <input type="hidden" name="month" value="{{ $monthValue }}">
+                    <div class="att-grid-wrap">
+                        <table class="att-grid">
+                            <thead>
+                                <tr>
+                                    <th class="att-sticky-col" style="width:44px">เลขที่</th>
+                                    <th class="att-sticky-col att-name-col">ชื่อ - สกุล</th>
+                                    @foreach($dates as $d)
+                                        <th>{{ $d->format('d/m') }}<br><span style="font-weight:400;color:#789">{{ ['','จ','อ','พ','พฤ','ศ','ส','อา'][(int)$d->format('N')] }}</span></th>
+                                    @endforeach
+                                </tr>
+                            </thead>
                             <tbody>
                                 @foreach($students as $s)
-                                    @php $cur = $existing->get($s->student_id)?->status ?? 'มา'; @endphp
                                     <tr>
-                                        <td>{{ $s->student_number }}</td>
-                                        <td style="text-align:left">{{ $s->student->thai_prefix }}{{ $s->student->thai_firstname }} {{ $s->student->thai_lastname }}</td>
-                                        <td>
-                                            <div class="att-status-group">
-                                                @foreach(\App\Models\Academic\ClassAttendance::STATUSES as $st)
-                                                    <label class="att-status-opt">
-                                                        <input type="radio" name="status[{{ $s->student_id }}]" value="{{ $st }}" {{ $cur === $st ? 'checked' : '' }}>
-                                                        <span class="s-{{ $st }}">{{ $st }}</span>
-                                                    </label>
-                                                @endforeach
-                                            </div>
-                                        </td>
+                                        <td class="att-sticky-col">{{ $s->student_number }}</td>
+                                        <td class="att-sticky-col att-name-col">{{ $s->student->thai_prefix }}{{ $s->student->thai_firstname }} {{ $s->student->thai_lastname }}</td>
+                                        @foreach($dates as $d)
+                                            @php
+                                                $dateStr = $d->format('Y-m-d');
+                                                $cur = $existing->get($s->student_id . '|' . $dateStr)?->status ?? '';
+                                            @endphp
+                                            <td>
+                                                <select name="status[{{ $dateStr }}][{{ $s->student_id }}]" class="att-cell {{ $cur ? 's-' . $cur : '' }}" onchange="attColorCell(this)">
+                                                    <option value="" {{ $cur === '' ? 'selected' : '' }}>-</option>
+                                                    @foreach(\App\Models\Academic\ClassAttendance::STATUSES as $st)
+                                                        <option value="{{ $st }}" {{ $cur === $st ? 'selected' : '' }}>{{ $st }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </td>
+                                        @endforeach
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
+                    </div>
+                    <div class="att-legend">
+                        <span><i style="background:#dcfce7;border:1px solid #16a34a"></i> มา</span>
+                        <span><i style="background:#fff7ed;border:1px solid #d97706"></i> ป่วย</span>
+                        <span><i style="background:#eef4ff;border:1px solid #2563eb"></i> ลา</span>
+                        <span><i style="background:#fee2e2;border:1px solid #dc2626"></i> ขาด</span>
+                        <span><i style="background:#fff;border:1px solid #d0d7e5"></i> ยังไม่เช็ค (ไม่บันทึก)</span>
                     </div>
                     <div class="ac-save-wrap" style="margin-top:16px; text-align:right;">
                         <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกการเช็คชื่อ</button>
@@ -91,4 +109,10 @@
         </div>
     </div>
 </div>
+<script>
+function attColorCell(select) {
+    select.classList.remove('s-มา', 's-ป่วย', 's-ลา', 's-ขาด');
+    if (select.value) select.classList.add('s-' + select.value);
+}
+</script>
 @endsection
