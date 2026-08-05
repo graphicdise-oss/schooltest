@@ -95,30 +95,26 @@
     </div>
 </div>
 
-{{-- ดาวน์โหลดแบบฟอร์ม Excel (เลือกช่วงวันที่) --}}
+{{-- ดาวน์โหลดแบบฟอร์ม Excel (เลือกเดือน หรือทุกเดือนในเทอม) --}}
 <div class="att-xl-overlay" id="attExportOverlay" onclick="if(event.target===this)closeExportModal()">
     <div class="att-xl-modal">
         <div class="att-xl-modal-header"><i class="bi bi-file-earmark-excel"></i> ดาวน์โหลดแบบฟอร์มเช็คชื่อ</div>
-        <form method="GET" id="attExportForm" target="_blank">
-            <div class="att-xl-modal-body">
-                <p id="attExportLabel" style="font-size:.85rem;color:#555;margin:0;font-weight:600"></p>
-                <div style="display:flex;gap:10px">
-                    <div class="att-xl-field" style="flex:1">
-                        <label>จากวันที่</label>
-                        <input type="date" name="from" id="attExportFrom" required>
-                    </div>
-                    <div class="att-xl-field" style="flex:1">
-                        <label>ถึงวันที่</label>
-                        <input type="date" name="to" id="attExportTo" required>
-                    </div>
-                </div>
-                <p style="font-size:.78rem;color:#999;margin:0">เลือกได้สูงสุด 62 วันต่อครั้ง แต่ละช่องในไฟล์จะมีลิสต์ให้เลือก ({{ implode(' / ', \App\Models\Academic\ClassAttendance::STATUSES) }}) เว้นว่างไว้ได้ถ้าวันนั้นไม่เช็คชื่อ</p>
+        <div class="att-xl-modal-body">
+            <p id="attExportLabel" style="font-size:.85rem;color:#555;margin:0;font-weight:600"></p>
+            <div class="att-xl-field">
+                <label>เดือน</label>
+                <input type="month" id="attExportMonth">
             </div>
-            <div class="att-xl-modal-footer">
-                <button type="button" class="att-btn-cancel" onclick="closeExportModal()">ยกเลิก</button>
-                <button type="submit" class="att-btn-go"><i class="bi bi-download"></i> ดาวน์โหลด</button>
-            </div>
-        </form>
+            <p style="font-size:.78rem;color:#999;margin:0">
+                ระบบตัดวันเสาร์-อาทิตย์และวันหยุดตามปฏิทิน (ตั้งค่าไว้ที่เมนูวันหยุด) ออกให้อัตโนมัติ —
+                แต่ละช่องในไฟล์มีลิสต์ให้เลือก ({{ implode(' / ', \App\Models\Academic\ClassAttendance::STATUSES) }}) เว้นว่างไว้ได้ถ้าวันนั้นไม่เช็คชื่อ
+            </p>
+        </div>
+        <div class="att-xl-modal-footer" style="flex-wrap:wrap">
+            <button type="button" class="att-btn-cancel" onclick="closeExportModal()">ยกเลิก</button>
+            <button type="button" class="att-btn-go" style="background:#6c757d" onclick="downloadExport(true)"><i class="bi bi-calendar3-range"></i> ทุกเดือนในเทอม</button>
+            <button type="button" class="att-btn-go" onclick="downloadExport(false)"><i class="bi bi-download"></i> ดาวน์โหลดเดือนนี้</button>
+        </div>
     </div>
 </div>
 
@@ -166,14 +162,24 @@
 @endif
 
 <script>
+var attExportAssignId = null;
 function openExportModal(assignId, label) {
-    document.getElementById('attExportForm').action = "{{ url('/attendance/export-template') }}/" + assignId;
+    attExportAssignId = assignId;
     document.getElementById('attExportLabel').innerText = label;
-    var today = new Date();
-    var to = new Date(); to.setDate(today.getDate() + 6);
-    document.getElementById('attExportFrom').value = today.toISOString().slice(0, 10);
-    document.getElementById('attExportTo').value = to.toISOString().slice(0, 10);
+    document.getElementById('attExportMonth').value = new Date().toISOString().slice(0, 7);
     document.getElementById('attExportOverlay').classList.add('active');
+}
+function downloadExport(all) {
+    var url = "{{ url('/attendance/export-template') }}/" + attExportAssignId;
+    if (all) {
+        url += '?all=1';
+    } else {
+        var month = document.getElementById('attExportMonth').value;
+        if (!month) { alert('กรุณาเลือกเดือน'); return; }
+        url += '?month=' + month;
+    }
+    window.open(url, '_blank');
+    closeExportModal();
 }
 function closeExportModal() { document.getElementById('attExportOverlay').classList.remove('active'); }
 function closeImportModal() { document.getElementById('attImportOverlay').classList.remove('active'); }

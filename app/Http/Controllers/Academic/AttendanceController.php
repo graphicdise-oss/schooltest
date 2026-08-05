@@ -112,24 +112,37 @@ class AttendanceController extends Controller
             ->with('success', 'บันทึกการเช็คชื่อสำเร็จ');
     }
 
-    // ดาวน์โหลดแบบฟอร์ม Excel สำหรับเช็คชื่อออฟไลน์ (ช่วงวันที่ที่เลือก)
+    private const THAI_MONTHS_SHORT = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+    // ดาวน์โหลดแบบฟอร์ม Excel สำหรับเช็คชื่อออฟไลน์ — เลือกได้ทีละเดือน หรือทุกเดือนที่มีในเทอม (?all=1)
+    // ตัดวันเสาร์-อาทิตย์และวันหยุดตามปฏิทิน (Holiday) ของปีการศึกษานั้นออกให้อัตโนมัติ
     public function exportTemplate(Request $request, $assignId)
     {
-        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level'])->findOrFail($assignId);
+        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'semester'])->findOrFail($assignId);
 
         $user = auth()->user();
         if (!$user->isAdmin() && $user->personnel_id !== $assign->personnel_id) {
             return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์ดาวน์โหลดแบบฟอร์มวิชานี้ (เฉพาะครูประจำวิชาเท่านั้น)');
         }
 
-        $from = $request->get('from', now()->toDateString());
-        $to = $request->get('to', now()->addDays(6)->toDateString());
-        if ($to < $from) {
-            [$from, $to] = [$to, $from];
-        }
-        $dates = collect(\Carbon\CarbonPeriod::create($from, $to));
-        if ($dates->count() > 62) {
-            return redirect()->route('attendance.index')->with('error', 'ช่วงวันที่ที่เลือกกว้างเกินไป (สูงสุด 62 วันต่อครั้ง) กรุณาเลือกช่วงให้แคบลง');
+        $semester = $assign->semester;
+        $semStart = $semester?->start_date;
+        $semEnd = $semester?->end_date;
+
+        if ($request->boolean('all')) {
+            $months = $this->monthsInRange($semStart, $semEnd);
+            if (empty($months)) {
+                return redirect()->route('attendance.index')->with('error', 'ไม่พบช่วงวันที่ของภาคเรียนนี้ (ยังไม่ได้ตั้งวันเริ่ม/สิ้นสุดเทอม) ไม่สามารถสร้างแบบฟอร์มทุกเดือนได้');
+            }
+            $filenameSuffix = 'ทุกเดือน';
+        } else {
+            $month = $request->get('month');
+            if ($month && preg_match('/^(\d{4})-(\d{1,2})$/', $month, $m)) {
+                $months = [['year' => (int) $m[1], 'month' => (int) $m[2]]];
+            } else {
+                $months = [['year' => (int) now()->year, 'month' => (int) now()->month]];
+            }
+            $filenameSuffix = sprintf('%04d-%02d', $months[0]['year'], $months[0]['month']);
         }
 
         $students = StudentSection::with('student')
@@ -138,21 +151,99 @@ class AttendanceController extends Controller
             ->orderBy('student_number')
             ->get();
 
-        $existing = ClassAttendance::where('assign_id', $assignId)
-            ->whereBetween('class_date', [$from, $to])
-            ->get()
-            ->groupBy(fn($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
-
         $spreadsheet = new Spreadsheet();
-        $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setTitle('เช็คชื่อ');
-        $this->buildAttendanceSheet($sheet, $assign, $students, $dates, $existing);
+        $firstSheet = true;
+        $usedTitles = [];
+        foreach ($months as $ym) {
+            $dates = $this->schoolDaysInMonth($ym['year'], $ym['month'], $semester?->year_id, $semStart, $semEnd);
+            if ($dates->isEmpty()) {
+                continue;
+            }
+
+            $sheet = $firstSheet ? $spreadsheet->getActiveSheet() : $spreadsheet->createSheet();
+            $firstSheet = false;
+            $sheet->setTitle($this->uniqueMonthTitle($ym['year'], $ym['month'], $usedTitles));
+
+            $existing = ClassAttendance::where('assign_id', $assignId)
+                ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
+                ->get()
+                ->groupBy(fn($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
+
+            $this->buildAttendanceSheet($sheet, $assign, $students, $dates, $existing);
+        }
+
+        if ($firstSheet) {
+            return redirect()->route('attendance.index')->with('error', 'ไม่พบวันเรียนในช่วงที่เลือก (อาจอยู่นอกภาคเรียน หรือตรงกับวันหยุดทั้งหมด)');
+        }
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'attendance_template') . '.xlsx';
         (new Xlsx($spreadsheet))->save($tmpPath);
         $roomLabel = str_replace(['/', '\\'], '-', $assign->classSection->full_name);
-        $filename = 'แบบฟอร์มเช็คชื่อ_' . $assign->subject->code . '_' . $roomLabel . '_' . now()->format('Ymd_His') . '.xlsx';
+        $filename = 'แบบฟอร์มเช็คชื่อ_' . $assign->subject->code . '_' . $roomLabel . '_' . $filenameSuffix . '.xlsx';
         return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    // รายการ [ปี, เดือน] ของทุกเดือนปฏิทินที่ทับกับช่วง $start..$end (ใช้ตอน export ทุกเดือน)
+    private function monthsInRange($start, $end): array
+    {
+        if (!$start || !$end) {
+            return [];
+        }
+        $cursor = \Carbon\Carbon::parse($start)->startOfMonth();
+        $endMonth = \Carbon\Carbon::parse($end)->startOfMonth();
+        $months = [];
+        while ($cursor->lte($endMonth)) {
+            $months[] = ['year' => $cursor->year, 'month' => $cursor->month];
+            $cursor->addMonth();
+        }
+        return $months;
+    }
+
+    // วันเรียนจริงของเดือนนั้น — ตัดวันเสาร์-อาทิตย์ + วันหยุดตามปฏิทิน (Holiday ของปีการศึกษานี้) ออก
+    // แล้วครอบด้วยช่วงเปิดเทอมจริง (ถ้ามี) กันเผลอสร้างคอลัมน์วันที่นอกเทอม
+    private function schoolDaysInMonth(int $year, int $month, $yearId, $semStart, $semEnd)
+    {
+        $monthStart = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
+        $monthEnd = $monthStart->copy()->endOfMonth();
+
+        if ($semStart) {
+            $s = \Carbon\Carbon::parse($semStart)->startOfDay();
+            if ($monthStart->lt($s)) $monthStart = $s->copy();
+        }
+        if ($semEnd) {
+            $e = \Carbon\Carbon::parse($semEnd)->startOfDay();
+            if ($monthEnd->gt($e)) $monthEnd = $e->copy();
+        }
+        if ($monthStart->gt($monthEnd)) {
+            return collect();
+        }
+
+        $holidays = $yearId ? \App\Models\Holiday::where('year_id', $yearId)->get() : collect();
+
+        $days = collect();
+        for ($d = $monthStart->copy(); $d->lte($monthEnd); $d->addDay()) {
+            if ($d->isWeekend()) continue;
+            $isHoliday = $holidays->contains(function ($h) use ($d) {
+                if (!$h->start_date) return false;
+                return $d->between($h->start_date, $h->end_date ?? $h->start_date);
+            });
+            if ($isHoliday) continue;
+            $days->push($d->copy());
+        }
+        return $days;
+    }
+
+    private function uniqueMonthTitle(int $year, int $month, array &$usedTitles): string
+    {
+        $title = self::THAI_MONTHS_SHORT[$month] . ($year + 543);
+        $base = $title;
+        $n = 2;
+        while (isset($usedTitles[$title])) {
+            $title = $base . "-{$n}";
+            $n++;
+        }
+        $usedTitles[$title] = true;
+        return $title;
     }
 
     // นำเข้าไฟล์ Excel ที่กรอกเช็คชื่อออฟไลน์แล้ว
@@ -195,7 +286,7 @@ class AttendanceController extends Controller
         $this->writeAttLabeledRow($sheet, $totalCols, 4, 'รหัสอ้างอิง (ห้ามแก้ไข)', (string) $assign->assign_id);
 
         $sheet->mergeCells("A6:{$lastCol}6");
-        $sheet->setCellValue('A6', 'กรอกสถานะในแต่ละวันที่: ' . implode(' / ', ClassAttendance::STATUSES) . ' — เว้นว่างไว้ถ้าวันนั้นไม่มีเรียน/ไม่เช็คชื่อ (เลือกจากลิสต์ในช่องได้เลย)');
+        $sheet->setCellValue('A6', 'กรอกสถานะในแต่ละวันที่: ' . implode(' / ', ClassAttendance::STATUSES) . ' — ตัดวันเสาร์-อาทิตย์และวันหยุดตามปฏิทินออกให้แล้ว เว้นว่างไว้ได้ถ้าวันนั้นไม่เช็คชื่อ (เลือกจากลิสต์ในช่องได้เลย)');
         $sheet->getStyle('A6')->applyFromArray(['font' => ['italic' => true, 'size' => 10, 'color' => ['rgb' => '777777']]]);
 
         $headerRow = 8;
