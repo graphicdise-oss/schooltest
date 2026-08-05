@@ -8,12 +8,12 @@ use App\Models\Student;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\IOFactory;
-use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 
 /**
  * นำเข้าผลการเช็คชื่อ (ClassAttendance) จากไฟล์ Excel ที่ครูกรอกออฟไลน์ — ดาวน์โหลดจาก
- * AttendanceController::exportTemplate() ไฟล์เป็นเวิร์กบุ๊ก 1 ชีตต่อ 1 วิชา-ห้อง (assign) มีแถว
- * "รหัสอ้างอิง" บอกว่าชีตนั้นเป็นของ assign ไหน ตารางในชีตเป็นแถวนักเรียน x คอลัมน์วันที่ ช่องไหน
+ * AttendanceController::exportTemplate() ไฟล์เป็นเวิร์กบุ๊ก 1 ชีตต่อ 1 วิชา-ห้อง-เดือน (assign) มีแถว
+ * "รหัสอ้างอิง" (assign_id) กับ "เดือนที่อ้างอิง" (YYYY-MM) บอกว่าชีตนั้นเป็นของวิชา-ห้อง/เดือนไหน คอลัมน์วันที่
+ * เป็นเลขวันของเดือน (1-31) ไม่ใช่วันที่เต็ม ต้องประกอบกับเดือน/ปีที่อ้างอิงถึงจะได้วันที่จริง ช่องไหน
  * เว้นว่างไว้ = ไม่เช็คชื่อวันนั้น (ข้ามเงียบๆ ไม่ error) ช่องไหนกรอกสถานะที่ไม่ตรงกับ STATUSES = คำเตือน
  */
 class ImportAttendanceFromExcel extends Command
@@ -150,14 +150,20 @@ class ImportAttendanceFromExcel extends Command
             if ($assignId === null) {
                 continue; // ไม่ใช่ชีตข้อมูล (เช่นไม่ได้มาจากแบบฟอร์มนี้) ข้ามเงียบๆ
             }
+            $monthRef = $this->extractLabeledValue($sheet, 'เดือนที่อ้างอิง (ห้ามแก้ไข)');
+            if (!$monthRef || !preg_match('/^(\d{4})-(\d{1,2})$/', $monthRef, $mm)) {
+                $warnings[] = "ชีต \"{$sheet->getTitle()}\": อ่านค่า \"เดือนที่อ้างอิง\" ไม่ได้ (ต้องเป็นรูปแบบ YYYY-MM) — ข้ามทั้งชีต";
+                continue;
+            }
+            [$refYear, $refMonth] = [(int) $mm[1], (int) $mm[2]];
 
             $headerRow = $this->findHeaderRow($sheet);
             if ($headerRow === null) {
-                $warnings[] = "ชีต \"{$sheet->getTitle()}\": หาแถวหัวตาราง (เลขที่/รหัสนักเรียน/ชื่อ-สกุล) ไม่พบ — ข้ามทั้งชีต";
+                $warnings[] = "ชีต \"{$sheet->getTitle()}\": หาแถวหัวตาราง (เลขที่/เลขประจำตัวนักเรียน/ชื่อ-สกุล) ไม่พบ — ข้ามทั้งชีต";
                 continue;
             }
 
-            $dateColumns = $this->readDateColumns($sheet, $headerRow);
+            $dateColumns = $this->readDateColumns($sheet, $headerRow, $refYear, $refMonth);
             if (empty($dateColumns)) {
                 $warnings[] = "ชีต \"{$sheet->getTitle()}\": ไม่พบคอลัมน์วันที่ในแถวหัวตาราง — ข้ามทั้งชีต";
                 continue;
@@ -207,22 +213,23 @@ class ImportAttendanceFromExcel extends Command
         return null;
     }
 
-    // หาแถวหัวตาราง (A=เลขที่, B=รหัสนักเรียน, C=ชื่อ-สกุล) ในช่วง 20 แถวแรก
+    // หาแถวหัวตาราง (A=เลขที่, B=เลขประจำตัวนักเรียน) ในช่วง 12 แถวแรก
     private function findHeaderRow($sheet): ?int
     {
-        $highestRow = min($sheet->getHighestRow(), 20);
+        $highestRow = min($sheet->getHighestRow(), 12);
         for ($row = 1; $row <= $highestRow; $row++) {
             $a = trim((string) ($sheet->getCell("A{$row}")->getValue() ?? ''));
             $b = trim((string) ($sheet->getCell("B{$row}")->getValue() ?? ''));
-            if ($a === 'เลขที่' && $b === 'รหัสนักเรียน') {
+            if ($a === 'เลขที่' && $b === 'เลขประจำตัวนักเรียน') {
                 return $row;
             }
         }
         return null;
     }
 
-    // อ่านคอลัมน์ D เป็นต้นไปของแถวหัวตาราง เป็นวันที่ (Excel date หรือ string dd/mm/yyyy) จนกว่าจะเจอช่องว่าง
-    private function readDateColumns($sheet, int $headerRow): array
+    // อ่านคอลัมน์ D เป็นต้นไปของแถวหัวตาราง เป็นเลขวันของเดือน (1-31) แล้วประกอบเป็นวันที่จริงด้วย $year/$month
+    // ที่อ่านมาจาก "เดือนที่อ้างอิง" — หยุดอ่านเมื่อเจอคอลัมน์ที่ไม่ใช่ตัวเลข (ชนคอลัมน์สรุป รวม/ขาด/ร้อยละ)
+    private function readDateColumns($sheet, int $headerRow, int $year, int $month): array
     {
         $columns = [];
         $highestCol = $sheet->getHighestColumn($headerRow);
@@ -230,33 +237,16 @@ class ImportAttendanceFromExcel extends Command
 
         for ($colIndex = 4; $colIndex <= $highestColIndex; $colIndex++) {
             $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($colIndex);
-            $cell = $sheet->getCell("{$col}{$headerRow}");
-            $value = $cell->getValue();
-            if ($value === null || trim((string) $value) === '') {
+            $value = $sheet->getCell("{$col}{$headerRow}")->getValue();
+            if ($value === null || trim((string) $value) === '' || !is_numeric($value)) {
                 continue;
             }
-            $date = $this->cellToDateString($cell, $value);
-            if ($date !== null) {
-                $columns[$col] = $date;
+            $day = (int) $value;
+            if ($day < 1 || $day > 31) {
+                continue;
             }
+            $columns[$col] = sprintf('%04d-%02d-%02d', $year, $month, $day);
         }
         return $columns;
-    }
-
-    private function cellToDateString($cell, $value): ?string
-    {
-        if (ExcelDate::isDateTime($cell)) {
-            return ExcelDate::excelToDateTimeObject($value)->format('Y-m-d');
-        }
-        $str = trim((string) $value);
-        // รองรับ dd/mm/yyyy (พ.ศ. หรือ ค.ศ.) ที่อาจพิมพ์เพิ่มเองถ้าหัวตารางเดิมหาย
-        if (preg_match('#^(\d{1,2})/(\d{1,2})/(\d{4})$#', $str, $m)) {
-            $year = (int) $m[3];
-            if ($year > 2400) {
-                $year -= 543;
-            }
-            return sprintf('%04d-%02d-%02d', $year, (int) $m[2], (int) $m[1]);
-        }
-        return null;
     }
 }

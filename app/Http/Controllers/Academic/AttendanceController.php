@@ -453,7 +453,7 @@ class AttendanceController extends Controller
                 ->get()
                 ->groupBy(fn($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
 
-            $this->buildAttendanceSheet($sheet, $assign, $students, $dates, $existing);
+            $this->buildAttendanceSheet($sheet, $assign, $students, $dates, $existing, $ym['year'], $ym['month']);
         }
 
         if ($firstSheet) {
@@ -558,93 +558,142 @@ class AttendanceController extends Controller
         return back()->with('attendance_import_output', $output);
     }
 
-    // สร้างชีต Excel สำหรับเช็คชื่อออฟไลน์ 1 วิชา-ห้อง — แถวนักเรียน x คอลัมน์วันที่
-    private function buildAttendanceSheet($sheet, TeachingAssign $assign, $students, $dates, $existing): void
+    // สร้างชีต Excel สำหรับเช็คชื่อออฟไลน์ 1 วิชา-ห้อง — เลย์เอาต์เดียวกับ "ตรวจเช็คการเข้าเรียน" (buildRoomSummarySheet):
+    // คอลัมน์วันที่เป็นเลขวันของเดือน (ไม่ใช่วันที่เต็ม) + แถวสรุป "รวม/ขาด/ร้อยละ" ต่อคน + "มาเรียนรวม"/"ขาดเรียนรวม"
+    // ท้ายตาราง แต่เว้น 3 แถวว่างไว้ก่อนถึงแถวสรุป (มีดรอปดาวน์พร้อมกรอกด้วย) เผื่อมีนักเรียนเข้าใหม่ระหว่างเดือน
+    private function buildAttendanceSheet($sheet, TeachingAssign $assign, $students, $dates, $existing, int $year, int $month): void
     {
-        $totalCols = 3 + $dates->count();
-        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
+        $n = $dates->count();
+        $firstDateCol = 4; // D
+        $lastDateCol = 3 + $n;
+        $sumCol = $lastDateCol + 1;
+        $absentCol = $sumCol + 1;
+        $pctCol = $absentCol + 1;
+        $lastCol = Coordinate::stringFromColumnIndex($pctCol);
+        $dateColLetter = fn (int $i) => Coordinate::stringFromColumnIndex($firstDateCol + $i);
+        $dateKeys = $dates->map(fn ($d) => $d->format('Y-m-d'));
 
-        $this->writeAttLabeledRow($sheet, $totalCols, 1, 'วิชา', $assign->subject->code . ' — ' . $assign->subject->name_th);
-        $this->writeAttLabeledRow($sheet, $totalCols, 2, 'ห้อง', $assign->classSection->full_name);
-        $this->writeAttLabeledRow($sheet, $totalCols, 3, 'ครูผู้สอน', trim(($assign->personnel->thai_prefix ?? '') . ($assign->personnel->thai_firstname ?? '') . ' ' . ($assign->personnel->thai_lastname ?? '')));
-        $this->writeAttLabeledRow($sheet, $totalCols, 4, 'รหัสอ้างอิง (ห้ามแก้ไข)', (string) $assign->assign_id);
+        $teacherName = trim(($assign->personnel->thai_prefix ?? '') . ($assign->personnel->thai_firstname ?? '') . ' ' . ($assign->personnel->thai_lastname ?? ''));
 
-        $sheet->mergeCells("A6:{$lastCol}6");
-        $sheet->setCellValue('A6', 'กรอกสถานะในแต่ละวันที่: ' . implode(' / ', ClassAttendance::STATUSES) . ' — ตัดวันเสาร์-อาทิตย์และวันหยุดตามปฏิทินออกให้แล้ว เว้นว่างไว้ได้ถ้าวันนั้นไม่เช็คชื่อ (เลือกจากลิสต์ในช่องได้เลย)');
-        $sheet->getStyle('A6')->applyFromArray(['font' => ['italic' => true, 'size' => 10, 'color' => ['rgb' => '777777']]]);
+        $sheet->mergeCells("A1:{$lastCol}1");
+        $sheet->setCellValue('A1', 'แบบฟอร์มเช็คชื่อ');
+        $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 14], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
 
-        $headerRow = 8;
+        $sheet->mergeCells("A2:{$lastCol}2");
+        $sheet->setCellValue('A2', $assign->subject->code . ' — ' . $assign->subject->name_th . '   ห้อง ' . $assign->classSection->full_name . '   ครูผู้สอน ' . $teacherName);
+        $sheet->getStyle('A2')->applyFromArray(['font' => ['bold' => true, 'size' => 11], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+
+        $sheet->mergeCells("A3:{$lastCol}3");
+        $sheet->setCellValue('A3', 'เดือน ' . self::THAI_MONTHS_SHORT[$month] . ' ปี ' . ($year + 543));
+        $sheet->getStyle('A3')->applyFromArray(['font' => ['bold' => true, 'size' => 10.5], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+
+        $sheet->setCellValue('A4', 'รหัสอ้างอิง (ห้ามแก้ไข)');
+        $sheet->setCellValue('B4', (string) $assign->assign_id);
+        $sheet->setCellValue('A5', 'เดือนที่อ้างอิง (ห้ามแก้ไข)');
+        $sheet->setCellValue('B5', sprintf('%04d-%02d', $year, $month));
+        $sheet->getStyle('A4:B5')->applyFromArray(['font' => ['size' => 9, 'color' => ['rgb' => '999999']]]);
+
+        $headerRow = 6;
         $sheet->setCellValue("A{$headerRow}", 'เลขที่');
-        $sheet->setCellValue("B{$headerRow}", 'รหัสนักเรียน');
-        $sheet->setCellValue("C{$headerRow}", 'ชื่อ-สกุล');
-        foreach ($dates->values() as $i => $date) {
-            $col = Coordinate::stringFromColumnIndex(4 + $i);
-            $cell = $sheet->getCell("{$col}{$headerRow}");
-            $cell->setValue(\PhpOffice\PhpSpreadsheet\Shared\Date::PHPToExcel($date->toDateTime()));
-            $cell->getStyle()->getNumberFormat()->setFormatCode('dd/mm/yyyy');
+        $sheet->setCellValue("B{$headerRow}", 'เลขประจำตัวนักเรียน');
+        $sheet->setCellValue("C{$headerRow}", 'ชื่อ - สกุล');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $headerRow, "รวม {$n} คาบ");
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $headerRow, 'ขาด');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $headerRow, 'เข้าเรียนร้อยละ');
+        foreach ($dates as $i => $date) {
+            $sheet->setCellValue($dateColLetter($i) . $headerRow, (int) $date->format('j'));
         }
         $sheet->getStyle("A{$headerRow}:{$lastCol}{$headerRow}")->applyFromArray([
-            'font' => ['bold' => true, 'size' => 10.5],
+            'font' => ['bold' => true, 'size' => 10],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
-            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
         ]);
 
-        $row = $headerRow + 1;
+        $firstDataRow = $headerRow + 1;
+        $row = $firstDataRow;
+        $firstDateColLetter = $dateColLetter(0);
+        $lastDateColLetter = $dateColLetter($n - 1);
+
+        $applyStatusValidation = function ($cell) {
+            $validation = $cell->getDataValidation();
+            $validation->setType(DataValidation::TYPE_LIST);
+            $validation->setErrorStyle(DataValidation::STYLE_WARNING);
+            $validation->setAllowBlank(true);
+            $validation->setShowDropDown(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setErrorTitle('ค่าไม่ถูกต้อง');
+            $validation->setError('เลือกจากลิสต์: ' . implode(', ', ClassAttendance::STATUSES));
+            $validation->setFormula1('"' . implode(',', ClassAttendance::STATUSES) . '"');
+        };
+
         foreach ($students as $ss) {
             $student = $ss->student;
             $sheet->setCellValue("A{$row}", $ss->student_number);
             $sheet->setCellValue("B{$row}", $student->student_code ?? '');
             $sheet->setCellValue("C{$row}", trim(($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . ' ' . ($student->thai_lastname ?? '')));
 
-            foreach ($dates->values() as $i => $date) {
-                $col = Coordinate::stringFromColumnIndex(4 + $i);
-                $key = $student->student_id . '|' . $date->format('Y-m-d');
+            foreach ($dateKeys as $i => $dateStr) {
+                $col = $dateColLetter($i);
+                $key = $student->student_id . '|' . $dateStr;
                 $prior = $existing->get($key)?->first()?->status ?? '';
                 $cell = $sheet->getCell("{$col}{$row}");
                 $cell->setValue($prior);
-
-                $validation = $cell->getDataValidation();
-                $validation->setType(DataValidation::TYPE_LIST);
-                $validation->setErrorStyle(DataValidation::STYLE_WARNING);
-                $validation->setAllowBlank(true);
-                $validation->setShowDropDown(true);
-                $validation->setShowErrorMessage(true);
-                $validation->setErrorTitle('ค่าไม่ถูกต้อง');
-                $validation->setError('เลือกจากลิสต์: ' . implode(', ', ClassAttendance::STATUSES));
-                $validation->setFormula1('"' . implode(',', ClassAttendance::STATUSES) . '"');
+                $applyStatusValidation($cell);
             }
+
+            $rowRange = "{$firstDateColLetter}{$row}:{$lastDateColLetter}{$row}";
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $row, "=COUNTIF({$rowRange},\"มา\")");
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $row, "=COUNTIF({$rowRange},\"ขาด\")");
+            $sumCell = Coordinate::stringFromColumnIndex($sumCol) . $row;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $row, "=IF({$n}=0,0,({$sumCell}*100)/{$n})");
             $row++;
+        }
+        $lastDataRow = $row - 1;
+
+        // เว้นแถวว่างไว้ 3 แถวเผื่อมีนักเรียนเข้าใหม่ — มีดรอปดาวน์/สูตรสรุปรายแถวพร้อมใช้ทันทีที่กรอกชื่อ
+        for ($k = 0; $k < 3; $k++) {
+            foreach ($dateKeys as $i => $dateStr) {
+                $applyStatusValidation($sheet->getCell($dateColLetter($i) . $row));
+            }
+            $rowRange = "{$firstDateColLetter}{$row}:{$lastDateColLetter}{$row}";
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $row, "=COUNTIF({$rowRange},\"มา\")");
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $row, "=COUNTIF({$rowRange},\"ขาด\")");
+            $sumCell = Coordinate::stringFromColumnIndex($sumCol) . $row;
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $row, "=IF({$n}=0,0,({$sumCell}*100)/{$n})");
+            $row++;
+        }
+        $lastBufferRow = $row - 1;
+
+        $sheet->setCellValue("A{$row}", 'มาเรียนรวม');
+        $sheet->mergeCells("A{$row}:C{$row}");
+        foreach ($dateKeys as $i => $dateStr) {
+            $col = $dateColLetter($i);
+            $sheet->setCellValue("{$col}{$row}", "=COUNTIF({$col}{$firstDataRow}:{$col}{$lastBufferRow},\"มา\")");
+        }
+        $row++;
+        $sheet->setCellValue("A{$row}", 'ขาดเรียนรวม');
+        $sheet->mergeCells("A{$row}:C{$row}");
+        foreach ($dateKeys as $i => $dateStr) {
+            $col = $dateColLetter($i);
+            $sheet->setCellValue("{$col}{$row}", "=COUNTIF({$col}{$firstDataRow}:{$col}{$lastBufferRow},\"ขาด\")");
         }
 
         $sheet->getStyle("A{$headerRow}:{$lastCol}{$row}")->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDE3EA']]],
         ]);
-        $sheet->getColumnDimension('A')->setWidth(8);
-        $sheet->getColumnDimension('B')->setWidth(14);
-        $sheet->getColumnDimension('C')->setWidth(26);
-        foreach ($dates->values() as $i => $date) {
-            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex(4 + $i))->setWidth(11);
+        $sheet->getStyle("A{$firstDataRow}:{$lastCol}{$row}")->applyFromArray(['alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+        $sheet->getStyle("C{$firstDataRow}:C{$lastDataRow}")->applyFromArray(['alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT]]);
+
+        $sheet->getColumnDimension('A')->setWidth(7);
+        $sheet->getColumnDimension('B')->setWidth(16);
+        $sheet->getColumnDimension('C')->setWidth(24);
+        for ($i = 0; $i < $n; $i++) {
+            $sheet->getColumnDimension($dateColLetter($i))->setWidth(5);
         }
-        $sheet->freezePane('D' . ($headerRow + 1));
-    }
-
-    private function writeAttLabeledRow($sheet, int $totalCols, int $row, string $label, string $value): void
-    {
-        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
-
-        $sheet->setCellValue("A{$row}", $label);
-        $sheet->getStyle("A{$row}")->applyFromArray([
-            'font' => ['bold' => true, 'size' => 10.5],
-            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
-        ]);
-
-        $sheet->mergeCells("B{$row}:{$lastCol}{$row}");
-        $sheet->setCellValue("B{$row}", $value);
-        $sheet->getStyle("B{$row}")->applyFromArray([
-            'font' => ['bold' => true, 'size' => 10.5],
-            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
-        ]);
+        $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($sumCol))->setWidth(9);
+        $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($absentCol))->setWidth(9);
+        $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($pctCol))->setWidth(11);
+        $sheet->freezePane($firstDateColLetter . $firstDataRow);
     }
 }
