@@ -414,6 +414,9 @@ Route::middleware(['auth'])->group(function () {
             Route::get('/export-template/{assign}', 'exportTemplate')->name('exportTemplate');
             Route::post('/import-excel', 'importExcel')->name('importExcel');
             Route::get('/report/{section}', 'exportRoomSummary')->name('exportRoomSummary');
+            Route::post('/report/import', 'importRoomExcel')->name('importRoomExcel');
+            Route::get('/room/{section}', 'roomMark')->name('roomMark');
+            Route::post('/room/{section}', 'roomStore')->name('roomStore');
             Route::get('/{assign}', 'mark')->name('mark');
             Route::post('/{assign}', 'store')->name('store');
         });

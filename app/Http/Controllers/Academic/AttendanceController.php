@@ -7,6 +7,7 @@ use App\Models\Academic\TeachingAssign;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\ClassAttendance;
 use App\Models\Academic\ClassSection;
+use App\Models\Academic\RoomAttendance;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Subject;
 use App\Models\Personne\Personnel;
@@ -126,10 +127,111 @@ class AttendanceController extends Controller
             ->with('success', "บันทึกการเช็คชื่อสำเร็จ ({$saved} ช่อง)");
     }
 
-    // ดาวน์โหลด "รายงานสรุปการเข้าเรียนรายห้อง" (ตรวจเช็คการเข้าเรียน) — สรุปจากข้อมูลเช็คชื่อรายวิชา
-    // ที่มีอยู่แล้วทุกวิชาของห้องนี้ ให้เหลือ 2 สถานะ (มา/ไม่มา) ต่อวัน: วันไหนมาอย่างน้อย 1 วิชา = มา,
-    // ถ้าขาด/ป่วย/ลาทุกวิชาที่มีเช็คชื่อวันนั้น = ไม่มา, วันไหนไม่มีข้อมูลเช็คชื่อวิชาไหนเลย เว้นว่างไว้
-    // คอลัมน์ 1..N คือลำดับ "วันที่มีการเช็คชื่อจริง" ในช่วงที่เลือก ไม่ใช่วันปฏิทินทุกวัน
+    // ใครเช็คชื่อรวมทั้งห้อง (room_attendances) ของห้องนี้ได้บ้าง — แอดมิน หรือครูประจำชั้น/โฮมรูมของห้องนั้นเท่านั้น
+    private function canMarkRoom(ClassSection $section): bool
+    {
+        $user = auth()->user();
+        if (!$user) {
+            return false;
+        }
+        return $user->isAdmin() || ($section->homeroom_teacher_id && $user->personnel_id === $section->homeroom_teacher_id);
+    }
+
+    // หน้าเช็คชื่อรวมทั้งห้อง (ไม่ต้องเช็คทีละวิชา) — ตารางรายเดือนแบบเดียวกับเช็คชื่อรายวิชา แต่มีแค่ 2 สถานะ (มา/ไม่มา)
+    public function roomMark(Request $request, $sectionId)
+    {
+        $section = ClassSection::with(['level', 'semester.academicYear'])->findOrFail($sectionId);
+
+        if (!$this->canMarkRoom($section)) {
+            return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์เช็คชื่อรวมห้องนี้ (เฉพาะแอดมินหรือครูประจำชั้นเท่านั้น)');
+        }
+
+        $semester = $section->semester;
+        $month = $request->get('month');
+        if ($month && preg_match('/^(\d{4})-(\d{1,2})$/', $month, $m)) {
+            [$year, $mon] = [(int) $m[1], (int) $m[2]];
+        } else {
+            [$year, $mon] = [(int) now()->year, (int) now()->month];
+        }
+        $monthValue = sprintf('%04d-%02d', $year, $mon);
+
+        $dates = $this->schoolDaysInMonth($year, $mon, $semester?->year_id, $semester?->start_date, $semester?->end_date);
+
+        $students = StudentSection::with('student')
+            ->where('section_id', $sectionId)
+            ->where('status', 'กำลังศึกษา')
+            ->orderBy('student_number')
+            ->get();
+
+        $existing = collect();
+        if ($dates->isNotEmpty()) {
+            $existing = RoomAttendance::where('section_id', $sectionId)
+                ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
+                ->get()
+                ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
+        }
+
+        return view('academic.attendance_room_mark', compact('section', 'students', 'dates', 'existing', 'monthValue'));
+    }
+
+    public function roomStore(Request $request, $sectionId)
+    {
+        $section = ClassSection::findOrFail($sectionId);
+
+        if (!$this->canMarkRoom($section)) {
+            return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์เช็คชื่อรวมห้องนี้');
+        }
+
+        $grid = $request->input('status', []);
+        $saved = 0;
+        foreach ($grid as $date => $byStudent) {
+            if (!is_array($byStudent)) continue;
+            foreach ($byStudent as $studentId => $status) {
+                if (!in_array($status, RoomAttendance::STATUSES, true)) continue;
+                RoomAttendance::updateOrCreate(
+                    ['section_id' => $sectionId, 'student_id' => $studentId, 'class_date' => $date],
+                    ['status' => $status]
+                );
+                $saved++;
+            }
+        }
+
+        return redirect()
+            ->route('attendance.roomMark', ['section' => $sectionId, 'month' => $request->input('month')])
+            ->with('success', "บันทึกการเช็คชื่อรวมสำเร็จ ({$saved} ช่อง)");
+    }
+
+    // นำเข้าไฟล์ Excel "ตรวจเช็คการเข้าเรียน" (เช็คชื่อรวมทั้งห้อง) ที่กรอกออฟไลน์แล้ว
+    public function importRoomExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0);
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:room-attendance', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('room_import_output', $output);
+    }
+
+    // ดาวน์โหลด/นำเข้าได้ "ตรวจเช็คการเข้าเรียน" — เช็คชื่อรวมทั้งห้อง (ไม่ผูกกับวิชาไหน อิสระจาก class_attendances)
+    // มีแค่ 2 สถานะ (มา/ไม่มา) ต่อวัน ดึงข้อมูลที่เคยเช็คไว้แล้ว (ออนไลน์หรือนำเข้าไฟล์ก่อนหน้า) มาเติมให้ก่อน
+    // แก้ไข/กรอกเพิ่มในไฟล์แล้วนำเข้ากลับได้ (idempotent — นำเข้าไฟล์เดิมซ้ำได้ ไม่สร้างข้อมูลซ้ำ)
     public function exportRoomSummary(Request $request, $sectionId)
     {
         $section = ClassSection::with(['level', 'semester'])->findOrFail($sectionId);
@@ -153,18 +255,14 @@ class AttendanceController extends Controller
             ->orderBy('student_number')
             ->get();
 
-        $assignIds = TeachingAssign::where('section_id', $sectionId)->pluck('assign_id');
-        $records = ClassAttendance::whereIn('assign_id', $assignIds)
+        $existing = RoomAttendance::where('section_id', $sectionId)
             ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
-            ->get();
+            ->get()
+            ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
 
-        // สรุปต่อ นักเรียน+วัน: มาอย่างน้อย 1 วิชา = "มา" ไม่งั้นถ้ามีข้อมูลแต่ไม่มาเลยสักวิชา = "ไม่มา"
-        // วันไหนไม่มีข้อมูลเช็คชื่อวิชาไหนเลย เว้นว่างไว้ (แก้ไขเองได้จาก dropdown ในไฟล์)
         $summary = [];
-        foreach ($records->groupBy('student_id') as $studentId => $studentRecords) {
-            foreach ($studentRecords->groupBy(fn ($r) => $r->class_date->format('Y-m-d')) as $dateStr => $dayRecords) {
-                $summary[$studentId][$dateStr] = $dayRecords->contains('status', 'มา') ? 'มา' : 'ไม่มา';
-            }
+        foreach ($existing as $key => $r) {
+            $summary[$r->student_id][$r->class_date->format('Y-m-d')] = $r->status;
         }
 
         $spreadsheet = new Spreadsheet();
@@ -179,8 +277,9 @@ class AttendanceController extends Controller
         return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
     }
 
-    // สร้างชีตสรุป: A/B/C = เลขที่/รหัส/ชื่อ, D..(D+N-1) = คอลัมน์ลำดับวันที่ 1..N (มา/ไม่มา),
+    // สร้างชีตตรวจเช็คการเข้าเรียน: A/B/C = เลขที่/รหัส/ชื่อ, D..(D+N-1) = คอลัมน์วันที่ (เลขวันของเดือน, มา/ไม่มา),
     // แล้วตามด้วยคอลัมน์ รวม N คาบ / ขาด / เข้าเรียนร้อยละ (สูตร COUNTIF เหมือนต้นแบบ) + แถวสรุปท้ายตาราง
+    // แถว "รหัสอ้างอิง"/"เดือนที่อ้างอิง" ไว้ให้ตัวนำเข้าไฟล์ (import:room-attendance) รู้ว่าชีตนี้เป็นของห้อง/เดือนไหน
     private function buildRoomSummarySheet($sheet, ClassSection $section, $students, $dates, array $summary, int $year, int $month): void
     {
         $n = $dates->count();
@@ -205,7 +304,13 @@ class AttendanceController extends Controller
         $sheet->setCellValue('A3', 'เดือน ' . self::THAI_MONTHS_SHORT[$month] . ' ปี ' . ($year + 543));
         $sheet->getStyle('A3')->applyFromArray(['font' => ['bold' => true, 'size' => 10.5], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
 
-        $headerRow = 4;
+        $sheet->setCellValue('A4', 'รหัสอ้างอิง (ห้ามแก้ไข)');
+        $sheet->setCellValue('B4', (string) $section->section_id);
+        $sheet->setCellValue('A5', 'เดือนที่อ้างอิง (ห้ามแก้ไข)');
+        $sheet->setCellValue('B5', sprintf('%04d-%02d', $year, $month));
+        $sheet->getStyle('A4:B5')->applyFromArray(['font' => ['size' => 9, 'color' => ['rgb' => '999999']]]);
+
+        $headerRow = 6;
         $sheet->setCellValue("A{$headerRow}", 'เลขที่');
         $sheet->setCellValue("B{$headerRow}", 'เลขประจำตัวนักเรียน');
         $sheet->setCellValue("C{$headerRow}", 'ชื่อ - สกุล');
