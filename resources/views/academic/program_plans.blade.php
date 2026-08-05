@@ -92,7 +92,7 @@
                     จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
                 </span>
             </div>
-            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id]) }}" class="btn-add">
+            <a href="{{ route('curriculums.create', ['program_id' => $program->program_id, 'return_to' => url()->full()]) }}" class="btn-add">
                 <i class="bi bi-plus-lg"></i> สร้างแผน
             </a>
         </div>

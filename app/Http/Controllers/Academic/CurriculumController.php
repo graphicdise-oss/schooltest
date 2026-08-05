@@ -15,6 +15,16 @@ use Illuminate\Http\Request;
 
 class CurriculumController extends Controller
 {
+    // ตรวจ return_to ที่ส่งมาจากหน้าที่ผู้ใช้มาจริงๆ (เช่น /programs หรือ /programs/{id}/plans) ก่อนเอาไปใช้
+    // เป็นปลายทางของปุ่ม "ย้อนกลับ" — รับเฉพาะ URL ของแอปเราเอง กัน open redirect ไปโดเมนอื่น
+    private function sanitizeReturnTo(?string $url): ?string
+    {
+        if (!$url) {
+            return null;
+        }
+        return str_starts_with($url, url('/')) ? $url : null;
+    }
+
     public function byYear($year)
     {
         $curriculums = Curriculum::with(['level', 'curriculumSubjects'])
@@ -53,7 +63,8 @@ class CurriculumController extends Controller
         }
 
         if ($copyingToNewYear) {
-            return redirect()->route('curriculums.edit', $new->curriculum_id)
+            $returnTo = $this->sanitizeReturnTo($request->input('return_to'));
+            return redirect()->route('curriculums.edit', array_filter(['id' => $new->curriculum_id, 'return_to' => $returnTo]))
                 ->with('success', "คัดลอกแผนการเรียนไปปีการศึกษา {$targetYear} สำเร็จ");
         }
         return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
@@ -68,6 +79,9 @@ class CurriculumController extends Controller
         $usedLevelIds = collect();
         $existingPlans = collect();
         $sectionsByCurriculum = collect();
+        // จำหน้าที่ผู้ใช้กดมาจริงๆ ไว้ (เช่น /programs หรือ /programs/{id}/plans) ให้ปุ่ม "ย้อนกลับ" พาไปที่นั่น
+        // แทนที่จะเดาว่าน่าจะมาจากไหน — ส่งต่อผ่านฟอร์มเป็นทอดๆ ไปจนถึงหน้าแก้ไขด้วย
+        $returnTo = $this->sanitizeReturnTo($request->query('return_to'));
         // ถ้าไม่ได้ส่งปีมากับลิงก์ (เช่น มาจากหน้าที่ยังไม่ได้เลือกปีไว้) ให้ใช้ปีการศึกษาปัจจุบันเป็นค่าเริ่มต้นแทน
         // กันไม่ให้ต้องพิมพ์ปีเองทุกครั้ง — ถ้ายังไม่มีปีปัจจุบันตั้งไว้เลย ก็ปล่อยว่างให้พิมพ์เองเหมือนเดิม
         $yearApplied = $request->year_applied ?: AcademicYear::where('is_current', true)->value('year_name');
@@ -93,7 +107,7 @@ class CurriculumController extends Controller
         }
 
         return view('academic.curriculum_form', compact(
-            'levels', 'programs', 'program', 'usedLevelIds', 'yearApplied', 'existingPlans', 'sectionsByCurriculum'
+            'levels', 'programs', 'program', 'usedLevelIds', 'yearApplied', 'existingPlans', 'sectionsByCurriculum', 'returnTo'
         ));
     }
 
@@ -103,17 +117,23 @@ class CurriculumController extends Controller
         $cur = Curriculum::create($request->only(['name', 'level_id', 'year_applied', 'description']) + [
             'program_id' => $request->program_id ?: null,
         ]);
-        return redirect()->route('curriculums.edit', $cur->curriculum_id)->with('success', 'สร้างหลักสูตรสำเร็จ');
+        $returnTo = $this->sanitizeReturnTo($request->input('return_to'));
+        return redirect()->route('curriculums.edit', array_filter(['id' => $cur->curriculum_id, 'return_to' => $returnTo]))
+            ->with('success', 'สร้างหลักสูตรสำเร็จ');
     }
 
-    public function edit($id)
+    public function edit(Request $request, $id)
     {
         $curriculum = Curriculum::with(['curriculumSubjects.subject', 'curriculumSubjects.personnel'])->findOrFail($id);
         $levels     = Level::orderBy('sort_order')->get();
         $programs   = Program::orderBy('name')->get();
         $subjects   = Subject::where('is_active', true)->orderBy('code')->get();
         $personnels = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
-        return view('academic.curriculum_form', compact('curriculum', 'levels', 'programs', 'subjects', 'personnels'));
+        $returnTo   = $this->sanitizeReturnTo($request->query('return_to'));
+        // เผื่อไม่มี return_to ส่งมา (เช่น กด "แก้ไข" จากที่อื่น) ใช้หลักสูตรของแผนนี้เอง คำนวณปลายทาง
+        // fallback ของปุ่ม "ย้อนกลับ" ให้ถูกต้อง (พาไปหน้า "แผน" ของหลักสูตรนั้น ไม่ใช่ /programs เฉยๆ)
+        $program    = $curriculum->program_id ? Program::find($curriculum->program_id) : null;
+        return view('academic.curriculum_form', compact('curriculum', 'levels', 'programs', 'program', 'subjects', 'personnels', 'returnTo'));
     }
 
     public function update(Request $request, $id)

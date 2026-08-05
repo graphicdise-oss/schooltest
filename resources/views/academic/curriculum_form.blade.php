@@ -175,13 +175,10 @@
                 </button>
                 @endif
                 @php
-                    // ย้อนกลับไปหน้าที่มาจริงๆ (เช่น /programs หรือ /programs/{id}/plans) แทนที่จะย้อนไป
-                    // programs.plans ตายตัวเสมอ — เผื่อไว้กรณี referrer ใช้ไม่ได้ (เช่น เข้าลิงก์ตรงๆ หรือ
-                    // เพิ่งถูก redirect กลับมาหน้าเดิมจาก validation error) ค่อย fallback ไปที่เดิม
-                    $backUrl = url()->previous();
-                    if (!$backUrl || $backUrl === url()->full() || $backUrl === url()->current()) {
-                        $backUrl = isset($program) && $program ? route('programs.plans', $program->program_id) : route('programs.index');
-                    }
+                    // ย้อนกลับไปหน้าที่มาจริงๆ ตามที่ส่งมาชัดๆ ผ่าน return_to (จากลิงก์ต้นทาง เช่น /programs
+                    // หรือ /programs/{id}/plans) — เชื่อถือได้กว่า url()->previous() ที่พึ่งพา referer/session
+                    // ซึ่งบางทีก็ใช้ไม่ได้ ถ้าไม่มี return_to เลยค่อย fallback ไปหน้าแผนของหลักสูตร/รายการหลักสูตร
+                    $backUrl = $returnTo ?? (isset($program) && $program ? route('programs.plans', $program->program_id) : route('programs.index'));
                 @endphp
                 <a href="{{ $backUrl }}" class="btn-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
@@ -192,6 +189,7 @@
         <form method="POST" action="{{ isset($curriculum) ? route('curriculums.update', $curriculum->curriculum_id) : route('curriculums.store') }}">
             @csrf
             @if(isset($curriculum)) @method('PUT') @endif
+            <input type="hidden" name="return_to" value="{{ $returnTo ?? '' }}">
 
             <div class="cf-grid">
                 <div class="cf-field">
@@ -546,6 +544,7 @@
             <div class="cf-modal-header"><i class="bi bi-files"></i> คัดลอกแผนการเรียน</div>
             <form action="{{ route('curriculums.copy', $curriculum->curriculum_id) }}" method="POST">
                 @csrf
+                <input type="hidden" name="return_to" value="{{ $returnTo ?? '' }}">
                 <div class="cf-modal-body">
                     <div>
                         คัดลอกแผน <strong>{{ $curriculum->name }}</strong> พร้อมวิชาทั้งหมดในแผนเป็นแผนใหม่

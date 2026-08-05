@@ -227,11 +227,14 @@
             </thead>
             <tbody>
                 @php
-                    // ถ้าเลือกปีไว้ในการ์ดด้านบนแล้ว ส่งปีนั้นแนบไปให้แบบฟอร์มสร้างแผนด้วยเลย
-                    // ผู้ใช้จะได้ไม่ต้องพิมพ์ปีซ้ำอีกรอบ (ปีเดียวกับที่กรองอยู่ตรงนี้)
-                    $createPlanParams = fn ($programId) => $selectedYear
-                        ? ['program_id' => $programId, 'year_applied' => $selectedYear->year_name]
-                        : ['program_id' => $programId];
+                    // ถ้าเลือกปีไว้ในการ์ดด้านบนแล้ว ส่งปีนั้นแนบไปให้แบบฟอร์มสร้างแผนด้วยเลย ผู้ใช้จะได้ไม่ต้อง
+                    // พิมพ์ปีซ้ำอีกรอบ (ปีเดียวกับที่กรองอยู่ตรงนี้) — และส่ง return_to ไปด้วยเสมอ กันปุ่ม
+                    // "ย้อนกลับ" ในหน้าสร้างแผนพาไปผิดที่ (referer/session เพียวๆ ไม่น่าเชื่อถือพอ)
+                    $createPlanParams = fn ($programId) => array_filter([
+                        'program_id' => $programId,
+                        'year_applied' => $selectedYear->year_name ?? null,
+                        'return_to' => url()->full(),
+                    ]);
                 @endphp
                 @forelse($programs as $i => $p)
                 <tr>
