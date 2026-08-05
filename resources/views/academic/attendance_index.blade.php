@@ -99,7 +99,8 @@
         <div class="ac-card-body">
             <p style="font-size:.82rem;color:#777;margin:0 0 12px">
                 สรุปจากข้อมูลเช็คชื่อรายวิชาที่มีอยู่แล้วทุกวิชาของห้องนั้น เหลือ 2 สถานะ (มา/ไม่มา) ต่อวัน —
-                วันไหนมาอย่างน้อย 1 วิชา นับเป็น "มา" คอลัมน์ 1, 2, 3... คือลำดับวันที่มีการเช็คชื่อจริงในช่วงที่เลือก
+                วันไหนมาอย่างน้อย 1 วิชา นับเป็น "มา" คอลัมน์เป็นวันที่ของเดือนที่เลือก (ตัดเสาร์-อาทิตย์และวันหยุดตามปฏิทินออกให้แล้ว)
+                แต่ละช่องมีลิสต์ให้เลือกมา/ไม่มา แก้ไขเองในไฟล์ได้
             </p>
             <form method="GET" id="attSummaryForm" action="{{ url('/attendance/report') }}" target="_blank"
                 style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap" onsubmit="return attSubmitSummary(event)">
@@ -113,16 +114,11 @@
                     </select>
                 </div>
                 <div class="ac-field" style="margin:0">
-                    <label>จากวันที่</label>
-                    <input type="date" name="from" class="ac-input">
-                </div>
-                <div class="ac-field" style="margin:0">
-                    <label>ถึงวันที่</label>
-                    <input type="date" name="to" class="ac-input">
+                    <label>เดือน</label>
+                    <input type="month" id="attSummaryMonth" class="ac-input" value="{{ now()->format('Y-m') }}">
                 </div>
                 <button type="submit" class="ac-btn ac-btn-primary" style="height:38px;white-space:nowrap"><i class="bi bi-download"></i> ดาวน์โหลดรายงาน</button>
             </form>
-            <p style="font-size:.76rem;color:#999;margin:8px 0 0">เว้นวันที่ไว้ = ใช้ช่วงเปิด-ปิดเทอมของห้องนั้นทั้งหมด</p>
         </div>
     </div>
 </div>
@@ -198,14 +194,9 @@ function attSubmitSummary(e) {
     e.preventDefault();
     var sectionId = document.getElementById('attSummarySection').value;
     if (!sectionId) { alert('กรุณาเลือกห้องเรียน'); return false; }
-    var form = document.getElementById('attSummaryForm');
-    var from = form.querySelector('input[name=from]').value;
-    var to = form.querySelector('input[name=to]').value;
-    var url = "{{ url('/attendance/report') }}/" + sectionId;
-    var params = [];
-    if (from) params.push('from=' + encodeURIComponent(from));
-    if (to) params.push('to=' + encodeURIComponent(to));
-    if (params.length) url += '?' + params.join('&');
+    var month = document.getElementById('attSummaryMonth').value;
+    if (!month) { alert('กรุณาเลือกเดือน'); return false; }
+    var url = "{{ url('/attendance/report') }}/" + sectionId + "?month=" + encodeURIComponent(month);
     window.open(url, '_blank');
     return false;
 }

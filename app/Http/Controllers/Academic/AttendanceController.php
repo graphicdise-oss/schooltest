@@ -135,10 +135,16 @@ class AttendanceController extends Controller
         $section = ClassSection::with(['level', 'semester'])->findOrFail($sectionId);
         $semester = $section->semester;
 
-        $from = $request->get('from', $semester?->start_date?->toDateString() ?? now()->startOfMonth()->toDateString());
-        $to = $request->get('to', $semester?->end_date?->toDateString() ?? now()->toDateString());
-        if ($to < $from) {
-            [$from, $to] = [$to, $from];
+        $month = $request->get('month');
+        if ($month && preg_match('/^(\d{4})-(\d{1,2})$/', $month, $m)) {
+            [$year, $mon] = [(int) $m[1], (int) $m[2]];
+        } else {
+            [$year, $mon] = [(int) now()->year, (int) now()->month];
+        }
+
+        $dates = $this->schoolDaysInMonth($year, $mon, $semester?->year_id, $semester?->start_date, $semester?->end_date);
+        if ($dates->isEmpty()) {
+            return redirect()->route('attendance.index')->with('error', 'ไม่พบวันเรียนของห้องนี้ในเดือนที่เลือก (อาจอยู่นอกภาคเรียน หรือเป็นวันหยุดทั้งเดือน)');
         }
 
         $students = StudentSection::with('student')
@@ -149,15 +155,11 @@ class AttendanceController extends Controller
 
         $assignIds = TeachingAssign::where('section_id', $sectionId)->pluck('assign_id');
         $records = ClassAttendance::whereIn('assign_id', $assignIds)
-            ->whereBetween('class_date', [$from, $to])
+            ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
             ->get();
 
-        $dates = $records->map(fn ($r) => $r->class_date->format('Y-m-d'))->unique()->sort()->values();
-        if ($dates->isEmpty()) {
-            return redirect()->route('attendance.index')->with('error', 'ไม่พบข้อมูลเช็คชื่อของห้องนี้ในช่วงวันที่เลือก (ต้องเช็คชื่อรายวิชาไว้ก่อนอย่างน้อย 1 วัน)');
-        }
-
         // สรุปต่อ นักเรียน+วัน: มาอย่างน้อย 1 วิชา = "มา" ไม่งั้นถ้ามีข้อมูลแต่ไม่มาเลยสักวิชา = "ไม่มา"
+        // วันไหนไม่มีข้อมูลเช็คชื่อวิชาไหนเลย เว้นว่างไว้ (แก้ไขเองได้จาก dropdown ในไฟล์)
         $summary = [];
         foreach ($records->groupBy('student_id') as $studentId => $studentRecords) {
             foreach ($studentRecords->groupBy(fn ($r) => $r->class_date->format('Y-m-d')) as $dateStr => $dayRecords) {
@@ -168,7 +170,7 @@ class AttendanceController extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle(str_replace(['/', '\\', ':', '*', '?', '[', ']'], '-', $section->full_name ?: 'ห้อง'));
-        $this->buildRoomSummarySheet($sheet, $section, $students, $dates, $summary);
+        $this->buildRoomSummarySheet($sheet, $section, $students, $dates, $summary, $year, $mon);
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'attendance_summary') . '.xlsx';
         (new Xlsx($spreadsheet))->save($tmpPath);
@@ -179,7 +181,7 @@ class AttendanceController extends Controller
 
     // สร้างชีตสรุป: A/B/C = เลขที่/รหัส/ชื่อ, D..(D+N-1) = คอลัมน์ลำดับวันที่ 1..N (มา/ไม่มา),
     // แล้วตามด้วยคอลัมน์ รวม N คาบ / ขาด / เข้าเรียนร้อยละ (สูตร COUNTIF เหมือนต้นแบบ) + แถวสรุปท้ายตาราง
-    private function buildRoomSummarySheet($sheet, ClassSection $section, $students, $dates, array $summary): void
+    private function buildRoomSummarySheet($sheet, ClassSection $section, $students, $dates, array $summary, int $year, int $month): void
     {
         $n = $dates->count();
         $firstDateCol = 4; // D
@@ -189,6 +191,7 @@ class AttendanceController extends Controller
         $pctCol = $absentCol + 1;
         $lastCol = Coordinate::stringFromColumnIndex($pctCol);
         $dateColLetter = fn (int $i) => Coordinate::stringFromColumnIndex($firstDateCol + $i);
+        $dateKeys = $dates->map(fn ($d) => $d->format('Y-m-d'));
 
         $sheet->mergeCells("A1:{$lastCol}1");
         $sheet->setCellValue('A1', 'ตรวจเช็คการเข้าเรียน');
@@ -198,35 +201,28 @@ class AttendanceController extends Controller
         $sheet->setCellValue('A2', 'ชั้น' . ($section->level->name ?? '') . ' ห้อง ' . $section->section_number . ($section->study_plan ? ' ' . $section->study_plan : ''));
         $sheet->getStyle('A2')->applyFromArray(['font' => ['bold' => true, 'size' => 11], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
 
-        $headerRow1 = 3;
-        $headerRow2 = 4;
-        $sheet->mergeCells("A{$headerRow1}:A{$headerRow2}");
-        $sheet->setCellValue("A{$headerRow1}", 'เลขที่');
-        $sheet->mergeCells("B{$headerRow1}:B{$headerRow2}");
-        $sheet->setCellValue("B{$headerRow1}", 'เลขประจำตัวนักเรียน');
-        $sheet->mergeCells("C{$headerRow1}:C{$headerRow2}");
-        $sheet->setCellValue("C{$headerRow1}", 'ชื่อ - สกุล');
-        $sheet->mergeCells(Coordinate::stringFromColumnIndex($sumCol) . "{$headerRow1}:" . Coordinate::stringFromColumnIndex($sumCol) . "{$headerRow2}");
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $headerRow1, "รวม {$n} คาบ");
-        $sheet->mergeCells(Coordinate::stringFromColumnIndex($absentCol) . "{$headerRow1}:" . Coordinate::stringFromColumnIndex($absentCol) . "{$headerRow2}");
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $headerRow1, 'ขาด');
-        $sheet->mergeCells(Coordinate::stringFromColumnIndex($pctCol) . "{$headerRow1}:" . Coordinate::stringFromColumnIndex($pctCol) . "{$headerRow2}");
-        $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $headerRow1, 'เข้าเรียนร้อยละ');
+        $sheet->mergeCells("A3:{$lastCol}3");
+        $sheet->setCellValue('A3', 'เดือน ' . self::THAI_MONTHS_SHORT[$month] . ' ปี ' . ($year + 543));
+        $sheet->getStyle('A3')->applyFromArray(['font' => ['bold' => true, 'size' => 10.5], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
 
-        foreach ($dates as $i => $dateStr) {
-            $col = $dateColLetter($i);
-            $sheet->mergeCells("{$col}{$headerRow1}:{$col}{$headerRow1}");
-            $sheet->setCellValue("{$col}{$headerRow1}", \Carbon\Carbon::parse($dateStr)->format('d/m'));
-            $sheet->setCellValue("{$col}{$headerRow2}", $i + 1);
+        $headerRow = 4;
+        $sheet->setCellValue("A{$headerRow}", 'เลขที่');
+        $sheet->setCellValue("B{$headerRow}", 'เลขประจำตัวนักเรียน');
+        $sheet->setCellValue("C{$headerRow}", 'ชื่อ - สกุล');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($sumCol) . $headerRow, "รวม {$n} คาบ");
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($absentCol) . $headerRow, 'ขาด');
+        $sheet->setCellValue(Coordinate::stringFromColumnIndex($pctCol) . $headerRow, 'เข้าเรียนร้อยละ');
+        foreach ($dates as $i => $date) {
+            $sheet->setCellValue($dateColLetter($i) . $headerRow, (int) $date->format('j'));
         }
-        $sheet->getStyle("A{$headerRow1}:{$lastCol}{$headerRow2}")->applyFromArray([
+        $sheet->getStyle("A{$headerRow}:{$lastCol}{$headerRow}")->applyFromArray([
             'font' => ['bold' => true, 'size' => 10],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
             'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
         ]);
 
-        $firstDataRow = $headerRow2 + 1;
+        $firstDataRow = $headerRow + 1;
         $row = $firstDataRow;
         $firstDateColLetter = $dateColLetter(0);
         $lastDateColLetter = $dateColLetter($n - 1);
@@ -236,9 +232,20 @@ class AttendanceController extends Controller
             $sheet->setCellValue("B{$row}", $student->student_code ?? '');
             $sheet->setCellValue("C{$row}", trim(($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . ' ' . ($student->thai_lastname ?? '')));
 
-            foreach ($dates as $i => $dateStr) {
+            foreach ($dateKeys as $i => $dateStr) {
                 $col = $dateColLetter($i);
-                $sheet->setCellValue("{$col}{$row}", $summary[$student->student_id][$dateStr] ?? '');
+                $cell = $sheet->getCell("{$col}{$row}");
+                $cell->setValue($summary[$student->student_id][$dateStr] ?? '');
+
+                $validation = $cell->getDataValidation();
+                $validation->setType(DataValidation::TYPE_LIST);
+                $validation->setErrorStyle(DataValidation::STYLE_WARNING);
+                $validation->setAllowBlank(true);
+                $validation->setShowDropDown(true);
+                $validation->setShowErrorMessage(true);
+                $validation->setErrorTitle('ค่าไม่ถูกต้อง');
+                $validation->setError('เลือกจากลิสต์: มา, ไม่มา');
+                $validation->setFormula1('"มา,ไม่มา"');
             }
 
             $rowRange = "{$firstDateColLetter}{$row}:{$lastDateColLetter}{$row}";
@@ -252,19 +259,19 @@ class AttendanceController extends Controller
 
         $sheet->setCellValue("A{$row}", 'มาเรียนรวม');
         $sheet->mergeCells("A{$row}:C{$row}");
-        foreach ($dates as $i => $dateStr) {
+        foreach ($dateKeys as $i => $dateStr) {
             $col = $dateColLetter($i);
             $sheet->setCellValue("{$col}{$row}", "=COUNTIF({$col}{$firstDataRow}:{$col}{$lastDataRow},\"มา\")");
         }
         $row++;
         $sheet->setCellValue("A{$row}", 'ขาดเรียนรวม');
         $sheet->mergeCells("A{$row}:C{$row}");
-        foreach ($dates as $i => $dateStr) {
+        foreach ($dateKeys as $i => $dateStr) {
             $col = $dateColLetter($i);
             $sheet->setCellValue("{$col}{$row}", "=COUNTIF({$col}{$firstDataRow}:{$col}{$lastDataRow},\"ไม่มา\")");
         }
 
-        $sheet->getStyle("A{$headerRow1}:{$lastCol}{$row}")->applyFromArray([
+        $sheet->getStyle("A{$headerRow}:{$lastCol}{$row}")->applyFromArray([
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDE3EA']]],
         ]);
         $sheet->getStyle("A{$firstDataRow}:{$lastCol}{$row}")->applyFromArray(['alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
@@ -274,7 +281,7 @@ class AttendanceController extends Controller
         $sheet->getColumnDimension('B')->setWidth(16);
         $sheet->getColumnDimension('C')->setWidth(24);
         for ($i = 0; $i < $n; $i++) {
-            $sheet->getColumnDimension($dateColLetter($i))->setWidth(6);
+            $sheet->getColumnDimension($dateColLetter($i))->setWidth(5);
         }
         $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($sumCol))->setWidth(9);
         $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($absentCol))->setWidth(9);
