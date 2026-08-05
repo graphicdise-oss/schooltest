@@ -24,12 +24,22 @@ class CurriculumController extends Controller
         return view('academic.curriculum_by_year', compact('curriculums', 'year', 'levels'));
     }
 
-    public function copy($id)
+    public function copy(Request $request, $id)
     {
         $original = Curriculum::with('curriculumSubjects')->findOrFail($id);
         $new = $original->replicate();
-        $new->name = $original->name . ' (คัดลอก)';
+
+        // ถ้าระบุปีการศึกษาใหม่มา (เช่น คัดลอกไปปีหน้า) ให้ใช้ปีนั้นแทน คงชื่อเดิมไว้ (คนละปีชื่อซ้ำกันได้)
+        // ถ้าไม่ได้ระบุปี ถือว่าคัดลอกในปีเดิม ต้องเติม "(คัดลอก)" กันชื่อซ้ำกันเป๊ะๆ ในปีเดียวกัน
+        $targetYear = trim((string) $request->input('year_applied', ''));
+        $copyingToNewYear = $targetYear !== '' && $targetYear !== $original->year_applied;
+        if ($copyingToNewYear) {
+            $new->year_applied = $targetYear;
+        } else {
+            $new->name = $original->name . ' (คัดลอก)';
+        }
         $new->save();
+
         foreach ($original->curriculumSubjects as $cs) {
             $new->curriculumSubjects()->create([
                 'subject_id'     => $cs->subject_id,
@@ -40,6 +50,11 @@ class CurriculumController extends Controller
                 'hours_per_year' => $cs->hours_per_year,
                 'hours_per_week' => $cs->hours_per_week,
             ]);
+        }
+
+        if ($copyingToNewYear) {
+            return redirect()->route('curriculums.edit', $new->curriculum_id)
+                ->with('success', "คัดลอกแผนการเรียนไปปีการศึกษา {$targetYear} สำเร็จ");
         }
         return redirect()->back()->with('success', 'คัดลอกแผนการเรียนสำเร็จ');
     }

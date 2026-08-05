@@ -170,13 +170,9 @@
             <span class="cf-card-title">จัดการหลักสูตร/แผน</span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 @if(isset($curriculum))
-                <form action="{{ route('curriculums.copy', $curriculum->curriculum_id) }}" method="POST" style="display:inline"
-                      onsubmit="return confirm('คัดลอกแผนการเรียน &quot;{{ addslashes($curriculum->name) }}&quot; เป็นแผนใหม่?')">
-                    @csrf
-                    <button type="submit" class="btn-copy-plan">
-                        <i class="bi bi-files"></i> คัดลอกแผนการเรียน
-                    </button>
-                </form>
+                <button type="button" class="btn-copy-plan" onclick="document.getElementById('copyPlanOverlay').classList.add('active')">
+                    <i class="bi bi-files"></i> คัดลอกแผนการเรียน
+                </button>
                 @endif
                 @php
                     // ย้อนกลับไปหน้าที่มาจริงๆ (เช่น /programs หรือ /programs/{id}/plans) แทนที่จะย้อนไป
@@ -536,6 +532,34 @@
         <div class="cf-empty" style="padding:28px 20px;">
             <i class="bi bi-arrow-up-circle" style="font-size:1.8rem;display:block;margin-bottom:8px;color:#43a047"></i>
             กด "บันทึกหลักสูตร" ด้านบนก่อน แล้วจะกลับมาที่หน้านี้พร้อมเพิ่มวิชาได้ทันที
+        </div>
+    </div>
+    @endif
+
+    @if(isset($curriculum))
+    {{-- ===== Modal คัดลอกแผนการเรียน (ในปีเดิม หรือไปปีอื่น เช่นปีหน้า) ===== --}}
+    @php
+        $suggestedNextYear = is_numeric($curriculum->year_applied) ? ((int) $curriculum->year_applied + 1) : '';
+    @endphp
+    <div class="cf-overlay" id="copyPlanOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="cf-modal">
+            <div class="cf-modal-header"><i class="bi bi-files"></i> คัดลอกแผนการเรียน</div>
+            <form action="{{ route('curriculums.copy', $curriculum->curriculum_id) }}" method="POST">
+                @csrf
+                <div class="cf-modal-body">
+                    <div>
+                        คัดลอกแผน <strong>{{ $curriculum->name }}</strong> พร้อมวิชาทั้งหมดในแผนเป็นแผนใหม่
+                    </div>
+                    <div>
+                        <label>ปีการศึกษาของแผนใหม่ <span class="cf-modal-hint">(เว้นว่างไว้ = คัดลอกในปีเดิม ระบบจะตั้งชื่อเติม "(คัดลอก)" ให้อัตโนมัติ)</span></label>
+                        <input type="text" name="year_applied" value="{{ $suggestedNextYear }}" placeholder="เช่น {{ $suggestedNextYear ?: '2569' }}">
+                    </div>
+                </div>
+                <div class="cf-modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="document.getElementById('copyPlanOverlay').classList.remove('active')">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-ok"><i class="bi bi-files"></i> คัดลอกแผน</button>
+                </div>
+            </form>
         </div>
     </div>
     @endif
