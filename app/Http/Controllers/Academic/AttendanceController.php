@@ -97,37 +97,6 @@ class AttendanceController extends Controller
                 ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
         }
 
-        // ครูลืมเช็ค: วันเรียนจริงที่ผ่านมาแล้วแต่ยังไม่มีบันทึกของนักเรียนคนนั้นเลย ให้ถือว่า "ขาด" ไปก่อนอัตโนมัติ
-        // ตั้งแต่ตอนเปิดหน้านี้ (ไม่ใช่ตอนกดบันทึกแล้ว เพราะตอนนี้แต่ละช่องบันทึกทันทีที่เลือก ไม่มีปุ่มบันทึกรวมแล้ว)
-        // ยังแก้ไขทีหลังได้ตามปกติ — ไม่แตะวันหยุด/เสาร์-อาทิตย์ และไม่แตะวันในอนาคตที่ยังไม่ถึง
-        $today = now()->format('Y-m-d');
-        $newRows = [];
-        foreach ($dates as $d) {
-            if (!$d->is_school_day) continue;
-            $dateStr = $d->date->format('Y-m-d');
-            if ($dateStr > $today) continue;
-            foreach ($students as $ss) {
-                $key = $ss->student_id . '|' . $dateStr;
-                if (!$existing->has($key)) {
-                    $newRows[] = [
-                        'assign_id' => $assignId,
-                        'student_id' => $ss->student_id,
-                        'class_date' => $dateStr,
-                        'status' => 'ขาด',
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                }
-            }
-        }
-        if (!empty($newRows)) {
-            ClassAttendance::insert($newRows);
-            $existing = ClassAttendance::where('assign_id', $assignId)
-                ->whereBetween('class_date', [$dates->first()->date->format('Y-m-d'), $dates->last()->date->format('Y-m-d')])
-                ->get()
-                ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
-        }
-
         return view('academic.attendance_mark', compact('assign', 'students', 'dates', 'existing', 'monthValue'));
     }
 
@@ -153,7 +122,7 @@ class AttendanceController extends Controller
         if ($status === '') {
             ClassAttendance::where('assign_id', $assignId)
                 ->where('student_id', $studentId)
-                ->where('class_date', $date)
+                ->whereDate('class_date', $date)
                 ->delete();
             return response()->json(['success' => true, 'cleared' => true]);
         }
