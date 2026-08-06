@@ -500,6 +500,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     });
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
+    Route::get('/student-stat/export', [StudentStatController::class, 'exportExcel'])->name('student-stat.export');
 
     // === ไทม์สแตมป์ — ดูว่าใครบันทึก/แก้ไขหน้าไหนไปบ้าง (เฉพาะ admin/superadmin) ===
     Route::controller(\App\Http\Controllers\Setting\ActivityTimestampController::class)
