@@ -196,24 +196,23 @@ class StudentListController extends Controller
             ];
         });
 
-        // ถ้ากรองตามระดับชั้นแล้วไม่เจอใครเลยทั้งที่มีข้อมูลอยู่ ให้เก็บรายการ "ห้อง/รหัสระดับชั้นที่มีข้อมูลจริง" ไว้เทียบ
-        // กับ level_id ที่เลือก เผื่อระดับชั้นในระบบมีรายการซ้ำ (ชื่อเหมือนกันแต่คนละ id) จะได้เห็นสาเหตุตรงๆ
         $availableLevelDebug = collect();
-        if ($levelId !== '') {
+
+        // กรองตามห้องเรียนที่เจาะจง (ตรงตัวที่สุด — ใช้เมื่อเลือกห้องมาแล้ว)
+        if ($sectionId !== '') {
+            $rows = $rows->filter(fn($r) => trim((string) $r->section_id) === trim((string) $sectionId))->values();
+        }
+        // เลือกแค่ระดับชั้นแต่ไม่ได้เจาะจงห้อง — กรองผ่านรายชื่อ section_id ของห้องทั้งหมดในชั้นนั้น (มาจากตาราง
+        // class_sections ตัวเดียวกับที่ใช้สร้างดรอปดาวน์ห้องเรียน) แทนการเทียบ level_id ของแต่ละแถวโดยตรง
+        // เพราะการเทียบ level_id ตรงๆ เจอปัญหาจับคู่ไม่ติดที่ยังหาสาเหตุทางลึกไม่เจอ แต่ section_id เชื่อถือได้กว่า
+        elseif ($levelId !== '') {
+            $sectionIdsInLevel = $sections->where('level_id', $levelId)->pluck('section_id')
+                ->map(fn($v) => (string) $v)->all();
             $availableLevelDebug = $rows->filter(fn($r) => $r->level_id !== null)
                 ->map(fn($r) => $r->level_id . ' (' . $r->room . ')')
                 ->unique()
                 ->values();
-        }
-
-        // กรองตามระดับชั้นของห้องล่าสุด (trim กันช่องว่างแปลกๆ ที่อาจติดมากับค่าจาก query string)
-        if ($levelId !== '') {
-            $rows = $rows->filter(fn($r) => trim((string) $r->level_id) === trim((string) $levelId))->values();
-        }
-
-        // กรองตามห้องเรียนที่เจาะจง (เชื่อถือได้กว่า level_id เพราะ section_id ชี้ห้องเดียวตรงๆ ไม่ต้องอนุมานผ่านชั้น)
-        if ($sectionId !== '') {
-            $rows = $rows->filter(fn($r) => trim((string) $r->section_id) === trim((string) $sectionId))->values();
+            $rows = $rows->filter(fn($r) => in_array((string) $r->section_id, $sectionIdsInLevel, true))->values();
         }
 
         // นักเรียนบางคน (มักเป็นข้อมูลเก่าที่นำเข้าตรงๆ ไม่ผ่านหน้าจัดห้องของระบบ) ไม่มีวันที่เข้าเรียนบันทึกไว้เลย
