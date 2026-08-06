@@ -7,6 +7,7 @@ use App\Models\Academic\Promotion;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\Semester;
+use App\Models\Academic\AcademicYear;
 use App\Models\Academic\Level;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -19,6 +20,9 @@ class PromotionController extends Controller
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
         $semesters = Semester::with('academicYear')->orderedByRecency()->get();
+        $academicYears = AcademicYear::orderByDesc('year_name')->get();
+        // เอาไว้ pre-select ดรอปดาวน์ "ปีการศึกษา" ให้ตรงกับเทอมที่กำลังดูอยู่ตอนโหลดหน้า
+        $yearId = $semesters->firstWhere('semester_id', $semesterId)?->year_id;
         $levels = Level::orderBy('sort_order')->get();
 
         $fromSections = ClassSection::with(['level', 'studentSections.student'])
@@ -51,7 +55,7 @@ class PromotionController extends Controller
             ? $levels
             : $levels->whereIn('level_id', $terminalLevelIds)->sortBy('sort_order')->values();
 
-        return view('academic.promotions', compact('semesters', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester'));
+        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester'));
     }
 
     // ย้ายห้อง (เทอมเดียวกัน)
