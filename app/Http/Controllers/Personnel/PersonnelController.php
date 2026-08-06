@@ -277,6 +277,10 @@ class PersonnelController extends Controller
             $query->where('department', $request->department);
         }
 
+        if ($request->filled('section_id')) {
+            $query->whereIn('personnel_id', \App\Models\Academic\ClassSection::where('section_id', $request->section_id)->pluck('homeroom_teacher_id'));
+        }
+
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(
@@ -294,9 +298,15 @@ class PersonnelController extends Controller
             ->sort()
             ->values();
 
+        $sections = \App\Models\Academic\ClassSection::with('level')
+            ->whereHas('semester', fn($q) => $q->where('is_current', true))
+            ->get()
+            ->sortBy([['level.sort_order', 'asc'], ['section_number', 'asc']])
+            ->values();
+
         $personnels = $query->paginate(20);
         $schoolInfo = SchoolInfoSetting::getInstance();
-        return view('personnel.index', compact('personnels', 'departments', 'schoolInfo'));
+        return view('personnel.index', compact('personnels', 'departments', 'sections', 'schoolInfo'));
 
 
     }

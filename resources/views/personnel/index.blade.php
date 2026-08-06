@@ -379,6 +379,17 @@
                         </select>
                     </div>
                     <div class="col-md-3 mb-4 offset-md-1">
+                        <label class="form-label fw-bold text-dark mb-0">ห้อง (ครูประจำชั้น)</label>
+                        <select name="section_id" class="form-select input-material text-muted mt-2">
+                            <option value="">ทั้งหมด</option>
+                            @foreach ($sections as $sec)
+                                <option value="{{ $sec->section_id }}" {{ request('section_id') == $sec->section_id ? 'selected' : '' }}>
+                                    {{ $sec->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-4 offset-md-1">
                         <label class="form-label fw-bold text-dark mb-0">ชื่อ - นามสกุล</label>
                         <input type="text" name="search" class="form-control input-material text-muted mt-2"
                             placeholder="ชื่อ - นามสกุล" value="{{ request('search') }}">
