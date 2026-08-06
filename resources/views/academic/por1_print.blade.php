@@ -481,7 +481,7 @@ body {
                 @endfor
 
                 {{-- แถวว่างดันท้าย --}}
-                @for($pi = 0; $pi < 6; $pi++)
+                @for($pi = 0; $pi < 2; $pi++)
                 <tr style="height: 20px;">
                     <td style="border-right: 1px solid #000;"></td>
                     <td style="border-right: 1px solid #000;"></td>
