@@ -7,7 +7,7 @@ use App\Models\Student;
 use App\Models\SchoolInfoSetting;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
-use App\Models\Academic\AcademicYear;
+use App\Models\Academic\Semester;
 use App\Services\ExcelSchoolHeader;
 use App\Services\StudentExcelExporter;
 use Illuminate\Http\Request;
@@ -152,7 +152,11 @@ class StudentListController extends Controller
         $dateFrom = $request->get('date_from', '');
         $dateTo   = $request->get('date_to', '');
 
-        $currentYearId = optional(AcademicYear::current())->year_id;
+        // ถ้าไม่ได้เลือกวันที่มาเอง ให้ใช้ช่วงเทอมปัจจุบันเป็นค่าเริ่มต้น (นับจากวันที่เข้าเรียนจริง
+        // ไม่ใช่จับคู่ปีการศึกษาที่ผูกไว้ตอนสร้างห้อง ซึ่งพังง่ายถ้าไม่ได้ตั้ง is_current ให้ตรงกับข้อมูลจริง)
+        $currentSemester = Semester::where('is_current', true)->first();
+        $effectiveFrom = $dateFrom !== '' ? $dateFrom : optional($currentSemester?->start_date)->format('Y-m-d');
+        $effectiveTo   = $dateTo !== '' ? $dateTo : null;
 
         $students = Student::whereHas('studentSections')
             ->when($search, function ($q) use ($search) {
@@ -171,9 +175,8 @@ class StudentListController extends Controller
             ])
             ->get();
 
-        // แปลงเป็นแถวรายงาน (ห้องแรกสุด = วันเข้าเรียนครั้งแรก, ห้องล่าสุด = วันเข้าเรียนล่าสุด)
+        // แปลงเป็นแถวรายงาน (ห้องล่าสุด = วันเข้าเรียนล่าสุด)
         $rows = $students->map(function ($s) {
-            $first  = $s->studentSections->first();
             $latest = $s->studentSections->last();
             $sec    = $latest?->classSection;
             return (object) [
@@ -186,26 +189,20 @@ class StudentListController extends Controller
                 'previous_school' => $s->education?->previous_school,
                 'status'          => $s->status,
                 'level_id'        => $sec?->level_id,
-                'first_year_id'   => $first?->classSection?->semester?->year_id,
             ];
         });
-
-        // นักเรียนใหม่ = เข้าห้องครั้งแรกในปีการศึกษาปัจจุบัน (ถ้าไม่มีปีปัจจุบันตั้งไว้ ให้แสดงทั้งหมด)
-        if ($currentYearId) {
-            $rows = $rows->filter(fn($r) => (string) $r->first_year_id === (string) $currentYearId)->values();
-        }
 
         // กรองตามระดับชั้นของห้องล่าสุด
         if ($levelId !== '') {
             $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
         }
 
-        // กรองตามช่วงวันที่เข้าเรียน — เลือกวันก่อน แล้วค่อยหา (ปล่อยว่างได้ทั้งสองช่อง หรือช่องใดช่องหนึ่ง)
-        if ($dateFrom !== '') {
-            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') >= $dateFrom)->values();
+        // นักเรียนใหม่ = นับจากวันที่เข้าเรียนจริง — ค่าเริ่มต้นคือช่วงเทอมปัจจุบัน เลือกวันเองแล้วค้นหาใหม่ได้
+        if ($effectiveFrom) {
+            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') >= $effectiveFrom)->values();
         }
-        if ($dateTo !== '') {
-            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') <= $dateTo)->values();
+        if ($effectiveTo) {
+            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') <= $effectiveTo)->values();
         }
 
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
