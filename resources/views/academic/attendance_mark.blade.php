@@ -17,7 +17,6 @@
     .att-cell.s-ป่วย { background:#fff7ed; border-color:#d97706; color:#b45309; }
     .att-cell.s-ลา  { background:#eef4ff; border-color:#2563eb; color:#1d4ed8; }
     .att-cell.s-ขาด { background:#fee2e2; border-color:#dc2626; color:#b91c1c; }
-    .att-cell.s-วันหยุด { background:#f0f0f0; border-color:#bbb; color:#707070; }
     .att-grid th.att-holiday-col { background:#e0e0e0; color:#707070; }
     .att-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; color:#555; margin-top:10px; }
     .att-legend span { display:inline-flex; align-items:center; gap:5px; }
@@ -45,8 +44,8 @@
                 </div>
             </form>
             <p style="font-size:.8rem;color:#999;margin:10px 0 0">
-                แสดงครบทุกวันของเดือนนี้ ({{ $dates->count() }} วัน) — วันเสาร์-อาทิตย์และวันหยุดตามปฏิทินจะขึ้นคำว่า "วันหยุด" ให้อัตโนมัติ
-                ({{ $dates->filter(fn($d) => $d->is_school_day)->count() }} วันเรียนจริง) แต่ยังเลือกเปลี่ยนเป็นมา/ป่วย/ลา/ขาดได้เผื่อมีเรียนจริง
+                แสดงครบทุกวันของเดือนนี้ ({{ $dates->count() }} วัน) — คอลัมน์สีเทาคือวันเสาร์-อาทิตย์/วันหยุดตามปฏิทิน
+                ({{ $dates->filter(fn($d) => $d->is_school_day)->count() }} วันเรียนจริง) แต่ยังเช็คชื่อได้ตามปกติเผื่อมีเรียนจริง
             </p>
         </div>
     </div>
@@ -81,16 +80,11 @@
                                         @foreach($dates as $d)
                                             @php
                                                 $dateStr = $d->date->format('Y-m-d');
-                                                $saved = $existing->get($s->student_id . '|' . $dateStr)?->status ?? '';
-                                                $cur = $saved !== '' ? $saved : (!$d->is_school_day ? 'วันหยุด' : '');
+                                                $cur = $existing->get($s->student_id . '|' . $dateStr)?->status ?? '';
                                             @endphp
                                             <td>
                                                 <select name="status[{{ $dateStr }}][{{ $s->student_id }}]" class="att-cell {{ $cur ? 's-' . $cur : '' }}" onchange="attColorCell(this)">
-                                                    @if($d->is_school_day)
-                                                        <option value="" {{ $cur === '' ? 'selected' : '' }}>-</option>
-                                                    @else
-                                                        <option value="วันหยุด" {{ $cur === 'วันหยุด' ? 'selected' : '' }}>วันหยุด</option>
-                                                    @endif
+                                                    <option value="" {{ $cur === '' ? 'selected' : '' }}>-</option>
                                                     @foreach(\App\Models\Academic\ClassAttendance::STATUSES as $st)
                                                         <option value="{{ $st }}" {{ $cur === $st ? 'selected' : '' }}>{{ $st }}</option>
                                                     @endforeach
@@ -107,7 +101,6 @@
                         <span><i style="background:#fff7ed;border:1px solid #d97706"></i> ป่วย</span>
                         <span><i style="background:#eef4ff;border:1px solid #2563eb"></i> ลา</span>
                         <span><i style="background:#fee2e2;border:1px solid #dc2626"></i> ขาด</span>
-                        <span><i style="background:#f0f0f0;border:1px solid #bbb"></i> วันหยุด (เลือกเปลี่ยนได้ถ้ามีเรียนจริง)</span>
                         <span><i style="background:#fff;border:1px solid #d0d7e5"></i> ยังไม่เช็ค (ไม่บันทึก)</span>
                     </div>
                     <div class="ac-save-wrap" style="margin-top:16px; text-align:right;">
@@ -120,7 +113,7 @@
 </div>
 <script>
 function attColorCell(select) {
-    select.classList.remove('s-มา', 's-ป่วย', 's-ลา', 's-ขาด', 's-วันหยุด');
+    select.classList.remove('s-มา', 's-ป่วย', 's-ลา', 's-ขาด');
     if (select.value) select.classList.add('s-' + select.value);
 }
 </script>
