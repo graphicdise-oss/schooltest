@@ -468,7 +468,6 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
 
     Route::get('/class-roster', [ClassRosterController::class, 'index'])->name('class-roster.index');
-    Route::get('/reports/new-students', [StudentListController::class, 'newStudentsReport'])->name('students.new-report');
 
     // === ข้อมูลการลา ===
     Route::prefix('leave')->name('leave.')->group(function () {

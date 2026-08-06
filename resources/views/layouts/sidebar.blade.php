@@ -253,9 +253,6 @@
                                         <li><a href="{{ route('student-alumni.withdrawal') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานลาออก</a>
                                         </li>
-                                        <li><a href="{{ route('students.new-report') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานชื่อนักเรียนใหม่</a>
-                                        </li>
                                     </ul>
                                 </div>
                                 <div>
