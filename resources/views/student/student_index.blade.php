@@ -196,10 +196,6 @@
                                     <td>{{ $student->created_at ? \Carbon\Carbon::parse($student->created_at)->format('d/m/Y') : '-' }}</td>
                                     <td>
                                         <div class="si-actions">
-                                            <a href="{{ route('students.show', $student->student_id) }}"
-                                                class="si-action-btn si-action-view" title="ดูข้อมูล">
-                                                <i class="bi bi-eye"></i>
-                                            </a>
                                             <a href="{{ route('students.edit', $student->student_id) }}"
                                                 class="si-action-btn si-action-edit" title="แก้ไข">
                                                 <i class="bi bi-pencil"></i>
