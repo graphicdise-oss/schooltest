@@ -113,8 +113,9 @@
                         <div class="ac-field"><label>เลือกห้อง</label>
                             <select name="from_section_id" id="gradFrom" class="ac-select" onchange="filterGradStudents()">
                                 <option value="">เลือกห้อง</option>
-                                @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                @foreach($graduateSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
                             </select>
+                            <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของชั้นปีสุดท้ายในแต่ละช่วงชั้น (ป.6 / ม.3 / ม.6) เท่านั้น</p>
                         </div>
                         <div class="ac-field"><label>หมายเหตุ</label><input type="text" name="remark" class="ac-input" placeholder="เช่น จบหลักสูตรปี 2567"></div>
                     </div>
