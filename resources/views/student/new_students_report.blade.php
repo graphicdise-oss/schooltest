@@ -58,10 +58,19 @@
             </div>
             <div class="filter-field">
                 <label>ระดับชั้น</label>
-                <select name="level_id" class="filter-select">
+                <select name="level_id" id="filterLevelId" class="filter-select" onchange="filterRoomsByLevel()">
                     <option value="">ทุกระดับชั้น</option>
                     @foreach($levels as $lv)
                         <option value="{{ $lv->level_id }}" {{ (string)$levelId === (string)$lv->level_id ? 'selected' : '' }}>{{ $lv->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="filter-field">
+                <label>ห้องเรียน</label>
+                <select name="section_id" id="filterSectionId" class="filter-select">
+                    <option value="">ทุกห้อง</option>
+                    @foreach($sections as $sec)
+                        <option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" {{ (string)$sectionId === (string)$sec->section_id ? 'selected' : '' }}>{{ $sec->full_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -136,4 +145,19 @@
         </div>
     </div>
 </div>
+<script>
+function filterRoomsByLevel() {
+    const levelId = document.getElementById('filterLevelId').value;
+    const sectionSelect = document.getElementById('filterSectionId');
+    let currentStillVisible = false;
+    Array.from(sectionSelect.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; }
+        const matches = !levelId || opt.dataset.level === levelId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) sectionSelect.value = '';
+}
+document.addEventListener('DOMContentLoaded', filterRoomsByLevel);
+</script>
 @endsection

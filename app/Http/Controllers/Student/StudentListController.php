@@ -142,11 +142,15 @@ class StudentListController extends Controller
      */
     public function newStudentsReport(Request $request)
     {
-        $levels   = Level::orderBy('sort_order')->get();
-        $levelId  = $request->get('level_id', '');
-        $search   = $request->get('search', '');
-        $dateFrom = $request->get('date_from', '');
-        $dateTo   = $request->get('date_to', '');
+        $levels    = Level::orderBy('sort_order')->get();
+        $sections  = \App\Models\Academic\ClassSection::with('level')->get()
+            ->sortBy([['level.sort_order', 'asc'], ['section_number', 'asc']])
+            ->values();
+        $levelId   = $request->get('level_id', '');
+        $sectionId = $request->get('section_id', '');
+        $search    = $request->get('search', '');
+        $dateFrom  = $request->get('date_from', '');
+        $dateTo    = $request->get('date_to', '');
 
         // เช็คว่าฐานข้อมูลมีนักเรียนที่เคยถูกจัดห้องเรียนอยู่เลยหรือไม่ (ไม่ผูกกับตัวกรองใดๆ เลย แม้แต่คำค้นหา)
         // ไว้แยกข้อความตอนว่างเปล่าให้ผู้ใช้รู้ทันทีว่า "ไม่มีข้อมูลในระบบเลย" กับ "มีข้อมูลแต่ไม่ตรงตัวกรองที่เลือก" ต่างกันตรงไหน
@@ -174,7 +178,9 @@ class StudentListController extends Controller
             // เรียงค่า NULL ไว้ต้นแถว (ASC) แต่ PostgreSQL เรียงค่า NULL ไว้ท้ายแถวแทน ถ้าใช้ ->last() หลัง
             // orderBy('created_at') ตรงๆ บน Postgres จะได้แถวที่ไม่มีวันที่ (NULL) มาเป็น "ล่าสุด" ผิดๆ
             // ทันทีที่นักเรียนมีประวัติห้องเก่าที่นำเข้าแบบไม่มี created_at ปนอยู่แม้แต่แถวเดียว
-            $latest = $s->studentSections->sortBy(fn ($ss) => $ss->created_at ?? \Carbon\Carbon::createFromTimestamp(0))->last();
+            // ตัด tie-breaker เป็นรหัสแถว (id) ต่อท้ายเวลาด้วย เผื่อนักเรียนมีประวัติห้องเก่าที่ไม่มี created_at
+            // เลยหลายแถว (เท่ากันหมดตอนไม่มีวันที่) จะได้ไม่สุ่มว่าจะได้แถวไหนเป็น "ล่าสุด" ในแต่ละครั้งที่โหลดหน้า
+            $latest = $s->studentSections->sortBy(fn ($ss) => sprintf('%020d-%010d', $ss->created_at?->timestamp ?? 0, $ss->id))->last();
             $sec    = $latest?->classSection;
             return (object) [
                 'code'            => $s->student_code,
@@ -186,6 +192,7 @@ class StudentListController extends Controller
                 'previous_school' => $s->education?->previous_school,
                 'status'          => $s->status,
                 'level_id'        => $sec?->level_id,
+                'section_id'      => $sec?->section_id,
             ];
         });
 
@@ -202,6 +209,11 @@ class StudentListController extends Controller
         // กรองตามระดับชั้นของห้องล่าสุด (trim กันช่องว่างแปลกๆ ที่อาจติดมากับค่าจาก query string)
         if ($levelId !== '') {
             $rows = $rows->filter(fn($r) => trim((string) $r->level_id) === trim((string) $levelId))->values();
+        }
+
+        // กรองตามห้องเรียนที่เจาะจง (เชื่อถือได้กว่า level_id เพราะ section_id ชี้ห้องเดียวตรงๆ ไม่ต้องอนุมานผ่านชั้น)
+        if ($sectionId !== '') {
+            $rows = $rows->filter(fn($r) => trim((string) $r->section_id) === trim((string) $sectionId))->values();
         }
 
         // นักเรียนบางคน (มักเป็นข้อมูลเก่าที่นำเข้าตรงๆ ไม่ผ่านหน้าจัดห้องของระบบ) ไม่มีวันที่เข้าเรียนบันทึกไว้เลย
@@ -221,7 +233,7 @@ class StudentListController extends Controller
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
         $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
 
-        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo', 'hasAnyData', 'missingDateCount', 'availableLevelDebug'));
+        return view('student.new_students_report', compact('rows', 'levels', 'sections', 'levelId', 'sectionId', 'search', 'dateFrom', 'dateTo', 'hasAnyData', 'missingDateCount', 'availableLevelDebug'));
     }
 
     /**
