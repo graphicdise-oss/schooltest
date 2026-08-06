@@ -7,7 +7,6 @@ use App\Models\Student;
 use App\Models\SchoolInfoSetting;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
-use App\Models\Academic\Semester;
 use App\Services\ExcelSchoolHeader;
 use App\Services\StudentExcelExporter;
 use Illuminate\Http\Request;
@@ -152,12 +151,6 @@ class StudentListController extends Controller
         $dateFrom = $request->get('date_from', '');
         $dateTo   = $request->get('date_to', '');
 
-        // ถ้าไม่ได้เลือกวันที่มาเอง ให้ใช้ช่วงเทอมปัจจุบันเป็นค่าเริ่มต้น (นับจากวันที่เข้าเรียนจริง
-        // ไม่ใช่จับคู่ปีการศึกษาที่ผูกไว้ตอนสร้างห้อง ซึ่งพังง่ายถ้าไม่ได้ตั้ง is_current ให้ตรงกับข้อมูลจริง)
-        $currentSemester = Semester::where('is_current', true)->first();
-        $effectiveFrom = $dateFrom !== '' ? $dateFrom : optional($currentSemester?->start_date)->format('Y-m-d');
-        $effectiveTo   = $dateTo !== '' ? $dateTo : null;
-
         $students = Student::whereHas('studentSections')
             ->when($search, function ($q) use ($search) {
                 $q->where(function ($qq) use ($search) {
@@ -197,12 +190,12 @@ class StudentListController extends Controller
             $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
         }
 
-        // นักเรียนใหม่ = นับจากวันที่เข้าเรียนจริง — ค่าเริ่มต้นคือช่วงเทอมปัจจุบัน เลือกวันเองแล้วค้นหาใหม่ได้
-        if ($effectiveFrom) {
-            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') >= $effectiveFrom)->values();
+        // แสดงนักเรียนทั้งหมดที่เคยเข้าเรียนเป็นค่าเริ่มต้น ไม่กรองตามวันใดๆ จนกว่าจะเลือกวันที่มาเอง
+        if ($dateFrom !== '') {
+            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') >= $dateFrom)->values();
         }
-        if ($effectiveTo) {
-            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') <= $effectiveTo)->values();
+        if ($dateTo !== '') {
+            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') <= $dateTo)->values();
         }
 
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
