@@ -64,12 +64,18 @@
                 </div>
                 <div class="ac-field" style="margin:0">
                     <label>ครูผู้สอน</label>
+                    @if($isAdmin)
                     <select class="ac-select" name="personnel_id">
                         <option value="">-- ทุกคน --</option>
                         @foreach($teachers as $t)
                         <option value="{{ $t->personnel_id }}" {{ $personnelId==$t->personnel_id?'selected':'' }}>{{ $t->thai_firstname }} {{ $t->thai_lastname }}</option>
                         @endforeach
                     </select>
+                    @else
+                    <select class="ac-select" disabled>
+                        <option>{{ auth()->user()->thai_firstname }} {{ auth()->user()->thai_lastname }} (เฉพาะวิชาที่คุณสอน)</option>
+                    </select>
+                    @endif
                 </div>
                 <button type="submit" class="ac-btn ac-btn-primary" style="height:38px;white-space:nowrap"><i class="bi bi-search"></i> ค้นหา</button>
             </form>

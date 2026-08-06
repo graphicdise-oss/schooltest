@@ -24,12 +24,15 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AttendanceController extends Controller
 {
-    // เลือกวิชา-ห้องที่จะเช็คชื่อ
+    // เลือกวิชา-ห้องที่จะเช็คชื่อ — ครู (ไม่ใช่แอดมิน) เห็นเฉพาะวิชาที่ตัวเองสอนเท่านั้น (บังคับที่ backend ไม่ให้เลือกดูของคนอื่นได้)
     public function index(Request $request)
     {
+        $user = auth()->user();
+        $isAdmin = $user->isAdmin();
+
         $semesterId  = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
         $subjectId   = $request->subject_id;
-        $personnelId = $request->personnel_id;
+        $personnelId = $isAdmin ? $request->personnel_id : $user->personnel_id;
         $sectionId   = $request->section_id;
 
         $semesters = Semester::with('academicYear')->orderedByRecency()->get();
@@ -56,7 +59,7 @@ class AttendanceController extends Controller
             ->get();
 
         return view('academic.attendance_index', compact(
-            'assigns', 'semesters', 'subjects', 'teachers', 'semesterId', 'subjectId', 'personnelId', 'sections', 'sectionId'
+            'assigns', 'semesters', 'subjects', 'teachers', 'semesterId', 'subjectId', 'personnelId', 'sections', 'sectionId', 'isAdmin'
         ));
     }
 
