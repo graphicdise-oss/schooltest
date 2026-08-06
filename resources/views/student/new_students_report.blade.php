@@ -105,7 +105,16 @@
                             <td>{{ $r->previous_school ?: '-' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="6" class="empty"><i class="fas fa-inbox"></i> ไม่พบนักเรียนใหม่</td></tr>
+                        <tr>
+                            <td colspan="6" class="empty">
+                                <i class="fas fa-inbox"></i>
+                                @if(!$hasAnyData)
+                                    ยังไม่มีข้อมูลนักเรียนที่ถูกจัดเข้าห้องเรียนในระบบเลย (ตรวจสอบว่านำเข้า/จัดห้องนักเรียนแล้วหรือยัง)
+                                @else
+                                    ไม่พบนักเรียนตามเงื่อนไขที่เลือก ลองล้างตัวกรองดู
+                                @endif
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>

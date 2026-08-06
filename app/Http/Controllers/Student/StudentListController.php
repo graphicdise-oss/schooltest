@@ -137,11 +137,8 @@ class StudentListController extends Controller
     }
 
     /**
-     * รายงานชื่อนักเรียนใหม่ + วันที่เข้าเรียนล่าสุด
-     *
-     * ตาราง students ไม่มีคอลัมน์บอกสถานะ "เข้าใหม่/ย้ายมา" (ตัวเลือกในฟอร์มค้นหา
-     * เป็นแค่ dropdown ที่ไม่เคยผูกกับคอลัมน์จริง) จึงนิยาม "นักเรียนใหม่" จากข้อมูล
-     * ที่มีจริง: นักเรียนที่ถูกจัดเข้าห้องเรียนครั้งแรกสุดในปีการศึกษาปัจจุบัน
+     * รายงานชื่อนักเรียนใหม่ + วันที่เข้าเรียนล่าสุด — แสดงนักเรียนทุกคนที่เคยถูกจัดเข้าห้องเรียน
+     * เรียงตามวันที่เข้าเรียนล่าสุด กรองตามช่วงวันที่/ระดับชั้น/คำค้นหาได้ตามต้องการ (ไม่กรองอะไรเป็นค่าเริ่มต้น)
      */
     public function newStudentsReport(Request $request)
     {
@@ -150,6 +147,10 @@ class StudentListController extends Controller
         $search   = $request->get('search', '');
         $dateFrom = $request->get('date_from', '');
         $dateTo   = $request->get('date_to', '');
+
+        // เช็คว่าฐานข้อมูลมีนักเรียนที่เคยถูกจัดห้องเรียนอยู่เลยหรือไม่ (ไม่ผูกกับตัวกรองใดๆ เลย แม้แต่คำค้นหา)
+        // ไว้แยกข้อความตอนว่างเปล่าให้ผู้ใช้รู้ทันทีว่า "ไม่มีข้อมูลในระบบเลย" กับ "มีข้อมูลแต่ไม่ตรงตัวกรองที่เลือก" ต่างกันตรงไหน
+        $hasAnyData = Student::whereHas('studentSections')->exists();
 
         $students = Student::whereHas('studentSections')
             ->when($search, function ($q) use ($search) {
@@ -201,7 +202,7 @@ class StudentListController extends Controller
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
         $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
 
-        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo'));
+        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo', 'hasAnyData'));
     }
 
     /**
