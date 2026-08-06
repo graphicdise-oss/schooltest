@@ -14,7 +14,6 @@
         background:#fff; color:#444; font-family:inherit; cursor:pointer;
     }
     .att-cell.s-มา  { background:#dcfce7; border-color:#16a34a; color:#15803d; }
-    .att-cell.s-ป่วย { background:#fff7ed; border-color:#d97706; color:#b45309; }
     .att-cell.s-ลา  { background:#eef4ff; border-color:#2563eb; color:#1d4ed8; }
     .att-cell.s-ขาด { background:#fee2e2; border-color:#dc2626; color:#b91c1c; }
     .att-grid th.att-holiday-col { background:#e0e0e0; color:#707070; }
@@ -45,7 +44,8 @@
             </form>
             <p style="font-size:.8rem;color:#999;margin:10px 0 0">
                 แสดงครบทุกวันของเดือนนี้ ({{ $dates->count() }} วัน) — คอลัมน์สีเทาคือวันเสาร์-อาทิตย์/วันหยุดตามปฏิทิน
-                ({{ $dates->filter(fn($d) => $d->is_school_day)->count() }} วันเรียนจริง) แต่ยังเช็คชื่อได้ตามปกติเผื่อมีเรียนจริง
+                ({{ $dates->filter(fn($d) => $d->is_school_day)->count() }} วันเรียนจริง) แต่ยังเช็คชื่อได้ตามปกติเผื่อมีเรียนจริง —
+                ช่องไหนลืมเช็คในวันเรียนจริงที่ผ่านมาแล้ว ระบบจะบันทึกเป็น "ขาด" ให้อัตโนมัติตอนกดบันทึก (แก้ไขทีหลังได้)
             </p>
         </div>
     </div>
@@ -98,10 +98,9 @@
                     </div>
                     <div class="att-legend">
                         <span><i style="background:#dcfce7;border:1px solid #16a34a"></i> มา</span>
-                        <span><i style="background:#fff7ed;border:1px solid #d97706"></i> ป่วย</span>
                         <span><i style="background:#eef4ff;border:1px solid #2563eb"></i> ลา</span>
                         <span><i style="background:#fee2e2;border:1px solid #dc2626"></i> ขาด</span>
-                        <span><i style="background:#fff;border:1px solid #d0d7e5"></i> ยังไม่เช็ค (ไม่บันทึก)</span>
+                        <span><i style="background:#fff;border:1px solid #d0d7e5"></i> ยังไม่เช็ค (วันที่ผ่านมาแล้วจะกลายเป็น "ขาด" อัตโนมัติตอนบันทึก)</span>
                     </div>
                     <div class="ac-save-wrap" style="margin-top:16px; text-align:right;">
                         <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกการเช็คชื่อ</button>
@@ -113,7 +112,7 @@
 </div>
 <script>
 function attColorCell(select) {
-    select.classList.remove('s-มา', 's-ป่วย', 's-ลา', 's-ขาด');
+    select.classList.remove('s-มา', 's-ลา', 's-ขาด');
     if (select.value) select.classList.add('s-' + select.value);
 }
 </script>

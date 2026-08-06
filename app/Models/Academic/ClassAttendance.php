@@ -13,7 +13,7 @@ class ClassAttendance extends Model
 
     protected $casts = ['class_date' => 'date'];
 
-    public const STATUSES = ['มา', 'ป่วย', 'ลา', 'ขาด'];
+    public const STATUSES = ['มา', 'ลา', 'ขาด'];
 
     // ป้ายกำกับที่ใส่ในช่องวันเสาร์-อาทิตย์/วันหยุดตามปฏิทินในไฟล์ Excel เช็คชื่อ (แทนที่ช่องกรอกสถานะ)
     public const HOLIDAY_LABEL = 'วันหยุด';

@@ -102,19 +102,38 @@ class AttendanceController extends Controller
 
     public function store(Request $request, $assignId)
     {
-        $assign = TeachingAssign::findOrFail($assignId);
+        $assign = TeachingAssign::with('semester')->findOrFail($assignId);
 
         $user = auth()->user();
         if (!$user->isAdmin() && $user->personnel_id !== $assign->personnel_id) {
             return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์เช็คชื่อวิชานี้');
         }
 
-        // status[วันที่][student_id] = สถานะ — ช่องไหนเว้นว่าง/ไม่ใช่สถานะที่รู้จัก ข้ามเงียบๆ (ไม่บันทึก ไม่ error)
+        // วันเรียนจริงที่ "ผ่านไปแล้ว" (ไม่รวมวันหยุด/เสาร์-อาทิตย์ และไม่รวมวันในอนาคตที่ยังไม่ถึง) ของเดือนที่กำลังบันทึก
+        // ใช้ตัดสินว่าช่องไหนเข้าเงื่อนไข "ครูลืมเช็ค" ควรเติม ขาด ให้อัตโนมัติ — วันหยุด/วันอนาคตเว้นว่างได้ตามปกติ
+        $pastSchoolDays = [];
+        $monthValue = $request->input('month');
+        if ($monthValue && preg_match('/^(\d{4})-(\d{1,2})$/', $monthValue, $m)) {
+            $semester = $assign->semester;
+            $today = now()->format('Y-m-d');
+            foreach ($this->monthDaysWithSchoolFlag((int) $m[1], (int) $m[2], $semester?->year_id, $semester?->start_date, $semester?->end_date) as $d) {
+                if ($d->is_school_day && $d->date->format('Y-m-d') <= $today) {
+                    $pastSchoolDays[$d->date->format('Y-m-d')] = true;
+                }
+            }
+        }
+
+        // status[วันที่][student_id] = สถานะ — ช่องไหนเว้นว่างในวันเรียนจริงที่ผ่านมาแล้ว ถือว่าครูลืมเช็ค เติม "ขาด"
+        // ให้อัตโนมัติ (แก้ไขทีหลังได้) ส่วนวันหยุด/วันในอนาคตที่เว้นว่างไว้ ข้ามเงียบๆ เหมือนเดิม ไม่บันทึกอะไร
         $grid = $request->input('status', []);
         $saved = 0;
         foreach ($grid as $date => $byStudent) {
             if (!is_array($byStudent)) continue;
             foreach ($byStudent as $studentId => $status) {
+                $status = trim((string) $status);
+                if ($status === '' && isset($pastSchoolDays[$date])) {
+                    $status = 'ขาด';
+                }
                 if (!in_array($status, ClassAttendance::STATUSES, true)) continue;
                 ClassAttendance::updateOrCreate(
                     ['assign_id' => $assignId, 'student_id' => $studentId, 'class_date' => $date],
