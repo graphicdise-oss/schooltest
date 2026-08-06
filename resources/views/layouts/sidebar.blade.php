@@ -232,7 +232,7 @@
                                         <li><a href="{{ route('promotions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
                                         </li>
-                                        <a href="{{ route('student-alumni.index') }}"
+                                        <li><a href="{{ route('student-alumni.index') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
                                         </li>
                                         <li><a href="{{ route('student-alumni.import') }}"
