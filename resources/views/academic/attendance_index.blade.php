@@ -116,8 +116,9 @@
                 <input type="month" id="attExportMonth">
             </div>
             <p style="font-size:.78rem;color:#999;margin:0">
-                คอลัมน์วันที่มีครบทุกวันของเดือน — วันเสาร์-อาทิตย์และวันหยุดตามปฏิทิน (ตั้งค่าไว้ที่เมนูวันหยุด) จะขึ้นคำว่า "{{ \App\Models\Academic\ClassAttendance::HOLIDAY_LABEL }}" ให้อัตโนมัติ ไม่ต้องเช็คชื่อวันนั้น —
-                วันเรียนปกติมีลิสต์ให้เลือก ({{ implode(' / ', \App\Models\Academic\ClassAttendance::STATUSES) }}) เว้นว่างไว้ได้ถ้าวันนั้นไม่เช็คชื่อ
+                คอลัมน์วันที่มีครบทุกวันของเดือน — วันเสาร์-อาทิตย์และวันหยุดตามปฏิทิน (ตั้งค่าไว้ที่เมนูวันหยุด) จะขึ้นคำว่า "{{ \App\Models\Academic\ClassAttendance::HOLIDAY_LABEL }}" ให้อัตโนมัติ แต่ยังเลือกเปลี่ยนเป็น
+                {{ implode(' / ', \App\Models\Academic\ClassAttendance::STATUSES) }} ได้เหมือนวันเรียนปกติ เผื่อมีเรียนจริง (เช่น สอนชดเชย) —
+                วันเรียนปกติมีลิสต์ให้เลือกเช่นกัน เว้นว่างไว้ได้ถ้าวันนั้นไม่เช็คชื่อ
             </p>
         </div>
         <div class="att-xl-modal-footer" style="flex-wrap:wrap">

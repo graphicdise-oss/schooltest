@@ -379,13 +379,25 @@ class AttendanceController extends Controller
             $validation->setFormula1('"' . implode(',', ClassAttendance::STATUSES) . '"');
         };
 
-        // ช่องวันหยุด (เสาร์-อาทิตย์/วันหยุดตามปฏิทิน) ใส่ป้าย "วันหยุด" ตายตัวแทนดรอปดาวน์ ไม่ต้องเช็คชื่อวันนั้น
-        $applyHolidayCell = function ($cell) {
-            $cell->setValue(ClassAttendance::HOLIDAY_LABEL);
+        // ช่องวันหยุด (เสาร์-อาทิตย์/วันหยุดตามปฏิทิน) ตั้งค่าเริ่มต้นเป็น "วันหยุด" แต่ยังเลือกเปลี่ยนเป็นมา/ป่วย/ลา/ขาด
+        // ได้เหมือนวันเรียนปกติ เผื่อมีเรียนจริง (เช่น สอนชดเชย/กิจกรรมวันเสาร์) — ถ้าเคยบันทึกสถานะจริงไว้ก่อนแล้ว
+        // (ไม่ใช่แค่ "วันหยุด") ให้โชว์ค่าที่บันทึกไว้แทนค่าเริ่มต้น
+        $holidayValidationList = array_merge([ClassAttendance::HOLIDAY_LABEL], ClassAttendance::STATUSES);
+        $applyHolidayCell = function ($cell, ?string $prior = null) use ($holidayValidationList) {
+            $cell->setValue($prior !== null && $prior !== '' ? $prior : ClassAttendance::HOLIDAY_LABEL);
             $cell->getStyle()->applyFromArray([
                 'font' => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '999999']],
                 'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F2F2']],
             ]);
+            $validation = $cell->getDataValidation();
+            $validation->setType(DataValidation::TYPE_LIST);
+            $validation->setErrorStyle(DataValidation::STYLE_WARNING);
+            $validation->setAllowBlank(true);
+            $validation->setShowDropDown(true);
+            $validation->setShowErrorMessage(true);
+            $validation->setErrorTitle('ค่าไม่ถูกต้อง');
+            $validation->setError('เลือกจากลิสต์: ' . implode(', ', $holidayValidationList));
+            $validation->setFormula1('"' . implode(',', $holidayValidationList) . '"');
         };
 
         foreach ($students as $ss) {
@@ -397,12 +409,12 @@ class AttendanceController extends Controller
             foreach ($datesList as $i => $d) {
                 $col = $dateColLetter($i);
                 $cell = $sheet->getCell("{$col}{$row}");
-                if (!$d->is_school_day) {
-                    $applyHolidayCell($cell);
-                    continue;
-                }
                 $key = $student->student_id . '|' . $d->date->format('Y-m-d');
                 $prior = $existing->get($key)?->first()?->status ?? '';
+                if (!$d->is_school_day) {
+                    $applyHolidayCell($cell, $prior);
+                    continue;
+                }
                 $cell->setValue($prior);
                 $applyStatusValidation($cell);
             }
@@ -416,7 +428,7 @@ class AttendanceController extends Controller
         }
         $lastDataRow = $row - 1;
 
-        // เว้นแถวว่างไว้ 3 แถวเผื่อมีนักเรียนเข้าใหม่ — มีดรอปดาวน์ (เฉพาะช่องวันเรียนจริง)/สูตรสรุปรายแถวพร้อมใช้ทันทีที่กรอกชื่อ
+        // เว้นแถวว่างไว้ 3 แถวเผื่อมีนักเรียนเข้าใหม่ — มีดรอปดาวน์/สูตรสรุปรายแถวพร้อมใช้ทันทีที่กรอกชื่อ
         for ($k = 0; $k < 3; $k++) {
             foreach ($datesList as $i => $d) {
                 $cell = $sheet->getCell($dateColLetter($i) . $row);
