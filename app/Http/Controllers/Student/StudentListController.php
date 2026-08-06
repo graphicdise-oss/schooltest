@@ -146,9 +146,11 @@ class StudentListController extends Controller
      */
     public function newStudentsReport(Request $request)
     {
-        $levels  = Level::orderBy('sort_order')->get();
-        $levelId = $request->get('level_id', '');
-        $search  = $request->get('search', '');
+        $levels   = Level::orderBy('sort_order')->get();
+        $levelId  = $request->get('level_id', '');
+        $search   = $request->get('search', '');
+        $dateFrom = $request->get('date_from', '');
+        $dateTo   = $request->get('date_to', '');
 
         $currentYearId = optional(AcademicYear::current())->year_id;
 
@@ -160,10 +162,13 @@ class StudentListController extends Controller
                        ->orWhere('student_code', 'like', "%$search%");
                 });
             })
-            ->with(['studentSections' => function ($q) {
-                $q->with(['classSection.level', 'classSection.semester.academicYear'])
-                  ->orderBy('created_at'); // เรียงเก่า -> ใหม่ เพื่อหาห้องแรกสุดได้ง่าย
-            }])
+            ->with([
+                'education',
+                'studentSections' => function ($q) {
+                    $q->with(['classSection.level', 'classSection.semester.academicYear'])
+                      ->orderBy('created_at'); // เรียงเก่า -> ใหม่ เพื่อหาห้องแรกสุดได้ง่าย
+                },
+            ])
             ->get();
 
         // แปลงเป็นแถวรายงาน (ห้องแรกสุด = วันเข้าเรียนครั้งแรก, ห้องล่าสุด = วันเข้าเรียนล่าสุด)
@@ -172,15 +177,16 @@ class StudentListController extends Controller
             $latest = $s->studentSections->last();
             $sec    = $latest?->classSection;
             return (object) [
-                'code'          => $s->student_code,
-                'name'          => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
-                'gender'        => $s->gender,
-                'room'          => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) : '-',
-                'year'          => $sec?->semester?->academicYear?->year_name,
-                'enroll_date'   => $latest?->created_at,
-                'status'        => $s->status,
-                'level_id'      => $sec?->level_id,
-                'first_year_id' => $first?->classSection?->semester?->year_id,
+                'code'            => $s->student_code,
+                'name'            => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
+                'gender'          => $s->gender,
+                'room'            => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) : '-',
+                'year'            => $sec?->semester?->academicYear?->year_name,
+                'enroll_date'     => $latest?->created_at,
+                'previous_school' => $s->education?->previous_school,
+                'status'          => $s->status,
+                'level_id'        => $sec?->level_id,
+                'first_year_id'   => $first?->classSection?->semester?->year_id,
             ];
         });
 
@@ -194,10 +200,18 @@ class StudentListController extends Controller
             $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
         }
 
+        // กรองตามช่วงวันที่เข้าเรียน — เลือกวันก่อน แล้วค่อยหา (ปล่อยว่างได้ทั้งสองช่อง หรือช่องใดช่องหนึ่ง)
+        if ($dateFrom !== '') {
+            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') >= $dateFrom)->values();
+        }
+        if ($dateTo !== '') {
+            $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') <= $dateTo)->values();
+        }
+
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
         $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
 
-        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search'));
+        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo'));
     }
 
     /**

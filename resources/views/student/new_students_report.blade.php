@@ -49,8 +49,12 @@
         <div class="card-title"><i class="fas fa-user-plus" style="color:#4b7ce3;"></i> รายงานชื่อนักเรียนใหม่</div>
         <form method="GET" action="{{ route('students.new-report') }}" class="filter-row">
             <div class="filter-field">
-                <label>ค้นหา (ชื่อ/รหัส)</label>
-                <input type="text" name="search" class="filter-input" value="{{ $search }}" placeholder="ชื่อ หรือ รหัสนักเรียน">
+                <label>วันที่เข้าเรียน (จาก)</label>
+                <input type="date" name="date_from" class="filter-input" value="{{ $dateFrom }}">
+            </div>
+            <div class="filter-field">
+                <label>ถึง</label>
+                <input type="date" name="date_to" class="filter-input" value="{{ $dateTo }}">
             </div>
             <div class="filter-field">
                 <label>ระดับชั้น</label>
@@ -62,6 +66,10 @@
                 </select>
             </div>
             <div class="filter-field">
+                <label>ค้นหา (ชื่อ/รหัส)</label>
+                <input type="text" name="search" class="filter-input" value="{{ $search }}" placeholder="ชื่อ หรือ รหัสนักเรียน">
+            </div>
+            <div class="filter-field">
                 <button type="submit" class="btn-find"><i class="fas fa-search"></i> ค้นหา</button>
             </div>
         </form>
@@ -71,7 +79,7 @@
     <div class="card2">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
             <div class="card-title" style="margin:0;"><i class="fas fa-list" style="color:#4b7ce3;"></i> รายชื่อนักเรียนใหม่</div>
-            <span class="count-pill">ทั้งหมด {{ number_format($rows->count()) }} คน</span>
+            <span class="count-pill">รวมนักเรียนเข้าใหม่ {{ number_format($rows->count()) }} คน</span>
         </div>
 
         <div style="overflow-x:auto;">
@@ -79,13 +87,11 @@
                 <thead>
                     <tr>
                         <th style="width:55px;">ลำดับ</th>
-                        <th style="width:110px;">รหัส</th>
-                        <th>ชื่อ - สกุล</th>
-                        <th style="width:70px;">เพศ</th>
+                        <th style="width:120px;">เลขประจำตัว</th>
+                        <th>ชื่อ-นามสกุล</th>
                         <th style="width:110px;">ชั้น/ห้อง</th>
-                        <th style="width:110px;">ปีการศึกษา</th>
-                        <th style="width:150px;">วันที่เข้าเรียนล่าสุด</th>
-                        <th style="width:110px;">สถานะ</th>
+                        <th style="width:130px;">วันที่เข้าเรียน</th>
+                        <th>โรงเรียนเดิม</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -94,16 +100,12 @@
                             <td>{{ $i + 1 }}</td>
                             <td>{{ $r->code ?: '-' }}</td>
                             <td>{{ $r->name ?: '-' }}</td>
-                            <td>{{ $r->gender ?: '-' }}</td>
                             <td>{{ $r->room }}</td>
-                            <td>{{ $r->year ?: '-' }}</td>
                             <td>{{ $thDate($r->enroll_date) }}</td>
-                            <td>
-                                <span class="badge2 {{ $r->status === 'กำลังศึกษา' ? 'b-active' : 'b-other' }}">{{ $r->status ?: '-' }}</span>
-                            </td>
+                            <td>{{ $r->previous_school ?: '-' }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" class="empty"><i class="fas fa-inbox"></i> ไม่พบนักเรียนใหม่</td></tr>
+                        <tr><td colspan="6" class="empty"><i class="fas fa-inbox"></i> ไม่พบนักเรียนใหม่</td></tr>
                     @endforelse
                 </tbody>
             </table>
