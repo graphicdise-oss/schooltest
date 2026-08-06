@@ -81,7 +81,7 @@ class AttendanceController extends Controller
         }
         $monthValue = sprintf('%04d-%02d', $year, $mon);
 
-        $dates = $this->schoolDaysInMonth($year, $mon, $semester?->year_id, $semester?->start_date, $semester?->end_date);
+        $dates = $this->monthDaysWithSchoolFlag($year, $mon, $semester?->year_id, $semester?->start_date, $semester?->end_date);
 
         $students = StudentSection::with('student')
             ->where('section_id', $assign->section_id)
@@ -92,7 +92,7 @@ class AttendanceController extends Controller
         $existing = collect();
         if ($dates->isNotEmpty()) {
             $existing = ClassAttendance::where('assign_id', $assignId)
-                ->whereBetween('class_date', [$dates->first()->format('Y-m-d'), $dates->last()->format('Y-m-d')])
+                ->whereBetween('class_date', [$dates->first()->date->format('Y-m-d'), $dates->last()->date->format('Y-m-d')])
                 ->get()
                 ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
         }
@@ -216,18 +216,9 @@ class AttendanceController extends Controller
         return $months;
     }
 
-    // วันเรียนจริงของเดือนนั้น — ตัดวันเสาร์-อาทิตย์ + วันหยุดตามปฏิทิน (Holiday ของปีการศึกษานี้) ออก
-    // แล้วครอบด้วยช่วงเปิดเทอมจริง (ถ้ามี) กันเผลอสร้างคอลัมน์วันที่นอกเทอม — ใช้กับหน้าเช็คชื่อออนไลน์
-    private function schoolDaysInMonth(int $year, int $month, $yearId, $semStart, $semEnd)
-    {
-        return $this->monthDaysWithSchoolFlag($year, $month, $yearId, $semStart, $semEnd)
-            ->filter(fn ($d) => $d->is_school_day)
-            ->map(fn ($d) => $d->date)
-            ->values();
-    }
-
-    // ทุกวันของเดือนนั้น "รวมเสาร์-อาทิตย์" ด้วย (ครอบด้วยช่วงเทอมเหมือนกัน) พร้อมบอกว่าวันไหนเป็นวันเรียนจริง —
-    // ใช้ตอนสร้างไฟล์ Excel เท่านั้น ให้คอลัมน์วันที่ในไฟล์ครบทุกวันไม่กระโดดข้าม วันหยุดจะโชว์คำว่า "วันหยุด" แทน
+    // ทุกวันของเดือนนั้น "รวมเสาร์-อาทิตย์" ด้วย (ครอบด้วยช่วงเปิดเทอมจริง ถ้ามี กันเผลอสร้างคอลัมน์วันที่นอกเทอม)
+    // พร้อมบอกว่าวันไหนเป็นวันเรียนจริง — ใช้ทั้งหน้าเช็คชื่อออนไลน์และไฟล์ Excel ให้คอลัมน์วันที่ครบทุกวันไม่กระโดดข้าม
+    // วันหยุด (เสาร์-อาทิตย์/วันหยุดตามปฏิทิน) จะโชว์คำว่า "วันหยุด" แทนช่องกรอกสถานะ แต่ยังเลือกเปลี่ยนได้เผื่อมีเรียนจริง
     private function monthDaysWithSchoolFlag(int $year, int $month, $yearId, $semStart, $semEnd)
     {
         $monthStart = \Carbon\Carbon::create($year, $month, 1)->startOfDay();
