@@ -191,6 +191,11 @@ class StudentListController extends Controller
             $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
         }
 
+        // นักเรียนบางคน (มักเป็นข้อมูลเก่าที่นำเข้าตรงๆ ไม่ผ่านหน้าจัดห้องของระบบ) ไม่มีวันที่เข้าเรียนบันทึกไว้เลย
+        // (enroll_date เป็นค่าว่าง) กรองตามวันที่ไม่ได้เพราะไม่รู้ว่าเข้าวันไหนจริง — นับจำนวนไว้เตือนผู้ใช้ให้เห็นสาเหตุ
+        // จะได้ไม่งงว่าทำไมพอใส่ช่วงวันที่แล้วคนหายไปเยอะกว่าที่คิด
+        $missingDateCount = $rows->filter(fn($r) => !$r->enroll_date)->count();
+
         // แสดงนักเรียนทั้งหมดที่เคยเข้าเรียนเป็นค่าเริ่มต้น ไม่กรองตามวันใดๆ จนกว่าจะเลือกวันที่มาเอง
         if ($dateFrom !== '') {
             $rows = $rows->filter(fn($r) => $r->enroll_date && $r->enroll_date->format('Y-m-d') >= $dateFrom)->values();
@@ -202,7 +207,7 @@ class StudentListController extends Controller
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
         $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
 
-        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo', 'hasAnyData'));
+        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo', 'hasAnyData', 'missingDateCount'));
     }
 
     /**

@@ -73,6 +73,13 @@
                 <button type="submit" class="btn-find"><i class="fas fa-search"></i> ค้นหา</button>
             </div>
         </form>
+        @if(($dateFrom !== '' || $dateTo !== '') && $missingDateCount > 0)
+            <p style="font-size:.82rem;color:#b45309;margin:14px 0 0;">
+                <i class="fas fa-triangle-exclamation"></i>
+                มีนักเรียน {{ number_format($missingDateCount) }} คนที่ไม่มีวันที่เข้าเรียนบันทึกไว้ (มักเป็นข้อมูลเก่าที่นำเข้าโดยตรง ไม่ผ่านหน้าจัดห้อง)
+                จึงกรองตามช่วงวันที่ให้ไม่ได้ และจะไม่แสดงในผลลัพธ์นี้ — ล้างช่องวันที่เพื่อดูรายชื่อทั้งหมดรวมกลุ่มนี้ด้วย
+            </p>
+        @endif
     </div>
 
     {{-- ตาราง --}}
