@@ -307,6 +307,9 @@
                                         <li><a href="{{ route('holidays.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าวันหยุด</a>
                                         </li>
+                                        <li><a href="{{ route('activity-timestamps.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ไทม์สแตมป์ (ใครบันทึกหน้าไหน)</a>
+                                        </li>
                                         @endif
                                     </ul>
                                 </div>

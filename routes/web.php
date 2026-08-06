@@ -71,7 +71,7 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
     });
 
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'track.activity'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
@@ -500,6 +500,12 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
+
+    // === ไทม์สแตมป์ — ดูว่าใครบันทึก/แก้ไขหน้าไหนไปบ้าง (เฉพาะ admin/superadmin) ===
+    Route::controller(\App\Http\Controllers\Setting\ActivityTimestampController::class)
+        ->prefix('activity-timestamps')->name('activity-timestamps.')->middleware('admin')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
 
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
         Route::get('/', 'index')->name('index');
