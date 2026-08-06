@@ -45,8 +45,13 @@ class PromotionController extends Controller
         $graduateSections = $terminalLevelIds->isEmpty()
             ? $fromSections
             : $fromSections->whereIn('level_id', $terminalLevelIds)->values();
+        // รายการระดับชั้นสำหรับดรอปดาวน์ "ระดับ" ในแท็บบันทึกจบ — ให้เลือกชั้นก่อนแล้วค่อยกรองห้อง (แสดงครบทั้ง 3
+        // ชั้นปีสุดท้ายเสมอ ต่อให้เทอมนี้ยังไม่มีห้องของบางชั้น จะได้เห็นว่ามีตัวเลือกอยู่ แค่ยังไม่มีห้องให้เลือกในเทอมนี้)
+        $graduateLevels = $terminalLevelIds->isEmpty()
+            ? $levels
+            : $levels->whereIn('level_id', $terminalLevelIds)->sortBy('sort_order')->values();
 
-        return view('academic.promotions', compact('semesters', 'levels', 'fromSections', 'toSections', 'graduateSections', 'semesterId', 'nextSemester'));
+        return view('academic.promotions', compact('semesters', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester'));
     }
 
     // ย้ายห้อง (เทอมเดียวกัน)
