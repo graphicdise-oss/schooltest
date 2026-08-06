@@ -307,9 +307,6 @@
                                         <li><a href="{{ route('holidays.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าวันหยุด</a>
                                         </li>
-                                        <li><a href="{{ route('activity-timestamps.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ไทม์สแตมป์ (ใครบันทึกหน้าไหน)</a>
-                                        </li>
                                         @endif
                                     </ul>
                                 </div>
@@ -790,6 +787,16 @@
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
                     <i class="fa-solid fa-trash-can w-6 text-center mr-2"></i> ถังขยะ
                 </a>
+
+                @if(auth()->user()->isAdmin())
+                {{-- ===== ไทม์สแตมป์ ===== --}}
+                <a id="menu-timestamp" data-menu="timestamp" href="{{ route('activity-timestamps.index') }}"
+                    @mouseenter="moveIndicator($el); hoverItem = 'timestamp'"
+                    :class="(hoverItem === 'timestamp' || (hoverItem === null && activeItem === 'timestamp')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
+                    <i class="fa-solid fa-clock w-6 text-center mr-2"></i> ไทม์สแตมป์
+                </a>
+                @endif
 
             </div>
         </nav>
