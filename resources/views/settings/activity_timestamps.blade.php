@@ -89,9 +89,10 @@
                         <th style="width:60px;">ลำดับ</th>
                         <th>ผู้บันทึก</th>
                         <th>หน้า</th>
+                        <th>แก้ไขข้อมูลของ</th>
                         <th>รายละเอียด (route)</th>
                         <th style="width:90px;text-align:center;">วิธี</th>
-                        <th style="width:170px;">บันทึกครั้งแรกเมื่อ</th>
+                        <th style="width:190px;">บันทึกครั้งแรกเมื่อ (เวลาไทย)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -100,15 +101,16 @@
                             <td>{{ $logs->firstItem() + $i }}</td>
                             <td>{{ $log->personnel_name }}{{ $log->employee_code ? ' (' . $log->employee_code . ')' : '' }}</td>
                             <td>{{ $log->page_label }}</td>
+                            <td>{{ $log->target_label ?: '-' }}</td>
                             <td style="color:#999;font-size:0.82rem">{{ $log->route_name }}</td>
                             <td style="text-align:center;">
                                 <span class="ats-method ats-method-{{ strtolower($log->method) }}">{{ $log->method }}</span>
                             </td>
-                            <td>{{ $log->first_recorded_at->format('d/m/Y H:i') }}</td>
+                            <td>{{ $log->first_recorded_at->clone()->timezone('Asia/Bangkok')->format('d/m/Y H:i น.') }}</td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
+                            <td colspan="7" class="text-center text-muted py-4">
                                 <i class="fas fa-inbox fs-2 d-block mb-2"></i>
                                 ยังไม่มีข้อมูล
                             </td>

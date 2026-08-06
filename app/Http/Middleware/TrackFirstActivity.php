@@ -3,6 +3,8 @@
 namespace App\Http\Middleware;
 
 use App\Models\ActivityTimestamp;
+use App\Models\Personne\Personnel;
+use App\Models\Student;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -104,6 +106,7 @@ class TrackFirstActivity
                 'employee_code' => $user->employee_code ?? null,
                 'route_name' => $routeName,
                 'page_label' => self::GROUP_LABELS[$group] ?? $group,
+                'target_label' => $this->resolveTargetLabel($group, $request),
                 'method' => $request->method(),
                 'url' => $request->path(),
                 'first_recorded_at' => now(),
@@ -111,5 +114,41 @@ class TrackFirstActivity
         } catch (\Throwable $e) {
             // เงียบไว้ (เช่น unique constraint ชนกันตอนกดซ้อนกันพอดี) — ไม่ให้กระทบ request หลัก
         }
+    }
+
+    // หา "แก้ไขข้อมูลของใคร" — ดูจาก {id} ใน URL ก่อน (เช่น personnels.update/{id}, students.update/{id})
+    // ถ้าไม่เจอ ลองดู student_id/personnel_id ที่ส่งมาใน body (เช่น attendance.storeCell ที่ id ไม่ได้อยู่ใน URL)
+    private function resolveTargetLabel(string $group, Request $request): ?string
+    {
+        $routeParams = $request->route()?->parameters() ?? [];
+        $urlId = $routeParams['id'] ?? $routeParams['personnel'] ?? $routeParams['student'] ?? null;
+
+        if ($group === 'personnels' && $urlId) {
+            $p = Personnel::find($urlId);
+            if ($p) return trim(($p->thai_prefix ?? '') . ($p->thai_firstname ?? '') . ' ' . ($p->thai_lastname ?? ''));
+        }
+
+        if ($group === 'students' && $urlId) {
+            $s = Student::find($urlId);
+            if ($s) return trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? ''));
+        }
+
+        $bodyStudentId = $request->input('student_id');
+        if ($bodyStudentId) {
+            $s = Student::find($bodyStudentId);
+            if ($s) return 'นักเรียน: ' . trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? ''));
+        }
+
+        $bodyPersonnelId = $request->input('personnel_id');
+        if ($bodyPersonnelId) {
+            $p = Personnel::find($bodyPersonnelId);
+            if ($p) return trim(($p->thai_prefix ?? '') . ($p->thai_firstname ?? '') . ' ' . ($p->thai_lastname ?? ''));
+        }
+
+        if ($urlId) {
+            return "รหัส #{$urlId}";
+        }
+
+        return null;
     }
 }
