@@ -454,26 +454,12 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนสอบซ่อม-รายห้อง</a>
                                         </li>
                                         <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานจัดอันดับคะแนนรายวิชา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงาน
-                                                SAR</a></li>
-                                        <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบสำรวจผลการเรียน</a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                             <div class="flex-1">
-                                <div class="mb-4">
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ห้องเรียนออนไลน์</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการห้องเรียนออนไลน์</a>
-                                        </li>
-                                    </ul>
-                                </div>
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">เอกสาร ปพ./รบ.</h4>
                                     <ul class="space-y-1 pl-2">
@@ -495,20 +481,6 @@
                                         <li><a href="{{ route('por7.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบรับรองผลการเรียน
                                                 (ปพ.7)</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบอนุบาล</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกเกณฑ์น้ำหนักส่วนสูง</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกพัฒนาการนักเรียนปฐมวัย</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าหลักสูตรพัฒนาการนักเรียนปฐมวัย</a>
                                         </li>
                                     </ul>
                                 </div>
