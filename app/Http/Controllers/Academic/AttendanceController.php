@@ -97,55 +97,77 @@ class AttendanceController extends Controller
                 ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
         }
 
+        // ครูลืมเช็ค: วันเรียนจริงที่ผ่านมาแล้วแต่ยังไม่มีบันทึกของนักเรียนคนนั้นเลย ให้ถือว่า "ขาด" ไปก่อนอัตโนมัติ
+        // ตั้งแต่ตอนเปิดหน้านี้ (ไม่ใช่ตอนกดบันทึกแล้ว เพราะตอนนี้แต่ละช่องบันทึกทันทีที่เลือก ไม่มีปุ่มบันทึกรวมแล้ว)
+        // ยังแก้ไขทีหลังได้ตามปกติ — ไม่แตะวันหยุด/เสาร์-อาทิตย์ และไม่แตะวันในอนาคตที่ยังไม่ถึง
+        $today = now()->format('Y-m-d');
+        $newRows = [];
+        foreach ($dates as $d) {
+            if (!$d->is_school_day) continue;
+            $dateStr = $d->date->format('Y-m-d');
+            if ($dateStr > $today) continue;
+            foreach ($students as $ss) {
+                $key = $ss->student_id . '|' . $dateStr;
+                if (!$existing->has($key)) {
+                    $newRows[] = [
+                        'assign_id' => $assignId,
+                        'student_id' => $ss->student_id,
+                        'class_date' => $dateStr,
+                        'status' => 'ขาด',
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ];
+                }
+            }
+        }
+        if (!empty($newRows)) {
+            ClassAttendance::insert($newRows);
+            $existing = ClassAttendance::where('assign_id', $assignId)
+                ->whereBetween('class_date', [$dates->first()->date->format('Y-m-d'), $dates->last()->date->format('Y-m-d')])
+                ->get()
+                ->keyBy(fn ($r) => $r->student_id . '|' . $r->class_date->format('Y-m-d'));
+        }
+
         return view('academic.attendance_mark', compact('assign', 'students', 'dates', 'existing', 'monthValue'));
     }
 
-    public function store(Request $request, $assignId)
+    // บันทึกทันทีทีละช่อง (AJAX) — เลือกในดรอปดาวน์ปุ๊บบันทึกปั๊บ ไม่ต้องกดปุ่มบันทึกรวมอีกต่อไป
+    // เลือก "-" (ค่าว่าง) = ลบบันทึกของช่องนั้นทิ้ง (เผื่อกดผิดแล้วอยากเคลียร์กลับเป็นยังไม่เช็ค)
+    public function storeCell(Request $request, $assignId)
     {
-        $assign = TeachingAssign::with('semester')->findOrFail($assignId);
+        $assign = TeachingAssign::findOrFail($assignId);
 
         $user = auth()->user();
         if (!$user->isAdmin() && $user->personnel_id !== $assign->personnel_id) {
-            return redirect()->route('attendance.index')->with('error', 'คุณไม่มีสิทธิ์เช็คชื่อวิชานี้');
+            return response()->json(['message' => 'คุณไม่มีสิทธิ์เช็คชื่อวิชานี้'], 403);
         }
 
-        // วันเรียนจริงที่ "ผ่านไปแล้ว" (ไม่รวมวันหยุด/เสาร์-อาทิตย์ และไม่รวมวันในอนาคตที่ยังไม่ถึง) ของเดือนที่กำลังบันทึก
-        // ใช้ตัดสินว่าช่องไหนเข้าเงื่อนไข "ครูลืมเช็ค" ควรเติม ขาด ให้อัตโนมัติ — วันหยุด/วันอนาคตเว้นว่างได้ตามปกติ
-        $pastSchoolDays = [];
-        $monthValue = $request->input('month');
-        if ($monthValue && preg_match('/^(\d{4})-(\d{1,2})$/', $monthValue, $m)) {
-            $semester = $assign->semester;
-            $today = now()->format('Y-m-d');
-            foreach ($this->monthDaysWithSchoolFlag((int) $m[1], (int) $m[2], $semester?->year_id, $semester?->start_date, $semester?->end_date) as $d) {
-                if ($d->is_school_day && $d->date->format('Y-m-d') <= $today) {
-                    $pastSchoolDays[$d->date->format('Y-m-d')] = true;
-                }
-            }
+        $date = $request->input('date');
+        $studentId = $request->input('student_id');
+        $status = trim((string) $request->input('status'));
+
+        if (!$date || !$studentId) {
+            return response()->json(['message' => 'ข้อมูลไม่ครบ'], 422);
         }
 
-        // status[วันที่][student_id] = สถานะ — ช่องไหนเว้นว่างในวันเรียนจริงที่ผ่านมาแล้ว ถือว่าครูลืมเช็ค เติม "ขาด"
-        // ให้อัตโนมัติ (แก้ไขทีหลังได้) ส่วนวันหยุด/วันในอนาคตที่เว้นว่างไว้ ข้ามเงียบๆ เหมือนเดิม ไม่บันทึกอะไร
-        $grid = $request->input('status', []);
-        $saved = 0;
-        foreach ($grid as $date => $byStudent) {
-            if (!is_array($byStudent)) continue;
-            foreach ($byStudent as $studentId => $status) {
-                $status = trim((string) $status);
-                if ($status === '' && isset($pastSchoolDays[$date])) {
-                    $status = 'ขาด';
-                }
-                if (!in_array($status, ClassAttendance::STATUSES, true)) continue;
-                ClassAttendance::updateOrCreate(
-                    ['assign_id' => $assignId, 'student_id' => $studentId, 'class_date' => $date],
-                    ['status' => $status]
-                );
-                $saved++;
-            }
+        if ($status === '') {
+            ClassAttendance::where('assign_id', $assignId)
+                ->where('student_id', $studentId)
+                ->where('class_date', $date)
+                ->delete();
+            return response()->json(['success' => true, 'cleared' => true]);
         }
 
-        return redirect()
-            ->route('attendance.mark', ['assign' => $assignId, 'month' => $request->input('month')])
-            ->with('success', "บันทึกการเช็คชื่อสำเร็จ ({$saved} ช่อง)");
+        if (!in_array($status, ClassAttendance::STATUSES, true)) {
+            return response()->json(['message' => 'สถานะไม่ถูกต้อง'], 422);
+        }
+
+        ClassAttendance::updateOrCreate(
+            ['assign_id' => $assignId, 'student_id' => $studentId, 'class_date' => $date],
+            ['status' => $status]
+        );
+
+        return response()->json(['success' => true]);
     }
 
     private const THAI_MONTHS_SHORT = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
