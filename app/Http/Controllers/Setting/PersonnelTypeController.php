@@ -28,7 +28,6 @@ class PersonnelTypeController extends Controller
             'กิจการนักเรียน' => [
                 ['key' => 'affairs.attendance', 'label' => 'เช็คชื่อ/ลา'],
                 ['key' => 'affairs.behavior', 'label' => 'ความประพฤติ'],
-                ['key' => 'affairs.sdq', 'label' => 'แบบประเมิน SDQ'],
                 ['key' => 'affairs.homevisit', 'label' => 'เยี่ยมบ้าน'],
             ],
             'บริหารทั่วไป' => [

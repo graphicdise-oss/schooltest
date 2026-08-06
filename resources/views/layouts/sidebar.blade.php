@@ -519,7 +519,7 @@
 
                 @endif
                 {{-- ===== กิจการนักเรียน ===== --}}
-                @if(auth()->user()->canArea(['affairs.attendance','affairs.behavior','affairs.sdq','affairs.homevisit']))
+                @if(auth()->user()->canArea(['affairs.attendance','affairs.behavior','affairs.homevisit']))
                 <div id="menu-student_affairs" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -569,26 +569,6 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการทำกิจกรรม</a>
                                         </li>
                                         {{-- ย้ายเมนูการลา (ข้อมูลการลา/ประเภทการลา/ตั้งค่าการลา) ไปรวมที่กลุ่ม "บุคลากร - อาจารย์" แล้ว --}}
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">แบบประเมิน SDQ</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สถานะประเมินรายคน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปสถานะการประเมิน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปผลการประเมิน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปผลรายบุคคล</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปผลรวม</a>
-                                        </li>
                                     </ul>
                                 </div>
                             </div>
