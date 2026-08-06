@@ -774,20 +774,6 @@
                     <i class="fa-solid fa-gear w-6 text-center mr-2"></i> ตั้งค่าเริ่มต้น
                 </a>
 
-                {{-- ===== ดาวน์โหลด ===== --}}
-                <a id="menu-downloads" href="#" @mouseenter="moveIndicator($el); hoverItem = 'downloads'"
-                    :class="(hoverItem === 'downloads' || (hoverItem === null && activeItem === 'downloads')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
-                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-solid fa-download w-6 text-center mr-2"></i> ดาวน์โหลด
-                </a>
-
-                {{-- ===== ถังขยะ ===== --}}
-                <a id="menu-trash" href="#" @mouseenter="moveIndicator($el); hoverItem = 'trash'"
-                    :class="(hoverItem === 'trash' || (hoverItem === null && activeItem === 'trash')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
-                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-solid fa-trash-can w-6 text-center mr-2"></i> ถังขยะ
-                </a>
-
                 @if(auth()->user()->isAdmin())
                 {{-- ===== ไทม์สแตมป์ ===== --}}
                 <a id="menu-timestamp" data-menu="timestamp" href="{{ route('activity-timestamps.index') }}"
