@@ -423,35 +423,11 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานวิชาการ</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการเข้าเรียนรายวิชา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานไม่มีสิทธิ์สอบ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานผลการพัฒนาผู้เรียน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการเรียนปรับพื้นฐาน</a>
-                                        </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('academic-reports.avg-score') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานคะแนนเฉลี่ย
                                                 2 ภาคเรียน</a></li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปผลการเรียนรู้</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนไม่ผ่านเกณฑ์</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนสอบซ่อม-รายวิชา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนสอบซ่อม-รายห้อง</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบสำรวจผลการเรียน</a>
+                                        <li><a href="{{ route('academic-reports.subject-rank') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานจัดอันดับคะแนนรายวิชา</a>
                                         </li>
                                     </ul>
                                 </div>

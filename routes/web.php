@@ -277,6 +277,15 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::get('/excel/{assignId}', 'exportScoreExcel')->name('excel');
     });
 
+    // === 6b. รายงานวิชาการ ===
+    Route::controller(\App\Http\Controllers\Academic\AcademicReportController::class)
+        ->prefix('academic-reports')->name('academic-reports.')->group(function () {
+            Route::get('/avg-score', 'avgScoreForm')->name('avg-score');
+            Route::get('/avg-score/export', 'avgScoreExport')->name('avg-score.export');
+            Route::get('/subject-rank', 'subjectRankForm')->name('subject-rank');
+            Route::get('/subject-rank/print', 'subjectRankPrint')->name('subject-rank.print');
+        });
+
     // === บันทึกผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม) ===
     Route::controller(\App\Http\Controllers\Academic\AssessmentController::class)
         ->prefix('assessments')->name('assessments.')->group(function () {
