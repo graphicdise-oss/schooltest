@@ -139,6 +139,28 @@ class AttendanceController extends Controller
         return response()->json(['success' => true]);
     }
 
+    // รีเซ็ตทั้งคอลัมน์ของวันนั้น (ทุกคนในห้อง) กลับเป็นค่าว่าง เผื่อกรอกผิดทั้งวัน
+    public function resetDay(Request $request, $assignId)
+    {
+        $assign = TeachingAssign::findOrFail($assignId);
+
+        $user = auth()->user();
+        if (!$user->isAdmin() && $user->personnel_id !== $assign->personnel_id) {
+            return response()->json(['message' => 'คุณไม่มีสิทธิ์เช็คชื่อวิชานี้'], 403);
+        }
+
+        $date = $request->input('date');
+        if (!$date) {
+            return response()->json(['message' => 'ข้อมูลไม่ครบ'], 422);
+        }
+
+        ClassAttendance::where('assign_id', $assignId)
+            ->whereDate('class_date', $date)
+            ->delete();
+
+        return response()->json(['success' => true]);
+    }
+
     private const THAI_MONTHS_SHORT = ['', 'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
 
     // ดาวน์โหลดแบบฟอร์ม Excel สำหรับเช็คชื่อออฟไลน์ — เลือกได้ทีละเดือน หรือทุกเดือนที่มีในเทอม (?all=1)

@@ -415,6 +415,7 @@ Route::middleware(['auth'])->group(function () {
             Route::post('/import-excel', 'importExcel')->name('importExcel');
             Route::get('/{assign}', 'mark')->name('mark');
             Route::post('/{assign}/cell', 'storeCell')->name('storeCell');
+            Route::post('/{assign}/reset-day', 'resetDay')->name('resetDay');
         });
 
     // === ปพ.5 แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน ===

@@ -19,6 +19,12 @@
     .att-cell.att-saving { opacity:.45; }
     .att-cell.att-save-error { outline:2px solid #dc2626; }
     .att-grid th.att-holiday-col { background:#e0e0e0; color:#707070; }
+    .att-reset-btn {
+        margin-top:3px; border:none; background:transparent; color:#9aa5b5; cursor:pointer;
+        font-size:.75rem; line-height:1; padding:2px 4px; border-radius:3px;
+    }
+    .att-reset-btn:hover { background:#dde3ec; color:#dc2626; }
+    .att-reset-btn:disabled { opacity:.4; cursor:default; }
     .att-legend { display:flex; gap:14px; flex-wrap:wrap; font-size:.8rem; color:#555; margin-top:10px; }
     .att-legend span { display:inline-flex; align-items:center; gap:5px; }
     .att-legend i { width:12px; height:12px; border-radius:3px; display:inline-block; }
@@ -73,7 +79,9 @@
                                 <th class="att-sticky-col" style="width:44px">เลขที่</th>
                                 <th class="att-sticky-col att-name-col">ชื่อ - สกุล</th>
                                 @foreach($dates as $d)
-                                    <th class="{{ $d->is_school_day ? '' : 'att-holiday-col' }}">{{ $d->date->format('d/m') }}<br><span style="font-weight:400;color:#789">{{ ['','จ','อ','พ','พฤ','ศ','ส','อา'][(int)$d->date->format('N')] }}</span></th>
+                                    <th class="{{ $d->is_school_day ? '' : 'att-holiday-col' }}">{{ $d->date->format('d/m') }}<br><span style="font-weight:400;color:#789">{{ ['','จ','อ','พ','พฤ','ศ','ส','อา'][(int)$d->date->format('N')] }}</span><br>
+                                        <button type="button" class="att-reset-btn" data-date="{{ $d->date->format('Y-m-d') }}" onclick="attResetDay(this)" title="รีเซ็ตวันนี้ทั้งหมดกลับเป็นค่าว่าง"><i class="bi bi-arrow-counterclockwise"></i></button>
+                                    </th>
                                 @endforeach
                             </tr>
                         </thead>
@@ -116,6 +124,7 @@
 <div id="attSaveToast"></div>
 <script>
 const attStoreCellUrl = "{{ url('/attendance') }}/{{ $assign->assign_id }}/cell";
+const attResetDayUrl = "{{ url('/attendance') }}/{{ $assign->assign_id }}/reset-day";
 const attCsrfToken = document.querySelector('meta[name="csrf-token"]').content;
 let attToastTimer = null;
 
@@ -166,6 +175,40 @@ function attSaveCell(select) {
     .finally(() => {
         select.classList.remove('att-saving');
         select.disabled = false;
+    });
+}
+
+function attResetDay(btn) {
+    const date = btn.dataset.date;
+    if (!confirm('รีเซ็ตช่องเช็คชื่อวันที่ ' + date + ' ของทุกคนกลับเป็นค่าว่างหรือไม่?')) return;
+
+    btn.disabled = true;
+    fetch(attResetDayUrl, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRF-TOKEN': attCsrfToken,
+            'Accept': 'application/json',
+        },
+        body: JSON.stringify({ date: date }),
+    })
+    .then(async (res) => {
+        if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.message || 'รีเซ็ตไม่สำเร็จ');
+        }
+        document.querySelectorAll('select.att-cell[data-date="' + date + '"]').forEach(sel => {
+            sel.value = '';
+            sel.dataset.savedValue = '';
+            attColorCell(sel);
+        });
+        attShowToast('รีเซ็ตวันที่ ' + date + ' แล้ว');
+    })
+    .catch((err) => {
+        attShowToast(err.message || 'รีเซ็ตไม่สำเร็จ ลองใหม่อีกครั้ง', true);
+    })
+    .finally(() => {
+        btn.disabled = false;
     });
 }
 
