@@ -199,9 +199,9 @@ class StudentListController extends Controller
                 ->values();
         }
 
-        // กรองตามระดับชั้นของห้องล่าสุด
+        // กรองตามระดับชั้นของห้องล่าสุด (trim กันช่องว่างแปลกๆ ที่อาจติดมากับค่าจาก query string)
         if ($levelId !== '') {
-            $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
+            $rows = $rows->filter(fn($r) => trim((string) $r->level_id) === trim((string) $levelId))->values();
         }
 
         // นักเรียนบางคน (มักเป็นข้อมูลเก่าที่นำเข้าตรงๆ ไม่ผ่านหน้าจัดห้องของระบบ) ไม่มีวันที่เข้าเรียนบันทึกไว้เลย
