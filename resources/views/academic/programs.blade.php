@@ -236,13 +236,13 @@
                         @endif
                     </td>
                     <td style="text-align:center">
-                        <a href="{{ route('programs.plans', $p->program_id) }}" style="text-decoration:none">
+                        <a href="{{ route('programs.plans', $p->program_id) }}?year_id={{ $currentYearId }}" style="text-decoration:none">
                             <span class="badge-plan">{{ $p->curriculums_count }}</span>
                         </a>
                     </td>
                     <td style="text-align:center">
                         <div class="btn-row" style="justify-content:center">
-                            <a href="{{ route('programs.plans', $p->program_id) }}" class="btn-viewplans">
+                            <a href="{{ route('programs.plans', $p->program_id) }}?year_id={{ $currentYearId }}" class="btn-viewplans">
                                 <i class="bi bi-journal-check"></i> ดูแผน
                             </a>
                             <button type="button" class="btn-editprogram"

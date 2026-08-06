@@ -22,6 +22,7 @@
     flex-wrap: wrap; gap: 10px;
 }
 .pp-card-title { font-size: 1.05rem; color: #555; }
+.pp-card-title small { display:block; font-size:0.78rem; color:#999; font-weight:400; margin-top:2px; }
 
 .pp-back {
     background: #5c6bc0; color: #fff; border: none; border-radius: 6px;
@@ -113,16 +114,25 @@
         <div class="pp-card-header">
             <span class="pp-card-title">
                 จัดการแผนปีการศึกษา หลักสูตร <strong>{{ $program->name }}</strong>
+                <small>{{ $selectedYear ? 'ปีการศึกษา ' . $selectedYear->year_name : 'ทุกปีการศึกษา' }}</small>
             </span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="btn-add" onclick="document.getElementById('addPlanOverlay').classList.add('active')">
                     <i class="bi bi-plus-lg"></i> สร้างแผน
                 </button>
-                <a href="{{ route('programs.index') }}" class="pp-back">
+                <a href="{{ route('programs.index') }}?year_id={{ $currentYearId }}" class="pp-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
             </div>
         </div>
+
+        @if($hasOtherYearPlans)
+        <div style="margin:0 0 16px; padding:10px 16px; background:#fff8e1; border:1px solid #ffe082; border-radius:6px; color:#8a6d00; font-size:0.85rem;">
+            <i class="bi bi-info-circle"></i>
+            หลักสูตรนี้มีแผนของปีการศึกษาอื่นอยู่ด้วย แต่ไม่แสดงในนี้เพราะกำลังกรองเฉพาะปี {{ $selectedYear->year_name }} —
+            เปลี่ยนปีการศึกษาที่หน้ารายการหลักสูตรเพื่อดูแผนปีอื่น
+        </div>
+        @endif
 
         <table class="pp-table">
             <thead>
@@ -136,13 +146,13 @@
             </thead>
             <tbody>
                 @forelse($levelGroups as $i => $g)
-                <tr onclick="window.location='{{ route('programs.levelPlans', [$program->program_id, $g->level_id]) }}'">
+                <tr onclick="window.location='{{ route('programs.levelPlans', [$program->program_id, $g->level_id]) }}?year_id={{ $currentYearId }}'">
                     <td>{{ $i + 1 }}</td>
                     <td><strong>{{ $g->level->name ?? 'ไม่ระบุระดับ' }}</strong></td>
                     <td style="text-align:center"><span class="badge-plan-count">{{ $g->count }} แผน</span></td>
                     <td>{{ $g->years->implode(', ') ?: '-' }}</td>
                     <td style="text-align:center">
-                        <a href="{{ route('programs.levelPlans', [$program->program_id, $g->level_id]) }}" class="btn-viewlevel" onclick="event.stopPropagation()">
+                        <a href="{{ route('programs.levelPlans', [$program->program_id, $g->level_id]) }}?year_id={{ $currentYearId }}" class="btn-viewlevel" onclick="event.stopPropagation()">
                             ดูแผน <i class="bi bi-chevron-right"></i>
                         </a>
                     </td>
@@ -151,7 +161,11 @@
                 <tr>
                     <td colspan="5" class="pp-empty">
                         <i class="bi bi-journal-x" style="font-size:2rem;display:block;margin-bottom:8px"></i>
-                        ยังไม่มีแผนในหลักสูตรนี้ — กด "สร้างแผน" เพื่อเริ่มสร้างแผนแรก
+                        @if($selectedYear)
+                            ยังไม่มีแผนของปีการศึกษา {{ $selectedYear->year_name }} ในหลักสูตรนี้ — กด "สร้างแผน" เพื่อเริ่มสร้างแผนแรก
+                        @else
+                            ยังไม่มีแผนในหลักสูตรนี้ — กด "สร้างแผน" เพื่อเริ่มสร้างแผนแรก
+                        @endif
                     </td>
                 </tr>
                 @endforelse

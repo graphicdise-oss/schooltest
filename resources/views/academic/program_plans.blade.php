@@ -125,17 +125,25 @@
         <div class="pp-card-header">
             <span class="pp-card-title">
                 แผนของ <strong>{{ $level->name }}</strong>
-                <small>หลักสูตร {{ $program->name }}</small>
+                <small>หลักสูตร {{ $program->name }} — {{ $selectedYear ? 'ปีการศึกษา ' . $selectedYear->year_name : 'ทุกปีการศึกษา' }}</small>
             </span>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <button type="button" class="btn-add" onclick="document.getElementById('addPlanOverlay').classList.add('active')">
                     <i class="bi bi-plus-lg"></i> สร้างแผน
                 </button>
-                <a href="{{ route('programs.plans', $program->program_id) }}" class="pp-back">
+                <a href="{{ route('programs.plans', $program->program_id) }}?year_id={{ $currentYearId }}" class="pp-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
             </div>
         </div>
+
+        @if($hasOtherYearPlans)
+        <div style="margin:0 0 16px; padding:10px 16px; background:#fff8e1; border:1px solid #ffe082; border-radius:6px; color:#8a6d00; font-size:0.85rem;">
+            <i class="bi bi-info-circle"></i>
+            {{ $level->name }} ในหลักสูตรนี้มีแผนของปีการศึกษาอื่นอยู่ด้วย แต่ไม่แสดงในนี้เพราะกำลังกรองเฉพาะปี {{ $selectedYear->year_name }} —
+            เปลี่ยนปีการศึกษาที่หน้ารายการหลักสูตรเพื่อดูแผนปีอื่น
+        </div>
+        @endif
 
         <table class="pp-table">
             <thead>
@@ -177,7 +185,11 @@
                 <tr>
                     <td colspan="4" class="pp-empty">
                         <i class="bi bi-journal-x" style="font-size:2rem;display:block;margin-bottom:8px"></i>
-                        ยังไม่มีแผนของ {{ $level->name }} ในหลักสูตรนี้
+                        @if($selectedYear)
+                            ยังไม่มีแผนของ {{ $level->name }} ในหลักสูตรนี้สำหรับปีการศึกษา {{ $selectedYear->year_name }}
+                        @else
+                            ยังไม่มีแผนของ {{ $level->name }} ในหลักสูตรนี้
+                        @endif
                     </td>
                 </tr>
                 @endforelse

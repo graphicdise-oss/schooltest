@@ -68,11 +68,19 @@ class ProgramController extends Controller
 
     // ขั้นแรกของหน้า "แผน" ของหลักสูตร — โชว์แค่ "ชั้นเรียน" ที่มีแผนอยู่แล้ว (ม.4, ม.5, ม.6, ...)
     // ไม่โชว์แผนแต่ละห้อง (เช่น ม.4/1, ม.4/2) ปนกันตรงนี้ — ต้องกดเข้าไปดูทีละชั้นก่อน
-    public function plans($id)
+    // กรองตามปีการศึกษาที่เลือกไว้จากหน้ารายการหลักสูตร (year_id) ให้ตรงกับตัวเลข "แผน (ปี xxxx)" ที่โชว์ไว้ตรงนั้น
+    // — เดิมหน้านี้โชว์ทุกปีปนกันโดยไม่สนใจปีที่เลือก ทำให้ตัวเลขบนหน้ารายการกับที่เห็นจริงตอนกดเข้ามาไม่ตรงกัน
+    public function plans(Request $request, $id)
     {
         $program = Program::findOrFail($id);
 
-        $curriculums = $program->curriculums()->with('level')->get();
+        $currentYearId = $request->year_id;
+        $selectedYear = $currentYearId ? AcademicYear::find($currentYearId) : null;
+
+        $allCurriculums = $program->curriculums()->with('level')->get();
+        $curriculums = $selectedYear
+            ? $allCurriculums->where('year_applied', $selectedYear->year_name)->values()
+            : $allCurriculums;
 
         $levelGroups = $curriculums
             ->groupBy('level_id')
@@ -89,23 +97,38 @@ class ProgramController extends Controller
 
         // สำหรับป๊อปอัพ "เพิ่มแผน" ในหน้านี้ — ยังไม่รู้ว่าจะเพิ่มแผนให้ชั้นไหน เลยต้องมี dropdown เลือกชั้นในป๊อปอัพเอง
         $levels = Level::orderBy('sort_order')->get();
-        $currentYearName = AcademicYear::where('is_current', true)->value('year_name');
+        $currentYearName = $selectedYear?->year_name ?? AcademicYear::where('is_current', true)->value('year_name');
 
-        return view('academic.program_levels', compact('program', 'levelGroups', 'levels', 'currentYearName'));
+        // เผื่อไม่มีแผนในปีที่กรองไว้เลย แต่มีแผนของปีอื่นอยู่ — บอกผู้ใช้ให้รู้ว่าไม่ได้หายไปไหน แค่ถูกกรองด้วยปี
+        $hasOtherYearPlans = $selectedYear && $allCurriculums->count() > $curriculums->count();
+
+        return view('academic.program_levels', compact(
+            'program', 'levelGroups', 'levels', 'currentYearName', 'currentYearId', 'selectedYear', 'hasOtherYearPlans'
+        ));
     }
 
-    // แผนของ "ชั้นเรียนเดียว" ในหลักสูตรนี้ (เช่น ม.4 -> ม.4/1, ม.4/2, ... ทุกปีการศึกษา) — กดเข้ามาจากหน้ารายการชั้นเรียน
-    public function levelPlans($id, $levelId)
+    // แผนของ "ชั้นเรียนเดียว" ในหลักสูตรนี้ (เช่น ม.4 -> ม.4/1, ม.4/2, ... ) กดเข้ามาจากหน้ารายการชั้นเรียน
+    // กรองตามปีการศึกษาที่เลือกไว้เช่นเดียวกับ plans() ด้านบน เพื่อให้สอดคล้องกันตลอดทั้งขั้น
+    public function levelPlans(Request $request, $id, $levelId)
     {
         $program = Program::findOrFail($id);
         $level   = Level::findOrFail($levelId);
 
-        $curriculums = $program->curriculums()->with('level')
+        $currentYearId = $request->year_id;
+        $selectedYear = $currentYearId ? AcademicYear::find($currentYearId) : null;
+
+        $allCurriculums = $program->curriculums()->with('level')
             ->where('level_id', $levelId)
             ->orderByDesc('year_applied')->orderBy('name')->get();
+        $curriculums = $selectedYear
+            ? $allCurriculums->where('year_applied', $selectedYear->year_name)->values()
+            : $allCurriculums;
 
-        $currentYearName = AcademicYear::where('is_current', true)->value('year_name');
+        $currentYearName = $selectedYear?->year_name ?? AcademicYear::where('is_current', true)->value('year_name');
+        $hasOtherYearPlans = $selectedYear && $allCurriculums->count() > $curriculums->count();
 
-        return view('academic.program_plans', compact('program', 'level', 'curriculums', 'currentYearName'));
+        return view('academic.program_plans', compact(
+            'program', 'level', 'curriculums', 'currentYearName', 'currentYearId', 'selectedYear', 'hasOtherYearPlans'
+        ));
     }
 }
