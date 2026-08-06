@@ -163,15 +163,18 @@ class StudentListController extends Controller
             ->with([
                 'education',
                 'studentSections' => function ($q) {
-                    $q->with(['classSection.level', 'classSection.semester.academicYear'])
-                      ->orderBy('created_at'); // เรียงเก่า -> ใหม่ เพื่อหาห้องแรกสุดได้ง่าย
+                    $q->with(['classSection.level', 'classSection.semester.academicYear']);
                 },
             ])
             ->get();
 
         // แปลงเป็นแถวรายงาน (ห้องล่าสุด = วันเข้าเรียนล่าสุด)
         $rows = $students->map(function ($s) {
-            $latest = $s->studentSections->last();
+            // หาแถว "ล่าสุด" เองใน PHP แทนการพึ่ง ORDER BY created_at ที่ฐานข้อมูล — เพราะ MySQL/SQLite
+            // เรียงค่า NULL ไว้ต้นแถว (ASC) แต่ PostgreSQL เรียงค่า NULL ไว้ท้ายแถวแทน ถ้าใช้ ->last() หลัง
+            // orderBy('created_at') ตรงๆ บน Postgres จะได้แถวที่ไม่มีวันที่ (NULL) มาเป็น "ล่าสุด" ผิดๆ
+            // ทันทีที่นักเรียนมีประวัติห้องเก่าที่นำเข้าแบบไม่มี created_at ปนอยู่แม้แต่แถวเดียว
+            $latest = $s->studentSections->sortBy(fn ($ss) => $ss->created_at ?? \Carbon\Carbon::createFromTimestamp(0))->last();
             $sec    = $latest?->classSection;
             return (object) [
                 'code'            => $s->student_code,
