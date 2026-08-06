@@ -281,6 +281,10 @@ class PersonnelController extends Controller
             $query->whereIn('personnel_id', \App\Models\Academic\ClassSection::where('section_id', $request->section_id)->pluck('homeroom_teacher_id'));
         }
 
+        if ($request->filled('employee_code')) {
+            $query->where('employee_code', 'like', '%' . $request->employee_code . '%');
+        }
+
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(

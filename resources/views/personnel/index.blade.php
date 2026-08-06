@@ -357,8 +357,8 @@
             <div class="floating-icon bg-cyan-custom"><i class="bi bi-search"></i></div>
             <div class="card-header-text mb-4">ค้นหา</div>
             <form action="{{ route('personnels.index') }}" method="GET">
-                <div class="row px-md-4 mt-4">
-                    <div class="col-md-3 mb-4 offset-md-1">
+                <div class="row g-4 px-md-4 mt-2">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">ประเภทบุคลากร</label>
                         <select name="type" class="form-select input-material text-muted mt-2">
                             <option value="">เลือกประเภทบุคลากร</option>
@@ -367,7 +367,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-4 offset-md-1">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">แผนก</label>
                         <select name="department" class="form-select input-material text-muted mt-2">
                             <option value="">ทั้งหมด</option>
@@ -378,7 +378,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-4 offset-md-1">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">ห้อง (ครูประจำชั้น)</label>
                         <select name="section_id" class="form-select input-material text-muted mt-2">
                             <option value="">ทั้งหมด</option>
@@ -389,13 +389,18 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-4 offset-md-1">
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <label class="form-label fw-bold text-dark mb-0">รหัสบุคลากร</label>
+                        <input type="text" name="employee_code" class="form-control input-material text-muted mt-2"
+                            placeholder="รหัสบุคลากร" value="{{ request('employee_code') }}">
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">ชื่อ - นามสกุล</label>
                         <input type="text" name="search" class="form-control input-material text-muted mt-2"
                             placeholder="ชื่อ - นามสกุล" value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="text-center mb-2 mt-2">
+                <div class="text-center mb-2 mt-4">
                     <button type="submit" class="btn bg-cyan-custom text-white px-4 py-2 rounded-1">
                         <i class="bi bi-search me-1"></i> ค้นหา
                     </button>
