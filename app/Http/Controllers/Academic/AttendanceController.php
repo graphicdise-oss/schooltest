@@ -10,6 +10,7 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Subject;
 use App\Models\Personne\Personnel;
+use App\Services\ExcelSchoolHeader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
@@ -319,25 +320,28 @@ class AttendanceController extends Controller
 
         $teacherName = trim(($assign->personnel->thai_prefix ?? '') . ($assign->personnel->thai_firstname ?? '') . ' ' . ($assign->personnel->thai_lastname ?? ''));
 
-        $sheet->mergeCells("A1:{$lastCol}1");
-        $sheet->setCellValue('A1', 'แบบฟอร์มเช็คชื่อ');
-        $sheet->getStyle('A1')->applyFromArray(['font' => ['bold' => true, 'size' => 14], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+        // แถบหัวชื่อโรงเรียน + ตราโรงเรียน (แถว 1-4) เดียวกับไฟล์ Excel อื่นๆ ในระบบ ตั้งค่าตราโรงเรียน/ข้อมูลติดต่อ
+        // ได้ที่เมนู "ข้อมูลนักเรียน" > นำเข้าข้อมูล (ปุ่มตั้งค่าหัวฟอร์ม)
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $pctCol);
 
-        $sheet->mergeCells("A2:{$lastCol}2");
-        $sheet->setCellValue('A2', $assign->subject->code . ' — ' . $assign->subject->name_th . '   ห้อง ' . $assign->classSection->full_name . '   ครูผู้สอน ' . $teacherName);
-        $sheet->getStyle('A2')->applyFromArray(['font' => ['bold' => true, 'size' => 11], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+        $sheet->mergeCells("A5:{$lastCol}5");
+        $sheet->setCellValue('A5', 'แบบฟอร์มเช็คชื่อ   ' . $assign->subject->code . ' — ' . $assign->subject->name_th . '   ห้อง ' . $assign->classSection->full_name . '   ครูผู้สอน ' . $teacherName);
+        $sheet->getStyle('A5')->applyFromArray(['font' => ['bold' => true, 'size' => 11], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
 
-        $sheet->mergeCells("A3:{$lastCol}3");
-        $sheet->setCellValue('A3', 'เดือน ' . self::THAI_MONTHS_SHORT[$month] . ' ปี ' . ($year + 543));
-        $sheet->getStyle('A3')->applyFromArray(['font' => ['bold' => true, 'size' => 10.5], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
+        $sheet->mergeCells("A6:{$lastCol}6");
+        $sheet->setCellValue('A6', 'เดือน ' . self::THAI_MONTHS_SHORT[$month] . ' ปี ' . ($year + 543));
+        $sheet->getStyle('A6')->applyFromArray(['font' => ['bold' => true, 'size' => 10.5], 'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
 
-        $sheet->setCellValue('A4', 'รหัสอ้างอิง (ห้ามแก้ไข)');
-        $sheet->setCellValue('B4', (string) $assign->assign_id);
-        $sheet->setCellValue('A5', 'เดือนที่อ้างอิง (ห้ามแก้ไข)');
-        $sheet->setCellValue('B5', sprintf('%04d-%02d', $year, $month));
-        $sheet->getStyle('A4:B5')->applyFromArray(['font' => ['size' => 9, 'color' => ['rgb' => '999999']]]);
+        $sheet->setCellValue('A7', 'รหัสอ้างอิง (ห้ามแก้ไข)');
+        $sheet->setCellValue('B7', (string) $assign->assign_id);
+        $sheet->setCellValue('A8', 'เดือนที่อ้างอิง (ห้ามแก้ไข)');
+        $sheet->setCellValue('B8', sprintf('%04d-%02d', $year, $month));
+        $sheet->getStyle('A7:B8')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 9, 'color' => ['rgb' => '595959']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F5F5F5']],
+        ]);
 
-        $headerRow = 6;
+        $headerRow = 9;
         $sheet->setCellValue("A{$headerRow}", 'เลขที่');
         $sheet->setCellValue("B{$headerRow}", 'เลขประจำตัวนักเรียน');
         $sheet->setCellValue("C{$headerRow}", 'ชื่อ - สกุล');
@@ -386,8 +390,8 @@ class AttendanceController extends Controller
         $applyHolidayCell = function ($cell, ?string $prior = null) use ($holidayValidationList) {
             $cell->setValue($prior !== null && $prior !== '' ? $prior : ClassAttendance::HOLIDAY_LABEL);
             $cell->getStyle()->applyFromArray([
-                'font' => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '999999']],
-                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'F2F2F2']],
+                'font' => ['italic' => true, 'size' => 9, 'color' => ['rgb' => '707070']],
+                'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EDEDED']],
             ]);
             $validation = $cell->getDataValidation();
             $validation->setType(DataValidation::TYPE_LIST);
@@ -467,7 +471,7 @@ class AttendanceController extends Controller
         $sheet->getStyle("A{$firstDataRow}:{$lastCol}{$row}")->applyFromArray(['alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]]);
         $sheet->getStyle("C{$firstDataRow}:C{$lastDataRow}")->applyFromArray(['alignment' => ['horizontal' => Alignment::HORIZONTAL_LEFT]]);
 
-        $sheet->getColumnDimension('A')->setWidth(7);
+        ExcelSchoolHeader::setColumnWidth($sheet, 'A', 7, $hasLogo);
         $sheet->getColumnDimension('B')->setWidth(16);
         $sheet->getColumnDimension('C')->setWidth(24);
         for ($i = 0; $i < $n; $i++) {
