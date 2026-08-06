@@ -741,20 +741,6 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบ School Bus</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ภาพรวม</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">การแจ้งเหตุ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าการเดินทาง</a>
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
                             <div class="flex-1">
                                 <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานห้องสมุด</h4>
