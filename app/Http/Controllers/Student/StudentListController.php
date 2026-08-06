@@ -189,6 +189,16 @@ class StudentListController extends Controller
             ];
         });
 
+        // ถ้ากรองตามระดับชั้นแล้วไม่เจอใครเลยทั้งที่มีข้อมูลอยู่ ให้เก็บรายการ "ห้อง/รหัสระดับชั้นที่มีข้อมูลจริง" ไว้เทียบ
+        // กับ level_id ที่เลือก เผื่อระดับชั้นในระบบมีรายการซ้ำ (ชื่อเหมือนกันแต่คนละ id) จะได้เห็นสาเหตุตรงๆ
+        $availableLevelDebug = collect();
+        if ($levelId !== '') {
+            $availableLevelDebug = $rows->filter(fn($r) => $r->level_id !== null)
+                ->map(fn($r) => $r->level_id . ' (' . $r->room . ')')
+                ->unique()
+                ->values();
+        }
+
         // กรองตามระดับชั้นของห้องล่าสุด
         if ($levelId !== '') {
             $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
@@ -211,7 +221,7 @@ class StudentListController extends Controller
         // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
         $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
 
-        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo', 'hasAnyData', 'missingDateCount'));
+        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search', 'dateFrom', 'dateTo', 'hasAnyData', 'missingDateCount', 'availableLevelDebug'));
     }
 
     /**
