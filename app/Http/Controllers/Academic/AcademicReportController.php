@@ -39,8 +39,16 @@ class AcademicReportController extends Controller
 
         $sectionId = $request->section_id;
 
+        // พรีวิวรายชื่อนักเรียนของห้องที่เลือก ให้เห็นก่อนกดส่งออกจริง
+        $roster = $sectionId
+            ? StudentSection::with('student')
+                ->where('section_id', $sectionId)
+                ->where('status', 'กำลังศึกษา')
+                ->orderBy('student_number')->get()
+            : collect();
+
         return view('academic.report_avg_score', compact(
-            'academicYears', 'yearId', 'levels', 'levelId', 'sections', 'sectionId', 'sem1'
+            'academicYears', 'yearId', 'levels', 'levelId', 'sections', 'sectionId', 'sem1', 'roster'
         ));
     }
 

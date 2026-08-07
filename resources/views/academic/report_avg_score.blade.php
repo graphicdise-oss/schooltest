@@ -85,6 +85,40 @@
                 <i class="bi bi-download"></i> ส่งออกไฟล์ Excel
             </a>
         </div>
+
+        @if($sectionId)
+        <div style="margin-top:24px">
+            <div class="rp-card-title" style="margin-bottom:10px">
+                รายชื่อนักเรียนในห้องนี้ ({{ $roster->count() }} คน)
+            </div>
+            @if($roster->isEmpty())
+            <div class="rp-empty">ห้องนี้ยังไม่มีนักเรียน</div>
+            @else
+            <div class="ac-table-wrap">
+                <table class="ac-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px">เลขที่</th>
+                            <th style="width:120px">รหัสนักเรียน</th>
+                            <th>ชื่อ-สกุล</th>
+                            <th style="width:90px">เพศ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($roster as $ss)
+                        <tr>
+                            <td>{{ $ss->student_number }}</td>
+                            <td>{{ $ss->student->student_code ?? '-' }}</td>
+                            <td style="text-align:left">{{ $ss->student->thai_prefix }}{{ $ss->student->thai_firstname }} {{ $ss->student->thai_lastname }}</td>
+                            <td>{{ $ss->student->gender === 'M' ? 'ชาย' : ($ss->student->gender === 'F' ? 'หญิง' : '-') }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+        </div>
+        @endif
         @endif
     </div>
 </div>
