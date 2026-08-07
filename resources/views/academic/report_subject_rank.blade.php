@@ -62,7 +62,7 @@
                 </div>
                 <div class="ac-field">
                     <label>รายวิชา</label>
-                    <select name="subject_id" class="ac-select">
+                    <select name="subject_id" class="ac-select" onchange="this.form.submit()">
                         <option value="">-- เลือกรายวิชา --</option>
                         @foreach($subjects as $s)
                         <option value="{{ $s->subject_id }}" {{ (string) $subjectId === (string) $s->subject_id ? 'selected' : '' }}>{{ $s->name_th }} ({{ $s->code }})</option>
@@ -81,6 +81,45 @@
                 <i class="bi bi-printer"></i> พิมพ์รายงาน (บันทึกเป็น PDF ได้จากหน้าต่างพิมพ์)
             </a>
         </div>
+
+        @if($subjectId && $subject)
+        <div style="margin-top:24px">
+            <div class="rp-card-title" style="margin-bottom:10px">
+                อันดับคะแนนวิชา {{ $subject->name_th }} ({{ count($rows) }} คน)
+            </div>
+            @if(empty($rows))
+            <div class="rp-empty">ยังไม่มีข้อมูลคะแนนของวิชานี้ในภาคเรียนนี้</div>
+            @else
+            <div class="ac-table-wrap">
+                <table class="ac-table">
+                    <thead>
+                        <tr>
+                            <th style="width:60px">ลำดับ</th>
+                            <th style="width:120px">รหัสนักเรียน</th>
+                            <th>ชื่อ-สกุล</th>
+                            <th style="width:130px">ห้อง</th>
+                            <th style="width:80px">คะแนน</th>
+                            <th style="width:70px">ระดับ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($rows as $r)
+                        @php $student = $r['grade']->student; @endphp
+                        <tr>
+                            <td>{{ $r['rank'] }}</td>
+                            <td>{{ $student->student_code ?? '-' }}</td>
+                            <td style="text-align:left">{{ $student->thai_prefix }}{{ $student->thai_firstname }} {{ $student->thai_lastname }}</td>
+                            <td>{{ $r['grade']->teachingAssign->classSection->full_name ?? '-' }}</td>
+                            <td>{{ $r['grade']->total_score }}</td>
+                            <td>{{ $r['grade']->grade }}</td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+            @endif
+        </div>
+        @endif
         @endif
     </div>
 </div>

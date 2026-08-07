@@ -185,8 +185,18 @@ class AcademicReportController extends Controller
 
         $subjectId = $request->subject_id;
 
+        // พรีวิวอันดับคะแนนของวิชาที่เลือก ให้เห็นก่อนสั่งพิมพ์จริง
+        $subject = null;
+        $rows = [];
+        if ($semester && $subjectId) {
+            $subject = Subject::find($subjectId);
+            if ($subject) {
+                $rows = $this->rankSubjectGrades($semester, $subject);
+            }
+        }
+
         return view('academic.report_subject_rank', compact(
-            'academicYears', 'yearId', 'term', 'subjects', 'subjectId'
+            'academicYears', 'yearId', 'term', 'subjects', 'subjectId', 'subject', 'rows'
         ));
     }
 
@@ -202,6 +212,17 @@ class AcademicReportController extends Controller
         $semester = Semester::where('year_id', $year->year_id)->where('semester_name', $request->term)->firstOrFail();
         $subject = Subject::findOrFail($request->subject_id);
 
+        $rows = $this->rankSubjectGrades($semester, $subject);
+
+        $school = config('school');
+
+        return view('academic.report_subject_rank_print', compact('year', 'semester', 'subject', 'rows', 'school'));
+    }
+
+    // จัดอันดับนักเรียนทุกห้องที่เรียนวิชานี้ในภาคเรียนที่กำหนด ตามคะแนนรวมมากไปน้อย
+    // แบบ competition ranking (คะแนนเท่ากันได้อันดับเดียวกัน อันดับถัดไปข้ามตามจำนวนคนที่เสมอ)
+    private function rankSubjectGrades(Semester $semester, Subject $subject): array
+    {
         $grades = FinalGrade::with(['student', 'teachingAssign.classSection.level'])
             ->where('semester_id', $semester->semester_id)
             ->whereHas('teachingAssign', fn ($q) => $q->where('subject_id', $subject->subject_id))
@@ -210,7 +231,6 @@ class AcademicReportController extends Controller
             ->sortByDesc(fn ($g) => (float) $g->total_score)
             ->values();
 
-        // จัดอันดับแบบ competition ranking เช่นเดียวกับรายงานคะแนนเฉลี่ย 2 ภาคเรียน
         $rows = [];
         $rank = 0;
         $prevScore = null;
@@ -225,8 +245,6 @@ class AcademicReportController extends Controller
             $rows[] = ['rank' => $rank, 'grade' => $g];
         }
 
-        $school = config('school');
-
-        return view('academic.report_subject_rank_print', compact('year', 'semester', 'subject', 'rows', 'school'));
+        return $rows;
     }
 }
