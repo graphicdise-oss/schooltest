@@ -57,6 +57,7 @@ body { font-family: 'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size: 1
         <div class="title3">
             วิชา <strong>{{ $subject->name_th }}</strong> ({{ $subject->code }})
             &emsp; ภาคเรียนที่ {{ $semester->semester_name }} ปีการศึกษา {{ $year->year_name }}
+            &emsp; {{ $section ? 'ห้อง '.$section->full_name : 'ทุกห้อง' }}
         </div>
     </div>
 

@@ -44,7 +44,7 @@
         </div>
 
         <form method="GET" action="{{ route('academic-reports.subject-rank') }}">
-            <div class="ac-grid-3">
+            <div class="ac-grid-4">
                 <div class="ac-field">
                     <label>ปีการศึกษา</label>
                     <select name="year_id" class="ac-select" onchange="this.form.submit()">
@@ -69,6 +69,15 @@
                         @endforeach
                     </select>
                 </div>
+                <div class="ac-field">
+                    <label>ห้องเรียน</label>
+                    <select name="section_id" class="ac-select" onchange="this.form.submit()" {{ $subjectId ? '' : 'disabled' }}>
+                        <option value="">-- ทุกห้อง --</option>
+                        @foreach($sections as $sec)
+                        <option value="{{ $sec->section_id }}" {{ (string) $sectionId === (string) $sec->section_id ? 'selected' : '' }}>{{ $sec->full_name }}</option>
+                        @endforeach
+                    </select>
+                </div>
             </div>
         </form>
 
@@ -77,7 +86,7 @@
         @else
         <div class="ac-save-wrap">
             <a class="btn-export {{ $subjectId ? '' : 'disabled' }}" target="_blank"
-               href="{{ $subjectId ? route('academic-reports.subject-rank.print', ['year_id' => $yearId, 'term' => $term, 'subject_id' => $subjectId]) : '#' }}">
+               href="{{ $subjectId ? route('academic-reports.subject-rank.print', ['year_id' => $yearId, 'term' => $term, 'subject_id' => $subjectId, 'section_id' => $sectionId]) : '#' }}">
                 <i class="bi bi-printer"></i> พิมพ์รายงาน (บันทึกเป็น PDF ได้จากหน้าต่างพิมพ์)
             </a>
         </div>
@@ -85,7 +94,8 @@
         @if($subjectId && $subject)
         <div style="margin-top:24px">
             <div class="rp-card-title" style="margin-bottom:10px">
-                อันดับคะแนนวิชา {{ $subject->name_th }} ({{ count($rows) }} คน)
+                อันดับคะแนนวิชา {{ $subject->name_th }}{{ $sectionId ? ' ('.($sections->firstWhere('section_id', (int) $sectionId)->full_name ?? '').')' : ' (ทุกห้อง)' }}
+                ({{ count($rows) }} คน)
             </div>
             @if(empty($rows))
             <div class="rp-empty">ยังไม่มีข้อมูลคะแนนของวิชานี้ในภาคเรียนนี้</div>

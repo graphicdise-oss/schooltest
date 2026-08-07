@@ -185,18 +185,29 @@ class AcademicReportController extends Controller
 
         $subjectId = $request->subject_id;
 
+        // ห้องเรียนที่สอนวิชานี้ในภาคเรียนนี้ (วิชาเดียวอาจสอนหลายห้อง) — ให้เลือกจัดอันดับทั้งระดับ หรือแค่ห้องเดียวก็ได้
+        $sections = collect();
+        if ($semester && $subjectId) {
+            $sectionIds = TeachingAssign::where('semester_id', $semester->semester_id)
+                ->where('subject_id', $subjectId)
+                ->pluck('section_id')->unique();
+            $sections = ClassSection::with('level')->whereIn('section_id', $sectionIds)
+                ->orderBy('level_id')->orderBy('section_number')->get();
+        }
+        $sectionId = $request->section_id;
+
         // พรีวิวอันดับคะแนนของวิชาที่เลือก ให้เห็นก่อนสั่งพิมพ์จริง
         $subject = null;
         $rows = [];
         if ($semester && $subjectId) {
             $subject = Subject::find($subjectId);
             if ($subject) {
-                $rows = $this->rankSubjectGrades($semester, $subject);
+                $rows = $this->rankSubjectGrades($semester, $subject, $sectionId);
             }
         }
 
         return view('academic.report_subject_rank', compact(
-            'academicYears', 'yearId', 'term', 'subjects', 'subjectId', 'subject', 'rows'
+            'academicYears', 'yearId', 'term', 'subjects', 'subjectId', 'subject', 'rows', 'sections', 'sectionId'
         ));
     }
 
@@ -211,21 +222,27 @@ class AcademicReportController extends Controller
         $year = AcademicYear::findOrFail($request->year_id);
         $semester = Semester::where('year_id', $year->year_id)->where('semester_name', $request->term)->firstOrFail();
         $subject = Subject::findOrFail($request->subject_id);
+        $section = $request->filled('section_id') ? ClassSection::with('level')->find($request->section_id) : null;
 
-        $rows = $this->rankSubjectGrades($semester, $subject);
+        $rows = $this->rankSubjectGrades($semester, $subject, $request->section_id);
 
         $school = config('school');
 
-        return view('academic.report_subject_rank_print', compact('year', 'semester', 'subject', 'rows', 'school'));
+        return view('academic.report_subject_rank_print', compact('year', 'semester', 'subject', 'rows', 'school', 'section'));
     }
 
-    // จัดอันดับนักเรียนทุกห้องที่เรียนวิชานี้ในภาคเรียนที่กำหนด ตามคะแนนรวมมากไปน้อย
-    // แบบ competition ranking (คะแนนเท่ากันได้อันดับเดียวกัน อันดับถัดไปข้ามตามจำนวนคนที่เสมอ)
-    private function rankSubjectGrades(Semester $semester, Subject $subject): array
+    // จัดอันดับนักเรียนที่เรียนวิชานี้ในภาคเรียนที่กำหนด ตามคะแนนรวมมากไปน้อย (ระบุ $sectionId เพื่อจำกัดแค่ห้องเดียว
+    // ไม่งั้นจัดอันดับรวมทุกห้องที่สอนวิชานี้) แบบ competition ranking (คะแนนเท่ากันได้อันดับเดียวกัน อันดับถัดไปข้ามตามจำนวนคนที่เสมอ)
+    private function rankSubjectGrades(Semester $semester, Subject $subject, $sectionId = null): array
     {
         $grades = FinalGrade::with(['student', 'teachingAssign.classSection.level'])
             ->where('semester_id', $semester->semester_id)
-            ->whereHas('teachingAssign', fn ($q) => $q->where('subject_id', $subject->subject_id))
+            ->whereHas('teachingAssign', function ($q) use ($subject, $sectionId) {
+                $q->where('subject_id', $subject->subject_id);
+                if ($sectionId) {
+                    $q->where('section_id', $sectionId);
+                }
+            })
             ->get()
             ->filter(fn ($g) => $g->student !== null)
             ->sortByDesc(fn ($g) => (float) $g->total_score)
