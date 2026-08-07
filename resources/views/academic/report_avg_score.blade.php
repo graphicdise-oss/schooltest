@@ -101,16 +101,17 @@
                             <th style="width:60px">เลขที่</th>
                             <th style="width:120px">รหัสนักเรียน</th>
                             <th>ชื่อ-สกุล</th>
-                            <th style="width:90px">เพศ</th>
+                            <th style="width:130px">ห้อง</th>
                         </tr>
                     </thead>
                     <tbody>
+                        @php $selectedSection = $sections->firstWhere('section_id', (int) $sectionId); @endphp
                         @foreach($roster as $ss)
                         <tr>
                             <td>{{ $ss->student_number }}</td>
                             <td>{{ $ss->student->student_code ?? '-' }}</td>
                             <td style="text-align:left">{{ $ss->student->thai_prefix }}{{ $ss->student->thai_firstname }} {{ $ss->student->thai_lastname }}</td>
-                            <td>{{ $ss->student->gender === 'M' ? 'ชาย' : ($ss->student->gender === 'F' ? 'หญิง' : '-') }}</td>
+                            <td>{{ $selectedSection->full_name ?? '-' }}</td>
                         </tr>
                         @endforeach
                     </tbody>
