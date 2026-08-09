@@ -136,7 +136,7 @@
                 <tr>
                     <td>{{ $i + 1 }}</td>
                     <td>{{ $sec->level->name ?? '-' }}</td>
-                    <td><strong>{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}</strong></td>
+                    <td><strong>{{ $sec->full_name }}</strong></td>
                     <td>
                         @if($sec->homeroomTeacher)
                             {{ $sec->homeroomTeacher->thai_prefix }}{{ $sec->homeroomTeacher->thai_firstname }}

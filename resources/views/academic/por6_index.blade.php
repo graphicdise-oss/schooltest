@@ -33,7 +33,7 @@
                     <select class="ac-select" name="section_id" onchange="this.form.submit()">
                         <option value="">-- เลือกห้องเรียน --</option>
                         @foreach($sections as $sec)
-                        <option value="{{ $sec->section_id }}" {{ (string)$sectionId===(string)$sec->section_id?'selected':'' }}>{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}</option>
+                        <option value="{{ $sec->section_id }}" {{ (string)$sectionId===(string)$sec->section_id?'selected':'' }}>{{ $sec->full_name }}</option>
                         @endforeach
                     </select>
                 </div>

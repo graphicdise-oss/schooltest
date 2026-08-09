@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ปพ.5 — {{ $assign->subject->name_th }} {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
+<title>ปพ.5 — {{ $assign->subject->name_th }} {{ $section->full_name ?? '' }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -87,7 +87,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     <table class="meta-table">
         <tr>
             <td class="lbl">ปีการศึกษา</td><td class="val">{{ $semester->semester_name }}/{{ $semester->academicYear->year_name ?? '' }}</td>
-            <td class="lbl" style="width:60px;">ชั้นปี</td><td class="val">{{ $section->level->name ?? '' }}/{{ $section->section_number }}</td>
+            <td class="lbl" style="width:60px;">ชั้นปี</td><td class="val">{{ $section->full_name ?? '' }}</td>
         </tr>
         <tr>
             <td class="lbl">วิชา</td><td class="val" colspan="3">{{ $assign->subject->code }} {{ $assign->subject->name_th }}</td>
@@ -176,7 +176,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
                 ->map(fn($g, $k) => ['label' => $thMonths[(int) substr($k, 5, 2)] . ' ' . (substr($k, 0, 4) + 543), 'count' => $g->count()]);
         @endphp
         <div class="page">
-            <div class="att-title">บันทึกเวลาเรียน วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->level->name ?? '' }}/{{ $section->section_number }}</div>
+            <div class="att-title">บันทึกเวลาเรียน วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->full_name ?? '' }}</div>
             <table class="att-table">
                 <thead>
                     <tr>
@@ -214,7 +214,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     @endforeach
 
     <div class="page">
-        <div class="att-title">สถิติการเข้าเรียน วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->level->name ?? '' }}/{{ $section->section_number }}</div>
+        <div class="att-title">สถิติการเข้าเรียน วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->full_name ?? '' }}</div>
         <table class="stat-table">
             <thead>
                 <tr>
@@ -252,7 +252,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     @php $catChunks = $categories->chunk(9)->values(); @endphp
     @foreach($catChunks as $catChunk)
         <div class="page">
-            <div class="att-title">คะแนนเก็บ วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->level->name ?? '' }}/{{ $section->section_number }}</div>
+            <div class="att-title">คะแนนเก็บ วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->full_name ?? '' }}</div>
             <table class="score-table">
                 <thead>
                     <tr>

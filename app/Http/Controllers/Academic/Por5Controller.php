@@ -29,7 +29,7 @@ class Por5Controller extends Controller
         $subjectId   = $request->subject_id;
         $personnelId = $request->personnel_id;
 
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $subjects  = Subject::where('is_active', true)->orderBy('code')->get();
         $teachers  = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
 
@@ -169,11 +169,8 @@ class Por5Controller extends Controller
         $scores = StudentScore::whereIn('category_id', $categories->pluck('category_id'))
             ->get()->groupBy('student_id')->map(fn($rows) => $rows->keyBy('category_id'));
 
-        // ===== ลายเซ็นผู้อนุมัติ =====
-        $signSettings = Pp2Setting::getInstance();
-        $school = config('school');
-        if ($signSettings->registrar_name) $school['registrar_name'] = $signSettings->registrar_name;
-        if ($signSettings->director_name)  $school['director_name']  = $signSettings->director_name;
+        // ===== ข้อมูลโรงเรียน/ลายเซ็นผู้อนุมัติ (จากหน้า "ตั้งค่าเริ่มต้น") =====
+        $school = Pp2Setting::mergedSchoolConfig();
 
         $studentChunks = $students->chunk(45)->values();
 

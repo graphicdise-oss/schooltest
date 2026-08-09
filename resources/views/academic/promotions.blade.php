@@ -25,13 +25,21 @@
                         {{-- ซ้าย: ห้องต้นทาง --}}
                         <div class="transfer-panel">
                             <h6>ข้อมูลนักเรียน (ห้องต้นทาง)</h6>
-                            <div class="ac-grid-2" style="margin-bottom:12px">
-                                <div class="ac-field"><label>เทอม</label>
-                                    <select class="ac-select" onchange="window.location='?semester_id='+this.value">
-                                        @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>{{ $sem->academicYear->year_name }} เทอม {{ $sem->semester_name }}</option>@endforeach
+                            <div style="display:flex; gap:14px; margin-bottom:12px; flex-wrap:wrap">
+                                <div class="ac-field" style="width:150px; flex:none">
+                                    <label>ปีการศึกษา</label>
+                                    <select id="filterYear" class="ac-select" onchange="filterSemesterByYear()">
+                                        @foreach($academicYears as $y)<option value="{{ $y->year_id }}" {{ (string)$yearId===(string)$y->year_id?'selected':'' }}>{{ $y->year_name }}</option>@endforeach
                                     </select>
                                 </div>
-                                <div class="ac-field"><label>ห้อง</label>
+                                <div class="ac-field" style="width:150px; flex:none">
+                                    <label>ภาคการศึกษา</label>
+                                    <select id="filterSemester" class="ac-select" onchange="window.location='?semester_id='+this.value">
+                                        @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" data-year="{{ $sem->year_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>เทอม {{ $sem->semester_name }}</option>@endforeach
+                                    </select>
+                                </div>
+                                <div class="ac-field" style="flex:1; min-width:180px">
+                                    <label>ห้อง</label>
                                     <select name="from_section_id" id="fromSection" class="ac-select" onchange="filterStudents()">
                                         <option value="">เลือกห้อง</option>
                                         @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }} ({{ $sec->studentSections->count() }} คน)</option>@endforeach
@@ -110,11 +118,18 @@
                 <form method="POST" action="{{ route('promotions.graduate') }}">
                     @csrf
                     <div class="ac-grid-2" style="margin-bottom:16px">
+                        <div class="ac-field"><label>ระดับ</label>
+                            <select id="gradLevel" class="ac-select" onchange="filterGradRoomsByLevel()">
+                                <option value="">เลือกระดับชั้นเรียน</option>
+                                @foreach($graduateLevels as $lv)<option value="{{ $lv->level_id }}">{{ $lv->name }}</option>@endforeach
+                            </select>
+                        </div>
                         <div class="ac-field"><label>เลือกห้อง</label>
                             <select name="from_section_id" id="gradFrom" class="ac-select" onchange="filterGradStudents()">
                                 <option value="">เลือกห้อง</option>
-                                @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                @foreach($graduateSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
                             </select>
+                            <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของชั้นปีสุดท้ายในแต่ละช่วงชั้น (ป.6 / ม.3 / ม.6) เท่านั้น</p>
                         </div>
                         <div class="ac-field"><label>หมายเหตุ</label><input type="text" name="remark" class="ac-input" placeholder="เช่น จบหลักสูตรปี 2567"></div>
                     </div>
@@ -135,6 +150,22 @@
 </div>
 
 <script>
+// ===== เลือกปีการศึกษา -> กรองภาคการศึกษา =====
+function filterSemesterByYear() {
+    const yearId = document.getElementById('filterYear').value;
+    const semSelect = document.getElementById('filterSemester');
+    let currentStillVisible = false;
+    Array.from(semSelect.options).forEach(opt => {
+        const matches = opt.dataset.year === yearId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) {
+        const firstVisible = Array.from(semSelect.options).find(opt => !opt.hidden);
+        if (firstVisible) window.location = '?semester_id=' + firstVisible.value;
+    }
+}
+
 // ===== ย้ายห้อง =====
 let fromStudents = [], toStudents = [];
 function filterStudents() {
@@ -182,6 +213,21 @@ function promoteSelected() {
 }
 
 // ===== จบการศึกษา =====
+function filterGradRoomsByLevel() {
+    const levelId = document.getElementById('gradLevel').value;
+    const roomSelect = document.getElementById('gradFrom');
+    let currentStillVisible = false;
+    Array.from(roomSelect.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; }
+        const matches = !levelId || opt.dataset.level === levelId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) {
+        roomSelect.value = '';
+        filterGradStudents();
+    }
+}
 function filterGradStudents() {
     const sel = document.getElementById('gradFrom');
     const opt = sel.options[sel.selectedIndex];

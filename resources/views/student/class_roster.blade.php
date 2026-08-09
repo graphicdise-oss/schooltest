@@ -134,7 +134,7 @@
                 <div class="col-md-2">
                     <div class="form-label-sm">ระดับชั้นเรียน</div>
                     <select name="level_id" class="form-select-line" onchange="submitForm()">
-                        <option value="">เลือกระดับชั้น</option>
+                        <option value="">ทั้งหมด</option>
                         @foreach ($levels as $lv)
                             <option value="{{ $lv->level_id }}" {{ $levelId == $lv->level_id ? 'selected' : '' }}>
                                 {{ $lv->name }}
@@ -148,7 +148,7 @@
                 </div>
                 <div class="col-md-2">
                     <div class="form-label-sm">สถานะนักเรียน</div>
-                    <select name="status" class="form-select-line">
+                    <select name="status" class="form-select-line" onchange="submitForm()">
                         <option value="">ทั้งหมด</option>
                         <option value="กำลังศึกษา" {{ $status === 'กำลังศึกษา' ? 'selected' : '' }}>กำลังศึกษา</option>
                         <option value="จบการศึกษา"  {{ $status === 'จบการศึกษา'  ? 'selected' : '' }}>จบการศึกษา</option>
@@ -160,6 +160,10 @@
             <input type="hidden" name="section_id" id="sectionInput" value="{{ $sectionId }}">
             <div style="text-align:center; border-top:1px solid #f0f0f0; padding-top:14px; display:flex; justify-content:center; gap:12px;">
                 <button type="submit" class="btn-search-teal"><i class="fas fa-search"></i> ค้นหา</button>
+                <button type="submit" name="export" value="excel" class="btn-export"
+                    title="ระดับชั้น = ทั้งหมด จะ export นักเรียนทุกคน (ครูจะได้แค่ห้องที่ตัวเองเป็นครูที่ปรึกษา)">
+                    <i class="fas fa-file-excel"></i> Export
+                </button>
                 <a href="{{ route('class-roster.index') }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; color:#666; border:1.5px solid #d0d7de; border-radius:4px; padding:9px 20px; font-size:0.9rem; font-weight:600; text-decoration:none;">
                     <i class="fas fa-redo"></i> ล้างค่า
                 </a>
@@ -191,7 +195,7 @@
                         <a href="javascript:void(0)"
                            class="section-tab {{ $sectionId == $sec->section_id ? 'active' : '' }}"
                            onclick="selectSection({{ $sec->section_id }})">
-                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
+                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}{{ $sec->study_plan ? ' '.$sec->study_plan : '' }}
                             @if ($sec->curriculum)
                                 <span style="font-weight:400;font-size:0.78rem;">{{ $sec->curriculum->name ?? '' }}</span>
                             @endif
@@ -205,17 +209,26 @@
                         <div style="display:flex; gap:10px; flex-wrap:wrap;">
                             <span class="info-chip">
                                 <i class="fas fa-chalkboard"></i>
-                                ห้อง {{ $selectedSection->level->name ?? '' }}/{{ $selectedSection->section_number }}
+                                ห้อง {{ $selectedSection->level->name ?? '' }}/{{ $selectedSection->section_number }}{{ $selectedSection->study_plan ? ' '.$selectedSection->study_plan : '' }}
                             </span>
                             <span class="count-chip">
                                 <i class="fas fa-users"></i>
                                 {{ $students->count() }} คน
                             </span>
                         </div>
-                        <a href="{{ route('class-roster.index', array_merge(request()->query(), ['export' => 'excel'])) }}"
-                           class="btn-export">
-                            <i class="fas fa-file-excel"></i> EXPORT
-                        </a>
+                        <div style="display:flex; gap:8px;">
+                            <a href="{{ route('class-roster.index', array_merge(request()->query(), ['export' => 'excel'])) }}"
+                               class="btn-export" title="Export เฉพาะห้องนี้">
+                                <i class="fas fa-file-excel"></i> EXPORT ห้องนี้
+                            </a>
+                            @if ($levelId)
+                                <a href="{{ route('class-roster.index', array_merge(request()->query(), ['export' => 'level'])) }}"
+                                   class="btn-export" style="background:#00838f;"
+                                   title="รวมทุกห้องของ {{ $selectedSection->level->name ?? '' }} เรียงตามห้อง">
+                                    <i class="fas fa-layer-group"></i> EXPORT ทั้งชั้น
+                                </a>
+                            @endif
+                        </div>
                     </div>
                 @endif
 
@@ -296,6 +309,7 @@
 @push('scripts')
 <script>
     function submitForm() {
+        document.getElementById('sectionInput').value = '';
         document.getElementById('searchForm').submit();
     }
 

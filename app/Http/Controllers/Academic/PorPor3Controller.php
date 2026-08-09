@@ -75,7 +75,7 @@ class PorPor3Controller extends Controller
         $savedApproverId  = session('por3_approver_id');
         $savedApproveDate = session('por3_approve_date');
         $savedApprover    = $savedApproverId ? $personnels->firstWhere('personnel_id', $savedApproverId) : null;
-        $savedSchool      = session('por3_school', config('school'));
+        $savedSchool      = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
 
         return view('academic.por3_index', compact(
             'academicYears', 'levels', 'sections', 'students', 'personnels',
@@ -93,18 +93,6 @@ class PorPor3Controller extends Controller
             'por3_approve_date'  => $request->approve_date,
         ]);
         return redirect()->back()->with('settings_saved', true);
-    }
-
-    public function saveSchoolSettings(Request $request)
-    {
-        session(['por3_school' => [
-            'name'           => $request->school_name ?? '',
-            'tambon'         => $request->tambon ?? '',
-            'amphoe'         => $request->amphoe ?? '',
-            'changwat'       => $request->changwat ?? '',
-            'education_area' => $request->education_area ?? '',
-        ]]);
-        return redirect()->back()->with('school_saved', true);
     }
 
     public function exportExcel(Request $request)
@@ -229,7 +217,7 @@ class PorPor3Controller extends Controller
         }
 
         $approver = $approverId ? Personnel::find($approverId) : null;
-        $school   = session('por3_school', config('school'));
+        $school   = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
 
         $approveDateFormatted = '';
         if ($approveDate) {

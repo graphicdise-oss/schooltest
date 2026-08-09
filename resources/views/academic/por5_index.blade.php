@@ -49,7 +49,7 @@
                             <td>{{ $i+1 }}</td>
                             <td>{{ $a->subject->code }}</td>
                             <td style="text-align:left">{{ $a->subject->name_th }}</td>
-                            <td>{{ $a->classSection->level->name ?? '' }}/{{ $a->classSection->section_number }}</td>
+                            <td>{{ $a->classSection->full_name ?? '' }}</td>
                             <td>{{ $a->personnel->thai_firstname }} {{ $a->personnel->thai_lastname }}</td>
                             <td><a href="{{ route('por5.manage', $a->assign_id) }}" class="ac-btn ac-btn-secondary ac-btn-sm"><i class="bi bi-pencil"></i> กรอกผลประเมิน</a></td>
                             <td><a href="{{ route('por5.print', $a->assign_id) }}" target="_blank" class="ac-btn ac-btn-primary ac-btn-sm"><i class="bi bi-printer"></i> พิมพ์ ปพ.5</a></td>

@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'parent.auth' => \App\Http\Middleware\EnsureParentAuth::class,
+            'track.activity' => \App\Http\Middleware\TrackFirstActivity::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

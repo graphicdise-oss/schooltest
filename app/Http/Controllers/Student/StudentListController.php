@@ -4,10 +4,16 @@ namespace App\Http\Controllers\Student;
 
 use App\Http\Controllers\Controller;
 use App\Models\Student;
+use App\Models\SchoolInfoSetting;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
-use App\Models\Academic\AcademicYear;
+use App\Services\ExcelSchoolHeader;
+use App\Services\StudentExcelExporter;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class StudentListController extends Controller
 {
@@ -18,6 +24,28 @@ class StudentListController extends Controller
     {
         $query = Student::query();
 
+        $query = $this->applyStudentFilters($query, $request);
+
+        $students = $query->orderBy('classroom_number', 'asc')->paginate(20);
+
+        $levels = Level::orderBy('sort_order')->get();
+
+        $classrooms = ClassSection::with('level')
+            ->orderBy('level_id')->orderBy('section_number')
+            ->get()
+            ->map(fn($s) => [
+                'section_id' => $s->section_id,
+                'level_id' => $s->level_id,
+                'label' => ($s->level->name ?? '?') . '/' . $s->section_number . ($s->study_plan ? ' '.$s->study_plan : ''),
+            ]);
+
+        $schoolInfo = SchoolInfoSetting::getInstance();
+
+        return view('student.student_index', compact('students', 'levels', 'classrooms', 'schoolInfo'));
+    }
+
+    private function applyStudentFilters($query, Request $request)
+    {
         if ($request->filled('level_id') || $request->filled('section_id') || $request->filled('academic_year') || $request->filled('semester')) {
             $query->whereHas('studentSections.classSection', function ($q) use ($request) {
                 if ($request->filled('level_id')) {
@@ -59,22 +87,28 @@ class StudentListController extends Controller
             $query->where('status', $request->status);
         }
 
-       
+        return $query;
+    }
 
-        $students = $query->orderBy('classroom_number', 'asc')->paginate(20);
+    /**
+     * ส่งออกข้อมูลนักเรียน (ตามตัวกรองที่เลือกอยู่ในหน้ารายชื่อ) เป็นไฟล์ Excel
+     * ใช้ตำแหน่งคอลัมน์เดียวกับแบบฟอร์มนำเข้า จึงเอาไฟล์นี้กลับไป import ซ้ำได้ด้วย
+     */
+    public function export(Request $request)
+    {
+        $query = $this->applyStudentFilters(Student::query(), $request);
 
-        $levels = Level::orderBy('sort_order')->get();
+        $students = $query->with(StudentExcelExporter::eagerLoad())
+            ->orderBy('classroom_number', 'asc')->get();
 
-        $classrooms = ClassSection::with('level')
-            ->orderBy('level_id')->orderBy('section_number')
-            ->get()
-            ->map(fn($s) => [
-                'section_id' => $s->section_id,
-                'level_id' => $s->level_id,
-                'label' => ($s->level->name ?? '?') . '/' . $s->section_number,
-            ]);
+        $spreadsheet = StudentExcelExporter::build($students);
 
-        return view('student.student_index', compact('students', 'levels', 'classrooms'));
+        $tmpPath = tempnam(sys_get_temp_dir(), 'student_export') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = 'ข้อมูลนักเรียน_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
     }
 
     /**
@@ -98,70 +132,107 @@ class StudentListController extends Controller
         $student = Student::where('student_id', $id)->firstOrFail();
         $student->delete();
 
-        return redirect()->route('student.student_index')
+        return redirect()->back()
             ->with('success', 'ลบข้อมูลนักเรียนสำเร็จ');
     }
 
     /**
-     * รายงานชื่อนักเรียนใหม่ + วันที่เข้าเรียนล่าสุด
-     *
-     * ตาราง students ไม่มีคอลัมน์บอกสถานะ "เข้าใหม่/ย้ายมา" (ตัวเลือกในฟอร์มค้นหา
-     * เป็นแค่ dropdown ที่ไม่เคยผูกกับคอลัมน์จริง) จึงนิยาม "นักเรียนใหม่" จากข้อมูล
-     * ที่มีจริง: นักเรียนที่ถูกจัดเข้าห้องเรียนครั้งแรกสุดในปีการศึกษาปัจจุบัน
+     * ดาวน์โหลดไฟล์ Excel เปล่าไว้กรอกข้อมูลนักเรียน (ตำแหน่งคอลัมน์ตรงกับที่ import:students อ่าน)
      */
-    public function newStudentsReport(Request $request)
+    public function importTemplate()
     {
-        $levels  = Level::orderBy('sort_order')->get();
-        $levelId = $request->get('level_id', '');
-        $search  = $request->get('search', '');
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('ข้อมูลนักเรียนทั้งหมด');
 
-        $currentYearId = optional(AcademicYear::current())->year_id;
+        $totalCols = count(StudentExcelExporter::IMPORT_TEMPLATE_HEADERS);
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
 
-        $students = Student::whereHas('studentSections')
-            ->when($search, function ($q) use ($search) {
-                $q->where(function ($qq) use ($search) {
-                    $qq->where('thai_firstname', 'like', "%$search%")
-                       ->orWhere('thai_lastname', 'like', "%$search%")
-                       ->orWhere('student_code', 'like', "%$search%");
-                });
-            })
-            ->with(['studentSections' => function ($q) {
-                $q->with(['classSection.level', 'classSection.semester.academicYear'])
-                  ->orderBy('created_at'); // เรียงเก่า -> ใหม่ เพื่อหาห้องแรกสุดได้ง่าย
-            }])
-            ->get();
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols);
+        ExcelSchoolHeader::applyInstructionRow($sheet, $totalCols, 'กรอกข้อมูลนักเรียนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้) — ต้องมีเลขบัตรประชาชนหรือรหัสนักศึกษาอย่างน้อย 1 อย่าง');
 
-        // แปลงเป็นแถวรายงาน (ห้องแรกสุด = วันเข้าเรียนครั้งแรก, ห้องล่าสุด = วันเข้าเรียนล่าสุด)
-        $rows = $students->map(function ($s) {
-            $first  = $s->studentSections->first();
-            $latest = $s->studentSections->last();
-            $sec    = $latest?->classSection;
-            return (object) [
-                'code'          => $s->student_code,
-                'name'          => trim(($s->thai_prefix ?? '') . ($s->thai_firstname ?? '') . ' ' . ($s->thai_lastname ?? '')),
-                'gender'        => $s->gender,
-                'room'          => $sec ? (($sec->level->name ?? '') . '/' . $sec->section_number) : '-',
-                'year'          => $sec?->semester?->academicYear?->year_name,
-                'enroll_date'   => $latest?->created_at,
-                'status'        => $s->status,
-                'level_id'      => $sec?->level_id,
-                'first_year_id' => $first?->classSection?->semester?->year_id,
-            ];
-        });
+        foreach (StudentExcelExporter::IMPORT_TEMPLATE_HEADERS as $i => $header) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue("{$col}6", $header);
+            $sheet->getStyle("{$col}6")->getFont()->setBold(true);
+            if ($col !== 'A' || !$hasLogo) {
+                $sheet->getColumnDimension($col)->setWidth(14); // คอลัมน์ A ถ้ามีโลโก้ ใช้ความกว้างที่ตั้งไว้ก่อนหน้าแทน
+            }
+        }
+        $sheet->freezePane('A7');
 
-        // นักเรียนใหม่ = เข้าห้องครั้งแรกในปีการศึกษาปัจจุบัน (ถ้าไม่มีปีปัจจุบันตั้งไว้ ให้แสดงทั้งหมด)
-        if ($currentYearId) {
-            $rows = $rows->filter(fn($r) => (string) $r->first_year_id === (string) $currentYearId)->values();
+        $tmpPath = tempnam(sys_get_temp_dir(), 'student_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        return response()->download($tmpPath, 'แบบฟอร์มนำเข้าข้อมูลนักเรียน.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * บันทึกข้อมูลโรงเรียนที่จะแสดงบนหัวแบบฟอร์ม Excel
+     */
+    public function saveSchoolInfo(Request $request)
+    {
+        $data = $request->validate([
+            'school_name' => 'nullable|string|max:255',
+            'phone' => 'nullable|string|max:100',
+            'fax' => 'nullable|string|max:100',
+            'website' => 'nullable|string|max:255',
+            'email' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|max:2048',
+        ]);
+        unset($data['logo']);
+
+        $setting = SchoolInfoSetting::first() ?? new SchoolInfoSetting();
+
+        if ($request->hasFile('logo')) {
+            if ($setting->logo_path) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($setting->logo_path);
+            }
+            $data['logo_path'] = $request->file('logo')->store('school', 'public');
         }
 
-        // กรองตามระดับชั้นของห้องล่าสุด
-        if ($levelId !== '') {
-            $rows = $rows->filter(fn($r) => (string) $r->level_id === (string) $levelId)->values();
+        if ($setting->exists) {
+            $setting->update($data);
+        } else {
+            $setting->fill($data)->save();
         }
 
-        // เรียงตามวันที่เข้าเรียนล่าสุด (ใหม่สุดก่อน)
-        $rows = $rows->sortByDesc(fn($r) => $r->enroll_date?->timestamp ?? 0)->values();
+        return back()->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');
+    }
 
-        return view('student.new_students_report', compact('rows', 'levels', 'levelId', 'search'));
+    /**
+     * รับไฟล์ Excel ที่ครูกรอกมา แล้วรันคำสั่งนำเข้าข้อมูลนักเรียนให้
+     */
+    public function importUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0); // ไฟล์ใหญ่อาจใช้เวลาหลายนาที
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = \Illuminate\Support\Facades\Storage::path($path);
+
+        $options = ['file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+        if ($request->boolean('assign_rooms')) {
+            $options['--assign-rooms'] = true;
+        }
+        if ($request->boolean('fill_classroom_number')) {
+            $options['--fill-classroom-number'] = true;
+        }
+
+        Artisan::call('import:students', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('import_output', $output);
     }
 }

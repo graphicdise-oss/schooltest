@@ -12,10 +12,19 @@ use App\Models\Personne\PersonnelToeic;
 use App\Models\Personne\PersonnelPosition;
 use App\Models\Personne\PersonnelLicense;
 use App\Models\Personne\PersonnelDecoration;
+use App\Models\SchoolInfoSetting;
+use App\Services\ExcelSchoolHeader;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 
 class PersonnelController extends Controller
@@ -268,6 +277,14 @@ class PersonnelController extends Controller
             $query->where('department', $request->department);
         }
 
+        if ($request->filled('section_id')) {
+            $query->whereIn('personnel_id', \App\Models\Academic\ClassSection::where('section_id', $request->section_id)->pluck('homeroom_teacher_id'));
+        }
+
+        if ($request->filled('employee_code')) {
+            $query->where('employee_code', 'like', '%' . $request->employee_code . '%');
+        }
+
         if ($request->filled('search')) {
             $s = $request->search;
             $query->where(
@@ -285,8 +302,15 @@ class PersonnelController extends Controller
             ->sort()
             ->values();
 
+        $sections = \App\Models\Academic\ClassSection::with('level')
+            ->whereHas('semester', fn($q) => $q->where('is_current', true))
+            ->get()
+            ->sortBy([['level.sort_order', 'asc'], ['section_number', 'asc']])
+            ->values();
+
         $personnels = $query->paginate(20);
-        return view('personnel.index', compact('personnels', 'departments'));
+        $schoolInfo = SchoolInfoSetting::getInstance();
+        return view('personnel.index', compact('personnels', 'departments', 'sections', 'schoolInfo'));
 
 
     }
@@ -369,6 +393,145 @@ class PersonnelController extends Controller
         return redirect()->route('personnels.index')->with('success', 'ลบข้อมูลบุคลากรเรียบร้อยแล้ว');
     }
 
+    // หัวตารางแบบฟอร์ม Excel นำเข้าข้อมูลบุคลากร ตรงตามตำแหน่งคอลัมน์ที่ import:personnel อ่าน (แถวที่ 7)
+    private const IMPORT_TEMPLATE_HEADERS = [
+        'ลำดับ', 'ประเภทบุคลากร', 'รหัสพนักงาน', 'ตำแหน่ง', 'แผนก', 'เพศ', 'คำนำหน้านาม', 'ชื่อ', 'นามสกุล',
+        'ชื่อ(ภาษาอังกฤษ)', 'นามสกุล(ภาษาอังกฤษ)', 'ยอดเงินคงเหลือ', 'เลขบัตรประชาชน', 'เลขที่หนังสือเดินทาง',
+        'ประเทศหนังสือเดินทาง', 'วันเกิด', 'กรุ๊ปเลือด', 'สัญชาติ', 'เชื้อชาติ', 'ศาสนา', 'สถานภาพสมรส',
+        'ชื่อคู่สมรส', 'นามสกุลคู่สมรส', 'หมายเลขโทรศัพท์', 'อีเมล์', 'ตารางเวลา', 'ใช้ระบบ Biometric', 'รหัสลายนิ้วมือ',
+        // ที่อยู่ตามทะเบียนบ้าน (29-38)
+        'บ้านเลขที่', 'หมู่ที่', 'หมู่บ้าน', 'ซอย', 'อาคาร/ชั้น', 'ถนน', 'จังหวัด', 'เขต/อำเภอ', 'แขวง/ตำบล', 'รหัสไปรษณีย์',
+        // ที่อยู่ที่ติดต่อได้ (39-48)
+        'บ้านเลขที่', 'หมู่ที่', 'หมู่บ้าน', 'ซอย', 'อาคาร/ชั้น', 'ถนน', 'จังหวัด', 'เขต/อำเภอ', 'แขวง/ตำบล', 'รหัสไปรษณีย์',
+        // ตำแหน่งงาน (49-59)
+        'สถานภาพการทำงาน', 'ระดับ', 'วันที่ปฏิบัติงานในสถานศึกษา', 'วันสั่งบรรจุ', 'เงินเดือน', 'วันเริ่มปฏิบัติราชการ',
+        'เงินประจำตำแหน่ง', 'จำนวนเงินวิทยฐานะ', 'วันครบเกษียณอายุ', 'รายได้สุทธิรวม', 'อายุงานเหลือ',
+        // ข้อมูลครอบครัว (60-66)
+        'ลำดับ', 'ความสัมพันธ์', 'คำนำหน้า', 'ชื่อ', 'นามสกุล', 'วันเกิด', 'สถานภาพ',
+        // ข้อมูลการศึกษา (67-72)
+        'ลำดับ', 'ปีที่', 'ปีที่', 'ระดับการศึกษา', 'วิชาเอก', 'สถาบันการศึกษา',
+        // ข้อมูลเกียรติคุณ (73-76)
+        'ลำดับ', 'ประเภทเกียรติคุณ', 'หน่วยงาน', 'ปีที่ได้รับ',
+        // ประวัติการศึกษา อบรม ดูงาน (77-81)
+        'ลำดับ', 'โครงการ', 'ชื่อหลักสูตรอบรม', 'ว/ด/ป ที่เริ่ม', 'ว/ด/ป ที่สิ้น',
+        // ใบอนุญาตประกอบวิชาชีพ (82-87)
+        'ลำดับ', 'ประเภทใบอนุญาต', 'เลขที่ใบประกอบ', 'ชื่อใบประกอบ', 'ว/ด/ป ออกใบประกอบ', 'ว/ด/ป หมดอายุ',
+        // ประวัติการรับเครื่องราชฯ (88-92)
+        'ลำดับ', 'ปีที่ได้รับ', 'ชั้นเครื่องราชฯ', 'ตำแหน่ง', 'ลงวันที่',
+    ];
 
+    // ป้ายกลุ่มคอลัมน์ (แถวที่ 6) -> [คอลัมน์เริ่มต้น 1-based => ป้ายกลุ่ม]
+    private const IMPORT_TEMPLATE_GROUPS = [
+        2 => 'ประวัติส่วนตัว',
+        29 => 'ที่อยู่ตามทะเบียนบ้าน',
+        39 => 'ที่อยู่ที่ติดต่อได้',
+        49 => 'ตำแหน่งงาน',
+        60 => 'ข้อมูลครอบครัว',
+        67 => 'ข้อมูลการศึกษา',
+        73 => 'ข้อมูลเกียรติคุณ',
+        77 => 'ประวัติการศึกษา อบรม ดูงาน',
+        82 => 'ใบอนุญาตประกอบวิชาชีพ',
+        88 => 'ประวัติการรับเครื่องราชฯ',
+    ];
+
+    /**
+     * ดาวน์โหลดไฟล์ Excel เปล่าไว้กรอกข้อมูลบุคลากร (ตำแหน่งคอลัมน์ตรงกับที่ import:personnel อ่าน)
+     */
+    public function importTemplate()
+    {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('รายชื่อพนักงาน');
+
+        $totalCols = count(self::IMPORT_TEMPLATE_HEADERS);
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
+
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols);
+        ExcelSchoolHeader::applyInstructionRow($sheet, $totalCols, 'กรอกข้อมูลบุคลากรเริ่มจากแถวที่ 8 เป็นต้นไป (แถวที่ 1-7 ห้ามลบ/ห้ามแก้) — ต้องมีรหัสพนักงานทุกแถว');
+
+        // ป้ายกลุ่มคอลัมน์ (แถวที่ 6) — เริ่มจากคอลัมน์ B เพราะคอลัมน์ A ("ลำดับ") รวมกับแถว 7 แยกไว้ต่างหาก
+        $groupStarts = array_keys(self::IMPORT_TEMPLATE_GROUPS);
+        foreach (self::IMPORT_TEMPLATE_GROUPS as $startCol => $groupLabel) {
+            $idx = array_search($startCol, $groupStarts);
+            $endCol = ($groupStarts[$idx + 1] ?? ($totalCols + 1)) - 1;
+            $startLetter = Coordinate::stringFromColumnIndex($startCol);
+            $endLetter = Coordinate::stringFromColumnIndex($endCol);
+            $sheet->mergeCells("{$startLetter}6:{$endLetter}6");
+            $sheet->setCellValue("{$startLetter}6", $groupLabel);
+        }
+        $sheet->getStyle("B6:{$lastCol}6")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 11, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '34495E']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+        ]);
+        $sheet->getRowDimension(6)->setRowHeight(24);
+
+        // คอลัมน์ "ลำดับ" รวมสองแถวหัวตารางเป็นช่องเดียว
+        $sheet->mergeCells('A6:A7');
+        $sheet->setCellValue('A6', 'ลำดับ');
+        $sheet->getStyle('A6:A7')->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '34495E']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'FFFFFF']]],
+        ]);
+
+        // ชื่อคอลัมน์ (แถวที่ 7)
+        foreach (self::IMPORT_TEMPLATE_HEADERS as $i => $header) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            if ($i !== 0 || !$hasLogo) {
+                $sheet->getColumnDimension($col)->setWidth(15); // คอลัมน์ A ถ้ามีโลโก้ ใช้ความกว้างที่ตั้งไว้ก่อนหน้าแทน ไม่ให้ตรงนี้ทับ
+            }
+            if ($i === 0) {
+                continue; // "ลำดับ" ถูกรวมไว้กับ A6 แล้ว
+            }
+            $sheet->setCellValue("{$col}7", $header);
+        }
+        $sheet->getStyle("B7:{$lastCol}7")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
+        $sheet->getRowDimension(7)->setRowHeight(32);
+
+        $sheet->freezePane('A8');
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'personnel_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        return response()->download($tmpPath, 'แบบฟอร์มนำเข้าข้อมูลบุคลากร.xlsx')->deleteFileAfterSend(true);
+    }
+
+    /**
+     * รับไฟล์ Excel ที่กรอกข้อมูลบุคลากรมา แล้วรันคำสั่งนำเข้าข้อมูลให้
+     */
+    public function importUpload(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0); // ไฟล์ใหญ่อาจใช้เวลาหลายนาที
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:personnel', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('import_output', $output);
+    }
 }
 

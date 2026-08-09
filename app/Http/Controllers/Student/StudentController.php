@@ -25,7 +25,7 @@ class StudentController extends Controller
     {
         $academicYears = AcademicYear::orderBy('year_id', 'desc')->get();
         $levels = Level::orderBy('sort_order')->get();
-        $semesters = Semester::orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::orderedByRecency()->get();
         $sections = ClassSection::with(['level', 'semester'])->get();
         $currentSection = null;
 
@@ -139,7 +139,7 @@ class StudentController extends Controller
 
         $academicYears = AcademicYear::orderBy('year_id', 'desc')->get();
         $levels = Level::orderBy('sort_order')->get();
-        $semesters = Semester::orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::orderedByRecency()->get();
         $sections = ClassSection::with(['level', 'semester'])->get();
         $currentSection = StudentSection::where('student_id', $id)
             ->where('status', 'กำลังศึกษา')->first();

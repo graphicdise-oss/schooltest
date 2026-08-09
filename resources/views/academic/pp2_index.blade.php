@@ -349,7 +349,7 @@
                             <option value="">-- เลือกห้อง --</option>
                             @foreach($sections as $sec)
                                 <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                                    {{ $sec->level?->name }}/{{ $sec->section_number }}
+                                    {{ $sec->full_name }}
                                 </option>
                             @endforeach
                         </select>

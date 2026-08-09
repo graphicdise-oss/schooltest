@@ -105,17 +105,14 @@
     <div class="cby-card">
         <div class="cby-icon cby-icon-list"><i class="bi bi-journal-text"></i></div>
         <div class="cby-card-header">
-            <div>
-                <a href="{{ route('curriculums.index') }}" class="cby-back">
+            <span class="cby-card-title">
+                หลักสูตร ปีการศึกษา <strong>{{ $year }}</strong>
+            </span>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <a href="{{ route('programs.index') }}" class="cby-back">
                     <i class="bi bi-arrow-left"></i> ย้อนกลับ
                 </a>
-                <span class="cby-card-title" style="margin-left:12px">
-                    หลักสูตร ปีการศึกษา <strong>{{ $year }}</strong>
-                </span>
             </div>
-            <a href="{{ route('curriculums.create') }}" class="btn-add">
-                <i class="bi bi-plus-lg"></i> เพิ่มหลักสูตร
-            </a>
         </div>
 
         {{-- Level filter --}}

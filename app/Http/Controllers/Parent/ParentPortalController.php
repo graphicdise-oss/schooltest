@@ -11,7 +11,6 @@ use App\Models\Holiday;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class ParentPortalController extends Controller
 {
@@ -133,7 +132,7 @@ class ParentPortalController extends Controller
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
 
         $dayStartHour = 6;
-        $dayEndHour   = 19;
+        $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
         $units = [];
         for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
             $units[] = sprintf('%02d:00', $h);
@@ -164,9 +163,14 @@ class ParentPortalController extends Controller
             }
         }
 
-        return Pdf::loadView('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'))
-            ->setPaper('a4', 'landscape')
-            ->stream("timetable_{$student->student_code}.pdf");
+        $lunchStart = $section?->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+        $lunchEnd   = $section?->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+        [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
+        [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
+        $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
+        $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+
+        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns', 'lunchStartIdx', 'lunchEndIdx'));
     }
 
     public function calendar(Request $request)

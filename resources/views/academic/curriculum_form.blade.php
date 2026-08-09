@@ -57,6 +57,14 @@
 }
 .btn-back:hover { background: #3949ab; color: #fff; }
 
+.btn-copy-plan {
+    background: #039be5; color: #fff; border: none; border-radius: 6px;
+    padding: 9px 20px; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; font-family: inherit;
+    display: inline-flex; align-items: center; gap: 6px;
+}
+.btn-copy-plan:hover { background: #0277bd; }
+
 /* Subject table */
 .cf-table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 .cf-table thead th {
@@ -131,6 +139,9 @@
     padding: 7px 4px; font-size: 0.88rem; font-family: inherit;
     outline: none; background: transparent;
 }
+.cf-modal-row { display: flex; gap: 14px; }
+.cf-modal-row > div { flex: 1; }
+.cf-modal-hint { font-size: 0.72rem; color: #999; font-weight: 400; margin-left: 4px; }
 .cf-modal-body select:focus { border-bottom-color: #43a047; }
 .cf-modal-footer {
     padding: 14px 22px 18px; display: flex; justify-content: flex-end; gap: 10px;
@@ -146,6 +157,20 @@
     display: inline-flex; align-items: center; gap: 5px;
 }
 .btn-modal-ok:hover { background: #2e7d32; }
+
+/* Searchable subject combobox */
+.cf-combo { position: relative; }
+.cf-combo-list {
+    display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0;
+    max-height: 240px; overflow-y: auto; background: #fff;
+    border: 1px solid #e0e0e0; border-radius: 6px;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.14); z-index: 600;
+}
+.cf-combo-list.open { display: block; }
+.cf-combo-item { padding: 9px 12px; font-size: 0.85rem; color: #444; cursor: pointer; }
+.cf-combo-item:hover, .cf-combo-item.active { background: #f1f8f1; }
+.cf-combo-item.hidden { display: none; }
+.cf-combo-empty { padding: 14px 12px; font-size: 0.82rem; color: #aaa; text-align: center; }
 </style>
 @endpush
 
@@ -157,26 +182,53 @@
         <div class="cf-icon cf-icon-info"><i class="bi bi-search"></i></div>
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการหลักสูตร/แผน</span>
-            <a href="{{ route('curriculums.index') }}" class="btn-back">
-                <i class="bi bi-arrow-left"></i> ย้อนกลับ
-            </a>
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+                <button type="button" class="btn-copy-plan" onclick="document.getElementById('copyPlanOverlay').classList.add('active')">
+                    <i class="bi bi-files"></i> คัดลอกแผนการเรียน
+                </button>
+                @if(isset($program) && $program)
+                <a href="{{ route('programs.plans', $program->program_id) }}" class="btn-copy-plan" style="background:#5c6bc0">
+                    <i class="bi bi-journal-check"></i> ดูแผน
+                </a>
+                @endif
+                @php
+                    // ย้อนกลับไปหน้าที่มาจริงๆ ตามที่ส่งมาชัดๆ ผ่าน return_to (จากลิงก์ต้นทาง เช่น /programs
+                    // หรือ /programs/{id}/plans) — เชื่อถือได้กว่า url()->previous() ที่พึ่งพา referer/session
+                    // ซึ่งบางทีก็ใช้ไม่ได้ ถ้าไม่มี return_to เลยค่อย fallback ไปหน้าแผนของหลักสูตร/รายการหลักสูตร
+                    $backUrl = $returnTo ?? (isset($program) && $program ? route('programs.plans', $program->program_id) : route('programs.index'));
+                @endphp
+                <a href="{{ $backUrl }}" class="btn-back">
+                    <i class="bi bi-arrow-left"></i> ย้อนกลับ
+                </a>
+            </div>
         </div>
 
-        <form method="POST" action="{{ isset($curriculum) ? route('curriculums.update', $curriculum->curriculum_id) : route('curriculums.store') }}">
-            @csrf
-            @if(isset($curriculum)) @method('PUT') @endif
+        <form method="POST" action="{{ route('curriculums.update', $curriculum->curriculum_id) }}">
+            @csrf @method('PUT')
+            <input type="hidden" name="return_to" value="{{ $returnTo ?? '' }}">
 
             <div class="cf-grid">
                 <div class="cf-field">
                     <label>ชื่อแผน *</label>
-                    <input type="text" name="name" value="{{ $curriculum->name ?? '' }}" required placeholder="เช่น EP ป.1">
+                    <input type="text" name="name" id="curriculumNameInput" value="{{ $curriculum->name }}" required placeholder="เช่น EP ป.1">
+                </div>
+                <div class="cf-field">
+                    <label>หลักสูตร</label>
+                    <select name="program_id" id="programSelect" onchange="onCurriculumProgramChange(this)">
+                        <option value="">-- ไม่ระบุ --</option>
+                        @foreach($programs as $p)
+                            <option value="{{ $p->program_id }}" {{ (string)($curriculum->program_id ?? '') === (string)$p->program_id ? 'selected' : '' }}>
+                                {{ $p->name }}
+                            </option>
+                        @endforeach
+                    </select>
                 </div>
                 <div class="cf-field">
                     <label>ระดับชั้น</label>
-                    <select name="level_id">
+                    <select name="level_id" id="levelSelect" onchange="onCurriculumLevelChange(this)">
                         <option value="">-- ทุกระดับ --</option>
                         @foreach($levels as $l)
-                            <option value="{{ $l->level_id }}" {{ ($curriculum->level_id ?? '') == $l->level_id ? 'selected' : '' }}>
+                            <option value="{{ $l->level_id }}" data-name="{{ $l->name }}" {{ (string)($curriculum->level_id ?? '') === (string)$l->level_id ? 'selected' : '' }}>
                                 {{ $l->name }}
                             </option>
                         @endforeach
@@ -184,7 +236,7 @@
                 </div>
                 <div class="cf-field">
                     <label>ปีการศึกษา</label>
-                    <input type="text" name="year_applied" value="{{ $curriculum->year_applied ?? '' }}" placeholder="เช่น 2568">
+                    <input type="text" name="year_applied" id="yearAppliedInput" value="{{ $curriculum->year_applied ?? '' }}" placeholder="เช่น 2568">
                 </div>
                 <div class="cf-field">
                     <label>คำอธิบาย</label>
@@ -198,15 +250,20 @@
         </form>
     </div>
 
-    {{-- ===== Card 2: วิชาเรียน (เฉพาะตอนแก้ไข) ===== --}}
+    {{-- ===== Card 2: วิชาเรียน ===== --}}
     @if(isset($curriculum))
     <div class="cf-card">
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการวิชาเรียน</span>
-            <button class="btn-add-subj" onclick="document.getElementById('addSubjOverlay').classList.add('active')">
-                <i class="bi bi-plus-lg"></i> เพิ่มวิชา
-            </button>
+            <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <button class="btn-add-subj" style="background:#039be5" onclick="document.getElementById('importSubjOverlay').classList.add('active')">
+                    <i class="bi bi-file-earmark-excel"></i> นำเข้าจาก Excel
+                </button>
+                <button class="btn-add-subj" onclick="openAddSubjectModal()">
+                    <i class="bi bi-plus-lg"></i> เพิ่มวิชา
+                </button>
+            </div>
         </div>
 
         <table class="cf-table">
@@ -215,19 +272,24 @@
                     <th style="width:50px">ลำดับ</th>
                     <th>รหัสวิชา</th>
                     <th style="text-align:center">หน่วยกิต</th>
+                    <th style="text-align:center">ชั่วโมง/ปี</th>
+                    <th style="text-align:center">ชั่วโมง/สัปดาห์</th>
                     <th>ชื่อวิชา</th>
                     <th style="text-align:center">เทอม</th>
                     <th style="text-align:center">ประเภท</th>
                     <th>ครูผู้สอน</th>
+                    <th style="text-align:center">สถานะ</th>
                     <th style="text-align:center">จัดการข้อมูล</th>
                 </tr>
             </thead>
             <tbody>
                 @forelse($curriculum->curriculumSubjects as $i => $cs)
-                <tr>
+                <tr @if(!$cs->is_active) style="opacity:0.55" @endif>
                     <td>{{ $i + 1 }}</td>
                     <td><strong>{{ $cs->subject->code ?? '-' }}</strong></td>
-                    <td style="text-align:center">{{ $cs->subject->credits ?? '-' }}</td>
+                    <td style="text-align:center">{{ $cs->credits ?? $cs->subject->credits ?? '-' }}</td>
+                    <td style="text-align:center">{{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? '-' }}</td>
+                    <td style="text-align:center">{{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? '-' }}</td>
                     <td>{{ $cs->subject->name_th ?? '-' }}</td>
                     <td style="text-align:center">
                         <span class="badge-sem">
@@ -237,16 +299,38 @@
                         </span>
                     </td>
                     <td style="text-align:center">
-                        <span class="{{ $cs->is_required ? 'badge-req' : 'badge-opt' }}">
-                            {{ $cs->is_required ? 'บังคับ' : 'เลือก' }}
-                        </span>
+                        @php
+                            $subjType = $cs->subject->subject_type ?? '-';
+                            $typeBadgeClass = match($subjType) {
+                                'พื้นฐาน' => 'badge-req',
+                                'เพิ่มเติม' => 'badge-opt',
+                                'กิจกรรม' => 'badge-sem',
+                                default => 'badge-opt',
+                            };
+                        @endphp
+                        <span class="{{ $typeBadgeClass }}">{{ $subjType }}</span>
                     </td>
                     <td style="font-size:0.82rem;color:#555">
-                        @if($cs->personnel)
+                        @if($cs->teachers->isNotEmpty())
+                            {{ $cs->teachers->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}
+                            @if($cs->teachers->count() > 3)
+                                <div style="color:#e65100;font-size:0.72rem;margin-top:2px">(แก้ไขผ่านฟอร์มได้สูงสุด 3 คน — เกิน 3 คนต้องนำเข้าจาก Excel)</div>
+                            @endif
+                        @elseif($cs->personnel)
                             {{ $cs->personnel->thai_prefix ?? '' }}{{ $cs->personnel->thai_firstname }} {{ $cs->personnel->thai_lastname }}
                         @else
                             <span style="color:#ccc">—</span>
                         @endif
+                    </td>
+                    <td style="text-align:center">
+                        <form action="{{ route('curriculums.toggleSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST" style="display:inline">
+                            @csrf
+                            <button type="submit"
+                                style="border:none;background:none;cursor:pointer;padding:2px;color:{{ $cs->is_active ? '#2e7d32' : '#e65100' }};font-size:1.6rem;line-height:1"
+                                title="{{ $cs->is_active ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน' }}">
+                                <i class="bi {{ $cs->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                            </button>
+                        </form>
                     </td>
                     <td style="text-align:center">
                         <div class="cf-action-wrap">
@@ -254,7 +338,14 @@
                                 จัดการข้อมูล <i class="bi bi-chevron-down"></i>
                             </button>
                             <div class="cf-dropdown">
-                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->is_required ? 1 : 0 }}, {{ $cs->personnel_id ?? 'null' }})">
+                                @php
+                                    $csTeachers = $cs->teachers->isNotEmpty() ? $cs->teachers : ($cs->personnel ? collect([$cs->personnel]) : collect());
+                                    $csTeachersJson = $csTeachers->take(3)->map(fn($t) => [
+                                        'id' => $t->personnel_id,
+                                        'name' => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname,
+                                    ])->values();
+                                @endphp
+                                <button type="button" onclick="openEditModal({{ $cs->id }}, '{{ $cs->semester_type }}', {{ $cs->credits ?? $cs->subject->credits ?? 'null' }}, {{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? 'null' }}, {{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? 'null' }}, '{{ $cs->subject->subject_type ?? '' }}', {{ $csTeachersJson->toJson() }})">
                                     <i class="bi bi-pencil"></i> แก้ไข
                                 </button>
                                 <form action="{{ route('curriculums.removeSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST"
@@ -270,7 +361,7 @@
                 </tr>
                 @empty
                 <tr>
-                    <td colspan="7" class="cf-empty">
+                    <td colspan="11" class="cf-empty">
                         <i class="bi bi-journal-x" style="font-size:1.8rem;display:block;margin-bottom:6px"></i>
                         ยังไม่มีวิชาในหลักสูตรนี้
                     </td>
@@ -280,21 +371,96 @@
         </table>
     </div>
 
+    {{-- Modal นำเข้าวิชาจาก Excel --}}
+    <div class="cf-overlay" id="importSubjOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="cf-modal">
+            <div class="cf-modal-header"><i class="bi bi-file-earmark-excel"></i> นำเข้ารายวิชาจาก Excel</div>
+            <form method="POST" action="{{ route('curriculums.importSubjects', $curriculum->curriculum_id) }}"
+                  enctype="multipart/form-data" onsubmit="submitImportSubjForm()">
+                @csrf
+                <div class="cf-modal-body">
+                    <p style="font-size:0.8rem; color:#777; margin:0">
+                        รองรับไฟล์รูปแบบ PlanCourses (.xlsx) — วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ (จับคู่ด้วยรหัสวิชา)
+                        วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์ ครูผู้สอนจับคู่ด้วยเลขบัตรประชาชน — คนไหนหาไม่เจอในระบบจะข้ามเฉพาะคนนั้น ไม่กระทบข้อมูลส่วนอื่นของแถวนั้น
+                    </p>
+                    <div>
+                        <input type="file" name="file" accept=".xlsx" required>
+                    </div>
+                    <div>
+                        <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:0.85rem; color:#444">
+                            <input type="checkbox" name="dry_run" value="1" style="width:auto">
+                            ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง
+                        </label>
+                    </div>
+                </div>
+                <div class="cf-modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="document.getElementById('importSubjOverlay').classList.remove('active')">ยกเลิก</button>
+                    <button type="submit" id="importSubjSubmitBtn" class="btn-modal-ok">
+                        <i class="bi bi-upload"></i> เริ่มนำเข้า
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (session('curriculum_import_output'))
+    <div class="cf-overlay active" id="importSubjResultOverlay">
+        <div class="cf-modal" style="width:640px; max-width:95vw">
+            <div class="cf-modal-header"><i class="bi bi-clipboard-check"></i> ผลการนำเข้ารายวิชา</div>
+            <div class="cf-modal-body">
+                <pre style="background:#f5f5f5; padding:12px; border-radius:8px; overflow:auto; max-height:60vh; font-size:0.8rem; white-space:pre-wrap">{{ session('curriculum_import_output') }}</pre>
+            </div>
+            <div class="cf-modal-footer">
+                <button type="button" class="btn-modal-ok" onclick="document.getElementById('importSubjResultOverlay').remove()">ปิด</button>
+            </div>
+        </div>
+    </div>
+    @endif
+
     {{-- Modal เพิ่มวิชา --}}
     <div class="cf-overlay" id="addSubjOverlay" onclick="if(event.target===this)this.classList.remove('active')">
         <div class="cf-modal">
             <div class="cf-modal-header"><i class="bi bi-plus-circle"></i> เพิ่มวิชาในหลักสูตร</div>
-            <form method="POST" action="{{ route('curriculums.addSubject', $curriculum->curriculum_id) }}">
+            <form method="POST" action="{{ route('curriculums.addSubject', $curriculum->curriculum_id) }}" onsubmit="return validateAddSubjectForm()">
                 @csrf
                 <div class="cf-modal-body">
-                    <div>
+                    <div class="cf-combo" id="add_subject_combo">
                         <label>เลือกวิชา *</label>
-                        <select name="subject_id" required>
-                            <option value="">-- เลือกวิชา --</option>
+                        <input type="text" id="add_subject_search" class="cf-combo-input" autocomplete="off"
+                            placeholder="พิมพ์รหัสวิชาหรือชื่อวิชาเพื่อค้นหา..."
+                            onfocus="openSubjectCombo()" oninput="filterSubjectCombo()">
+                        <input type="hidden" name="subject_id" id="add_subject_id">
+                        <div class="cf-combo-list" id="add_subject_list">
                             @foreach($subjects as $sub)
-                                <option value="{{ $sub->subject_id }}">{{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)</option>
+                                <div class="cf-combo-item"
+                                    data-id="{{ $sub->subject_id }}"
+                                    data-search="{{ \Illuminate\Support\Str::lower($sub->code . ' ' . $sub->name_th) }}"
+                                    data-label="{{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)"
+                                    data-credits="{{ $sub->credits ?? '' }}"
+                                    data-hours-year="{{ $sub->hours_per_year ?? '' }}"
+                                    data-hours-week="{{ $sub->hours_per_week ?? '' }}"
+                                    data-subject-type="{{ $sub->subject_type ?? '' }}"
+                                    onclick="selectSubjectCombo(this)">
+                                    {{ $sub->code }} — {{ $sub->name_th }} ({{ $sub->credits }} หน่วย)
+                                </div>
                             @endforeach
-                        </select>
+                            <div class="cf-combo-empty" id="add_subject_empty" style="display:none">ไม่พบวิชาที่ค้นหา</div>
+                        </div>
+                    </div>
+                    <div class="cf-modal-hint" style="margin:-6px 0 0">(ค่าเริ่มต้นดึงมาจากวิชาที่เลือก แก้ไขได้เฉพาะแผนนี้ ไม่กระทบข้อมูลวิชากลาง)</div>
+                    <div class="cf-modal-row">
+                        <div>
+                            <label>หน่วยกิต</label>
+                            <input type="number" step="0.5" min="0" name="credits" id="add_credits" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                        <div>
+                            <label>ชั่วโมง/ปี</label>
+                            <input type="number" step="1" min="0" name="hours_per_year" id="add_hours_per_year" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                        <div>
+                            <label>ชั่วโมง/สัปดาห์</label>
+                            <input type="number" step="0.5" min="0" name="hours_per_week" id="add_hours_per_week" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
                     </div>
                     <div>
                         <label>เทอม</label>
@@ -305,20 +471,27 @@
                         </select>
                     </div>
                     <div>
-                        <label>ประเภทวิชา</label>
-                        <select name="is_required">
-                            <option value="1">บังคับ</option>
-                            <option value="0">เลือก</option>
-                        </select>
+                        <label>ประเภทวิชา (ดึงจากวิชาที่เลือก)</label>
+                        <div style="padding:7px 4px;font-size:0.9rem;color:#333" id="add_subject_type_display">-</div>
+                        <input type="hidden" name="is_required" id="add_is_required" value="1">
                     </div>
                     <div>
-                        <label>ครูผู้สอน</label>
-                        <select name="personnel_id">
-                            <option value="">-- ยังไม่กำหนด --</option>
-                            @foreach($personnels ?? [] as $p)
-                            <option value="{{ $p->personnel_id }}">{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</option>
-                            @endforeach
-                        </select>
+                        <label>ครูผู้สอน (สูงสุด 3 คน)</label>
+                        <div id="add_teacher_row_0" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'add_0_', 'personnels' => $personnels ?? []])</div>
+                        </div>
+                        <div id="add_teacher_row_1" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'add_1_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('add_', 1)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <div id="add_teacher_row_2" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'add_2_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('add_', 2)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <button type="button" id="add_teacher_add_btn" onclick="addTeacherSlot('add_')"
+                            style="border:1px dashed #999;background:none;color:#666;border-radius:6px;padding:5px 12px;font-size:0.8rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px">
+                            <i class="bi bi-plus-lg"></i> เพิ่มครูผู้สอน
+                        </button>
                     </div>
                 </div>
                 <div class="cf-modal-footer">
@@ -336,6 +509,21 @@
             <form method="POST" id="editSubjForm" action="">
                 @csrf @method('PUT')
                 <div class="cf-modal-body">
+                    <div class="cf-modal-hint" style="margin:-6px 0 0">(ค่าเริ่มต้นดึงมาจากวิชา แก้ไขได้เฉพาะแผนนี้ ไม่กระทบข้อมูลวิชากลาง)</div>
+                    <div class="cf-modal-row">
+                        <div>
+                            <label>หน่วยกิต</label>
+                            <input type="number" step="0.5" min="0" name="credits" id="edit_credits" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                        <div>
+                            <label>ชั่วโมง/ปี</label>
+                            <input type="number" step="1" min="0" name="hours_per_year" id="edit_hours_per_year" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                        <div>
+                            <label>ชั่วโมง/สัปดาห์</label>
+                            <input type="number" step="0.5" min="0" name="hours_per_week" id="edit_hours_per_week" placeholder="ค่าเริ่มต้นจากวิชา">
+                        </div>
+                    </div>
                     <div>
                         <label>เทอม</label>
                         <select name="semester_type" id="edit_semester_type">
@@ -345,20 +533,27 @@
                         </select>
                     </div>
                     <div>
-                        <label>ประเภทวิชา</label>
-                        <select name="is_required" id="edit_is_required">
-                            <option value="1">บังคับ</option>
-                            <option value="0">เลือก</option>
-                        </select>
+                        <label>ประเภทวิชา (ดึงจากวิชานี้)</label>
+                        <div style="padding:7px 4px;font-size:0.9rem;color:#333" id="edit_subject_type_display">-</div>
+                        <input type="hidden" name="is_required" id="edit_is_required" value="1">
                     </div>
                     <div>
-                        <label>ครูผู้สอน</label>
-                        <select name="personnel_id" id="edit_personnel_id">
-                            <option value="">-- ยังไม่กำหนด --</option>
-                            @foreach($personnels ?? [] as $p)
-                            <option value="{{ $p->personnel_id }}">{{ $p->thai_prefix ?? '' }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</option>
-                            @endforeach
-                        </select>
+                        <label>ครูผู้สอน (สูงสุด 3 คน)</label>
+                        <div id="edit_teacher_row_0" style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'edit_0_', 'personnels' => $personnels ?? []])</div>
+                        </div>
+                        <div id="edit_teacher_row_1" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'edit_1_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('edit_', 1)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <div id="edit_teacher_row_2" style="display:none;align-items:center;gap:8px;margin-bottom:8px">
+                            <div style="flex:1">@include('academic.partials.teacher_combo_slot', ['prefix' => 'edit_2_', 'personnels' => $personnels ?? []])</div>
+                            <button type="button" onclick="removeTeacherSlot('edit_', 2)" style="border:none;background:none;color:#e53935;cursor:pointer;font-size:1.1rem" title="เอาออก"><i class="bi bi-x-circle"></i></button>
+                        </div>
+                        <button type="button" id="edit_teacher_add_btn" onclick="addTeacherSlot('edit_')"
+                            style="border:1px dashed #999;background:none;color:#666;border-radius:6px;padding:5px 12px;font-size:0.8rem;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:4px">
+                            <i class="bi bi-plus-lg"></i> เพิ่มครูผู้สอน
+                        </button>
                     </div>
                 </div>
                 <div class="cf-modal-footer">
@@ -368,10 +563,201 @@
             </form>
         </div>
     </div>
+    @else
+    {{-- ===== Card 2 (ตอนสร้างแผนใหม่): แสดงให้เห็นว่าจะมาเพิ่มวิชาตรงนี้ แต่ต้องบันทึกข้อมูลด้านบนก่อน ===== --}}
+    <div class="cf-card">
+        <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
+        <div class="cf-card-header">
+            <span class="cf-card-title">จัดการวิชาเรียน</span>
+        </div>
+        <div class="cf-empty" style="padding:28px 20px;">
+            <i class="bi bi-arrow-up-circle" style="font-size:1.8rem;display:block;margin-bottom:8px;color:#43a047"></i>
+            กด "บันทึกหลักสูตร" ด้านบนก่อน แล้วจะกลับมาที่หน้านี้พร้อมเพิ่มวิชาได้ทันที
+        </div>
+    </div>
+    @endif
+
+    @if(isset($curriculum))
+    {{-- ===== Modal คัดลอกแผนการเรียน (ในปีเดิม หรือไปปีอื่น เช่นปีหน้า) ===== --}}
+    @php
+        $suggestedNextYear = is_numeric($curriculum->year_applied) ? ((int) $curriculum->year_applied + 1) : '';
+    @endphp
+    <div class="cf-overlay" id="copyPlanOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="cf-modal">
+            <div class="cf-modal-header"><i class="bi bi-files"></i> คัดลอกแผนการเรียน</div>
+            <form action="{{ route('curriculums.copy', $curriculum->curriculum_id) }}" method="POST">
+                @csrf
+                <input type="hidden" name="return_to" value="{{ $returnTo ?? '' }}">
+                <div class="cf-modal-body">
+                    <div>
+                        คัดลอกแผน <strong>{{ $curriculum->name }}</strong> พร้อมวิชาทั้งหมดในแผนเป็นแผนใหม่
+                    </div>
+                    <div>
+                        <label>ปีการศึกษาของแผนใหม่ <span class="cf-modal-hint">(เว้นว่างไว้ = คัดลอกในปีเดิม ระบบจะตั้งชื่อเติม "(คัดลอก)" ให้อัตโนมัติ)</span></label>
+                        <input type="text" name="year_applied" value="{{ $suggestedNextYear }}" placeholder="เช่น {{ $suggestedNextYear ?: '2569' }}">
+                    </div>
+                </div>
+                <div class="cf-modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="document.getElementById('copyPlanOverlay').classList.remove('active')">ยกเลิก</button>
+                    <button type="submit" class="btn-modal-ok"><i class="bi bi-files"></i> คัดลอกแผน</button>
+                </div>
+            </form>
+        </div>
+    </div>
     @endif
 
 </div>
 <script>
+const curriculumIsEdit = @json(isset($curriculum));
+const curriculumProgramNames = @json($programs->pluck('name', 'program_id'));
+function onCurriculumLevelChange(select) {
+    if (curriculumIsEdit) return; // แก้ไขแผนที่มีอยู่แล้ว ไม่ต้องเปลี่ยนชื่อให้อัตโนมัติ
+    const progId = document.getElementById('programSelect').value;
+    const progName = curriculumProgramNames[progId];
+    if (!progName) return;
+    const opt = select.options[select.selectedIndex];
+    const nameInput = document.getElementById('curriculumNameInput');
+    if (opt.dataset.name) {
+        nameInput.value = progName + ' ' + opt.dataset.name;
+    }
+}
+function onCurriculumProgramChange(select) {
+    onCurriculumLevelChange(document.getElementById('levelSelect'));
+}
+function submitImportSubjForm() {
+    document.getElementById('importSubjSubmitBtn').disabled = true;
+    document.getElementById('importSubjSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่';
+}
+function openAddSubjectModal() {
+    document.getElementById('add_subject_id').value = '';
+    document.getElementById('add_subject_search').value = '';
+    document.getElementById('add_credits').value = '';
+    document.getElementById('add_hours_per_year').value = '';
+    document.getElementById('add_hours_per_week').value = '';
+    document.getElementById('add_is_required').value = '1';
+    document.getElementById('add_subject_type_display').textContent = '-';
+    document.getElementById('add_subject_list').classList.remove('open');
+    resetTeacherSlots('add_');
+    document.getElementById('addSubjOverlay').classList.add('active');
+}
+// เคลียร์ครูผู้สอนทุกช่อง (0-2) แล้วยุบช่องที่ 2 กับ 3 กลับไปซ่อน — ใช้ตอนเปิด modal ใหม่ทั้งเพิ่ม/แก้ไข
+function resetTeacherSlots(formPrefix) {
+    ['0', '1', '2'].forEach(i => {
+        const p = formPrefix + i + '_';
+        document.getElementById(p + 'personnel_id').value = '';
+        document.getElementById(p + 'personnel_search').value = '';
+        document.getElementById(p + 'personnel_list').classList.remove('open');
+    });
+    document.getElementById(formPrefix + 'teacher_row_1').style.display = 'none';
+    document.getElementById(formPrefix + 'teacher_row_2').style.display = 'none';
+    updateAddTeacherBtn(formPrefix);
+}
+function addTeacherSlot(formPrefix) {
+    for (let i = 1; i <= 2; i++) {
+        const row = document.getElementById(formPrefix + 'teacher_row_' + i);
+        if (row.style.display === 'none') {
+            row.style.display = 'flex';
+            updateAddTeacherBtn(formPrefix);
+            return;
+        }
+    }
+}
+function removeTeacherSlot(formPrefix, index) {
+    const p = formPrefix + index + '_';
+    document.getElementById(p + 'personnel_id').value = '';
+    document.getElementById(p + 'personnel_search').value = '';
+    document.getElementById(p + 'personnel_list').classList.remove('open');
+    document.getElementById(formPrefix + 'teacher_row_' + index).style.display = 'none';
+    updateAddTeacherBtn(formPrefix);
+}
+function updateAddTeacherBtn(formPrefix) {
+    const anyHidden = ['1', '2'].some(i => document.getElementById(formPrefix + 'teacher_row_' + i).style.display === 'none');
+    const btn = document.getElementById(formPrefix + 'teacher_add_btn');
+    if (btn) btn.style.display = anyHidden ? 'inline-flex' : 'none';
+}
+// พื้นฐาน/กิจกรรม = บังคับ โดยปริยาย, เพิ่มเติม = เลือก โดยปริยาย (ยังแก้เองได้เสมอ แค่ตั้งค่าเริ่มต้นให้)
+function defaultIsRequiredFor(subjectType) {
+    return subjectType === 'เพิ่มเติม' ? '0' : '1';
+}
+function openSubjectCombo() {
+    document.getElementById('add_subject_list').classList.add('open');
+    filterSubjectCombo();
+}
+function filterSubjectCombo() {
+    // ผู้ใช้เพิ่งพิมพ์เอง (ไม่ใช่จากการคลิกเลือกในลิสต์) ล้างค่าที่เคยเลือกไว้ กันส่ง subject_id เก่า
+    // ที่ไม่ตรงกับข้อความที่เห็นตอนนี้แล้ว
+    document.getElementById('add_subject_id').value = '';
+    const q = document.getElementById('add_subject_search').value.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('#add_subject_list .cf-combo-item').forEach(item => {
+        const match = !q || item.dataset.search.includes(q);
+        item.classList.toggle('hidden', !match);
+        if (match) anyVisible = true;
+    });
+    document.getElementById('add_subject_empty').style.display = anyVisible ? 'none' : 'block';
+}
+function selectSubjectCombo(item) {
+    document.getElementById('add_subject_id').value = item.dataset.id;
+    document.getElementById('add_subject_search').value = item.dataset.label;
+    document.getElementById('add_credits').value = item.dataset.credits || '';
+    document.getElementById('add_hours_per_year').value = item.dataset.hoursYear || '';
+    document.getElementById('add_hours_per_week').value = item.dataset.hoursWeek || '';
+    document.getElementById('add_is_required').value = defaultIsRequiredFor(item.dataset.subjectType || '');
+    document.getElementById('add_subject_type_display').textContent = item.dataset.subjectType || '-';
+    document.getElementById('add_subject_list').classList.remove('open');
+}
+function validateAddSubjectForm() {
+    if (!document.getElementById('add_subject_id').value) {
+        alert('กรุณาเลือกวิชาจากลิสต์ก่อน');
+        document.getElementById('add_subject_search').focus();
+        return false;
+    }
+    return true;
+}
+function openPersonnelCombo(prefix) {
+    document.getElementById(prefix + 'personnel_list').classList.add('open');
+    filterPersonnelCombo(prefix);
+}
+function filterPersonnelCombo(prefix) {
+    // เหมือนวิชา — พิมพ์เองแล้วล้างค่าที่เคยเลือกไว้ กันส่ง personnel_id เก่าที่ไม่ตรงกับข้อความที่เห็น
+    document.getElementById(prefix + 'personnel_id').value = '';
+    const q = document.getElementById(prefix + 'personnel_search').value.trim().toLowerCase();
+    let anyVisible = false;
+    document.querySelectorAll('#' + prefix + 'personnel_list .cf-combo-item').forEach(item => {
+        const match = !q || item.dataset.search.includes(q);
+        item.classList.toggle('hidden', !match);
+        if (match) anyVisible = true;
+    });
+    document.getElementById(prefix + 'personnel_empty').style.display = anyVisible ? 'none' : 'block';
+}
+function selectPersonnelCombo(prefix, item) {
+    document.getElementById(prefix + 'personnel_id').value = item.dataset.id;
+    document.getElementById(prefix + 'personnel_search').value = item.dataset.label;
+    document.getElementById(prefix + 'personnel_list').classList.remove('open');
+}
+function bindComboKeydown(inputId, listId, onSelect) {
+    document.getElementById(inputId)?.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            const firstVisible = document.querySelector('#' + listId + ' .cf-combo-item:not(.hidden)');
+            if (firstVisible) onSelect(firstVisible);
+        } else if (e.key === 'Escape') {
+            document.getElementById(listId).classList.remove('open');
+        }
+    });
+}
+bindComboKeydown('add_subject_search', 'add_subject_list', selectSubjectCombo);
+['add_0_', 'add_1_', 'add_2_', 'edit_0_', 'edit_1_', 'edit_2_'].forEach(p => {
+    bindComboKeydown(p + 'personnel_search', p + 'personnel_list', item => selectPersonnelCombo(p, item));
+});
+document.addEventListener('click', e => {
+    const insideCombo = e.target.closest('.cf-combo');
+    document.querySelectorAll('.cf-combo-list.open').forEach(list => {
+        if (!insideCombo || list.closest('.cf-combo') !== insideCombo) {
+            list.classList.remove('open');
+        }
+    });
+});
 function toggleDd(btn) {
     document.querySelectorAll('.cf-dropdown.open').forEach(d => {
         if (d !== btn.nextElementSibling) d.classList.remove('open');
@@ -390,12 +776,25 @@ document.addEventListener('keydown', e => {
     }
 });
 
-function openEditModal(csId, semType, isReq, personnelId) {
+function openEditModal(csId, semType, credits, hoursPerYear, hoursPerWeek, subjectType, teachers) {
     document.getElementById('editSubjForm').action =
         '/curriculums/{{ $curriculum->curriculum_id ?? "" }}/subjects/' + csId;
     document.getElementById('edit_semester_type').value = semType;
-    document.getElementById('edit_is_required').value = isReq;
-    document.getElementById('edit_personnel_id').value = personnelId || '';
+    document.getElementById('edit_is_required').value = defaultIsRequiredFor(subjectType || '');
+    document.getElementById('edit_subject_type_display').textContent = subjectType || '-';
+    document.getElementById('edit_credits').value = (credits === null || credits === undefined) ? '' : credits;
+    document.getElementById('edit_hours_per_year').value = (hoursPerYear === null || hoursPerYear === undefined) ? '' : hoursPerYear;
+    document.getElementById('edit_hours_per_week').value = (hoursPerWeek === null || hoursPerWeek === undefined) ? '' : hoursPerWeek;
+
+    resetTeacherSlots('edit_');
+    (teachers || []).slice(0, 3).forEach((t, i) => {
+        const p = 'edit_' + i + '_';
+        document.getElementById(p + 'personnel_id').value = t.id;
+        document.getElementById(p + 'personnel_search').value = t.name;
+        if (i > 0) document.getElementById('edit_teacher_row_' + i).style.display = 'flex';
+    });
+    updateAddTeacherBtn('edit_');
+
     document.querySelectorAll('.cf-dropdown.open').forEach(d => d.classList.remove('open'));
     document.getElementById('editSubjOverlay').classList.add('active');
 }

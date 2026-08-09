@@ -12,10 +12,21 @@ use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Semester;
 use App\Models\Academic\Subject;
 use App\Models\Personne\Personnel;
+use App\Services\ExcelSchoolHeader;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class ScoreController extends Controller
 {
+    private const FIRST_SCORE_COL = 5;
+
     // เลือกวิชา-ห้องที่จะบันทึกคะแนน
     public function index(Request $request)
     {
@@ -23,7 +34,7 @@ class ScoreController extends Controller
         $subjectId   = $request->subject_id;
         $personnelId = $request->personnel_id;
 
-        $semesters  = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters  = Semester::with('academicYear')->orderedByRecency()->get();
         $subjects   = Subject::where('is_active', true)->orderBy('code')->get();
         $teachers   = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
 
@@ -86,6 +97,121 @@ class ScoreController extends Controller
         }
 
         return view('academic.scores_manage', compact('assign', 'students', 'categories', 'scoreMatrix'));
+    }
+
+    // ดาวน์โหลดแบบฟอร์ม Excel เปล่า (จริงๆ คือ pre-fill คะแนนปัจจุบันไว้ให้แก้) สำหรับนำเข้าคะแนนของ assign นี้
+    public function importTemplate($assignId)
+    {
+        $assign = TeachingAssign::with(['personnel', 'subject', 'classSection.level', 'classSection.semester.academicYear'])
+            ->findOrFail($assignId);
+
+        $students = StudentSection::with('student')
+            ->where('section_id', $assign->section_id)
+            ->where('status', 'กำลังศึกษา')
+            ->orderBy('student_number')
+            ->get();
+
+        $categories = $assign->scoreCategories()->with('studentScores')->orderBy('sort_order')->get();
+
+        $scoreMatrix = [];
+        foreach ($categories as $cat) {
+            foreach ($cat->studentScores as $sc) {
+                $scoreMatrix[$sc->student_id][$cat->category_id] = $sc->score;
+            }
+        }
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('คะแนน');
+
+        $totalCols = self::FIRST_SCORE_COL - 1 + $categories->count();
+        $lastCol = Coordinate::stringFromColumnIndex($totalCols);
+
+        $subjectLabel = "{$assign->subject->code} {$assign->subject->name_th} — "
+            . ($assign->classSection->level->name ?? '') . '/' . $assign->classSection->section_number;
+
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
+        ExcelSchoolHeader::applyInstructionRow(
+            $sheet, $totalCols,
+            "แบบฟอร์มนำเข้าคะแนน วิชา {$subjectLabel} — กรอก/แก้ไขคะแนนเริ่มจากแถวที่ 7 เป็นต้นไป (แถวที่ 1-6 ห้ามลบ/ห้ามแก้), เว้นว่างช่องไหนไว้ = ไม่แก้คะแนนเดิมของช่องนั้น"
+        );
+
+        $headers = ['ลำดับ', 'เลขที่', 'รหัสนักเรียน', 'ชื่อ-นามสกุล'];
+        foreach ($categories as $cat) {
+            $headers[] = "{$cat->name} (เต็ม {$cat->max_score})";
+        }
+
+        foreach ($headers as $i => $header) {
+            $col = Coordinate::stringFromColumnIndex($i + 1);
+            if ($i !== 0 || !$hasLogo) {
+                $sheet->getColumnDimension($col)->setWidth($i === 3 ? 26 : 16);
+            }
+            $sheet->setCellValue("{$col}6", $header);
+        }
+        $sheet->getStyle("A6:{$lastCol}6")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
+        $sheet->getRowDimension(6)->setRowHeight(28);
+
+        $row = 7;
+        foreach ($students as $i => $ss) {
+            $s = $ss->student;
+            $sheet->setCellValue("A{$row}", $i + 1);
+            $sheet->setCellValue("B{$row}", $ss->student_number);
+            $sheet->setCellValue("C{$row}", $s->student_code);
+            $sheet->setCellValue("D{$row}", trim(($s->thai_prefix ?? '') . $s->thai_firstname . ' ' . $s->thai_lastname));
+            foreach ($categories as $ci => $cat) {
+                $col = Coordinate::stringFromColumnIndex(self::FIRST_SCORE_COL + $ci);
+                $val = $scoreMatrix[$s->student_id][$cat->category_id] ?? null;
+                if ($val !== null) {
+                    $sheet->setCellValue("{$col}{$row}", $val);
+                }
+            }
+            $row++;
+        }
+        $sheet->getStyle("A7:{$lastCol}" . ($row - 1))->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+        ]);
+
+        $sheet->freezePane('A7');
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'scores_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = 'แบบฟอร์มนำเข้าคะแนน_' . $assign->subject->code . '_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
+    }
+
+    // รับไฟล์ Excel ที่กรอกคะแนนมา แล้วรันคำสั่งนำเข้าให้
+    public function importUpload(Request $request, $assignId)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0);
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['assignId' => $assignId, 'file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:scores', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('import_output', $output);
     }
 
     // 2. ฟังก์ชันสำหรับพิมพ์ใบกรอกคะแนน (แบบในรูป)

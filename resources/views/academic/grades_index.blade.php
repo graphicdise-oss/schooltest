@@ -121,7 +121,7 @@
             @foreach($sections as $sec)
             <a href="{{ route('grades.section', $sec->section_id) }}" class="sec-card">
                 <div class="sec-card-icon"><i class="bi bi-door-open"></i></div>
-                <div class="sec-card-level">{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}</div>
+                <div class="sec-card-level">{{ $sec->full_name }}</div>
                 <div class="sec-card-count">
                     <i class="bi bi-person" style="color:#5c6bc0"></i>
                     {{ $sec->studentSections->where('status','กำลังศึกษา')->count() }} คน

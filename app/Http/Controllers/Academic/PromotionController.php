@@ -7,6 +7,7 @@ use App\Models\Academic\Promotion;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\Semester;
+use App\Models\Academic\AcademicYear;
 use App\Models\Academic\Level;
 use App\Models\Student;
 use Illuminate\Http\Request;
@@ -18,7 +19,10 @@ class PromotionController extends Controller
     public function index(Request $request)
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $semesters = Semester::with('academicYear')->orderBy('semester_id', 'desc')->get();
+        $semesters = Semester::with('academicYear')->orderedByRecency()->get();
+        $academicYears = AcademicYear::orderByDesc('year_name')->get();
+        // เอาไว้ pre-select ดรอปดาวน์ "ปีการศึกษา" ให้ตรงกับเทอมที่กำลังดูอยู่ตอนโหลดหน้า
+        $yearId = $semesters->firstWhere('semester_id', $semesterId)?->year_id;
         $levels = Level::orderBy('sort_order')->get();
 
         $fromSections = ClassSection::with(['level', 'studentSections.student'])
@@ -31,7 +35,27 @@ class PromotionController extends Controller
             ? ClassSection::with('level')->where('semester_id', $nextSemester->semester_id)->orderBy('level_id')->orderBy('section_number')->get()
             : collect();
 
-        return view('academic.promotions', compact('semesters', 'levels', 'fromSections', 'toSections', 'semesterId', 'nextSemester'));
+        // บันทึกจบ (Tab 3) เลือกได้เฉพาะห้องของ "ชั้นปีสุดท้าย" ของแต่ละช่วงชั้นเท่านั้น (ป.6/ม.3/ม.6)
+        // หาโดยดู sort_order สูงสุดในแต่ละ level_group ประถมศึกษา/มัธยมศึกษาตอนต้น/มัธยมศึกษาตอนปลาย
+        // (ไม่รวมอนุบาล เพราะไม่ถือเป็นการ "จบการศึกษา" ในความหมายนี้)
+        $terminalLevelIds = $levels
+            ->whereIn('level_group', ['ประถมศึกษา', 'มัธยมศึกษาตอนต้น', 'มัธยมศึกษาตอนปลาย'])
+            ->groupBy('level_group')
+            ->map(fn($group) => $group->sortByDesc('sort_order')->first()?->level_id)
+            ->filter()
+            ->values();
+        // ถ้าหาชั้นปีสุดท้ายไม่เจอเลยสักช่วงชั้น (เช่น ยังไม่ได้ตั้งค่า level_group ให้ระดับชั้นในระบบ) ให้แสดงห้องทั้งหมด
+        // แทนปล่อยดรอปดาวน์ว่างเปล่าจนใช้งานไม่ได้เลย — ต่างจากกรณีเทอมนี้แค่ยังไม่มีห้อง ป.6/ม.3/ม.6 ที่ควรปล่อยว่างไว้ตามจริง
+        $graduateSections = $terminalLevelIds->isEmpty()
+            ? $fromSections
+            : $fromSections->whereIn('level_id', $terminalLevelIds)->values();
+        // รายการระดับชั้นสำหรับดรอปดาวน์ "ระดับ" ในแท็บบันทึกจบ — ให้เลือกชั้นก่อนแล้วค่อยกรองห้อง (แสดงครบทั้ง 3
+        // ชั้นปีสุดท้ายเสมอ ต่อให้เทอมนี้ยังไม่มีห้องของบางชั้น จะได้เห็นว่ามีตัวเลือกอยู่ แค่ยังไม่มีห้องให้เลือกในเทอมนี้)
+        $graduateLevels = $terminalLevelIds->isEmpty()
+            ? $levels
+            : $levels->whereIn('level_id', $terminalLevelIds)->sortBy('sort_order')->values();
+
+        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester'));
     }
 
     // ย้ายห้อง (เทอมเดียวกัน)

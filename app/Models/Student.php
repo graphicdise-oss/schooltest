@@ -48,4 +48,9 @@ class Student extends Model implements Authenticatable
     {
         return $this->hasMany(\App\Models\Academic\StudentSection::class, 'student_id', 'student_id');
     }
+
+    public function health()
+    {
+        return $this->hasOne(StudentHealth::class, 'student_id', 'student_id');
+    }
 }

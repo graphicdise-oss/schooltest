@@ -122,7 +122,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.45);
+            background: rgba(20, 30, 40, 0.55);
             z-index: 9999;
             justify-content: center;
             align-items: center;
@@ -146,18 +146,18 @@
         /* ===== Modal Card ===== */
         .pwd-modal {
             background: #fff;
-            border-radius: 16px;
-            width: 480px;
+            border-radius: 14px;
+            width: 440px;
             max-width: 92vw;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.25);
             overflow: hidden;
-            animation: slideUp 0.3s ease;
+            animation: slideUp 0.25s ease;
         }
 
         @keyframes slideUp {
             from {
                 opacity: 0;
-                transform: translateY(30px);
+                transform: translateY(20px);
             }
 
             to {
@@ -167,93 +167,103 @@
         }
 
         .pwd-modal-header {
-            text-align: center;
-            padding: 24px 24px 16px;
-            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 20px 24px;
+            background: #00bcd4;
+            color: #fff;
+        }
+
+        .pwd-modal-header .pwd-header-icon {
+            width: 44px;
+            height: 44px;
+            min-width: 44px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
         }
 
         .pwd-modal-header h5 {
-            font-size: 1.2rem;
+            font-size: 1.05rem;
             font-weight: 700;
-            color: #333;
-            margin: 0 0 4px;
-        }
-
-        .pwd-modal-header p {
-            font-size: 0.82rem;
-            color: #999;
             margin: 0;
         }
 
+        .pwd-modal-header p {
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.85);
+            margin: 2px 0 0;
+        }
+
         .pwd-modal-body {
-            padding: 24px;
+            padding: 22px 24px 6px;
         }
 
         .pwd-field {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 14px 0;
-            border-bottom: 1px solid #f5f5f5;
-        }
-
-        .pwd-field:last-child {
-            border-bottom: none;
+            margin-bottom: 18px;
         }
 
         .pwd-field-label {
-            min-width: 130px;
-        }
-
-        .pwd-field-label .label-th {
-            font-size: 0.88rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
             font-weight: 700;
-            color: #333;
+            color: #444;
+            margin-bottom: 6px;
         }
 
-        .pwd-field-label .label-en {
-            font-size: 0.72rem;
-            color: #aaa;
+        .pwd-field-label i {
+            color: #00bcd4;
         }
 
         .pwd-field-input {
-            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .pwd-field-input input,
         .pwd-field-input select {
+            flex: 1;
             width: 100%;
-            height: 40px;
-            border: 1.5px solid #e0e0e0;
-            border-radius: 10px;
+            height: 42px;
+            border: 1.5px solid #e3e7ea;
+            border-radius: 8px;
             padding: 0 14px;
             font-size: 0.88rem;
             font-family: inherit;
             color: #333;
             outline: none;
-            transition: border-color 0.2s;
+            background: #fafbfc;
+            transition: border-color 0.2s, background 0.2s;
             box-sizing: border-box;
         }
 
         .pwd-field-input input:focus,
         .pwd-field-input select:focus {
             border-color: #00bcd4;
-            box-shadow: 0 0 0 3px rgba(0, 188, 212, 0.1);
+            background: #fff;
         }
 
-        .pwd-field-actions {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        .pwd-field-hint {
+            font-size: 0.76rem;
+            color: #999;
+            margin-top: 5px;
         }
 
         /* ปุ่มดูรหัส */
         .btn-toggle-pwd {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            border: 1.5px solid #e0e0e0;
-            background: #fff;
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 8px;
+            border: 1.5px solid #e3e7ea;
+            background: #fafbfc;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -270,75 +280,62 @@
 
         /* ปุ่มเปลี่ยนรหัส */
         .btn-change-pwd {
-            height: 38px;
-            border-radius: 10px;
             border: none;
-            background: linear-gradient(135deg, #ff9800, #ffa726);
-            color: #fff;
-            padding: 0 16px;
-            font-size: 0.8rem;
-            font-weight: 600;
+            background: none;
+            color: #ff9800;
+            padding: 0;
+            font-size: 0.78rem;
+            font-weight: 700;
             cursor: pointer;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 4px;
             font-family: inherit;
-            transition: all 0.2s;
-            white-space: nowrap;
         }
 
         .btn-change-pwd:hover {
-            background: linear-gradient(135deg, #e68900, #ff9800);
+            text-decoration: underline;
         }
 
         /* Footer ปุ่ม */
         .pwd-modal-footer {
             display: flex;
-            justify-content: center;
-            gap: 12px;
-            padding: 16px 24px 24px;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 16px 24px 22px;
+        }
+
+        .btn-pwd-save,
+        .btn-pwd-cancel {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 24px;
+            font-size: 0.87rem;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: opacity 0.15s;
         }
 
         .btn-pwd-save {
-            background: linear-gradient(135deg, #00bcd4, #00acc1);
+            background: #00bcd4;
             color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 36px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
         }
 
         .btn-pwd-save:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(0, 188, 212, 0.35);
+            opacity: 0.9;
         }
 
         .btn-pwd-cancel {
-            background: #e74c3c;
-            color: #fff;
-            border: none;
-            border-radius: 10px;
-            padding: 10px 28px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s;
+            background: #f1f3f5;
+            color: #666;
         }
 
         .btn-pwd-cancel:hover {
-            background: #c0392b;
+            background: #e6e9eb;
         }
     </style>
 @endpush
@@ -360,8 +357,8 @@
             <div class="floating-icon bg-cyan-custom"><i class="bi bi-search"></i></div>
             <div class="card-header-text mb-4">ค้นหา</div>
             <form action="{{ route('personnels.index') }}" method="GET">
-                <div class="row px-md-4 mt-4">
-                    <div class="col-md-3 mb-4 offset-md-1">
+                <div class="row g-4 px-md-4 mt-2">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">ประเภทบุคลากร</label>
                         <select name="type" class="form-select input-material text-muted mt-2">
                             <option value="">เลือกประเภทบุคลากร</option>
@@ -370,7 +367,7 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-4 offset-md-1">
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">แผนก</label>
                         <select name="department" class="form-select input-material text-muted mt-2">
                             <option value="">ทั้งหมด</option>
@@ -381,13 +378,29 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="col-md-3 mb-4 offset-md-1">
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <label class="form-label fw-bold text-dark mb-0">ห้อง (ครูประจำชั้น)</label>
+                        <select name="section_id" class="form-select input-material text-muted mt-2">
+                            <option value="">ทั้งหมด</option>
+                            @foreach ($sections as $sec)
+                                <option value="{{ $sec->section_id }}" {{ request('section_id') == $sec->section_id ? 'selected' : '' }}>
+                                    {{ $sec->full_name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
+                        <label class="form-label fw-bold text-dark mb-0">รหัสบุคลากร</label>
+                        <input type="text" name="employee_code" class="form-control input-material text-muted mt-2"
+                            placeholder="รหัสบุคลากร" value="{{ request('employee_code') }}">
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">ชื่อ - นามสกุล</label>
                         <input type="text" name="search" class="form-control input-material text-muted mt-2"
                             placeholder="ชื่อ - นามสกุล" value="{{ request('search') }}">
                     </div>
                 </div>
-                <div class="text-center mb-2 mt-2">
+                <div class="text-center mb-2 mt-4">
                     <button type="submit" class="btn bg-cyan-custom text-white px-4 py-2 rounded-1">
                         <i class="bi bi-search me-1"></i> ค้นหา
                     </button>
@@ -400,15 +413,22 @@
             <div class="floating-icon bg-orange-custom"><i class="bi bi-person-fill"></i></div>
             <div class="d-flex justify-content-between align-items-center mb-4 card-header-text">
                 <div>ข้อมูลบุคลากร</div>
-                <div class="dropdown" style="margin-top: -15px;">
-                    <button class="btn btn-manage dropdown-toggle px-3 py-2 rounded-1" type="button"
-                        data-bs-toggle="dropdown">
-                        จัดการข้อมูล
+                <div class="d-flex gap-2" style="margin-top: -15px;">
+                    <button type="button" class="btn px-3 py-2 rounded-1" style="background:#495057; color:#fff;"
+                        onclick="document.getElementById('personnelSchoolInfoOverlay').classList.add('active')"
+                        title="ตั้งค่าข้อมูลโรงเรียนที่จะแสดงบนแบบฟอร์ม">
+                        <i class="bi bi-gear"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
-                        <li><a class="dropdown-item" href="{{ route('personnels.create') }}"><i
-                                    class="bi bi-person-plus me-2"></i>เพิ่มข้อมูลบุคลากร</a></li>
-                    </ul>
+                    <a href="{{ route('personnels.import-template') }}" class="btn btn-secondary px-3 py-2 rounded-1">
+                        <i class="bi bi-download me-1"></i> ดาวน์โหลดแบบฟอร์ม Excel
+                    </a>
+                    <button type="button" class="btn btn-success px-3 py-2 rounded-1"
+                        onclick="document.getElementById('personnelImportOverlay').classList.add('active')">
+                        <i class="bi bi-upload me-1"></i> นำเข้าจาก Excel
+                    </button>
+                    <a href="{{ route('personnels.create') }}" class="btn btn-manage px-3 py-2 rounded-1">
+                        <i class="bi bi-person-plus me-1"></i> เพิ่มข้อมูลบุคลากร
+                    </a>
                 </div>
             </div>
 
@@ -440,7 +460,21 @@
                                 <td>{{ $person->phone ?? '-' }}</td>
                                 <td>{{ $person->date_of_birth ? \Carbon\Carbon::parse($person->date_of_birth)->addYears(543)->format('d/m/Y') : '-' }}
                                 </td>
-                                <td>{{ $person->status ?? 'ปฏิบัติงาน' }}</td>
+                                @php
+                                    $statusValue = $person->status ?? 'ปฏิบัติงาน';
+                                    $statusStyle = match (true) {
+                                        str_contains($statusValue, 'ปฏิบัติงาน') => ['bg' => '#e6f7ee', 'text' => '#1e8a4c'],
+                                        str_contains($statusValue, 'ลาออก'), str_contains($statusValue, 'ไล่ออก') => ['bg' => '#fdecea', 'text' => '#c0392b'],
+                                        str_contains($statusValue, 'พัก') => ['bg' => '#fff4e5', 'text' => '#b8720a'],
+                                        str_contains($statusValue, 'เกษียณ') => ['bg' => '#eef0f2', 'text' => '#6c757d'],
+                                        default => ['bg' => '#eef0f2', 'text' => '#495057'],
+                                    };
+                                @endphp
+                                <td>
+                                    <span style="display:inline-block; padding:4px 14px; border-radius:20px; font-size:0.85rem; font-weight:600; white-space:nowrap; background:{{ $statusStyle['bg'] }}; color:{{ $statusStyle['text'] }};">
+                                        {{ $statusValue }}
+                                    </span>
+                                </td>
                                 <td>
                                     {{-- แก้ไข --}}
                                     <a href="{{ route('personnels.edit', $person->personnel_id) }}"
@@ -488,8 +522,11 @@
     <div class="pwd-overlay" id="pwdOverlay" onclick="closePwdModal(event)">
         <div class="pwd-modal" onclick="event.stopPropagation()">
             <div class="pwd-modal-header">
-                <h5>ข้อมูลรหัสผ่าน</h5>
-                <p>Password Information</p>
+                <div class="pwd-header-icon"><i class="bi bi-shield-lock"></i></div>
+                <div>
+                    <h5>จัดการบัญชีผู้ใช้งาน</h5>
+                    <p>ตั้งรหัสผ่านและสิทธิ์การเข้าใช้ระบบ</p>
+                </div>
             </div>
 
             <form id="pwdForm" method="POST">
@@ -499,10 +536,7 @@
                 <div class="pwd-modal-body">
                     {{-- ชื่อผู้ใช้ --}}
                     <div class="pwd-field">
-                        <div class="pwd-field-label">
-                            <div class="label-th">ชื่อผู้ใช้</div>
-                            <div class="label-en">User</div>
-                        </div>
+                        <div class="pwd-field-label"><i class="bi bi-person-badge"></i> รหัสพนักงาน (ใช้ล็อกอิน)</div>
                         <div class="pwd-field-input">
                             <input type="text" name="employee_code" id="modalUsername" placeholder="รหัสพนักงาน">
                         </div>
@@ -510,29 +544,23 @@
 
                     {{-- รหัสผ่าน --}}
                     <div class="pwd-field">
-                        <div class="pwd-field-label">
-                            <div class="label-th">รหัสผ่าน</div>
-                            <div class="label-en">Password</div>
-                        </div>
+                        <div class="pwd-field-label"><i class="bi bi-key"></i> รหัสผ่าน</div>
                         <div class="pwd-field-input">
                             <input type="password" name="password" id="modalPassword" placeholder="กรอกรหัสผ่านใหม่">
-                        </div>
-                        <div class="pwd-field-actions">
                             <button type="button" class="btn-toggle-pwd" onclick="togglePassword()" title="ดู/ซ่อนรหัสผ่าน">
                                 <i class="bi bi-eye" id="togglePwdIcon"></i>
                             </button>
+                        </div>
+                        <div class="pwd-field-hint">
                             <button type="button" class="btn-change-pwd" onclick="clearPassword()">
-                                <i class="bi bi-arrow-repeat"></i> เปลี่ยนรหัสผ่าน
+                                <i class="bi bi-arrow-repeat"></i> ล้างช่องเพื่อตั้งรหัสผ่านใหม่
                             </button>
                         </div>
                     </div>
 
                     {{-- บทบาท --}}
                     <div class="pwd-field">
-                        <div class="pwd-field-label">
-                            <div class="label-th">บทบาท</div>
-                            <div class="label-en">Role</div>
-                        </div>
+                        <div class="pwd-field-label"><i class="bi bi-shield-check"></i> บทบาท (Role)</div>
                         <div class="pwd-field-input">
                             <select name="role" id="modalRole">
                                 <option value="">-- เลือก --</option>
@@ -542,17 +570,15 @@
                                 <option value="admin">admin (ผู้ดูแลระบบ)</option>
                                 <option value="user">user (ผู้ใช้ทั่วไป)</option>
                             </select>
-                            <small class="text-muted d-block mt-1">
-                                สิทธิ์เข้าถึงเมนูของ "user" กำหนดแยกได้ที่ <strong>ประเภทบุคลากร</strong> ของแต่ละคน
-                            </small>
+                        </div>
+                        <div class="pwd-field-hint">
+                            สิทธิ์เข้าถึงเมนูของ "user" กำหนดแยกได้ที่ <strong>ประเภทบุคลากร</strong> ของแต่ละคน
                         </div>
                     </div>
                 </div>
 
                 <div class="pwd-modal-footer">
-                    <button type="button" class="btn-pwd-cancel" onclick="closePwdModal()">
-                        <i class="bi bi-x-lg"></i> ยกเลิก
-                    </button>
+                    <button type="button" class="btn-pwd-cancel" onclick="closePwdModal()">ยกเลิก</button>
                     <button type="submit" class="btn-pwd-save">
                         <i class="bi bi-check-lg"></i> บันทึก
                     </button>
@@ -561,8 +587,105 @@
         </div>
     </div>
 
+    {{-- ===== Modal ตั้งค่าข้อมูลโรงเรียน (แสดงบนหัวแบบฟอร์ม Excel — ใช้ร่วมกับแบบฟอร์มนักเรียน) ===== --}}
+    <div id="personnelSchoolInfoOverlay" onclick="if(event.target===this)this.classList.remove('active')"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:24px; margin:16px;">
+            <h5 style="margin-bottom:4px;"><i class="bi bi-gear"></i> ตั้งค่าข้อมูลโรงเรียน</h5>
+            <p style="font-size:0.85rem; color:#777; margin-bottom:16px;">
+                ข้อมูลนี้จะแสดงที่หัวแบบฟอร์ม Excel ทุกครั้งที่กด "ดาวน์โหลดแบบฟอร์ม Excel" (ใช้ค่าเดียวกับแบบฟอร์มนักเรียน)
+            </p>
+            <form method="POST" action="{{ route('students.school-info') }}" enctype="multipart/form-data">
+                @csrf
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">ตราโรงเรียน</label>
+                    @if($schoolInfo->logo_path)
+                        <div style="margin-bottom:6px;">
+                            <img src="{{ asset('storage/' . $schoolInfo->logo_path) }}" alt="ตราโรงเรียน" style="height:50px;">
+                        </div>
+                    @endif
+                    <input type="file" name="logo" accept="image/*" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">ชื่อโรงเรียน</label>
+                    <input type="text" name="school_name" value="{{ old('school_name', $schoolInfo->school_name) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">โทรศัพท์</label>
+                    <input type="text" name="phone" value="{{ old('phone', $schoolInfo->phone) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">โทรสาร</label>
+                    <input type="text" name="fax" value="{{ old('fax', $schoolInfo->fax) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:10px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">เว็บไซต์</label>
+                    <input type="text" name="website" value="{{ old('website', $schoolInfo->website) }}" class="form-control">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label style="font-size:0.83rem;font-weight:600;color:#555;display:block;margin-bottom:4px;">อีเมล์</label>
+                    <input type="text" name="email" value="{{ old('email', $schoolInfo->email) }}" class="form-control">
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" onclick="document.getElementById('personnelSchoolInfoOverlay').classList.remove('active')" style="padding:8px 16px; border:1px solid #ccc; border-radius:6px; background:#fff;">ยกเลิก</button>
+                    <button type="submit" style="padding:8px 16px; border:none; border-radius:6px; background:#0d6efd; color:#fff;">บันทึก</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- ===== Modal นำเข้าข้อมูลบุคลากรจาก Excel ===== --}}
+    <div id="personnelImportOverlay" onclick="if(event.target===this)closePersonnelImportModal()"
+        style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; align-items:center; justify-content:center;">
+        <div style="background:#fff; border-radius:12px; width:100%; max-width:480px; padding:24px; margin:16px;">
+            <h5 style="margin-bottom:4px;"><i class="bi bi-upload"></i> นำเข้าข้อมูลบุคลากรจาก Excel</h5>
+            <p style="font-size:0.85rem; color:#777; margin-bottom:16px;">
+                ใช้ไฟล์ที่ดาวน์โหลดจากปุ่ม "ดาวน์โหลดแบบฟอร์ม Excel" เท่านั้น (ตำแหน่งคอลัมน์ต้องตรงกัน)
+            </p>
+            <form method="POST" action="{{ route('personnels.import') }}" enctype="multipart/form-data" onsubmit="submitPersonnelImportForm()">
+                @csrf
+                <div style="margin-bottom:14px;">
+                    <input type="file" name="file" accept=".xlsx" required class="form-control">
+                </div>
+                <div style="margin-bottom:16px;">
+                    <label><input type="checkbox" name="dry_run" value="1"> ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง</label>
+                </div>
+                <div style="display:flex; justify-content:flex-end; gap:8px;">
+                    <button type="button" onclick="closePersonnelImportModal()" style="padding:8px 16px; border:1px solid #ccc; border-radius:6px; background:#fff;">ยกเลิก</button>
+                    <button type="submit" id="personnelImportSubmitBtn" style="padding:8px 16px; border:none; border-radius:6px; background:#198754; color:#fff;">เริ่มนำเข้า</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @if (session('import_output'))
+        <div id="personnelImportResultOverlay"
+            style="position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:2000; display:flex; align-items:center; justify-content:center;">
+            <div style="background:#fff; border-radius:12px; width:100%; max-width:700px; max-height:80vh; padding:24px; margin:16px; display:flex; flex-direction:column;">
+                <h5 style="margin-bottom:12px;"><i class="bi bi-clipboard-check"></i> ผลการนำเข้าข้อมูล</h5>
+                <pre style="background:#f5f5f5; padding:12px; border-radius:8px; overflow:auto; flex:1; font-size:0.8rem; white-space:pre-wrap;">{{ session('import_output') }}</pre>
+                <div style="text-align:right; margin-top:12px;">
+                    <button type="button" onclick="document.getElementById('personnelImportResultOverlay').remove()"
+                        style="padding:8px 16px; border:none; border-radius:6px; background:#0d6efd; color:#fff;">ปิด</button>
+                </div>
+            </div>
+        </div>
+    @endif
+
+    <style>
+        #personnelImportOverlay.active, #personnelSchoolInfoOverlay.active { display: flex !important; }
+    </style>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function closePersonnelImportModal() {
+            document.getElementById('personnelImportOverlay').classList.remove('active');
+        }
+        function submitPersonnelImportForm() {
+            document.getElementById('personnelImportSubmitBtn').disabled = true;
+            document.getElementById('personnelImportSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่ (ไฟล์ใหญ่อาจใช้เวลาหลายนาที ห้ามปิดหน้านี้)';
+        }
+
         function openPwdModal(id, username, role) {
             document.getElementById('pwdForm').action = '/schooltest/public/personnels/' + id + '/credentials';
             document.getElementById('modalUsername').value = username;

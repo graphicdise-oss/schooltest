@@ -121,9 +121,6 @@
                            font-size:0.9rem; font-weight:600; text-decoration:none;">
                     <i class="fas fa-redo"></i> ล้างค่า
                 </a>
-                <button type="button" class="btn-export" onclick="window.print()">
-                    <i class="fas fa-print"></i> พิมพ์
-                </button>
             </div>
         </form>
     </div>

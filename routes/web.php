@@ -12,6 +12,7 @@ use App\Http\Controllers\Personnel\PersonnelController;
 use App\Http\Controllers\Setting\PrefixController;
 use App\Http\Controllers\Academic\SubjectController;
 use App\Http\Controllers\Academic\CurriculumController;
+use App\Http\Controllers\Academic\ProgramController;
 use App\Http\Controllers\Academic\ClassSectionController;
 use App\Http\Controllers\Academic\TimetableController;
 use App\Http\Controllers\Academic\ScoreController;
@@ -70,7 +71,7 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
     });
 
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'track.activity'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
@@ -81,6 +82,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/students', 'index')->name('students.index');
         Route::get('/students/{id}/show', 'show')->name('students.show');
         Route::delete('/students/{id}', 'destroy')->name('students.destroy');
+        Route::get('/students/import-template', 'importTemplate')->name('students.import-template');
+        Route::post('/students/import', 'importUpload')->name('students.import');
+        Route::post('/students/school-info', 'saveSchoolInfo')->name('students.school-info');
+        Route::get('/students/export', 'export')->name('students.export');
     });
 
     // === ฟอร์มกรอกข้อมูลนักเรียน ===
@@ -102,6 +107,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
+        Route::get('/import-template', 'importTemplate')->name('import-template');
+        Route::post('/import', 'importUpload')->name('import');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
@@ -181,18 +188,29 @@ Route::middleware(['auth'])->group(function () {
     });
 
     // === 2. จัดการหลักสูตร ===
+    // ไม่มี curriculums.index แล้ว (ลบหน้าลิสต์รวมทิ้งไปเพราะซ้ำกับ /programs) — เข้าถึงแผนทีละหลักสูตรผ่าน /programs แทน
     Route::controller(CurriculumController::class)->prefix('curriculums')->name('curriculums.')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::post('/{id}/subjects', 'addSubject')->name('addSubject');
+        Route::post('/{id}/import-subjects', 'importSubjects')->name('importSubjects');
         Route::put('/{id}/subjects/{csId}', 'updateSubject')->name('updateSubject');
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
+        Route::post('/{id}/subjects/{csId}/toggle', 'toggleSubject')->name('toggleSubject');
         Route::get('/year/{year}', 'byYear')->name('byYear');
         Route::post('/{id}/copy', 'copy')->name('copy');
+    });
+
+    // === 2b. จัดการหลักสูตร (กลุ่มหลักสูตร/โปรแกรม เช่น EP, IEP) ===
+    Route::controller(ProgramController::class)->prefix('programs')->name('programs.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+        Route::get('/{id}/plans', 'plans')->name('plans');
+        Route::get('/{id}/plans/{levelId}', 'levelPlans')->name('levelPlans');
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===
@@ -221,6 +239,7 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/section/{id}/print', 'print')->name('print');
         Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
         Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
+        Route::post('/section/{id}/lunch', 'updateLunch')->name('updateLunch');
     });
 
     // === 5. บันทึกคะแนน ===
@@ -235,6 +254,8 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/{assignId}/calculate', 'calculateGrades')->name('calculate');
         Route::post('/{assignId}/setup', 'setupCategories')->name('setup');
         Route::get('/{assignId}/print', 'printScoreSheet')->name('print');
+        Route::get('/{assignId}/import-template', 'importTemplate')->name('importTemplate');
+        Route::post('/{assignId}/import', 'importUpload')->name('import');
     });
 
     // === 6. ผลการเรียน / เกรด ===
@@ -243,6 +264,11 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/student/{studentId}', 'studentTranscript')->name('transcript');
         Route::get('/student/{studentId}/print', 'printTranscript')->name('transcript.print');
         Route::get('/student/{studentId}/edit', 'editStudentGrades')->name('student.edit');
+        Route::get('/student/{studentId}/import-template', 'importTranscriptTemplate')->name('importTranscriptTemplate');
+        Route::post('/student/{studentId}/import', 'importTranscriptUpload')->name('importTranscript');
+        Route::get('/import-bulk', 'importBulkIndex')->name('importBulkIndex');
+        Route::get('/section/{sectionId}/import-bulk-template', 'importBulkTemplate')->name('importBulkTemplate');
+        Route::post('/import-bulk/upload', 'importBulkUpload')->name('importBulkUpload');
         Route::put('/{gradeId}', 'updateGrade')->name('update');
         Route::delete('/{gradeId}', 'destroyGrade')->name('destroy');
         Route::get('/section/{sectionId}', 'sectionReport')->name('section');
@@ -250,6 +276,15 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/print/{assignId}', 'printScoreSheet')->name('print');
         Route::get('/excel/{assignId}', 'exportScoreExcel')->name('excel');
     });
+
+    // === 6b. รายงานวิชาการ ===
+    Route::controller(\App\Http\Controllers\Academic\AcademicReportController::class)
+        ->prefix('academic-reports')->name('academic-reports.')->group(function () {
+            Route::get('/avg-score', 'avgScoreForm')->name('avg-score');
+            Route::get('/avg-score/export', 'avgScoreExport')->name('avg-score.export');
+            Route::get('/subject-rank', 'subjectRankForm')->name('subject-rank');
+            Route::get('/subject-rank/print', 'subjectRankPrint')->name('subject-rank.print');
+        });
 
     // === บันทึกผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม) ===
     Route::controller(\App\Http\Controllers\Academic\AssessmentController::class)
@@ -368,7 +403,6 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/save-print-settings', 'savePrintSettings')->name('savePrintSettings');
-        Route::post('/save-school-settings', 'saveSchoolSettings')->name('saveSchoolSettings');
         Route::get('/print', 'print')->name('print');
         Route::get('/export-excel', 'exportExcel')->name('exportExcel');
     });
@@ -376,17 +410,17 @@ Route::middleware(['auth'])->group(function () {
     Route::controller(\App\Http\Controllers\Academic\PorPor7Controller::class)->prefix('por7')->name('por7.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/print/{studentId}', 'print')->name('print');
-        Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
-        Route::post('/save-school-setting', 'saveSchoolSetting')->name('saveSchoolSetting');
-        Route::post('/upload-logo', 'uploadLogo')->name('uploadLogo');
     });
 
     // === เช็คชื่อรายวิชา (ปรับสถานะการมาเรียน) ===
     Route::controller(\App\Http\Controllers\Academic\AttendanceController::class)
         ->prefix('attendance')->name('attendance.')->group(function () {
             Route::get('/', 'index')->name('index');
+            Route::get('/export-template/{assign}', 'exportTemplate')->name('exportTemplate');
+            Route::post('/import-excel', 'importExcel')->name('importExcel');
             Route::get('/{assign}', 'mark')->name('mark');
-            Route::post('/{assign}', 'store')->name('store');
+            Route::post('/{assign}/cell', 'storeCell')->name('storeCell');
+            Route::post('/{assign}/reset-day', 'resetDay')->name('resetDay');
         });
 
     // === ปพ.5 แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน ===
@@ -439,7 +473,6 @@ Route::middleware(['auth'])->group(function () {
 
 
     Route::get('/class-roster', [ClassRosterController::class, 'index'])->name('class-roster.index');
-    Route::get('/reports/new-students', [StudentListController::class, 'newStudentsReport'])->name('students.new-report');
 
     // === ข้อมูลการลา ===
     Route::prefix('leave')->name('leave.')->group(function () {
@@ -471,6 +504,21 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
+    Route::get('/student-stat/export', [StudentStatController::class, 'exportExcel'])->name('student-stat.export');
+
+    // === ไทม์สแตมป์ — ดูว่าใครบันทึก/แก้ไขหน้าไหนไปบ้าง (เฉพาะ admin/superadmin) ===
+    Route::controller(\App\Http\Controllers\Setting\ActivityTimestampController::class)
+        ->prefix('activity-timestamps')->name('activity-timestamps.')->middleware('admin')->group(function () {
+            Route::get('/', 'index')->name('index');
+        });
+
+    Route::controller(\App\Http\Controllers\Setting\SchoolSettingController::class)
+        ->prefix('settings/school')->name('settings.school.')->middleware('admin')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/school', 'updateSchool')->name('updateSchool');
+            Route::post('/signatures', 'updateSignatures')->name('updateSignatures');
+            Route::post('/logo', 'uploadLogo')->name('uploadLogo');
+        });
 
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {
         Route::get('/', 'index')->name('index');

@@ -139,7 +139,7 @@
                         <option value="">-- ทุกชั้นเรียน --</option>
                         @foreach($sections as $sec)
                         <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                            {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
+                            {{ $sec->full_name }}
                         </option>
                         @endforeach
                     </select>
@@ -153,15 +153,9 @@
                 </div>
                 <div class="p7-field" style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
-                    <button type="button" class="btn-search" style="background:#00897b;" onclick="openSchoolSettingModal()">
-                        <i class="bi bi-gear"></i> ตั้งค่าข้อมูลโรงเรียน
-                    </button>
-                    <button type="button" class="btn-search" style="background:#5c6bc0;" onclick="openSignSettingsModal()">
-                        <i class="bi bi-pen"></i> ตั้งค่าผู้ลงนาม
-                    </button>
-                    <button type="button" class="btn-search" style="background:#e65100;" onclick="openLogoModal()">
-                        <i class="bi bi-image"></i> อัปโหลดตราโรงเรียน
-                    </button>
+                    <a href="{{ route('settings.school.index') }}" class="btn-search" style="background:#00897b;text-decoration:none;display:inline-flex;align-items:center;">
+                        <i class="bi bi-gear"></i> ตั้งค่าโรงเรียน/ตราโรงเรียน/ผู้ลงนาม
+                    </a>
                 </div>
             </div>
         </form>
@@ -173,7 +167,7 @@
         <div class="p7-card-title">
             ใบรับรองการเป็นนักเรียน (ปพ.7)
             @if($currentSection)
-            — {{ $currentSection->level->name ?? '' }}/{{ $currentSection->section_number }}
+            — {{ $currentSection->full_name }}
             @endif
             ({{ $students->count() }} คน)
         </div>
@@ -198,7 +192,7 @@
                     <td>{{ $stu->student_code }}</td>
                     <td>{{ $stu->thai_prefix }}{{ $stu->thai_firstname }} {{ $stu->thai_lastname }}</td>
                     <td>{{ $stu->id_card_number }}</td>
-                    <td>{{ $sec->level->name ?? '' }}/{{ $sec->section_number ?? '' }}</td>
+                    <td>{{ $sec->full_name ?? '' }}</td>
                     <td style="text-align:center">
                         <button type="button" class="btn-print-por7"
                             onclick="openPrintModal({{ $stu->student_id }}, {{ $semesterId ?? 0 }})">
@@ -254,117 +248,7 @@
     </div>
 </div>
 
-{{-- Modal: ตั้งค่าผู้ลงนาม --}}
-<div class="p7-modal-overlay" id="signSettingsModal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="p7-modal" style="width:540px;max-width:95vw;" onclick="event.stopPropagation()">
-        <h3><i class="bi bi-pen"></i> ตั้งค่าผู้ลงนามในใบ ปพ.7</h3>
-        <form method="POST" action="{{ route('por7.saveSignSettings') }}">
-            @csrf
-            <div class="p7-modal-field">
-                <label>นายทะเบียน</label>
-                <select id="registrar_personnel_id" name="registrar_personnel_id"
-                        onchange="onPersonnelChange('registrar')"
-                        style="width:100%;height:36px;border:1px solid #ccc;border-radius:4px;padding:0 8px;font-size:0.88rem;font-family:inherit;">
-                    <option value="">-- เลือกจากบุคลากร --</option>
-                    @foreach($personnels as $p)
-                    <option value="{{ $p->personnel_id }}"
-                        {{ ($signSettings->registrar_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                        @if($p->position) ({{ $p->position }}) @endif
-                    </option>
-                    @endforeach
-                    <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
-                </select>
-            </div>
-            <div class="p7-modal-field" id="registrar_manual_row"
-                 style="display:{{ ($signSettings->registrar_personnel_id ?? null) ? 'none' : '' }}">
-                <label>ชื่อนายทะเบียน (พิมพ์เอง)</label>
-                <input type="text" name="registrar_name_manual"
-                       value="{{ $signSettings->registrar_name ?? config('school.registrar_name') }}"
-                       placeholder="ชื่อ-นามสกุล นายทะเบียน">
-            </div>
-            <div class="p7-modal-field" style="margin-top:16px;">
-                <label>ผู้อำนวยการโรงเรียน</label>
-                <select id="director_personnel_id" name="director_personnel_id"
-                        onchange="onPersonnelChange('director')"
-                        style="width:100%;height:36px;border:1px solid #ccc;border-radius:4px;padding:0 8px;font-size:0.88rem;font-family:inherit;">
-                    <option value="">-- เลือกจากบุคลากร --</option>
-                    @foreach($personnels as $p)
-                    <option value="{{ $p->personnel_id }}"
-                        {{ ($signSettings->director_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                        @if($p->position) ({{ $p->position }}) @endif
-                    </option>
-                    @endforeach
-                    <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
-                </select>
-            </div>
-            <div class="p7-modal-field" id="director_manual_row"
-                 style="display:{{ ($signSettings->director_personnel_id ?? null) ? 'none' : '' }}">
-                <label>ชื่อผู้อำนวยการ (พิมพ์เอง)</label>
-                <input type="text" name="director_name_manual"
-                       value="{{ $signSettings->director_name ?? config('school.director_name') }}"
-                       placeholder="ชื่อ-นามสกุล ผู้อำนวยการ">
-            </div>
-            <div class="p7-modal-actions">
-                <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> บันทึก</button>
-                <button type="button" class="btn-cancel" onclick="closeSignSettingsModal()">ยกเลิก</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-{{-- Modal: ตั้งค่าข้อมูลโรงเรียน --}}
-<div class="p7-modal-overlay" id="schoolSettingModal" onclick="if(event.target===this)this.classList.remove('open')">
-    <div class="p7-modal" style="width:560px;max-width:95vw;" onclick="event.stopPropagation()">
-        <h3><i class="bi bi-gear"></i> ตั้งค่าข้อมูลโรงเรียน</h3>
-        @if(session('success') && str_contains(session('success'), 'โรงเรียน'))
-        <div style="background:#e8f5e9;color:#2e7d32;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:0.85rem;">
-            ✓ {{ session('success') }}
-        </div>
-        @endif
-        <form method="POST" action="{{ route('por7.saveSchoolSetting') }}">
-            @csrf
-            <div class="p7-modal-field">
-                <label>ชื่อโรงเรียน</label>
-                <input type="text" name="school_name" class="form-control"
-                    value="{{ old('school_name', $setting?->school_name ?? config('school.name')) }}"
-                    placeholder="เช่น โรงเรียนสาธิตมหาวิทยาลัย...">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div class="p7-modal-field">
-                    <label>จังหวัด</label>
-                    <input type="text" name="province" class="form-control"
-                        value="{{ old('province', $setting?->province ?? config('school.changwat')) }}"
-                        placeholder="เช่น ปทุมธานี">
-                </div>
-                <div class="p7-modal-field">
-                    <label>ชื่อผู้อำนวยการ</label>
-                    <select name="director_personnel_id" class="form-select">
-                        <option value="">-- เลือกบุคลากร --</option>
-                        @foreach($directors as $p)
-                            @php $fullName = ($p->thai_prefix ?? '').$p->thai_firstname.' '.$p->thai_lastname; @endphp
-                            <option value="{{ $p->personnel_id }}"
-                                {{ ($setting?->director_personnel_id) == $p->personnel_id ? 'selected' : '' }}>
-                                {{ $fullName }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-            </div>
-            <div class="p7-modal-field">
-                <label>สังกัด</label>
-                <input type="text" name="affiliation" class="form-control"
-                    value="{{ old('affiliation', $setting?->affiliation ?? config('school.affiliation')) }}"
-                    placeholder="เช่น สำนักงานปลัดกระทรวงการอุดมศึกษา วิทยาศาสตร์ วิจัยและนวัตกรรม">
-            </div>
-            <div class="p7-modal-actions">
-                <button type="submit" class="btn-save"><i class="bi bi-check-lg"></i> บันทึก</button>
-                <button type="button" class="btn-cancel" onclick="closeSchoolSettingModal()">ยกเลิก</button>
-            </div>
-        </form>
-    </div>
-</div>
+{{-- ตั้งค่าโรงเรียน/ตราโรงเรียน/ผู้ลงนาม ย้ายไปหน้ากลาง "ตั้งค่าเริ่มต้น" แล้ว (route settings.school.index) --}}
 
 <script>
 const today = new Date().toISOString().split('T')[0];
@@ -375,65 +259,5 @@ function openPrintModal(studentId, semesterId) {
     document.getElementById('por7PrintForm').action = "{{ url('por7/print') }}/" + studentId;
     document.getElementById('printModal').classList.add('open');
 }
-
-function openSignSettingsModal() { document.getElementById('signSettingsModal').classList.add('open'); }
-function closeSignSettingsModal() { document.getElementById('signSettingsModal').classList.remove('open'); }
-
-function openSchoolSettingModal() { document.getElementById('schoolSettingModal').classList.add('open'); }
-function closeSchoolSettingModal() { document.getElementById('schoolSettingModal').classList.remove('open'); }
-
-function onPersonnelChange(role) {
-    const sel = document.getElementById(role + '_personnel_id');
-    const manualRow = document.getElementById(role + '_manual_row');
-    manualRow.style.display = sel.value === '__manual__' ? '' : 'none';
-}
-
-function openLogoModal() { document.getElementById('logoModal').classList.add('open'); }
-function closeLogoModal() { document.getElementById('logoModal').classList.remove('open'); }
-
-function previewLogo(input) {
-    const maxMB = 2;
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        if (file.size > maxMB * 1024 * 1024) {
-            alert('ไฟล์ใหญ่เกินไป! ขนาดสูงสุดที่รองรับคือ ' + maxMB + ' MB\nไฟล์ที่เลือก: ' + (file.size / 1024 / 1024).toFixed(2) + ' MB');
-            input.value = '';
-            document.getElementById('logoPreviewWrap').style.display = 'none';
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = e => {
-            document.getElementById('logoPreview').src = e.target.result;
-            document.getElementById('logoPreviewWrap').style.display = 'block';
-        };
-        reader.readAsDataURL(file);
-    }
-}
 </script>
-
-{{-- Modal: อัปโหลดตราโรงเรียน --}}
-<div class="p7-modal-overlay" id="logoModal" onclick="if(event.target===this)closeLogoModal()">
-    <div class="p7-modal" onclick="event.stopPropagation()">
-        <h3><i class="bi bi-image"></i> อัปโหลดตราโรงเรียน</h3>
-        <form method="POST" action="{{ route('por7.uploadLogo') }}" enctype="multipart/form-data">
-            @csrf
-            <div class="p7-modal-field">
-                <label>เลือกไฟล์รูป (PNG หรือ JPG) — ขนาดสูงสุด 2 MB</label>
-                <input type="file" name="logo" accept=".png,.jpg,.jpeg"
-                    onchange="previewLogo(this)"
-                    style="width:100%;border:1.5px solid #ddd;border-radius:6px;padding:8px;font-family:inherit;font-size:0.88rem;box-sizing:border-box;">
-            </div>
-            <div id="logoPreviewWrap" style="display:none;text-align:center;margin:12px 0;">
-                <img id="logoPreview" style="max-height:100px;max-width:100px;object-fit:contain;border:1px solid #eee;padding:4px;border-radius:6px;">
-            </div>
-            <p style="font-size:0.8rem;color:#888;margin:0 0 12px;">
-                <i class="bi bi-info-circle"></i> รูปนี้จะแสดงในหน้า ปพ.7 และ ปพ.1
-            </p>
-            <div class="p7-modal-actions">
-                <button type="submit" class="btn-save"><i class="bi bi-upload"></i> อัปโหลด</button>
-                <button type="button" class="btn-cancel" onclick="closeLogoModal()">ยกเลิก</button>
-            </div>
-        </form>
-    </div>
-</div>
 @endsection

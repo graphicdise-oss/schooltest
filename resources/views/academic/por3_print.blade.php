@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ปพ.3 - {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
+<title>ปพ.3 - {{ $section->full_name }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; background: #fff; }
@@ -90,8 +90,7 @@ $ROWS_PER_PAGE = 20;
 
 $yearName  = $section->semester->academicYear->year_name ?? '';
 $termName  = $section->semester->semester_name ?? '';
-$levelName = $section->level->name ?? '';
-$secNum    = $section->section_number;
+$sectionFullName = $section->full_name;
 $school    = $school ?? config('school');
 
 $thaiMonths = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -149,7 +148,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             </tr>
         </table>
         <div style="text-align:center;font-size:13px;font-weight:700;margin:2px 0 1px;">
-            ทะเบียนรายงานผู้สำเร็จการศึกษา ชั้น {{ $levelName }}/{{ $secNum }}
+            ทะเบียนรายงานผู้สำเร็จการศึกษา ชั้น {{ $sectionFullName }}
         </div>
     </div>
 

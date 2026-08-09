@@ -232,7 +232,7 @@
                                         <li><a href="{{ route('promotions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
                                         </li>
-                                        <a href="{{ route('student-alumni.index') }}"
+                                        <li><a href="{{ route('student-alumni.index') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
                                         </li>
                                         <li><a href="{{ route('student-alumni.import') }}"
@@ -252,9 +252,6 @@
                                         </li>
                                         <li><a href="{{ route('student-alumni.withdrawal') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานลาออก</a>
-                                        </li>
-                                        <li><a href="{{ route('students.new-report') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานชื่อนักเรียนใหม่</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -319,7 +316,7 @@
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายชื่อพนักงาน</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('leave.personnel.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานการลา</a>
                                         </li>
                                         <li><a href="#"
@@ -390,7 +387,7 @@
                                         <li><a href="{{ route('subjects.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการรายวิชา</a>
                                         </li>
-                                        <li><a href="{{ route('curriculums.index') }}"
+                                        <li><a href="{{ route('programs.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการหลักสูตร</a>
                                         </li>
                                         <li><a href="{{ route('class-sections.index') }}"
@@ -426,54 +423,16 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานวิชาการ</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการเข้าเรียนรายวิชา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานไม่มีสิทธิ์สอบ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานผลการพัฒนาผู้เรียน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการเรียนปรับพื้นฐาน</a>
-                                        </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('academic-reports.avg-score') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานคะแนนเฉลี่ย
                                                 2 ภาคเรียน</a></li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปผลการเรียนรู้</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนไม่ผ่านเกณฑ์</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนสอบซ่อม-รายวิชา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานนักเรียนสอบซ่อม-รายห้อง</a>
-                                        </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('academic-reports.subject-rank') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานจัดอันดับคะแนนรายวิชา</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงาน
-                                                SAR</a></li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบสำรวจผลการเรียน</a>
                                         </li>
                                     </ul>
                                 </div>
                             </div>
                             <div class="flex-1">
-                                <div class="mb-4">
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ห้องเรียนออนไลน์</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการห้องเรียนออนไลน์</a>
-                                        </li>
-                                    </ul>
-                                </div>
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">เอกสาร ปพ./รบ.</h4>
                                     <ul class="space-y-1 pl-2">
@@ -498,20 +457,6 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบอนุบาล</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกเกณฑ์น้ำหนักส่วนสูง</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกพัฒนาการนักเรียนปฐมวัย</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าหลักสูตรพัฒนาการนักเรียนปฐมวัย</a>
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
                             <div class="flex-1">
                                 <div class="mb-4">
@@ -529,7 +474,7 @@
                                         <li><a href="{{ route('assessments.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม)</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('grades.importBulkIndex') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้าเกรดสำหรับปพ.1/รบ.1</a>
                                         </li>
                                         <li><a href="{{ route('onet.index') }}"
@@ -550,7 +495,7 @@
 
                 @endif
                 {{-- ===== กิจการนักเรียน ===== --}}
-                @if(auth()->user()->canArea(['affairs.attendance','affairs.behavior','affairs.sdq','affairs.homevisit']))
+                @if(auth()->user()->canArea(['affairs.attendance','affairs.behavior','affairs.homevisit']))
                 <div id="menu-student_affairs" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -600,26 +545,6 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการทำกิจกรรม</a>
                                         </li>
                                         {{-- ย้ายเมนูการลา (ข้อมูลการลา/ประเภทการลา/ตั้งค่าการลา) ไปรวมที่กลุ่ม "บุคลากร - อาจารย์" แล้ว --}}
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">แบบประเมิน SDQ</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สถานะประเมินรายคน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปสถานะการประเมิน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปผลการประเมิน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปผลรายบุคคล</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปผลรวม</a>
-                                        </li>
                                     </ul>
                                 </div>
                             </div>
@@ -766,20 +691,6 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบ School Bus</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ภาพรวม</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">การแจ้งเหตุ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าการเดินทาง</a>
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
                             <div class="flex-1">
                                 <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานห้องสมุด</h4>
@@ -809,168 +720,24 @@
                 </div>
 
                 @endif
-                {{-- ===== บัญชี/การเงิน ===== --}}
-                @if(auth()->user()->canArea(['finance.income','finance.expense','finance.salary','finance.reports']))
-                <div id="menu-accounting" data-menu="accounting" x-data="{
-                    myTop: 0, myArrow: 0,
-                    calcPos(el) {
-                        let rect = el.getBoundingClientRect();
-                        let elCenterY = rect.top + (rect.height / 2);
-                        let boxHeight = 560;
-                        let boxTop = elCenterY - (boxHeight / 2);
-                        if (boxTop < 80) boxTop = 80;
-                        if (boxTop + boxHeight > window.innerHeight - 20) boxTop = window.innerHeight - boxHeight - 20;
-                        this.myTop = boxTop;
-                        this.myArrow = elCenterY - boxTop - 12;
-                    }
-                }" @mouseenter="moveIndicator($el); hoverItem = 'accounting'; calcPos($el)"
-                    class="mb-2 relative z-10 block">
-
-                    <a :class="(hoverItem === 'accounting' || (hoverItem === null && activeItem === 'accounting')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
-                        class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
-                        <i class="fa-solid fa-coins w-6 text-center mr-2"></i> บัญชี/การเงิน
-                    </a>
-
-                    <div x-show="hoverItem === 'accounting'" x-transition:enter="transition ease-out duration-200"
-                        x-transition:enter-start="opacity-0 translate-y-2"
-                        x-transition:enter-end="opacity-100 translate-y-0"
-                        x-transition:leave="transition ease-in duration-100"
-                        x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-2" class="fixed left-[250px] z-[100]"
-                        x-bind:style="`top: ${myTop}px`" style="display: none;">
-
-                        <div class="absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
-                        <div
-                            class="ml-[15px] w-[920px] bg-white rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-8 flex gap-8 border border-gray-100 relative">
-                            <div class="absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
-                                x-bind:style="`top: ${myArrow}px`"></div>
-                            <div class="flex-1">
-                                <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบบัญชีรายรับ</h4>
-                                <ul class="space-y-1.5 pl-2">
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายการชำระเงิน</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">กลุ่มรายการชำระเงิน</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สร้างใบแจ้งหนี้</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ข้อมูลใบแจ้งหนี้นักเรียนใหม่</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้าใบแจ้งหนี้</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบลดหนี้
-                                            / ใบเพิ่มหนี้</a></li>
-                                </ul>
-                            </div>
-                            <div class="flex-1">
-                                <div class="mb-4">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบบัญชีรายจ่าย</h4>
-                                    <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบสั่งซื้อ</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกรายจ่าย</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกสินทรัพย์</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สินทรัพย์
-                                                / สินค้า</a></li>
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบเงินเดือน</h4>
-                                    <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ข้อมูลทำเงินเดือน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานเงินเพิ่ม/เงินหัก</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงานบัญชี</h4>
-                                <ul class="space-y-1.5 pl-2">
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานรายรับ</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปยอดค้างชำระ</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานลูกหนี้รายห้อง</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานสรุปรายรับ</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานยกเลิกใบเสร็จ</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บัญชีรายวัน</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บัญชีแยกประเภท</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">งบทดลอง</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">งบแสดงฐานะการเงิน</a>
-                                    </li>
-                                    <li><a href="#"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">งบกำไรขาดทุน</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                @endif
-                {{-- ===== ร้านค้า/สหกรณ์ ===== --}}
-                <a id="menu-store" href="#" @mouseenter="moveIndicator($el); hoverItem = 'store'"
-                    :class="(hoverItem === 'store' || (hoverItem === null && activeItem === 'store')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
-                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-solid fa-store w-6 text-center mr-2"></i> ร้านค้า/สหกรณ์
-                </a>
-
-                {{-- ===== รายงาน ===== --}}
-                <a id="menu-reports" href="#" @mouseenter="moveIndicator($el); hoverItem = 'reports'"
-                    :class="(hoverItem === 'reports' || (hoverItem === null && activeItem === 'reports')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
-                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-regular fa-file-lines w-6 text-center mr-2"></i> รายงาน
-                </a>
-
+                @if(auth()->user()->isAdmin())
                 {{-- ===== ตั้งค่าเริ่มต้น ===== --}}
-                <a id="menu-settings" href="#" @mouseenter="moveIndicator($el); hoverItem = 'settings'"
+                <a id="menu-settings" href="{{ route('settings.school.index') }}" @mouseenter="moveIndicator($el); hoverItem = 'settings'"
                     :class="(hoverItem === 'settings' || (hoverItem === null && activeItem === 'settings')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
                     <i class="fa-solid fa-gear w-6 text-center mr-2"></i> ตั้งค่าเริ่มต้น
                 </a>
+                @endif
 
-                {{-- ===== ดาวน์โหลด ===== --}}
-                <a id="menu-downloads" href="#" @mouseenter="moveIndicator($el); hoverItem = 'downloads'"
-                    :class="(hoverItem === 'downloads' || (hoverItem === null && activeItem === 'downloads')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                @if(auth()->user()->isAdmin())
+                {{-- ===== ไทม์สแตมป์ ===== --}}
+                <a id="menu-timestamp" data-menu="timestamp" href="{{ route('activity-timestamps.index') }}"
+                    @mouseenter="moveIndicator($el); hoverItem = 'timestamp'"
+                    :class="(hoverItem === 'timestamp' || (hoverItem === null && activeItem === 'timestamp')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-solid fa-download w-6 text-center mr-2"></i> ดาวน์โหลด
+                    <i class="fa-solid fa-clock w-6 text-center mr-2"></i> ไทม์สแตมป์
                 </a>
-
-                {{-- ===== ถังขยะ ===== --}}
-                <a id="menu-trash" href="#" @mouseenter="moveIndicator($el); hoverItem = 'trash'"
-                    :class="(hoverItem === 'trash' || (hoverItem === null && activeItem === 'trash')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
-                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-solid fa-trash-can w-6 text-center mr-2"></i> ถังขยะ
-                </a>
+                @endif
 
             </div>
         </nav>

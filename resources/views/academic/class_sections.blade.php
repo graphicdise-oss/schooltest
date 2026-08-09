@@ -40,6 +40,7 @@
                             <th>ระดับชั้น</th>
                             <th>ห้อง</th>
                             <th>ครูที่ปรึกษา</th>
+                            <th>แผนการเรียน</th>
                             <th>จำนวนนักเรียน</th>
                             <th>จำนวนสูงสุด</th>
                             <th>จัดการ</th>
@@ -50,8 +51,15 @@
                         <tr>
                             <td>{{ $i + 1 }}</td>
                             <td>{{ $sec->level->name ?? '-' }}</td>
-                            <td style="font-weight:700; color:#4479DA">{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}</td>
+                            <td style="font-weight:700; color:#4479DA">{{ $sec->level->name ?? '' }}/{{ $sec->section_number }}{{ $sec->study_plan ? ' '.$sec->study_plan : '' }}</td>
                             <td>{{ $sec->homeroomTeacher ? $sec->homeroomTeacher->thai_firstname . ' ' . $sec->homeroomTeacher->thai_lastname : '-' }}</td>
+                            <td>
+                                @if($sec->curriculum)
+                                    {{ $sec->curriculum->name }}
+                                @else
+                                    <span style="color:#bbb">-</span>
+                                @endif
+                            </td>
                             <td>
                                 <span class="ac-badge ac-badge-info">
                                     {{ $sec->studentSections->where('status', 'กำลังศึกษา')->count() }} คน
@@ -63,7 +71,7 @@
                                     <i class="bi bi-people"></i>
                                 </a>
                                 <button class="ac-action-btn ac-action-edit" title="แก้ไข"
-                                    onclick="openEdit({{ $sec->section_id }}, {{ $sec->section_number }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }})">
+                                    onclick="openEdit({{ $sec->section_id }}, {{ Js::from($sec->section_number . ($sec->study_plan ? ' '.$sec->study_plan : '')) }}, '{{ $sec->homeroom_teacher_id ?? '' }}', {{ $sec->max_students ?? 40 }}, '{{ $sec->curriculum_id ?? '' }}', {{ Js::from($sec->level->name ?? '') }}, {{ $sec->level_id ?? 'null' }})">
                                     <i class="bi bi-pencil"></i>
                                 </button>
                                 <form action="{{ route('class-sections.destroy', $sec->section_id) }}" method="POST" style="display:inline" onsubmit="return confirm('ลบห้องเรียนนี้?')">
@@ -73,7 +81,7 @@
                             </td>
                         </tr>
                         @empty
-                        <tr><td colspan="7" class="ac-empty">ยังไม่มีห้องเรียนในเทอมนี้</td></tr>
+                        <tr><td colspan="8" class="ac-empty">ยังไม่มีห้องเรียนในเทอมนี้</td></tr>
                         @endforelse
                     </tbody>
                 </table>
@@ -91,21 +99,29 @@
             <input type="hidden" name="semester_id" value="{{ $semesterId }}">
             <div class="ac-modal-body">
                 <label>ระดับชั้น *</label>
-                <select name="level_id" required>
+                <select name="level_id" id="aLevel" required onchange="updateAddPrefix(this)">
                     <option value="">-- เลือก --</option>
                     @foreach($levels as $l)
-                        <option value="{{ $l->level_id }}">{{ $l->name }} ({{ $l->level_group }})</option>
+                        <option value="{{ $l->level_id }}" data-name="{{ $l->name }}">{{ $l->name }} ({{ $l->level_group }})</option>
                     @endforeach
                 </select>
 
                 <label>ห้องที่ *</label>
-                <input type="number" name="section_number" required min="1" placeholder="เช่น 1, 2, 3">
+                <input type="text" name="room_label" id="aRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id">
                     <option value="">-- ไม่ระบุ --</option>
                     @foreach(\App\Models\Personne\Personnel::where('status','ปฏิบัติงาน')->orderBy('thai_firstname')->get() as $t)
                         <option value="{{ $t->personnel_id }}">{{ $t->thai_firstname }} {{ $t->thai_lastname }}</option>
+                    @endforeach
+                </select>
+
+                <label>แผนการเรียน</label>
+                <select name="curriculum_id" id="aCurriculum">
+                    <option value="">-- ไม่ระบุ --</option>
+                    @foreach($curriculums as $c)
+                        <option value="{{ $c->curriculum_id }}" data-level="{{ $c->level_id }}" data-year="{{ $c->year_applied }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
                     @endforeach
                 </select>
 
@@ -128,13 +144,21 @@
             @csrf @method('PUT')
             <div class="ac-modal-body">
                 <label>ห้องที่ *</label>
-                <input type="number" name="section_number" id="eSectionNum" required min="1">
+                <input type="text" name="room_label" id="eRoomLabel" required placeholder="เช่น 1 หรือ 2 วิทย์-คณิต">
 
                 <label>ครูที่ปรึกษา</label>
                 <select name="homeroom_teacher_id" id="eTeacher">
                     <option value="">-- ไม่ระบุ --</option>
                     @foreach(\App\Models\Personne\Personnel::where('status','ปฏิบัติงาน')->orderBy('thai_firstname')->get() as $t)
                         <option value="{{ $t->personnel_id }}">{{ $t->thai_firstname }} {{ $t->thai_lastname }}</option>
+                    @endforeach
+                </select>
+
+                <label>แผนการเรียน</label>
+                <select name="curriculum_id" id="eCurriculum">
+                    <option value="">-- ไม่ระบุ --</option>
+                    @foreach($curriculums as $c)
+                        <option value="{{ $c->curriculum_id }}" data-level="{{ $c->level_id }}" data-year="{{ $c->year_applied }}">{{ $c->level->name ?? 'ทุกระดับ' }} - {{ $c->name }} (ปี {{ $c->year_applied }})</option>
                     @endforeach
                 </select>
 
@@ -150,12 +174,37 @@
 </div>
 
 <script>
-function openEdit(id, num, teacherId, max) {
+const currentYearName = @json($currentYearName);
+// ให้ dropdown "แผนการเรียน" ขึ้นเฉพาะแผนของระดับชั้น + ปีการศึกษาที่ตรงกับห้องนี้เท่านั้น
+function filterCurriculumOptions(selectEl, levelId) {
+    const prevValue = selectEl.value;
+    let stillValid = false;
+    Array.from(selectEl.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; } // "-- ไม่ระบุ --"
+        const matches = String(opt.dataset.level) === String(levelId) && opt.dataset.year === currentYearName;
+        opt.hidden = !matches;
+        if (matches && opt.value === prevValue) stillValid = true;
+    });
+    if (!stillValid) selectEl.value = '';
+}
+function openEdit(id, roomLabel, teacherId, max, curriculumId, levelName, levelId) {
     document.getElementById('editForm').action = '{{ url("class-sections") }}/' + id;
-    document.getElementById('eSectionNum').value = num;
+    document.getElementById('eRoomLabel').value = (levelName ? levelName + '/' : '') + roomLabel;
     document.getElementById('eTeacher').value = teacherId || '';
     document.getElementById('eMax').value = max;
+    const eCurriculum = document.getElementById('eCurriculum');
+    filterCurriculumOptions(eCurriculum, levelId);
+    eCurriculum.value = curriculumId || '';
     document.getElementById('editOverlay').classList.add('active');
+}
+function updateAddPrefix(select) {
+    const opt = select.options[select.selectedIndex];
+    const newPrefix = opt.dataset.name ? opt.dataset.name + '/' : '';
+    const input = document.getElementById('aRoomLabel');
+    const slashIdx = input.value.indexOf('/');
+    const rest = slashIdx >= 0 ? input.value.slice(slashIdx + 1) : input.value;
+    input.value = newPrefix + rest;
+    filterCurriculumOptions(document.getElementById('aCurriculum'), select.value);
 }
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.querySelectorAll('.ac-overlay.active').forEach(el => el.classList.remove('active'));

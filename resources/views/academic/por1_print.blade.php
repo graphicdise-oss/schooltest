@@ -99,8 +99,8 @@ body {
 .grades-spacer { flex: 0; }
 
 .grades-table {
-    width: 100%; height: 100%; border-collapse: collapse;
-    font-size: 13px; border: 1px solid #000; 
+    width: 100%; height: 100%; border-collapse: collapse; table-layout: fixed;
+    font-size: 13px; border: 1px solid #000;
 }
 .grades-table th {
     border: 1px solid #000; padding: 2px 3px; vertical-align: middle;
@@ -108,12 +108,12 @@ body {
 }
 .grades-table td {
     border-left: 1px solid #000; border-right: 1px solid #000;
-    border-top: none; border-bottom: none; padding: 2px 4px; vertical-align: top;
+    border-top: none; border-bottom: none; padding: 1px 3px; vertical-align: top;
 }
 .grades-table tbody tr.stretch-row td { height: 100%; }
 
 /* ของใหม่: ล็อคความกว้างเป็นหน่วย mm จะแคบลงชัดเจน */
-.col-subject { width: 45mm; font-size: 12px; } /* ส่วนชื่อวิชา */
+.col-subject { width: 45mm; font-size: 13px; overflow-wrap: break-word; word-break: break-word; } /* ส่วนชื่อวิชา */
 .col-credit  { width: 6mm; text-align: center; padding: 0 !important; } /* ส่วนหน่วยกิต */
 .col-grade   { width: 6mm; text-align: center; padding: 0 !important; } /* ส่วนผลการเรียน */
 
@@ -249,8 +249,8 @@ body {
 
     {{-- Grades outer box --}}
     <div class="grades-outer">
-        @if(isset($yearGroups) && count($yearGroups) > 0)
         @php
+            $yearGroups = $yearGroups ?? [];
             ksort($yearGroups);
             $cols    = array_values($yearGroups);
             $numCols = 3;
@@ -306,11 +306,11 @@ body {
                 @for($c = 0; $c < $numCols; $c++)
                 @php $row = $colRows[$c][$r] ?? ['type'=>'empty']; @endphp
                 @if($row['type'] === 'year')
-                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:14px;">{{ $row['label'] }}</td>
+                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:13px;">{{ $row['label'] }}</td>
                     <td class="col-credit"></td>
                     <td class="col-grade"></td>
                 @elseif($row['type'] === 'sem')
-                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:14px;">{{ $row['label'] }}</td>
+                    <td class="col-subject" style="text-align:left; font-weight:bold; font-size:13px;">{{ $row['label'] }}</td>
                     <td class="col-credit"></td>
                     <td class="col-grade"></td>
                 @elseif($row['type'] === 'subject')
@@ -356,7 +356,6 @@ body {
             </tr>
             </tbody>
         </table>
-        @endif
 
         <div class="grades-spacer"></div>
 
@@ -393,7 +392,7 @@ body {
                     foreach ($yg['semesters'][$sk] as $g) {
                         $subj = $g->teachingAssign->subject ?? null;
                         if ($subj && ($subj->subject_group ?? '') === 'กิจกรรมพัฒนาผู้เรียน') {
-                            $actCols[$ci]['sem'.$sn][] = ['name' => $subj->name_th ?? '', 'grade' => $g->grade ?? ''];
+                            $actCols[$ci]['sem'.$sn][] = ['name' => $subj->name_th ?? '', 'grade' => $g->grade ?? '', 'hours' => $subj->hours_per_year ?? ''];
                         }
                     }
                 }
@@ -407,7 +406,7 @@ body {
         @endphp
 
         {{-- ตารางกิจกรรมพัฒนาผู้เรียน (เส้นยาวต่อเนื่อง, มีเส้นใต้หัวข้อ, จัดความกว้างเป๊ะๆ ให้ตรงกับตารางล่าง) --}}
-        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 12px; border: 1px solid #000;">
+        <table style="width: 100%; table-layout: fixed; border-collapse: collapse; font-size: 13px; border: 1px solid #000;">
             <colgroup>
                 <col style="width: 25%;">
                 <col style="width: 4.166667%;">
@@ -421,22 +420,22 @@ body {
             </colgroup>
             <thead>
                 <tr>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold; font-size: 14px;">กิจกรรม</th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; font-size: 14px;"><div class="vert-header" style="height: 38px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; font-size: 14px;"><div class="vert-header" style="height: 38px;">ผลการ<br>ประเมิน</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold; font-size: 14px;">กิจกรรม</th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; font-size: 14px;"><div class="vert-header" style="height: 38px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; font-size: 14px;"><div class="vert-header" style="height: 38px;">ผลการ<br>ประเมิน</div></th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; text-align: center; font-weight: bold; font-size: 14px;">กิจกรรม</th>
-                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; font-size: 14px;"><div class="vert-header" style="height: 38px;">เวลา<br>(ชั่วโมง)</div></th>
-                    <th style="border-bottom: 1px solid #000; padding: 2px 4px; font-weight: bold; font-size: 14px;"><div class="vert-header" style="height: 38px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; text-align: center; font-weight: bold; font-size: 13px;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; font-weight: bold; font-size: 13px;"><div class="vert-header" style="height: 38px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; font-weight: bold; font-size: 13px;"><div class="vert-header" style="height: 38px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; text-align: center; font-weight: bold; font-size: 13px;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; font-weight: bold; font-size: 13px;"><div class="vert-header" style="height: 38px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; font-weight: bold; font-size: 13px;"><div class="vert-header" style="height: 38px;">ผลการ<br>ประเมิน</div></th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; text-align: center; font-weight: bold; font-size: 13px;">กิจกรรม</th>
+                    <th style="border-right: 1px solid #000; border-bottom: 1px solid #000; padding: 1px 3px; font-weight: bold; font-size: 13px;"><div class="vert-header" style="height: 38px;">เวลา<br>(ชั่วโมง)</div></th>
+                    <th style="border-bottom: 1px solid #000; padding: 1px 3px; font-weight: bold; font-size: 13px;"><div class="vert-header" style="height: 38px;">ผลการ<br>ประเมิน</div></th>
                 </tr>
             </thead>
             <tbody>
                 {{-- ภาคเรียนที่ 1 header --}}
                 <tr style="font-weight: bold;">
                     @for($ci = 0; $ci < 3; $ci++)
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">
+                    <td style="text-align: left; padding: 1px 3px; border-right: 1px solid #000;">
                         @if($actCols[$ci]['label'])
                             {{ $actCols[$ci]['label'] }}<br>ภาคเรียนที่ 1
                         @endif
@@ -450,8 +449,8 @@ body {
                 <tr>
                     @for($ci = 0; $ci < 3; $ci++)
                     @php $act = $actCols[$ci]['sem1'][$r] ?? null; @endphp
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act ? $act['name'] : '' }}</td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="padding: 1px 3px; text-align: left; border-right: 1px solid #000;">{{ $act ? $act['name'] : '' }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;">{{ $act ? $act['hours'] : '' }}</td>
                     <td style="text-align: center; {{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}">{{ $act ? $act['grade'] : '' }}</td>
                     @endfor
                 </tr>
@@ -460,7 +459,7 @@ body {
                 {{-- ภาคเรียนที่ 2 header --}}
                 <tr style="font-weight: bold;">
                     @for($ci = 0; $ci < 3; $ci++)
-                    <td style="text-align: left; padding: 2px 6px; border-right: 1px solid #000;">
+                    <td style="text-align: left; padding: 1px 3px; border-right: 1px solid #000;">
                         @if($actCols[$ci]['label'])
                             ภาคเรียนที่ 2
                         @endif
@@ -474,15 +473,15 @@ body {
                 <tr>
                     @for($ci = 0; $ci < 3; $ci++)
                     @php $act = $actCols[$ci]['sem2'][$r] ?? null; @endphp
-                    <td style="padding: 2px 6px; text-align: left; border-right: 1px solid #000;">{{ $act ? $act['name'] : '' }}</td>
-                    <td style="text-align: center; border-right: 1px solid #000;"></td>
+                    <td style="padding: 1px 3px; text-align: left; border-right: 1px solid #000;">{{ $act ? $act['name'] : '' }}</td>
+                    <td style="text-align: center; border-right: 1px solid #000;">{{ $act ? $act['hours'] : '' }}</td>
                     <td style="text-align: center; {{ $ci < 2 ? 'border-right: 1px solid #000;' : '' }}">{{ $act ? $act['grade'] : '' }}</td>
                     @endfor
                 </tr>
                 @endfor
 
                 {{-- แถวว่างดันท้าย --}}
-                @for($pi = 0; $pi < 6; $pi++)
+                @for($pi = 0; $pi < 2; $pi++)
                 <tr style="height: 20px;">
                     <td style="border-right: 1px solid #000;"></td>
                     <td style="border-right: 1px solid #000;"></td>

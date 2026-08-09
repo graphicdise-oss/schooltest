@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ปพ.6 — {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
+<title>ปพ.6 — {{ $section->full_name ?? '' }}</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
@@ -65,7 +65,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     <div class="meta-row">
         <span><b>รหัสประจำตัวนักเรียน:</b> {{ $stu->student_code }}</span>
         <span><b>ชื่อ-นามสกุล:</b> {{ $stu->thai_prefix }}{{ $stu->thai_firstname }} {{ $stu->thai_lastname }}</span>
-        <span><b>ห้อง:</b> {{ $section->level->name ?? '' }}/{{ $section->section_number }}</span>
+        <span><b>ห้อง:</b> {{ $section->full_name ?? '' }}</span>
         <span><b>เลขที่:</b> {{ $ss->student_number }}</span>
     </div>
 

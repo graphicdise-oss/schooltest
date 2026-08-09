@@ -159,7 +159,7 @@
                 <a href="{{ route('student-stat.index') }}" style="display:inline-flex; align-items:center; gap:6px; background:#fff; color:#666; border:1.5px solid #d0d7de; border-radius:4px; padding:9px 20px; font-size:0.9rem; font-weight:600; text-decoration:none;">
                     <i class="fas fa-redo"></i> ล้างค่า
                 </a>
-                <button type="button" class="btn-export" onclick="window.print()">
+                <button type="button" class="btn-export" onclick="exportStatExcel()" {{ $grouped->isEmpty() ? 'disabled style=opacity:.5;cursor:not-allowed' : '' }}>
                     <i class="fas fa-file-excel"></i> EXPORT
                 </button>
             </div>
@@ -256,4 +256,15 @@
     </div>
 
 </div>
+
+<script>
+function exportStatExcel() {
+    var params = new URLSearchParams({
+        year_id: '{{ $yearId }}',
+        semester_id: '{{ $semesterId }}',
+        level_id: '{{ $levelId }}',
+    });
+    window.open("{{ route('student-stat.export') }}?" + params.toString(), '_blank');
+}
+</script>
 @endsection
