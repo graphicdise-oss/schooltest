@@ -120,6 +120,15 @@
 @section('content')
 <div class="p1-page">
 
+    @if(auth()->user()->isAdmin())
+    <div style="display:flex; justify-content:flex-end; margin-bottom:16px;">
+        <a href="{{ route('settings.school.index') }}"
+            style="background:#3f51b5;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-size:0.9rem;display:inline-block;">
+            ⚙️ ตั้งค่าข้อมูลโรงเรียน
+        </a>
+    </div>
+    @endif
+
     @if(session('success'))
     <div style="background:#e8f5e9;color:#2e7d32;padding:10px 18px;border-radius:6px;margin-bottom:16px;font-size:0.88rem">
         <i class="bi bi-check-circle"></i> {{ session('success') }}
