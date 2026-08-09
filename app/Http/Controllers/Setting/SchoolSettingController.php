@@ -1,0 +1,111 @@
+<?php
+
+namespace App\Http\Controllers\Setting;
+
+use App\Http\Controllers\Controller;
+use App\Models\Academic\Pp2Setting;
+use App\Models\Personne\Personnel;
+use Illuminate\Http\Request;
+
+class SchoolSettingController extends Controller
+{
+    // หน้ากลางเดียวสำหรับตั้งค่าข้อมูลโรงเรียน/ตราโรงเรียน/ลายเซ็น ใช้ร่วมกันทุกหน้าที่ต้องพิมพ์เอกสาร
+    // (ปพ.1/3/5/6/7, ใบระเบียนผลการเรียน, รายงานจัดอันดับคะแนนรายวิชา ฯลฯ) — ก่อนหน้านี้แต่ละหน้ามีของตัวเอง
+    // แยกกัน (บางหน้าเก็บลง session ชั่วคราว บางหน้าเก็บ DB ไม่ครบทุกช่อง) ทำให้ตั้งค่าที่หนึ่งแล้วไม่ไปอีกที่
+    public function index()
+    {
+        $setting = Pp2Setting::getInstance();
+
+        $personnels = Personnel::where('status', 'ปฏิบัติงาน')
+            ->orderBy('thai_firstname')
+            ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
+
+        $logoUrl = null;
+        foreach (['png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG'] as $ext) {
+            $path = public_path('img/pp_1/logo.' . $ext);
+            if (file_exists($path)) {
+                $logoUrl = asset('img/pp_1/logo.' . $ext) . '?v=' . filemtime($path);
+                break;
+            }
+        }
+
+        return view('settings.school_settings', compact('setting', 'personnels', 'logoUrl'));
+    }
+
+    public function updateSchool(Request $request)
+    {
+        $request->validate([
+            'school_name'    => 'nullable|string|max:255',
+            'affiliation'    => 'nullable|string|max:255',
+            'tambon'         => 'nullable|string|max:100',
+            'amphoe'         => 'nullable|string|max:100',
+            'province'       => 'nullable|string|max:100',
+            'education_area' => 'nullable|string|max:255',
+        ]);
+
+        $setting = Pp2Setting::getInstance();
+        if (!$setting->exists) {
+            $setting->save();
+        }
+        $setting->update($request->only([
+            'school_name', 'affiliation', 'tambon', 'amphoe', 'province', 'education_area',
+        ]));
+
+        return redirect()->route('settings.school.index')->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');
+    }
+
+    public function updateSignatures(Request $request)
+    {
+        $request->validate([
+            'registrar_personnel_id' => 'nullable|integer',
+            'director_personnel_id'  => 'nullable|integer',
+        ]);
+
+        $setting = Pp2Setting::getInstance();
+        if (!$setting->exists) {
+            $setting->save();
+        }
+
+        $registrar = $request->registrar_personnel_id
+            ? Personnel::find($request->registrar_personnel_id)
+            : null;
+        $director = $request->director_personnel_id
+            ? Personnel::find($request->director_personnel_id)
+            : null;
+
+        $setting->update([
+            'registrar_personnel_id' => $registrar?->personnel_id,
+            'director_personnel_id'  => $director?->personnel_id,
+            'registrar_name' => $registrar
+                ? trim(($registrar->thai_prefix ?? '') . $registrar->thai_firstname . ' ' . $registrar->thai_lastname)
+                : $request->registrar_name_manual,
+            'director_name' => $director
+                ? trim(($director->thai_prefix ?? '') . $director->thai_firstname . ' ' . $director->thai_lastname)
+                : $request->director_name_manual,
+        ]);
+
+        return redirect()->route('settings.school.index')->with('success', 'บันทึกชื่อผู้ลงนามสำเร็จ');
+    }
+
+    public function uploadLogo(Request $request)
+    {
+        $request->validate([
+            'logo' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $dir = public_path('img/pp_1');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        foreach (['png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG'] as $ext) {
+            $old = $dir . '/logo.' . $ext;
+            if (file_exists($old)) unlink($old);
+        }
+
+        $ext = strtolower($request->file('logo')->getClientOriginalExtension());
+        $request->file('logo')->move($dir, 'logo.' . $ext);
+
+        return redirect()->route('settings.school.index')->with('success', 'อัปโหลดตราโรงเรียนสำเร็จ');
+    }
+}

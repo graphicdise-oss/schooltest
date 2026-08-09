@@ -709,10 +709,7 @@ class GradeController extends Controller
         $leaveDate   = $promotion?->promo_date ? $this->formatThaiDate($promotion->promo_date->format('Y-m-d')) : '';
         $leaveReason = $promotion?->remark ?? '';
 
-        $signSettings = \App\Models\Academic\Pp2Setting::getInstance();
-        $school = config('school');
-        if ($signSettings->registrar_name) $school['registrar_name'] = $signSettings->registrar_name;
-        if ($signSettings->director_name)  $school['director_name']  = $signSettings->director_name;
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
 
         // ผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม) ของภาคเรียนล่าสุดที่แสดงในเอกสาร
         $latestSemId = !empty($shownSemesterIds) ? max($shownSemesterIds) : null;

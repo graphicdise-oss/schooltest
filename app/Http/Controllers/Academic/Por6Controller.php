@@ -71,9 +71,7 @@ class Por6Controller extends Controller
         if ($studentId) $query->where('student_id', $studentId);
         $studentSections = $query->get();
 
-        $signSettings = Pp2Setting::getInstance();
-        $school = config('school');
-        if ($signSettings->director_name) $school['director_name'] = $signSettings->director_name;
+        $school = Pp2Setting::mergedSchoolConfig();
 
         $reportData = $studentSections->map(function ($ss) use ($semester) {
             $grades = FinalGrade::with('teachingAssign.subject')

@@ -9,7 +9,6 @@ use App\Models\Academic\ClassSection;
 use App\Models\Academic\Level;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\Pp2Setting;
-use App\Models\Personne\Personnel;
 use App\Models\Student;
 use Illuminate\Http\Request;
 
@@ -69,23 +68,10 @@ class PorPor7Controller extends Controller
             'section' => $ss->classSection,
         ])->filter(fn($r) => $r['student'])->values();
 
-        $personnels = Personnel::where('status', 'ปฏิบัติงาน')
-            ->orderBy('thai_firstname')
-            ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
-
-        $directors = Personnel::where('position', 'ผู้อำนวยการโรงเรียน')
-            ->orWhere('position', 'like', '%ผู้อำนวยการ%')
-            ->orderBy('thai_firstname')
-            ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
-
-        $signSettings = Pp2Setting::getInstance();
-        $setting = $signSettings;
-
         return view('academic.por7_index', compact(
             'academicYears', 'levels', 'sections', 'students',
             'yearId', 'term', 'levelId', 'sectionId', 'search',
-            'semesterId', 'currentSection',
-            'personnels', 'directors', 'signSettings', 'setting'
+            'semesterId', 'currentSection'
         ));
     }
 
@@ -122,13 +108,7 @@ class PorPor7Controller extends Controller
         $mother = $student->families->firstWhere('guardian_type', 'มารดา')
             ?? $student->families->firstWhere('family_type', 'มารดา');
 
-        $signSettings = Pp2Setting::getInstance();
-        $school = config('school');
-        if ($signSettings->school_name)  $school['name']           = $signSettings->school_name;
-        if ($signSettings->province)     $school['changwat']        = $signSettings->province;
-        if ($signSettings->affiliation)  $school['affiliation']     = $signSettings->affiliation;
-        if ($signSettings->registrar_name) $school['registrar_name'] = $signSettings->registrar_name;
-        if ($signSettings->director_name)  $school['director_name']  = $signSettings->director_name;
+        $school = Pp2Setting::mergedSchoolConfig();
 
         $issueDate   = $request->issue_date ?? date('Y-m-d');
         $gradeResult = $request->grade_result ?? '';
@@ -152,67 +132,8 @@ class PorPor7Controller extends Controller
         ));
     }
 
-    public function saveSchoolSetting(Request $request)
-    {
-        $request->validate([
-            'school_name' => 'nullable|string|max:255',
-            'province'    => 'nullable|string|max:100',
-            'affiliation' => 'nullable|string|max:255',
-            'director_personnel_id' => 'nullable|integer',
-        ]);
-
-        $setting = Pp2Setting::first();
-        $data = $request->only(['school_name', 'province', 'affiliation']);
-
-        if ($request->director_personnel_id) {
-            $director = Personnel::find($request->director_personnel_id);
-            if ($director) {
-                $data['director_name'] = trim(($director->thai_prefix ?? '') . $director->thai_firstname . ' ' . $director->thai_lastname);
-                $data['director_personnel_id'] = $director->personnel_id;
-            }
-        }
-
-        if ($setting) {
-            $setting->update($data);
-        } else {
-            Pp2Setting::create($data);
-        }
-
-        return redirect()->back()->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');
-    }
-
-    public function saveSignSettings(Request $request)
-    {
-        $request->validate([
-            'registrar_personnel_id' => 'nullable|integer',
-            'director_personnel_id'  => 'nullable|integer',
-        ]);
-
-        $setting = Pp2Setting::getInstance();
-        if (!$setting->exists) {
-            $setting->save();
-        }
-
-        $registrar = $request->registrar_personnel_id
-            ? Personnel::find($request->registrar_personnel_id)
-            : null;
-        $director  = $request->director_personnel_id
-            ? Personnel::find($request->director_personnel_id)
-            : null;
-
-        $setting->update([
-            'registrar_personnel_id' => $registrar?->personnel_id,
-            'director_personnel_id'  => $director?->personnel_id,
-            'registrar_name' => $registrar
-                ? trim(($registrar->thai_prefix ?? '') . $registrar->thai_firstname . ' ' . $registrar->thai_lastname)
-                : $request->registrar_name_manual,
-            'director_name'  => $director
-                ? trim(($director->thai_prefix ?? '') . $director->thai_firstname . ' ' . $director->thai_lastname)
-                : $request->director_name_manual,
-        ]);
-
-        return redirect()->back()->with('success', 'บันทึกชื่อผู้ลงนามสำเร็จ');
-    }
+    // ตั้งค่าข้อมูลโรงเรียน/ผู้ลงนาม/ตราโรงเรียน ย้ายไปหน้ากลาง "ตั้งค่าเริ่มต้น" แล้ว
+    // (App\Http\Controllers\Setting\SchoolSettingController) — ยังใช้ Pp2Setting ตัวเดียวกัน แค่จุดแก้ไขรวมที่เดียว
 
     private function formatThaiDate(string $dateStr): string
     {
@@ -220,28 +141,5 @@ class PorPor7Controller extends Controller
                    'กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
         $d = \Carbon\Carbon::parse($dateStr);
         return $d->day . ' ' . $months[$d->month] . ' ' . ($d->year + 543);
-    }
-
-    public function uploadLogo(Request $request)
-    {
-        $request->validate([
-            'logo' => 'required|image|mimes:png,jpg,jpeg|max:2048',
-        ]);
-
-        $dir  = public_path('img/pp_1');
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
-
-        // ลบไฟล์โลโก้เดิมทุก extension
-        foreach (['png','jpg','jpeg','PNG','JPG','JPEG'] as $ext) {
-            $old = $dir . '/logo.' . $ext;
-            if (file_exists($old)) unlink($old);
-        }
-
-        $ext  = strtolower($request->file('logo')->getClientOriginalExtension());
-        $request->file('logo')->move($dir, 'logo.' . $ext);
-
-        return redirect()->back()->with('success', 'อัปโหลดตราโรงเรียนสำเร็จ');
     }
 }

@@ -720,12 +720,14 @@
                 </div>
 
                 @endif
+                @if(auth()->user()->isAdmin())
                 {{-- ===== ตั้งค่าเริ่มต้น ===== --}}
-                <a id="menu-settings" href="#" @mouseenter="moveIndicator($el); hoverItem = 'settings'"
+                <a id="menu-settings" href="{{ route('settings.school.index') }}" @mouseenter="moveIndicator($el); hoverItem = 'settings'"
                     :class="(hoverItem === 'settings' || (hoverItem === null && activeItem === 'settings')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
                     <i class="fa-solid fa-gear w-6 text-center mr-2"></i> ตั้งค่าเริ่มต้น
                 </a>
+                @endif
 
                 @if(auth()->user()->isAdmin())
                 {{-- ===== ไทม์สแตมป์ ===== --}}

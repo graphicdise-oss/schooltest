@@ -187,15 +187,8 @@ class PorPor1Controller extends Controller
         $leaveDate   = $promotion?->promo_date ? $this->formatThaiDate($promotion->promo_date->format('Y-m-d')) : '';
         $leaveReason = $promotion?->remark ?? '';
 
-        // ข้อมูลลายเซ็น: ดึงจาก Pp2Setting (DB) ก่อน ถ้าไม่มีใช้ config
-        $signSettings = Pp2Setting::getInstance();
-        $school = config('school');
-        if ($signSettings->registrar_name) {
-            $school['registrar_name'] = $signSettings->registrar_name;
-        }
-        if ($signSettings->director_name) {
-            $school['director_name'] = $signSettings->director_name;
-        }
+        // ข้อมูลโรงเรียน/ลายเซ็น: ดึงจากหน้า "ตั้งค่าเริ่มต้น" (DB) ก่อน ถ้าไม่ได้ตั้งไว้ใช้ config
+        $school = Pp2Setting::mergedSchoolConfig();
 
         return view('academic.por1_print', compact(
             'student', 'docNumber', 'yearGroups', 'father', 'mother',

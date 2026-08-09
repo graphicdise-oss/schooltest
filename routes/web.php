@@ -403,7 +403,6 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::controller(PorPor3Controller::class)->prefix('por3')->name('por3.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/save-print-settings', 'savePrintSettings')->name('savePrintSettings');
-        Route::post('/save-school-settings', 'saveSchoolSettings')->name('saveSchoolSettings');
         Route::get('/print', 'print')->name('print');
         Route::get('/export-excel', 'exportExcel')->name('exportExcel');
     });
@@ -411,9 +410,6 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::controller(\App\Http\Controllers\Academic\PorPor7Controller::class)->prefix('por7')->name('por7.')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('/print/{studentId}', 'print')->name('print');
-        Route::post('/save-sign-settings', 'saveSignSettings')->name('saveSignSettings');
-        Route::post('/save-school-setting', 'saveSchoolSetting')->name('saveSchoolSetting');
-        Route::post('/upload-logo', 'uploadLogo')->name('uploadLogo');
     });
 
     // === เช็คชื่อรายวิชา (ปรับสถานะการมาเรียน) ===
@@ -514,6 +510,14 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::controller(\App\Http\Controllers\Setting\ActivityTimestampController::class)
         ->prefix('activity-timestamps')->name('activity-timestamps.')->middleware('admin')->group(function () {
             Route::get('/', 'index')->name('index');
+        });
+
+    Route::controller(\App\Http\Controllers\Setting\SchoolSettingController::class)
+        ->prefix('settings/school')->name('settings.school.')->middleware('admin')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/school', 'updateSchool')->name('updateSchool');
+            Route::post('/signatures', 'updateSignatures')->name('updateSignatures');
+            Route::post('/logo', 'uploadLogo')->name('uploadLogo');
         });
 
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {

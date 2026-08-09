@@ -167,9 +167,9 @@
                 </div>
                 <div class="p3-field" style="display:flex;gap:8px;flex-wrap:wrap;">
                     <button type="submit" class="btn-search"><i class="bi bi-search"></i> ค้นหา</button>
-                    <button type="button" class="btn-search" style="background:#1565c0;white-space:nowrap;" onclick="openSchoolModal()">
+                    <a href="{{ route('settings.school.index') }}" class="btn-search" style="background:#1565c0;white-space:nowrap;text-decoration:none;display:inline-flex;align-items:center;">
                         <i class="bi bi-building"></i> ตั้งค่าโรงเรียน
-                    </button>
+                    </a>
                     <button type="button" class="btn-search" style="background:#7b1fa2;white-space:nowrap;" onclick="openApproverModal()">
                         <i class="bi bi-pen"></i> ตั้งค่าผู้อนุมัติ
                         @if($savedApprover)
@@ -251,56 +251,6 @@
 
 </div>
 
-{{-- Modal ตั้งค่าโรงเรียน --}}
-<div id="schoolModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
-    <div style="background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.2);width:520px;max-width:94vw;padding:28px 28px 22px;">
-        <h3 style="font-size:1rem;font-weight:700;color:#333;margin:0 0 20px;text-align:center;">
-            <i class="bi bi-building"></i> ตั้งค่าข้อมูลโรงเรียน
-        </h3>
-        <form method="POST" action="{{ route('por3.saveSchoolSettings') }}">
-            @csrf
-            @php $sc = $savedSchool ?? []; @endphp
-            <div style="margin-bottom:14px;">
-                <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">ชื่อโรงเรียน</label>
-                <input type="text" name="school_name" value="{{ $sc['name'] ?? '' }}"
-                    style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;">
-                <div>
-                    <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">ตำบล/แขวง</label>
-                    <input type="text" name="tambon" value="{{ $sc['tambon'] ?? '' }}"
-                        style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                    <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">อำเภอ/เขต</label>
-                    <input type="text" name="amphoe" value="{{ $sc['amphoe'] ?? '' }}"
-                        style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-                </div>
-            </div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;">
-                <div>
-                    <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">จังหวัด</label>
-                    <input type="text" name="changwat" value="{{ $sc['changwat'] ?? '' }}"
-                        style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-                </div>
-                <div>
-                    <label style="font-size:0.82rem;font-weight:600;color:#555;display:block;margin-bottom:5px;">สำนักงานเขตพื้นที่การศึกษา</label>
-                    <input type="text" name="education_area" value="{{ $sc['education_area'] ?? '' }}"
-                        style="width:100%;height:38px;border:1.5px solid #ddd;border-radius:6px;padding:0 10px;font-size:0.88rem;font-family:inherit;outline:none;box-sizing:border-box;">
-                </div>
-            </div>
-            <div style="display:flex;gap:10px;justify-content:center;">
-                <button type="submit" style="background:#1565c0;color:#fff;border:none;border-radius:6px;padding:9px 28px;font-size:0.88rem;font-weight:600;cursor:pointer;">
-                    <i class="bi bi-check-lg"></i> บันทึก
-                </button>
-                <button type="button" onclick="closeSchoolModal()" style="background:#f44336;color:#fff;border:none;border-radius:6px;padding:9px 28px;font-size:0.88rem;font-weight:600;cursor:pointer;">
-                    ยกเลิก
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
 {{-- Modal ตั้งค่าผู้อนุมัติ (บันทึกลง session) --}}
 <div id="approverModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.45);z-index:9999;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,0.2);width:480px;max-width:94vw;padding:28px 28px 22px;">
@@ -344,15 +294,6 @@
 </div>
 
 <script>
-function openSchoolModal() {
-    document.getElementById('schoolModal').style.display = 'flex';
-}
-function closeSchoolModal() {
-    document.getElementById('schoolModal').style.display = 'none';
-}
-document.getElementById('schoolModal').addEventListener('click', function(e) {
-    if (e.target === this) closeSchoolModal();
-});
 function openApproverModal() {
     document.getElementById('approverModal').style.display = 'flex';
 }

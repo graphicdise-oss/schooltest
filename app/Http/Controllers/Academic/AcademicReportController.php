@@ -11,6 +11,7 @@ use App\Models\Academic\StudentSection;
 use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Subject;
 use App\Models\Academic\TeachingAssign;
+use App\Models\Academic\Pp2Setting;
 use Illuminate\Http\Request;
 
 class AcademicReportController extends Controller
@@ -226,7 +227,7 @@ class AcademicReportController extends Controller
 
         $rows = $this->rankSubjectGrades($semester, $subject, $request->section_id);
 
-        $school = config('school');
+        $school = Pp2Setting::mergedSchoolConfig();
 
         return view('academic.report_subject_rank_print', compact('year', 'semester', 'subject', 'rows', 'school', 'section'));
     }
