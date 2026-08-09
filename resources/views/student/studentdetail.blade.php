@@ -311,11 +311,10 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">รหัสบัตรประชาชน*
+                                        <label class="col-sm-4 col-form-label text-md-end">รหัสบัตรประชาชน
                                             :</label>
                                         <div class="col-sm-8">
                                             <input type="text" name="id_card_number" class="form-control" maxlength="13"
-                                                required
                                                 value="{{ old('id_card_number', $student->id_card_number ?? '') }}">
                                         </div>
                                     </div>
@@ -325,7 +324,7 @@
                             <div class="row mb-3 align-items-center">
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">เพศ* :</label>
+                                        <label class="col-sm-4 col-form-label text-md-end">เพศ<span class="text-danger">*</span> :</label>
                                         <div class="col-sm-8">
                                             <select name="gender" class="form-select" required>
                                                 <option value="" disabled {{ old('gender', $student->gender ?? '') == '' ? 'selected' : '' }}>เลือกเพศ</option>
@@ -337,7 +336,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">คำนำหน้า (ไทย)*
+                                        <label class="col-sm-4 col-form-label text-md-end">คำนำหน้า (ไทย)<span class="text-danger">*</span>
                                             :</label>
                                         <div class="col-sm-8">
                                             <select name="thai_prefix" class="form-select" required>
@@ -356,7 +355,7 @@
                             <div class="row mb-3 align-items-center">
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">ชื่อ (ไทย)* :</label>
+                                        <label class="col-sm-4 col-form-label text-md-end">ชื่อ (ไทย)<span class="text-danger">*</span> :</label>
                                         <div class="col-sm-8">
                                             <input type="text" name="thai_firstname" class="form-control" required
                                                 value="{{ old('thai_firstname', $student->thai_firstname ?? '') }}">
@@ -365,7 +364,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">นามสกุล (ไทย)*
+                                        <label class="col-sm-4 col-form-label text-md-end">นามสกุล (ไทย)<span class="text-danger">*</span>
                                             :</label>
                                         <div class="col-sm-8">
                                             <input type="text" name="thai_lastname" class="form-control" required
@@ -420,7 +419,7 @@
                             <div class="row mb-3 align-items-center">
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">วันเกิด* :</label>
+                                        <label class="col-sm-4 col-form-label text-md-end">วันเกิด<span class="text-danger">*</span> :</label>
                                         <div class="col-sm-8">
                                             <input type="date" name="date_of_birth" class="form-control" required
                                                 value="{{ old('date_of_birth', $student->date_of_birth ?? '') }}">
@@ -446,7 +445,7 @@
                             <div class="row mb-3 align-items-center">
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">เชื้อชาติ* :</label>
+                                        <label class="col-sm-4 col-form-label text-md-end">เชื้อชาติ<span class="text-danger">*</span> :</label>
                                         <div class="col-sm-8">
                                             <input type="text" name="ethnicity" class="form-control" required
                                                 value="{{ old('ethnicity', $student->ethnicity ?? 'ไทย') }}">
@@ -455,7 +454,7 @@
                                 </div>
                                 <div class="col-md-6">
                                     <div class="row">
-                                        <label class="col-sm-4 col-form-label text-md-end text-danger">สัญชาติ* :</label>
+                                        <label class="col-sm-4 col-form-label text-md-end">สัญชาติ<span class="text-danger">*</span> :</label>
                                         <div class="col-sm-8">
                                             <input type="text" name="nationality" class="form-control" required
                                                 value="{{ old('nationality', $student->nationality ?? 'ไทย') }}">

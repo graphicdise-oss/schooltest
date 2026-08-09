@@ -75,7 +75,7 @@ class StudentController extends Controller
         // ตรวจสอบข้อมูลเบื้องต้น
         $request->validate([
             'student_code' => 'nullable|unique:students,student_code',
-            'id_card_number' => 'required|size:13|unique:students,id_card_number',
+            'id_card_number' => 'nullable|size:13|unique:students,id_card_number',
             'gender' => 'required',
             'thai_prefix' => 'required',
             'thai_firstname' => 'required',
@@ -162,7 +162,7 @@ class StudentController extends Controller
         // ตรวจสอบข้อมูล โดยละเว้นการเช็กซ้ำของตัวเอง (ใส่ .' . $id . ',student_id ต่อท้าย)
         $request->validate([
             'student_code'    => 'nullable|unique:students,student_code,' . $id . ',student_id',
-            'id_card_number'  => 'required|size:13|unique:students,id_card_number,' . $id . ',student_id',
+            'id_card_number'  => 'nullable|size:13|unique:students,id_card_number,' . $id . ',student_id',
             'gender'          => 'required',
             'thai_prefix'     => 'required',
             'thai_firstname'  => 'required',
@@ -172,7 +172,6 @@ class StudentController extends Controller
             'ethnicity'       => 'required',
         ], [
             'student_code.unique'    => 'รหัสนักเรียนนี้มีในระบบแล้ว กรุณาตรวจสอบอีกครั้ง',
-            'id_card_number.required'=> 'กรุณากรอกเลขบัตรประชาชน',
             'id_card_number.size'    => 'เลขบัตรประชาชนต้องมี 13 หลักเท่านั้น',
             'id_card_number.unique'  => 'เลขบัตรประชาชนนี้มีในระบบแล้ว กรุณาตรวจสอบอีกครั้ง',
             'gender.required'        => 'กรุณาเลือกเพศ',
