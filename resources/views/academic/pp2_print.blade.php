@@ -61,7 +61,7 @@
         }
 
         .page.front {
-            background-image: url('{{ asset("img/pp_1/logo.jpg") }}');
+            background-image: url('{{ asset("img/pp_1/logo.png") }}');
             background-repeat: no-repeat;
             background-position: 2pt 4pt;
             background-size: 110pt auto;
@@ -207,6 +207,26 @@
 
         .custom-section .col-6 p {
             white-space: nowrap;
+        }
+
+        .pp2-align-group {
+            display: grid;
+            justify-items: stretch;
+            width: max-content;
+            max-width: 100%;
+            margin: 0 auto;
+        }
+
+        .pp2-align-line {
+            display: flex;
+            align-items: baseline;
+            justify-content: center;
+            white-space: nowrap;
+        }
+
+        .pp2-align-line .input-data {
+            flex: 1 1 auto;
+            min-width: 30pt;
         }
 
         @media print {
@@ -377,36 +397,24 @@
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-12 text-center" style="height:25pt;">
+            <div class="pp2-align-group">
+                <div class="pp2-align-line" style="height:25pt;">
                     <span class="font-tfarluck font-size-24em spn-label">{{ $certText }}</span>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-12 text-center" style="height:26pt;">
-                    <span class="font-tfarluck font-size-24em spn-label">จาก</span>
-                    <p
-                        style="display:inline-block; margin:-2pt 8pt 2pt -1pt; width:70%; height:25pt; vertical-align:top;">
-                        <span class="font-tfarluck-data font-size-20em-data input-data"
-                            style="width:100%;height:100%;text-align:center;">{{ $schoolName }}</span>
-
-                    </p>
+                <div class="pp2-align-line" style="height:26pt;">
+                    <span class="font-tfarluck font-size-24em spn-label" style="padding-right:6pt;">จาก</span>
+                    <span class="font-tfarluck-data font-size-20em-data input-data"
+                        style="height:25pt;">{{ $schoolName }}</span>
                 </div>
-            </div>
 
-            <div class="row">
-                <div class="col-12 text-center" style="height:26pt;">
-                    <span class="font-tfarluck font-size-24em spn-label">จังหวัด</span>
-                    <p style="display:inline-block; margin:0; width:18%; height:23pt; vertical-align:top;">
-                        <span class="font-tfarluck-data font-size-18em-data input-data"
-                            style="width:100%;height:100%;">{{ $province }}</span>
-                    </p>
-                    <span class="font-tfarluck font-size-24em spn-label">สังกัด</span>
-                    <p style="display:inline-block; margin:0 -60pt 0 0; width:50%; height:23pt; vertical-align:top;">
-                        <span class="font-tfarluck-data font-size-14em-data input-data"
-                            style="width:100%;height:100%;padding-left:3pt;">{{ $affiliation }}</span>
-                    </p>
+                <div class="pp2-align-line" style="height:26pt;">
+                    <span class="font-tfarluck font-size-24em spn-label" style="padding-right:4pt;">จังหวัด</span>
+                    <span class="font-tfarluck-data font-size-18em-data input-data"
+                        style="height:23pt; flex:0 1 auto; min-width:90pt; margin-right:6pt;">{{ $province }}</span>
+                    <span class="font-tfarluck font-size-24em spn-label" style="padding-right:4pt;">สังกัด</span>
+                    <span class="font-tfarluck-data font-size-14em-data input-data"
+                        style="height:23pt; padding-left:3pt;">{{ $affiliation }}</span>
                 </div>
             </div>
 
