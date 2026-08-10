@@ -132,6 +132,9 @@
             <div class="ls-search-actions">
                 <button type="submit" class="btn-search"><i class="fas fa-search"></i> ค้นหา</button>
                 <a href="{{ route('personnel-reports.staff-list') }}" class="btn-reset"><i class="fas fa-redo"></i> ล้างค่า</a>
+                <button type="submit" name="export" value="excel" class="btn-search" style="background:#1e8a4c;">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </button>
             </div>
         </form>
     </div>

@@ -6,11 +6,13 @@ use App\Http\Controllers\Controller;
 use App\Models\Personne\Personnel;
 use App\Models\Personne\PersonnelTraining;
 use Illuminate\Http\Request;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class PersonnelReportController extends Controller
 {
-    // รายชื่อพนักงาน — รายงานแบบดูอย่างเดียว (ต่างจาก personnels.index ที่ใช้จัดการ/แก้ไข)
-    public function staffList(Request $request)
+    private function filteredStaffQuery(Request $request)
     {
         $query = Personnel::query()->orderBy('thai_firstname');
 
@@ -31,7 +33,17 @@ class PersonnelReportController extends Controller
             $query->where('status', $request->status);
         }
 
-        $personnels = $query->paginate(20)->withQueryString();
+        return $query;
+    }
+
+    // รายชื่อพนักงาน — รายงานแบบดูอย่างเดียว (ต่างจาก personnels.index ที่ใช้จัดการ/แก้ไข)
+    public function staffList(Request $request)
+    {
+        if ($request->query('export') === 'excel') {
+            return $this->exportStaffList($request);
+        }
+
+        $personnels = $this->filteredStaffQuery($request)->paginate(20)->withQueryString();
 
         $departments = Personnel::whereNotNull('department')
             ->where('department', '!=', '')
@@ -40,6 +52,48 @@ class PersonnelReportController extends Controller
             ->pluck('department');
 
         return view('personnel.staff_list_report', compact('personnels', 'departments'));
+    }
+
+    private function exportStaffList(Request $request)
+    {
+        $personnels = $this->filteredStaffQuery($request)->get();
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('รายชื่อพนักงาน');
+
+        $headers = ['ลำดับ', 'รหัส', 'คำนำหน้า', 'ชื่อ - นามสกุล', 'ตำแหน่ง', 'แผนก', 'อีเมล'];
+        foreach ($headers as $i => $header) {
+            $col = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::stringFromColumnIndex($i + 1);
+            $sheet->setCellValue("{$col}1", $header);
+        }
+        $sheet->getStyle('A1:G1')->applyFromArray([
+            'font' => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '5482E7']],
+        ]);
+
+        $row = 2;
+        foreach ($personnels as $i => $p) {
+            $sheet->setCellValue("A{$row}", $i + 1);
+            $sheet->setCellValue("B{$row}", $p->employee_code ?? '-');
+            $sheet->setCellValue("C{$row}", $p->thai_prefix ?? '-');
+            $sheet->setCellValue("D{$row}", trim($p->thai_firstname . ' ' . $p->thai_lastname));
+            $sheet->setCellValue("E{$row}", $p->position ?? '-');
+            $sheet->setCellValue("F{$row}", $p->department ?? '-');
+            $sheet->setCellValue("G{$row}", $p->email ?? '-');
+            $row++;
+        }
+
+        foreach (range('A', 'G') as $col) {
+            $sheet->getColumnDimension($col)->setAutoSize(true);
+        }
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'staff_list') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        $filename = 'รายชื่อพนักงาน_' . now()->format('Ymd_His') . '.xlsx';
+
+        return response()->download($tmpPath, $filename)->deleteFileAfterSend(true);
     }
 
     // รายงานการอบรม — รวมข้อมูลการอบรม/ศึกษา/ดูงานของบุคลากรทุกคนไว้ที่เดียว
