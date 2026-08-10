@@ -101,6 +101,35 @@
         <span>รายชื่อพนักงาน</span>
     </nav>
 
+    @if(session('success'))
+    <div style="background:#e8f5e9;color:#2e7d32;padding:10px 18px;border-radius:6px;margin-bottom:16px;font-size:0.88rem">
+        <i class="bi bi-check-circle"></i> {{ session('success') }}
+    </div>
+    @endif
+
+    @if($errors->any())
+    <div style="background:#fdecea;color:#b71c1c;padding:10px 18px;border-radius:6px;margin-bottom:16px;font-size:0.88rem">
+        <i class="bi bi-exclamation-triangle"></i> {{ $errors->first() }}
+    </div>
+    @endif
+
+    <div class="ls-card">
+        <div class="ls-icon" style="background: #8e24aa;"><i class="fas fa-file-upload"></i></div>
+        <div class="ls-card-header"><strong>นำเข้าจากไฟล์ Excel</strong></div>
+        <p style="margin: 16px 0 12px; color:#777; font-size:0.85rem;">
+            ใช้ไฟล์เดียวกับที่ได้จากปุ่ม "Export Excel" ด้านล่าง — แก้ไข/เพิ่มแถวแล้วอัปโหลดกลับได้เลย
+            (จับคู่ด้วยคอลัมน์ "รหัส": ถ้ามีรหัสนี้อยู่แล้วจะอัปเดตข้อมูล ถ้ายังไม่มีจะสร้างพนักงานใหม่)
+        </p>
+        <form method="POST" action="{{ route('personnel-reports.staff-list.import') }}" enctype="multipart/form-data"
+              style="display:flex; gap:12px; align-items:center;">
+            @csrf
+            <input type="file" name="file" accept=".xlsx,.xls" required class="ls-input" style="max-width:320px;">
+            <button type="submit" class="btn-search" style="background:#8e24aa;">
+                <i class="fas fa-upload"></i> นำเข้า
+            </button>
+        </form>
+    </div>
+
     <div class="ls-card">
         <div class="ls-icon" style="background: #00bbbb;"><i class="fas fa-search"></i></div>
         <div class="ls-card-header"><strong>ค้นหา</strong></div>
@@ -153,6 +182,7 @@
                         <th style="width:50px;">ลำดับ</th>
                         <th style="width:50px;">รูป</th>
                         <th style="width:100px;">รหัส</th>
+                        <th style="width:120px;">รหัสบัตรประชาชน</th>
                         <th>ชื่อ - นามสกุล</th>
                         <th>ตำแหน่ง</th>
                         <th>แผนก</th>
@@ -173,6 +203,7 @@
                                 @endif
                             </td>
                             <td>{{ $p->employee_code ?? '-' }}</td>
+                            <td>{{ $p->id_card_number ?? '-' }}</td>
                             <td class="td-name">{{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}</td>
                             <td>{{ $p->position ?? '-' }}</td>
                             <td>{{ $p->department ?? '-' }}</td>
@@ -186,7 +217,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="9" class="ls-empty">
+                            <td colspan="10" class="ls-empty">
                                 <i class="fas fa-inbox"></i>
                                 <div>ไม่พบข้อมูลพนักงาน</div>
                             </td>
