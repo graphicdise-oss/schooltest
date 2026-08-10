@@ -40,7 +40,11 @@ Route::view('/', 'welcome');
 Route::view('/rp_overview', 'pege.rp_overview');
 
 // --- 2. ส่วนของคนทั่วไป (Guest) ---
-Route::view('/login', 'auth.login')->name('login');
+Route::get('/login', function () {
+    $schoolName = \App\Models\Academic\Pp2Setting::getInstance()->school_name
+        ?: config('school.name');
+    return view('auth.login', compact('schoolName'));
+})->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 
 // --- ระบบรับสมัครนักเรียนออนไลน์ (สาธารณะ ไม่ต้อง login) ---

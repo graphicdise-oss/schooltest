@@ -57,9 +57,7 @@
                 </div>
                 <select name="school_id"
                     class="input-bg w-full rounded-full py-4 pl-12 pr-4 text-black focus:outline-none focus:ring-2 focus:ring-blue-400 appearance-none font-medium">
-                    <option value="" disabled selected>เลือกโรงเรียน</option>
-                    <option value="1">โรงเรียนสาธิต A</option>
-                    <option value="2">โรงเรียนสาธิต B</option>
+                    <option value="1" selected>{{ $schoolName }}</option>
                 </select>
                 <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
                     <i class="fas fa-chevron-down text-gray-500"></i>
