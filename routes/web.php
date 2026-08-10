@@ -81,7 +81,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::controller(StudentListController::class)->group(function () {
         Route::get('/students', 'index')->name('students.index');
         Route::get('/students/{id}/show', 'show')->name('students.show');
-        Route::delete('/students/{id}', 'destroy')->name('students.destroy');
+        Route::delete('/students/{id}', 'destroy')->name('students.destroy')->middleware('admin');
         Route::get('/students/import-template', 'importTemplate')->name('students.import-template');
         Route::post('/students/import', 'importUpload')->name('students.import');
         Route::post('/students/school-info', 'saveSchoolInfo')->name('students.school-info');
@@ -102,7 +102,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
 
     // === บุคลากร ===
-    Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->group(function () {
+    Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->middleware('admin')->group(function () {
 
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
@@ -150,7 +150,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     });
 
 
-    Route::controller(StudentTypeController::class)->prefix('student-types')->name('student-types.')->group(function () {
+    Route::controller(StudentTypeController::class)->prefix('student-types')->name('student-types.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -179,7 +179,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
 
     // === 1. จัดการรายวิชา ===
-    Route::controller(SubjectController::class)->prefix('subjects')->name('subjects.')->group(function () {
+    Route::controller(SubjectController::class)->prefix('subjects')->name('subjects.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -189,7 +189,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
     // === 2. จัดการหลักสูตร ===
     // ไม่มี curriculums.index แล้ว (ลบหน้าลิสต์รวมทิ้งไปเพราะซ้ำกับ /programs) — เข้าถึงแผนทีละหลักสูตรผ่าน /programs แทน
-    Route::controller(CurriculumController::class)->prefix('curriculums')->name('curriculums.')->group(function () {
+    Route::controller(CurriculumController::class)->prefix('curriculums')->name('curriculums.')->middleware('admin')->group(function () {
         Route::post('/', 'store')->name('store');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
@@ -204,7 +204,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     });
 
     // === 2b. จัดการหลักสูตร (กลุ่มหลักสูตร/โปรแกรม เช่น EP, IEP) ===
-    Route::controller(ProgramController::class)->prefix('programs')->name('programs.')->group(function () {
+    Route::controller(ProgramController::class)->prefix('programs')->name('programs.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -214,7 +214,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     });
 
     // === 3. ห้องเรียน + จัดนักเรียนเข้าห้อง ===
-    Route::controller(ClassSectionController::class)->prefix('class-sections')->name('class-sections.')->group(function () {
+    Route::controller(ClassSectionController::class)->prefix('class-sections')->name('class-sections.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
@@ -228,18 +228,23 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
     // === 4. ตารางสอน ===
     Route::controller(TimetableController::class)->prefix('timetable')->name('timetable.')->group(function () {
-        Route::get('/', 'index')->name('index');
-        Route::post('/assign', 'storeAssign')->name('storeAssign');
-        Route::delete('/assign/{id}', 'destroyAssign')->name('destroyAssign');
-        Route::post('/slot', 'storeSlot')->name('storeSlot');
-        Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
-        Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
         Route::get('/view', 'viewTimetable')->name('view');
-        Route::get('/section/{id}', 'sectionView')->name('section');
         Route::get('/section/{id}/print', 'print')->name('print');
-        Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
-        Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
-        Route::post('/section/{id}/lunch', 'updateLunch')->name('updateLunch');
+
+        // จัดตารางสอน/คาบเรียน (โครงสร้าง) — เฉพาะผู้ดูแลระบบ
+        // (/section/{id} คือหน้าแก้ไขจริง ไม่ใช่แค่ดู เลยกันไว้ด้วย ครูดูตารางตัวเองผ่าน timetable.view/print แทน)
+        Route::middleware('admin')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/section/{id}', 'sectionView')->name('section');
+            Route::post('/assign', 'storeAssign')->name('storeAssign');
+            Route::delete('/assign/{id}', 'destroyAssign')->name('destroyAssign');
+            Route::post('/slot', 'storeSlot')->name('storeSlot');
+            Route::put('/slot/{id}', 'updateSlot')->name('updateSlot');
+            Route::delete('/slot/{id}', 'destroySlot')->name('destroySlot');
+            Route::delete('/section/{id}/clear', 'clearSection')->name('clearSection');
+            Route::post('/section/{id}/import-curriculum', 'importCurriculum')->name('importCurriculum');
+            Route::post('/section/{id}/lunch', 'updateLunch')->name('updateLunch');
+        });
     });
 
     // === 5. บันทึกคะแนน ===
@@ -270,7 +275,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::get('/section/{sectionId}/import-bulk-template', 'importBulkTemplate')->name('importBulkTemplate');
         Route::post('/import-bulk/upload', 'importBulkUpload')->name('importBulkUpload');
         Route::put('/{gradeId}', 'updateGrade')->name('update');
-        Route::delete('/{gradeId}', 'destroyGrade')->name('destroy');
+        Route::delete('/{gradeId}', 'destroyGrade')->name('destroy')->middleware('admin');
         Route::get('/section/{sectionId}', 'sectionReport')->name('section');
         Route::get('/gpa-report', 'gpaReport')->name('gpa');
         Route::get('/print/{assignId}', 'printScoreSheet')->name('print');
@@ -302,7 +307,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
     // === ระบบห้องสมุด ===
     Route::controller(\App\Http\Controllers\Library\LibraryCategoryController::class)
-        ->prefix('library/categories')->name('library.categories.')->group(function () {
+        ->prefix('library/categories')->name('library.categories.')->middleware('admin')->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/', 'store')->name('store');
             Route::put('/{id}', 'update')->name('update');
@@ -363,7 +368,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         });
 
     // === 7. เลื่อนชั้น / ย้ายห้อง / บันทึกจบ ===
-    Route::controller(PromotionController::class)->prefix('promotions')->name('promotions.')->group(function () {
+    Route::controller(PromotionController::class)->prefix('promotions')->name('promotions.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/transfer', 'transfer')->name('transfer');
         Route::post('/promote', 'promote')->name('promote');

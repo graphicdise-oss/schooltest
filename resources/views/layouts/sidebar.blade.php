@@ -222,6 +222,7 @@
                                         <li><a href="{{ route('students.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลนักเรียน</a>
                                         </li>
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลผู้ปกครอง</a>
                                         </li>
@@ -232,6 +233,7 @@
                                         <li><a href="{{ route('promotions.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
                                         </li>
+                                        @endif
                                         <li><a href="{{ route('student-alumni.index') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
                                         </li>
@@ -273,8 +275,10 @@
                                 <div class="mb-5">
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">บุคลากร - อาจารย์</h4>
                                     <ul class="space-y-1.5 pl-2">
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลบุคลากร - อาจารย์</a></li>
+                                        @endif
                                         <li><a href="{{ route('leave.personnel.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลการลา</a></li>
                                     </ul>
@@ -384,6 +388,7 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">จัดการหลักสูตร</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('subjects.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการรายวิชา</a>
                                         </li>
@@ -393,14 +398,20 @@
                                         <li><a href="{{ route('class-sections.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการห้องเรียน</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ตารางสอน</h4>
                                     <ul class="space-y-1 pl-2">
+                                        <li><a href="{{ route('timetable.view') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ดูตารางสอน</a>
+                                        </li>
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('timetable.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการตารางสอน</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                                 <div class="mb-4">
@@ -686,9 +697,11 @@
                                         <li><a href="{{ route('library.books.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการห้องสมุด</a>
                                         </li>
+                                        @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('library.categories.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าหมวดหมู่หนังสือ</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
