@@ -117,8 +117,8 @@
         <div class="ls-icon" style="background: #8e24aa;"><i class="fas fa-file-upload"></i></div>
         <div class="ls-card-header"><strong>นำเข้าจากไฟล์ Excel</strong></div>
         <p style="margin: 16px 0 12px; color:#777; font-size:0.85rem;">
-            ใช้ไฟล์เดียวกับที่ได้จากปุ่ม "Export Excel" ด้านล่าง — แก้ไข/เพิ่มแถวแล้วอัปโหลดกลับได้เลย
-            (จับคู่ด้วยคอลัมน์ "รหัส": ถ้ามีรหัสนี้อยู่แล้วจะอัปเดตข้อมูล ถ้ายังไม่มีจะสร้างพนักงานใหม่)
+            ใช้ไฟล์เดียวกับที่ได้จากปุ่ม "Export Excel" ด้านล่าง (เทมเพลตเดียวกับ "แบบฟอร์มนำเข้าข้อมูลบุคลากร") — แก้ไข/เพิ่มแถวแล้วอัปโหลดกลับได้เลย
+            (จับคู่ด้วย "รหัสพนักงาน": ถ้ามีอยู่แล้วจะอัปเดตข้อมูลทุกส่วน ถ้ายังไม่มีจะสร้างพนักงานใหม่ — ข้อมูลเริ่มจากแถวที่ 8)
         </p>
         <form method="POST" action="{{ route('personnel-reports.staff-list.import') }}" enctype="multipart/form-data"
               style="display:flex; gap:12px; align-items:center;">
