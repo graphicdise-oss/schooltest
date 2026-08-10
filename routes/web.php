@@ -101,6 +101,13 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     });
 
 
+    // === รายงานบุคลากร (ดูอย่างเดียว เปิดให้พนักงานทุกคน ต่างจากหน้าจัดการที่จำกัดเฉพาะแอดมิน) ===
+    Route::controller(\App\Http\Controllers\Personnel\PersonnelReportController::class)
+        ->prefix('personnel-reports')->name('personnel-reports.')->group(function () {
+            Route::get('/staff-list', 'staffList')->name('staff-list');
+            Route::get('/training', 'trainingReport')->name('training');
+        });
+
     // === บุคลากร ===
     Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->group(function () {
 
