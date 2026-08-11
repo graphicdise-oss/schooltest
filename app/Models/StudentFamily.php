@@ -28,7 +28,7 @@ class StudentFamily extends Model
     // ตั้งค่า Relation กลับไปหานักเรียน (ทางเลือก)
     public function student()
     {
-        return $this->belongsTo(Student::class, 'student_id', 'id');
+        return $this->belongsTo(Student::class, 'student_id', 'student_id');
     }
 
     
