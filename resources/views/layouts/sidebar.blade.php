@@ -552,13 +552,13 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบความประพฤติ</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
+                                        <li><a href="{{ route('behavior-items.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">เพิ่มข้อมูลคะแนนความประพฤติ</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('behavior-scores.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตัดคะแนนความประพฤติ</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('behavior-items.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าการตัดคะแนนความประพฤติ</a>
                                         </li>
                                     </ul>
