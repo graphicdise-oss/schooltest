@@ -56,7 +56,7 @@
                     <i class="fas fa-graduation-cap text-black text-lg"></i>
                 </div>
                 <input type="text" name="school_name" list="schoolOptions" value="{{ $schoolName }}"
-                    class="input-bg w-full rounded-full py-4 pl-12 pr-10 text-black focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-sm truncate">
+                    class="input-bg w-full rounded-full py-4 pl-12 pr-10 text-black text-center focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-sm truncate">
                 <datalist id="schoolOptions">
                     <option value="{{ $schoolName }}"></option>
                 </datalist>
