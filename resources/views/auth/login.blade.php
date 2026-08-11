@@ -55,14 +55,8 @@
                 <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
                     <i class="fas fa-graduation-cap text-black text-lg"></i>
                 </div>
-                <input type="text" name="school_name" list="schoolOptions" value="{{ $schoolName }}"
-                    class="input-bg w-full rounded-full py-4 pl-12 pr-10 text-black text-center focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-sm truncate">
-                <datalist id="schoolOptions">
-                    <option value="{{ $schoolName }}"></option>
-                </datalist>
-                <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
-                    <i class="fas fa-chevron-down text-gray-500"></i>
-                </div>
+                <input type="text" name="school_name" id="schoolNameField" value="{{ $schoolName }}"
+                    class="input-bg w-full rounded-full py-4 pl-12 pr-12 text-black text-center focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-sm">
             </div>
 
             <div class="relative">
@@ -108,6 +102,25 @@
         @endif
 
     </div>
+
+    <script>
+        (function () {
+            var field = document.getElementById('schoolNameField');
+            if (!field) return;
+            var maxSize = 14, minSize = 9;
+            function fitText() {
+                field.style.fontSize = maxSize + 'px';
+                var guard = 0;
+                while (field.scrollWidth > field.clientWidth && parseFloat(field.style.fontSize) > minSize && guard < 20) {
+                    field.style.fontSize = (parseFloat(field.style.fontSize) - 0.5) + 'px';
+                    guard++;
+                }
+            }
+            fitText();
+            window.addEventListener('resize', fitText);
+            field.addEventListener('input', fitText);
+        })();
+    </script>
 
 </body>
 
