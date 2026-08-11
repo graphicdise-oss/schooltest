@@ -13,6 +13,7 @@ use App\Models\Student\BehaviorItem;
 use App\Models\Student\BehaviorRecord;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class BehaviorScoreController extends Controller
 {
@@ -96,12 +97,10 @@ class BehaviorScoreController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'student_id' => 'required|integer',
+            'student_id' => 'required|integer|exists:students,student_id',
             'behavior_item_id' => 'required|integer|exists:behavior_items,behavior_item_id',
             'note' => 'nullable|string|max:1000',
         ]);
-
-        $item = BehaviorItem::findOrFail($request->behavior_item_id);
 
         $year = AcademicYear::current() ?? AcademicYear::orderByDesc('year_name')->first();
         $semester = $year
@@ -109,28 +108,39 @@ class BehaviorScoreController extends Controller
                 ?? Semester::where('year_id', $year->year_id)->orderByDesc('semester_name')->first())
             : null;
 
-        $signedPoints = $item->type === 'deduct' ? -$item->points : (float) $item->points;
+        if (!$year || !$semester) {
+            return redirect()->back()->with('error', 'กรุณาตั้งค่าปีการศึกษา/ภาคเรียนปัจจุบันก่อนบันทึกคะแนนความประพฤติ');
+        }
 
-        $priorSum = BehaviorRecord::where('student_id', $request->student_id)
-            ->where('year_id', $year?->year_id)
-            ->where('semester_id', $semester?->semester_id)
-            ->sum('signed_points');
+        DB::transaction(function () use ($request, $year, $semester) {
+            $item = BehaviorItem::findOrFail($request->behavior_item_id);
 
-        $balanceAfter = $this->fullScore() + $priorSum + $signedPoints;
+            $signedPoints = $item->type === 'deduct' ? -$item->points : (float) $item->points;
 
-        BehaviorRecord::create([
-            'student_id' => $request->student_id,
-            'behavior_item_id' => $item->behavior_item_id,
-            'type' => $item->type,
-            'item_name_th' => $item->name_th,
-            'points' => $item->points,
-            'signed_points' => $signedPoints,
-            'balance_after' => $balanceAfter,
-            'year_id' => $year?->year_id,
-            'semester_id' => $semester?->semester_id,
-            'note' => $request->note,
-            'recorded_by' => Auth::id(),
-        ]);
+            // lockForUpdate ป้องกันสองคำขอพร้อมกัน (เช่น ครูสองคนกดบันทึกให้นักเรียนคนเดียวกันในเวลาไล่เลี่ยกัน)
+            // อ่านผลรวมคนละค่ากันแล้วคำนวณ balance_after ทับกัน
+            $priorSum = BehaviorRecord::where('student_id', $request->student_id)
+                ->where('year_id', $year->year_id)
+                ->where('semester_id', $semester->semester_id)
+                ->lockForUpdate()
+                ->sum('signed_points');
+
+            $balanceAfter = $this->fullScore() + $priorSum + $signedPoints;
+
+            BehaviorRecord::create([
+                'student_id' => $request->student_id,
+                'behavior_item_id' => $item->behavior_item_id,
+                'type' => $item->type,
+                'item_name_th' => $item->name_th,
+                'points' => $item->points,
+                'signed_points' => $signedPoints,
+                'balance_after' => $balanceAfter,
+                'year_id' => $year->year_id,
+                'semester_id' => $semester->semester_id,
+                'note' => $request->note,
+                'recorded_by' => Auth::id(),
+            ]);
+        });
 
         return redirect()->back()->with('success', 'บันทึกคะแนนความประพฤติสำเร็จ');
     }

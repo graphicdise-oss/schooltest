@@ -100,6 +100,12 @@
     </div>
     @endif
 
+    @if(session('error'))
+    <div style="background:#f8d7da;color:#842029;padding:12px 18px;border-radius:6px;margin-bottom:16px;font-size:0.88rem;">
+        <i class="bi bi-exclamation-triangle me-1"></i> {{ session('error') }}
+    </div>
+    @endif
+
     <div class="bs-card">
         <div class="bs-card-title"><i class="bi bi-search me-1"></i> ค้นหา</div>
         <form method="GET" action="{{ route('behavior-scores.index') }}" id="searchForm">
