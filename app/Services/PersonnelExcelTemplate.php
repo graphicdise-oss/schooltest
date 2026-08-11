@@ -2,7 +2,9 @@
 
 namespace App\Services;
 
+use PhpOffice\PhpSpreadsheet\Cell\Cell;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
@@ -184,5 +186,24 @@ class PersonnelExcelTemplate
         }
 
         return sprintf('%04d-%02d-%02d', $yearCe, $month, $day);
+    }
+
+    // อ่านวันที่จาก cell ตอนนำเข้าไฟล์ Excel: รองรับทั้ง 2 กรณี
+    // 1) ข้อความ d/m/Y (พ.ศ.) ตามฟอร์แมตที่เราเขียนตอน export
+    // 2) วันที่จริงของ Excel (serial number) กรณีผู้ใช้เปิดไฟล์แล้วพิมพ์/แก้วันที่ใหม่ในเซลล์
+    //    ซึ่ง Excel จะตีความเป็นวันที่ทันทีและเก็บเป็นเลข ไม่ใช่ข้อความ d/m/Y แบบเดิม
+    public static function fromExcelDateCell(Cell $cell): ?string
+    {
+        $value = $cell->getValue();
+
+        if (is_numeric($value) && ExcelDate::isDateTime($cell)) {
+            try {
+                return ExcelDate::excelToDateTimeObject($value)->format('Y-m-d');
+            } catch (\Throwable) {
+                return null;
+            }
+        }
+
+        return self::fromThaiDate(trim((string) ($value ?? '')));
     }
 }

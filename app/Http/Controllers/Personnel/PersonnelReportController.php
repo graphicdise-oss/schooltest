@@ -176,6 +176,9 @@ class PersonnelReportController extends Controller
         $highestRow = $sheet->getHighestRow();
 
         $get = fn(int $row, string $key) => trim((string) ($sheet->getCell(Coordinate::stringFromColumnIndex(PersonnelExcelTemplate::COL[$key]) . $row)->getValue() ?? ''));
+        $getDate = fn(int $row, string $key) => PersonnelExcelTemplate::fromExcelDateCell(
+            $sheet->getCell(Coordinate::stringFromColumnIndex(PersonnelExcelTemplate::COL[$key]) . $row)
+        );
 
         $created = 0;
         $updated = 0;
@@ -206,7 +209,7 @@ class PersonnelReportController extends Controller
                 'id_card_number' => $get($row, 'id_card_number') ?: null,
                 'passport_number' => $get($row, 'passport_number') ?: null,
                 'passport_country' => $get($row, 'passport_country') ?: null,
-                'date_of_birth' => PersonnelExcelTemplate::fromThaiDate($get($row, 'date_of_birth')),
+                'date_of_birth' => $getDate($row, 'date_of_birth'),
                 'blood_group' => $get($row, 'blood_group') ?: null,
                 'nationality' => $get($row, 'nationality') ?: null,
                 'ethnicity' => $get($row, 'ethnicity') ?: null,
@@ -238,13 +241,13 @@ class PersonnelReportController extends Controller
                 PersonnelPosition::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
                     'work_status' => $get($row, 'work_status') ?: null,
                     'level' => $get($row, 'level') ?: null,
-                    'school_start_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'school_start_date')),
-                    'appointment_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'appointment_date')),
+                    'school_start_date' => $getDate($row, 'school_start_date'),
+                    'appointment_date' => $getDate($row, 'appointment_date'),
                     'salary' => $get($row, 'salary') ?: null,
-                    'government_start_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'government_start_date')),
+                    'government_start_date' => $getDate($row, 'government_start_date'),
                     'position_allowance' => $get($row, 'position_allowance') ?: null,
                     'academic_allowance' => $get($row, 'academic_allowance') ?: null,
-                    'retirement_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'retirement_date')),
+                    'retirement_date' => $getDate($row, 'retirement_date'),
                 ]);
             }
 
@@ -270,8 +273,8 @@ class PersonnelReportController extends Controller
                 PersonnelTraining::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
                     'project' => $get($row, 'training_project') ?: null,
                     'course_name' => $get($row, 'training_course'),
-                    'start_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'training_start')),
-                    'end_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'training_end')),
+                    'start_date' => $getDate($row, 'training_start'),
+                    'end_date' => $getDate($row, 'training_end'),
                 ]);
             }
 
@@ -280,8 +283,8 @@ class PersonnelReportController extends Controller
                     'license_type' => $get($row, 'license_type') ?: null,
                     'license_number' => $get($row, 'license_number'),
                     'license_name' => $get($row, 'license_name') ?: null,
-                    'issue_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'license_issue')),
-                    'expiry_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'license_expiry')),
+                    'issue_date' => $getDate($row, 'license_issue'),
+                    'expiry_date' => $getDate($row, 'license_expiry'),
                 ]);
             }
 
@@ -290,7 +293,7 @@ class PersonnelReportController extends Controller
                     'year_received' => $get($row, 'decoration_year') ?: null,
                     'decoration_class' => $get($row, 'decoration_class'),
                     'position' => $get($row, 'decoration_position') ?: null,
-                    'gazette_date' => PersonnelExcelTemplate::fromThaiDate($get($row, 'decoration_gazette_date')),
+                    'gazette_date' => $getDate($row, 'decoration_gazette_date'),
                 ]);
             }
         }
