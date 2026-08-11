@@ -255,17 +255,6 @@
                                         </li>
                                     </ul>
                                 </div>
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบบัตรขออนุญาต</h4>
-                                    <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึกบัตรรายการขออนุญาต</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานประวัติการขออนุญาต</a>
-                                        </li>
-                                    </ul>
-                                </div>
                             </div>
 
                             {{-- คอลัมน์ 2 --}}
