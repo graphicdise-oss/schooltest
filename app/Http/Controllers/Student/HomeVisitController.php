@@ -70,6 +70,7 @@ class HomeVisitController extends Controller
         $request->validate([
             'student_id' => 'required|exists:students,student_id',
             'visit_date' => 'required|date',
+            'photo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:5120',
         ]);
 
         $data = $request->only([
@@ -119,7 +120,16 @@ class HomeVisitController extends Controller
                 ->get();
 
             $studentIds = $studentSections->pluck('student_id');
-            $visitCounts = HomeVisit::whereIn('student_id', $studentIds)
+            $semester = $semesterId ? Semester::find($semesterId) : null;
+
+            $visitQuery = HomeVisit::whereIn('student_id', $studentIds);
+            if ($semester?->start_date && $semester?->end_date) {
+                // จำกัดเฉพาะการเยี่ยมในช่วงเทอมที่เลือก ไม่งั้นนักเรียนที่เยี่ยมไปแล้วในเทอมก่อนๆ
+                // จะติดสถานะ "เยี่ยมแล้ว" ค้างอยู่ตลอดไปทุกเทอมถัดมา
+                $visitQuery->whereBetween('visit_date', [$semester->start_date, $semester->end_date]);
+            }
+
+            $visitCounts = $visitQuery
                 ->selectRaw('student_id, count(*) as total, max(visit_date) as last_visit')
                 ->groupBy('student_id')
                 ->get()
@@ -175,13 +185,16 @@ class HomeVisitController extends Controller
             $query->where('need_followup', true);
         }
 
-        $visits = $query->orderByDesc('visit_date')->paginate(20)->withQueryString();
-
+        // ต้อง clone ก่อน orderBy/paginate เพราะทั้งสองจะ mutate $query เดิม (เติม limit/offset/orderBy ค้างไว้)
+        // ถ้า clone หลังจากนั้น ผลรวมจะเพี้ยนตาม limit/offset ของหน้าที่เลือกดู แถม orderBy ที่ไม่ได้อยู่ใน
+        // group by จะทำให้ query ผลรวมพังได้ในบางฐานข้อมูล
         $economicSummary = (clone $query)->selectRaw('economic_status, count(*) as total')
             ->groupBy('economic_status')
             ->pluck('total', 'economic_status');
 
         $followupCount = (clone $query)->where('need_followup', true)->count();
+
+        $visits = $query->orderByDesc('visit_date')->paginate(20)->withQueryString();
 
         return view('student.home_visit_results', compact(
             'academicYears', 'yearId', 'semesters', 'semesterId', 'levels', 'levelId',
