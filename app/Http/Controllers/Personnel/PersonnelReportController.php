@@ -64,10 +64,21 @@ class PersonnelReportController extends Controller
 
     // ใช้เทมเพลตเดียวกับ "แบบฟอร์มนำเข้าข้อมูลบุคลากร" ทุกคอลัมน์ (PersonnelExcelTemplate) ทั้ง export และ import
     // เพื่อให้เอาไฟล์ที่ export ออกไป แก้ไข แล้วอัปโหลดกลับเข้ามาได้เลยโดยไม่ต้องมีฟอร์มคนละแบบ
+    //
+    // หมายเหตุ: เทมเพลตนี้มีคอลัมน์ให้แค่ 1 ชุดต่อประเภท (การศึกษา/เกียรติคุณ/อบรม/ใบอนุญาต/เครื่องราชฯ) ต่อพนักงาน
+    // ถ้าใครมีหลายรายการ export/import จะจับคู่กับ "รายการที่เก่าที่สุด" (เรียงตาม id) ของประเภทนั้นเสมอ
+    // ให้ผลตรงกันทั้ง 2 ทาง ส่วนรายการอื่นที่เหลือต้องไปแก้ผ่านหน้าประวัติบุคลากรโดยตรง (มีแท็บแยกตามประเภท)
     private function exportStaffList(Request $request)
     {
         $personnels = $this->filteredStaffQuery($request)
-            ->with(['addresses', 'positionDetail', 'educations', 'honors', 'trainings', 'licenses', 'decorations'])
+            ->with([
+                'addresses', 'positionDetail',
+                'educations' => fn($q) => $q->oldest('education_id'),
+                'honors' => fn($q) => $q->oldest('honor_id'),
+                'trainings' => fn($q) => $q->oldest('training_id'),
+                'licenses' => fn($q) => $q->oldest('license_id'),
+                'decorations' => fn($q) => $q->oldest('decoration_id'),
+            ])
             ->get();
 
         $spreadsheet = new Spreadsheet();
@@ -252,7 +263,7 @@ class PersonnelReportController extends Controller
             }
 
             if ($get($row, 'edu_institution') !== '') {
-                PersonnelEducation::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
+                $this->upsertOldest(PersonnelEducation::class, 'education_id', $personnel->personnel_id, [
                     'institution' => $get($row, 'edu_institution') ?: null,
                     'start_year' => $get($row, 'edu_start_year') ?: null,
                     'end_year' => $get($row, 'edu_end_year') ?: null,
@@ -262,7 +273,7 @@ class PersonnelReportController extends Controller
             }
 
             if ($get($row, 'honor_type') !== '') {
-                PersonnelHonor::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
+                $this->upsertOldest(PersonnelHonor::class, 'honor_id', $personnel->personnel_id, [
                     'honor_type' => $get($row, 'honor_type'),
                     'organization' => $get($row, 'honor_org') ?: null,
                     'year_received' => $get($row, 'honor_year') ?: null,
@@ -270,7 +281,7 @@ class PersonnelReportController extends Controller
             }
 
             if ($get($row, 'training_course') !== '') {
-                PersonnelTraining::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
+                $this->upsertOldest(PersonnelTraining::class, 'training_id', $personnel->personnel_id, [
                     'project' => $get($row, 'training_project') ?: null,
                     'course_name' => $get($row, 'training_course'),
                     'start_date' => $getDate($row, 'training_start'),
@@ -279,7 +290,7 @@ class PersonnelReportController extends Controller
             }
 
             if ($get($row, 'license_number') !== '') {
-                PersonnelLicense::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
+                $this->upsertOldest(PersonnelLicense::class, 'license_id', $personnel->personnel_id, [
                     'license_type' => $get($row, 'license_type') ?: null,
                     'license_number' => $get($row, 'license_number'),
                     'license_name' => $get($row, 'license_name') ?: null,
@@ -289,7 +300,7 @@ class PersonnelReportController extends Controller
             }
 
             if ($get($row, 'decoration_class') !== '') {
-                PersonnelDecoration::updateOrCreate(['personnel_id' => $personnel->personnel_id], [
+                $this->upsertOldest(PersonnelDecoration::class, 'decoration_id', $personnel->personnel_id, [
                     'year_received' => $get($row, 'decoration_year') ?: null,
                     'decoration_class' => $get($row, 'decoration_class'),
                     'position' => $get($row, 'decoration_position') ?: null,
@@ -302,6 +313,20 @@ class PersonnelReportController extends Controller
             'success',
             "นำเข้าสำเร็จ — เพิ่มใหม่ {$created} คน, อัปเดต {$updated} คน" . ($skipped > 0 ? ", ข้าม {$skipped} แถว (ไม่มีรหัสพนักงาน)" : '')
         );
+    }
+
+    // เทมเพลตมีคอลัมน์ให้แค่ 1 ชุดต่อประเภทต่อพนักงาน (การศึกษา/เกียรติคุณ/อบรม/ใบอนุญาต/เครื่องราชฯ)
+    // จับคู่กับ "รายการที่เก่าที่สุด" (id น้อยที่สุด) เสมอ ให้ตรงกับที่ exportStaffList() เลือกมาแสดง
+    // ถ้าพนักงานมีมากกว่า 1 รายการ รายการอื่นที่เหลือจะไม่ถูกแก้ไข ต้องไปจัดการผ่านหน้าประวัติบุคลากรโดยตรง
+    private function upsertOldest(string $modelClass, string $pkColumn, $personnelId, array $attributes): void
+    {
+        $existing = $modelClass::where('personnel_id', $personnelId)->oldest($pkColumn)->first();
+
+        if ($existing) {
+            $existing->update($attributes);
+        } else {
+            $modelClass::create($attributes + ['personnel_id' => $personnelId]);
+        }
     }
 
     private function upsertAddress(Personnel $personnel, callable $get, int $row, string $prefix, string $addressType): void
