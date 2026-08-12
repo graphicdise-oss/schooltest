@@ -200,6 +200,7 @@
                                                 class="si-action-btn si-action-edit" title="แก้ไข">
                                                 <i class="bi bi-pencil"></i>
                                             </a>
+                                            @if(auth()->user()->isAdmin())
                                             <form action="{{ route('students.destroy', $student->student_id) }}" method="POST"
                                                 onsubmit="return confirmDelete(event, this)">
                                                 @csrf
@@ -208,6 +209,7 @@
                                                     <i class="bi bi-trash"></i>
                                                 </button>
                                             </form>
+                                            @endif
                                         </div>
                                     </td>
                                 </tr>

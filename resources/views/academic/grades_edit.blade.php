@@ -223,6 +223,7 @@
                                 onclick="openEdit({{ $g->grade_id }}, {{ $g->total_score ?? 0 }}, '{{ $g->grade }}')">
                                 <i class="bi bi-pencil"></i> แก้ไข
                             </button>
+                            @if(auth()->user()->isAdmin())
                             <form action="{{ route('grades.destroy', $g->grade_id) }}" method="POST"
                                   onsubmit="return confirm('ลบเกรดวิชา {{ addslashes($g->teachingAssign->subject->name_th ?? '') }}?')"
                                   style="display:inline">
@@ -231,6 +232,7 @@
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
+                            @endif
                         </div>
                     </td>
                 </tr>
