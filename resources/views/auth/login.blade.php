@@ -56,6 +56,7 @@
                     <i class="fas fa-graduation-cap text-black text-lg"></i>
                 </div>
                 <input type="text" name="school_name" id="schoolNameField" value="{{ $schoolName }}"
+                    placeholder="กรอกชื่อโรงเรียน"
                     class="input-bg w-full rounded-full py-4 pl-12 pr-12 text-black text-center focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-sm">
             </div>
 
