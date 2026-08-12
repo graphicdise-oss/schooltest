@@ -170,6 +170,21 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
+    Route::controller(\App\Http\Controllers\Student\BehaviorItemController::class)
+        ->prefix('behavior-items')->name('behavior-items.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::put('/{id}', 'update')->name('update');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+        });
+
+    Route::controller(\App\Http\Controllers\Student\BehaviorScoreController::class)
+        ->prefix('behavior-scores')->name('behavior-scores.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::post('/', 'store')->name('store');
+            Route::get('/{studentId}/history', 'history')->name('history');
+        });
+
     Route::controller(PersonnelTypeController::class)->prefix('personnel-types')->name('personnel-types.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('/', 'store')->name('store');
