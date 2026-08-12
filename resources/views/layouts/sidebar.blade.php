@@ -314,16 +314,13 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงานบุคลากร - อาจารย์</h4>
                                     <ul class="space-y-1.5 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานการมาทำงานใหม่</a>
-                                        </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('personnel-reports.staff-list') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายชื่อพนักงาน</a>
                                         </li>
                                         <li><a href="{{ route('leave.personnel.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานการลา</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('personnel-reports.training') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานการอบรม</a>
                                         </li>
                                     </ul>
