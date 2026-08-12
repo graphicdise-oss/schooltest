@@ -404,22 +404,6 @@
                                         @endif
                                     </ul>
                                 </div>
-                                <div class="mb-4">
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบตรวจข้อสอบ</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ระบบตรวจข้อสอบ</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                                <div class="mb-4">
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบสอบออนไลน์</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ระบบสอบออนไลน์</a>
-                                        </li>
-                                    </ul>
-                                </div>
 
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานวิชาการ</h4>
