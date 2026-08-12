@@ -56,8 +56,12 @@
                     <i class="fas fa-graduation-cap text-black text-lg"></i>
                 </div>
                 <input type="text" name="school_name" id="schoolNameField" value="{{ $schoolName }}"
-                    placeholder="กรอกชื่อโรงเรียน"
+                    placeholder="กรอกชื่อโรงเรียน" autocomplete="off"
                     class="input-bg w-full rounded-full py-4 pl-12 pr-12 text-black text-center focus:outline-none focus:ring-2 focus:ring-blue-400 font-medium text-sm">
+                <div id="schoolResults"
+                    class="hidden absolute left-0 right-0 mt-2 bg-white border border-gray-200 rounded-2xl shadow-lg overflow-hidden z-20"
+                    style="max-height: 220px; overflow-y: auto;">
+                </div>
             </div>
 
             <div class="relative">
@@ -120,6 +124,45 @@
             fitText();
             window.addEventListener('resize', fitText);
             field.addEventListener('input', fitText);
+
+            // ค้นหาโรงเรียนด้วย keyword — ตอนนี้มีโรงเรียนเดียว แต่โครงสร้างพร้อมรองรับหลายโรงเรียนในอนาคต
+            var schools = @json($schools ?? []);
+            var results = document.getElementById('schoolResults');
+
+            function renderResults(keyword) {
+                var kw = (keyword || '').trim().toLowerCase();
+                var matches = kw === '' ? schools : schools.filter(function (s) {
+                    return s.toLowerCase().indexOf(kw) !== -1;
+                });
+
+                results.innerHTML = '';
+                if (matches.length === 0) {
+                    var empty = document.createElement('div');
+                    empty.className = 'px-4 py-3 text-sm text-gray-400 text-center';
+                    empty.textContent = 'ไม่พบโรงเรียนที่ตรงกับคำค้นหา';
+                    results.appendChild(empty);
+                } else {
+                    matches.forEach(function (name) {
+                        var item = document.createElement('div');
+                        item.className = 'px-4 py-3 text-sm text-black text-center cursor-pointer hover:bg-blue-50';
+                        item.textContent = name;
+                        item.addEventListener('mousedown', function (e) {
+                            e.preventDefault();
+                            field.value = name;
+                            fitText();
+                            results.classList.add('hidden');
+                        });
+                        results.appendChild(item);
+                    });
+                }
+                results.classList.remove('hidden');
+            }
+
+            field.addEventListener('focus', function () { renderResults(field.value); });
+            field.addEventListener('input', function () { renderResults(field.value); });
+            field.addEventListener('blur', function () {
+                setTimeout(function () { results.classList.add('hidden'); }, 100);
+            });
         })();
     </script>
 

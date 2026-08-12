@@ -43,7 +43,9 @@ Route::view('/rp_overview', 'pege.rp_overview');
 Route::get('/login', function () {
     $schoolName = \App\Models\Academic\Pp2Setting::getInstance()->school_name
         ?: config('school.name');
-    return view('auth.login', compact('schoolName'));
+    // ตอนนี้มีโรงเรียนเดียว เตรียมเป็น array ไว้ก่อนเผื่ออนาคตรองรับหลายโรงเรียน (ค้นหา/เลือกจากรายการ)
+    $schools = [$schoolName];
+    return view('auth.login', compact('schoolName', 'schools'));
 })->name('login');
 Route::post('/login', [LoginController::class, 'login']);
 
