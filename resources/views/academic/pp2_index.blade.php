@@ -464,6 +464,20 @@
                             @endforeach
                         </select>
                     </div>
+                    <div class="col-md-6">
+                        <label class="form-label">ชื่อนายทะเบียน</label>
+                        <select name="registrar_name" class="form-select">
+                            <option value="">-- เลือกบุคลากร --</option>
+                            @foreach($registrars as $p)
+                                @php
+                                    $regFullName = ($p->thai_prefix ?? '') . ($p->thai_firstname ?? '') . ' ' . ($p->thai_lastname ?? '');
+                                @endphp
+                                <option value="{{ $regFullName }}" {{ $setting?->registrar_name === $regFullName ? 'selected' : '' }}>
+                                    {{ $regFullName }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="col-md-12">
                         <label class="form-label">สังกัด</label>
                         <input type="text" name="affiliation" class="form-control"

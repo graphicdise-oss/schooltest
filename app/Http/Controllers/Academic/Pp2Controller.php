@@ -83,6 +83,9 @@ class Pp2Controller extends Controller
         $directors = Personnel::where('position', 'ผู้อำนวยการโรงเรียน')
             ->orderBy('thai_firstname')
             ->get();
+        $registrars = Personnel::where('status', 'ปฏิบัติงาน')
+            ->orderBy('thai_firstname')
+            ->get();
 
         return view('academic.pp2_index', compact(
             'academicYears',
@@ -98,7 +101,8 @@ class Pp2Controller extends Controller
             'docs',
             'setting',
             'settings',
-            'directors'
+            'directors',
+            'registrars'
         ));
     }
 
@@ -109,13 +113,16 @@ class Pp2Controller extends Controller
             'province' => 'nullable|string|max:100',
             'affiliation' => 'nullable|string|max:255',
             'director_name' => 'nullable|string|max:100',
+            'registrar_name' => 'nullable|string|max:100',
         ]);
+
+        $fields = ['school_name', 'province', 'affiliation', 'director_name', 'registrar_name'];
 
         $setting = Pp2Setting::first();
         if ($setting) {
-            $setting->update($request->only(['school_name', 'province', 'affiliation', 'director_name']));
+            $setting->update($request->only($fields));
         } else {
-            Pp2Setting::create($request->only(['school_name', 'province', 'affiliation', 'director_name']));
+            Pp2Setting::create($request->only($fields));
         }
 
         return back()->with('success', 'บันทึกการตั้งค่าสำเร็จ');
