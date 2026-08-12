@@ -77,8 +77,12 @@ class PersonnelController extends Controller
     }
 
     // ===== หน้าแก้ไข (โหลดทุก Tab) =====
+    // หน้าเดียวกันนี้ใช้ทั้งแอดมินแก้ข้อมูลใครก็ได้ และผู้ใช้ทั่วไปแก้ข้อมูลตัวเอง (ปุ่ม "แก้ไขข้อมูลของฉัน")
+    // ผู้ใช้ทั่วไปจึงเข้าได้เฉพาะ id ของตัวเองเท่านั้น
     public function edit($id)
     {
+        $this->authorizeSelfOrAdmin($id);
+
         $personnel = Personnel::with([
             'addresses',
             'educations',
@@ -96,6 +100,8 @@ class PersonnelController extends Controller
     // ===== อัปเดตข้อมูลส่วนตัว + ที่อยู่ =====
     public function update(Request $request, $id)
     {
+        $this->authorizeSelfOrAdmin($id);
+
         $personnel = Personnel::where('personnel_id', $id)->firstOrFail();
 
         $request->validate([
@@ -108,6 +114,14 @@ class PersonnelController extends Controller
         foreach ($data as $key => $value) {
             if (!is_array($value))
                 $personnelData[$key] = $value;
+        }
+
+        // แก้ตัวเอง (ไม่ใช่แอดมิน) ห้ามแตะฟิลด์ที่ควบคุมสิทธิ์/สถานะการจ้างงาน
+        // แม้ฟอร์มจะไม่ได้โชว์บางฟิลด์ แต่กันไว้เผื่อมีคน POST ค่าเข้ามาตรงๆ
+        if (!Auth::user()->isAdmin()) {
+            foreach (['employee_code', 'role', 'department', 'position', 'personnel_type', 'status'] as $lockedField) {
+                unset($personnelData[$lockedField]);
+            }
         }
 
         if ($request->hasFile('personnel_image')) {
@@ -532,6 +546,14 @@ class PersonnelController extends Controller
         @unlink($fullPath);
 
         return back()->with('import_output', $output);
+    }
+
+    // แอดมินแก้ของใครก็ได้ ผู้ใช้ทั่วไปแก้ได้เฉพาะ id ของตัวเอง
+    private function authorizeSelfOrAdmin($id): void
+    {
+        if (!Auth::user()->isAdmin() && (int) $id !== (int) Auth::id()) {
+            abort(403, 'คุณไม่มีสิทธิ์แก้ไขข้อมูลของผู้อื่น');
+        }
     }
 }
 

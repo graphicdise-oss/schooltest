@@ -116,6 +116,10 @@
             </h3>
             <p class="text-[10px] opacity-80 w-full text-center px-3"
                style="word-break: break-word; overflow-wrap: anywhere;">{{ Auth::user()->email }}</p>
+            <a href="{{ route('personnels.edit', Auth::id()) }}"
+                class="mt-2 inline-flex items-center gap-1 text-[11px] font-semibold text-white bg-white/15 hover:bg-white/25 border border-white/30 rounded-full px-3 py-1 transition-colors">
+                <i class="fa-solid fa-pen text-[10px]"></i> แก้ไขข้อมูลของฉัน
+            </a>
         </div>
 
         {{-- เมนูหลัก --}}

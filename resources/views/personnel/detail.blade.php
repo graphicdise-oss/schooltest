@@ -201,6 +201,7 @@
                 <div class="pn-card-header"><i class="bi bi-person-lines-fill"></i> ประวัติส่วนตัว</div>
                 <div class="pn-card-body">
                     <div class="pn-grid-3">
+                        @if(auth()->user()->isAdmin())
                         <div class="pn-field">
                             <label>ประเภทบุคลากร</label>
                             <select name="personnel_type" class="pn-select">
@@ -210,7 +211,7 @@
                                 @endforeach
                             </select>
                         </div>
-                        
+
                         <div class="pn-field"><label>รหัสพนักงาน</label><input type="text" name="employee_code" class="pn-input" value="{{ old('employee_code', $personnel->employee_code ?? '') }}"></div>
                      <div class="pn-field">
                         <label>ตำแหน่ง</label>
@@ -238,8 +239,8 @@
                                     @endforeach
                                 </select>
                             </div>
-                        
-                        
+                        @endif
+
                             <div class="pn-field">
                                 <label>เพศ</label>
                                 <select name="gender" class="pn-select">
@@ -290,10 +291,60 @@
                     
                     {{-- เพิ่มปุ่มบันทึกท้ายการ์ดประวัติส่วนตัว --}}
                     <div class="pn-save-wrap mt-4" style="text-align: right;">
+                        @if(isset($personnel) && $personnel->personnel_id == Auth::id())
+                        <button type="button" class="pn-btn-save" style="background:#fff;color:#5482e7;border:1.5px solid #5482e7;"
+                            onclick="document.getElementById('pwOverlay').classList.add('active')">
+                            <i class="bi bi-key"></i> เปลี่ยนรหัสผ่าน
+                        </button>
+                        @endif
                         <button type="submit" class="pn-btn-save"><i class="bi bi-check-lg"></i> บันทึกข้อมูลประวัติส่วนตัว</button>
                     </div>
                 </div>
             </div>
+
+            @if(isset($personnel) && $personnel->personnel_id == Auth::id())
+            <div class="pf-overlay" id="pwOverlay" onclick="if(event.target===this)this.classList.remove('active')"
+                style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.45); z-index:9999; justify-content:center; align-items:center;">
+                <div onclick="event.stopPropagation()" style="background:#fff; border-radius:14px; width:400px; max-width:94vw; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#5482e7,#6a9bf0); color:#fff; padding:18px 24px; font-size:1rem; font-weight:700;">
+                        <i class="bi bi-key me-2"></i> เปลี่ยนรหัสผ่าน
+                    </div>
+                    <form method="POST" action="{{ route('profile.password') }}" style="padding:24px;">
+                        @csrf
+                        @method('PUT')
+                        <label style="font-size:0.82rem;font-weight:600;color:#555;margin-bottom:4px;display:block;">รหัสผ่านเดิม <span style="color:red">*</span></label>
+                        <input type="password" name="current_password" required autocomplete="current-password"
+                            style="width:100%;height:40px;border:1.5px solid #e0e0e0;border-radius:10px;padding:0 14px;font-size:0.85rem;box-sizing:border-box;margin-bottom:14px;">
+
+                        <label style="font-size:0.82rem;font-weight:600;color:#555;margin-bottom:4px;display:block;">รหัสผ่านใหม่ <span style="color:red">*</span></label>
+                        <input type="password" name="new_password" required minlength="6" autocomplete="new-password"
+                            style="width:100%;height:40px;border:1.5px solid #e0e0e0;border-radius:10px;padding:0 14px;font-size:0.85rem;box-sizing:border-box;margin-bottom:14px;">
+
+                        <label style="font-size:0.82rem;font-weight:600;color:#555;margin-bottom:4px;display:block;">ยืนยันรหัสผ่านใหม่ <span style="color:red">*</span></label>
+                        <input type="password" name="new_password_confirmation" required minlength="6" autocomplete="new-password"
+                            style="width:100%;height:40px;border:1.5px solid #e0e0e0;border-radius:10px;padding:0 14px;font-size:0.85rem;box-sizing:border-box;margin-bottom:14px;">
+
+                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+                            <button type="button" onclick="document.getElementById('pwOverlay').classList.remove('active')"
+                                style="background:#f5f5f5;color:#666;border:none;border-radius:8px;padding:9px 22px;font-size:0.85rem;font-weight:600;cursor:pointer;">ยกเลิก</button>
+                            <button type="submit"
+                                style="background:#5482e7;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                                <i class="bi bi-check-lg me-1"></i> บันทึก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <style>.pf-overlay.active { display: flex !important; }</style>
+            <script>
+            document.addEventListener('keydown', e => {
+                if (e.key === 'Escape') document.querySelectorAll('.pf-overlay.active').forEach(el => el.classList.remove('active'));
+            });
+            @if($errors->has('current_password') || $errors->has('new_password'))
+            document.getElementById('pwOverlay').classList.add('active');
+            @endif
+            </script>
+            @endif
 
             {{-- 2. ที่อยู่ตามทะเบียนบ้าน --}}
             @php $regAddr = isset($personnel) ? $personnel->addresses->where('address_type', 'registered')->first() : null; @endphp
