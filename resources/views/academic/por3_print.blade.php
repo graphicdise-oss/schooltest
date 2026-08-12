@@ -15,7 +15,6 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     background: #fff;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
 /* Header */
@@ -24,7 +23,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .doc-header td { padding: 0 3px; font-size: 12.5px; }
 
 /* Main table — flex-grow to fill remaining height */
-.table-wrap { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.table-wrap { flex: 1; display: flex; flex-direction: column; }
 .main-table {
     width: 100%; border-collapse: collapse; font-size: 11px;
     margin-top: 4px; table-layout: fixed;
@@ -76,7 +75,6 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
         width: 297mm; height: 210mm;
         padding: 6mm 8mm;
         page-break-after: always;
-        page-break-inside: avoid;
     }
     .page:last-child { page-break-after: avoid; }
     .no-print { display: none !important; }
@@ -104,10 +102,36 @@ $formatBirthDay = function($date) use ($thaiMonths) {
 };
 
 // แบ่งหน้า แล้วแพดแต่ละหน้าให้ครบ ROWS_PER_PAGE
+// หน้าสุดท้ายมี footer (สรุปจำนวน + ลงชื่อ) กินพื้นที่เพิ่ม จึงต้องเว้นแถวไว้ให้น้อยกว่าหน้าอื่น
+// ไม่งั้นตารางจะสูงเกินพื้นที่ที่เหลือและแถวสุดท้ายจะถูกบังโดย overflow ของตาราง
+$ROWS_ON_FOOTER_PAGE = 16;
+
 $rawChunks = $studentSections->chunk($ROWS_PER_PAGE)->values();
-$pages = $rawChunks->map(function($chunk) use ($ROWS_PER_PAGE) {
+
+if ($rawChunks->isNotEmpty()) {
+    $lastIdx = $rawChunks->count() - 1;
+    $lastChunk = $rawChunks[$lastIdx]->values();
+    if ($lastChunk->count() > $ROWS_ON_FOOTER_PAGE) {
+        $rawChunks->put($lastIdx, $lastChunk->slice(0, $ROWS_ON_FOOTER_PAGE)->values());
+        $rawChunks->push($lastChunk->slice($ROWS_ON_FOOTER_PAGE)->values());
+    }
+}
+
+// เลขลำดับของแต่ละหน้าต้องต่อจากจำนวนนักเรียนจริงในหน้าก่อน ๆ (ไม่ใช่คูณ ROWS_PER_PAGE ตรง ๆ)
+// เพราะหน้าสุดท้ายอาจมีจำนวนแถวไม่เท่าหน้าอื่น
+$startNums = [];
+$running = 0;
+foreach ($rawChunks as $idx => $chunk) {
+    $startNums[$idx] = $running;
+    $running += $chunk->count();
+}
+
+$pageCount = $rawChunks->count();
+$pages = $rawChunks->map(function($chunk, $idx) use ($pageCount, $ROWS_PER_PAGE, $ROWS_ON_FOOTER_PAGE) {
+    $isLastPage = $idx === $pageCount - 1;
+    $target = $isLastPage ? $ROWS_ON_FOOTER_PAGE : $ROWS_PER_PAGE;
     $arr = $chunk->values()->all();
-    while (count($arr) < $ROWS_PER_PAGE) {
+    while (count($arr) < $target) {
         $arr[] = null; // empty row
     }
     return $arr;
@@ -197,7 +221,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 $motherName = $mother ? trim(($mother->prefix_th ?? '').' '.($mother->first_name_th ?? '').' '.($mother->last_name_th ?? '')) : '';
 
                 [$birthDayMonth, $birthYear] = $formatBirthDay($stu?->date_of_birth);
-                $rowNum = ($pageIdx * $ROWS_PER_PAGE) + $i + 1;
+                $rowNum = $startNums[$pageIdx] + $i + 1;
             @endphp
             <tr class="row-top">
                 <td rowspan="2" style="font-size:12px;font-weight:600;">{{ $rowNum }}</td>
