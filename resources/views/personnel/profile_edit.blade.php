@@ -42,13 +42,44 @@
     }
     .pf-input:focus, .pf-select:focus { border-color: #5482e7; box-shadow: 0 0 0 3px rgba(84,130,231,0.12); }
 
-    .pf-actions { margin-top: 28px; display: flex; justify-content: flex-end; }
+    .pf-actions { margin-top: 28px; display: flex; justify-content: flex-end; gap: 10px; }
     .btn-pf-save {
         background: #5482e7; color: #fff; border: none; border-radius: 6px;
         padding: 10px 32px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
         font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
     }
     .btn-pf-save:hover { background: #446bca; }
+    .btn-pf-password {
+        background: #fff; color: #5482e7; border: 1.5px solid #5482e7; border-radius: 6px;
+        padding: 10px 24px; font-size: 0.9rem; font-weight: 600; cursor: pointer;
+        font-family: inherit; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn-pf-password:hover { background: #eef3ff; }
+
+    /* Modal เปลี่ยนรหัสผ่าน */
+    .pf-overlay {
+        display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.45); z-index: 9999;
+        justify-content: center; align-items: center;
+    }
+    .pf-overlay.active { display: flex; }
+    .pf-modal {
+        background: #fff; border-radius: 14px; width: 400px; max-width: 94vw;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2); overflow: hidden;
+    }
+    .pf-modal-header { background: linear-gradient(135deg, #5482e7, #6a9bf0); color: #fff; padding: 18px 24px; font-size: 1rem; font-weight: 700; }
+    .pf-modal-body { padding: 24px; }
+    .pf-modal-body label { font-size: 0.82rem; font-weight: 600; color: #555; margin-bottom: 4px; display: block; }
+    .pf-modal-body input {
+        width: 100%; height: 40px; border: 1.5px solid #e0e0e0; border-radius: 10px;
+        padding: 0 14px; font-size: 0.85rem; font-family: inherit; outline: none;
+        box-sizing: border-box; margin-bottom: 14px;
+    }
+    .pf-modal-body input:focus { border-color: #5482e7; box-shadow: 0 0 0 3px rgba(84,130,231,0.12); }
+    .pf-modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid #f0f0f0; }
+    .btn-modal-cancel { background: #f5f5f5; color: #666; border: none; border-radius: 8px; padding: 9px 22px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-modal-save { background: #5482e7; color: #fff; border: none; border-radius: 8px; padding: 9px 22px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .btn-modal-save:hover { background: #446bca; }
 </style>
 @endpush
 
@@ -151,9 +182,47 @@
             </div>
 
             <div class="pf-actions">
+                <button type="button" class="btn-pf-password" onclick="document.getElementById('pwOverlay').classList.add('active')">
+                    <i class="bi bi-key"></i> เปลี่ยนรหัสผ่าน
+                </button>
                 <button type="submit" class="btn-pf-save"><i class="bi bi-check-lg"></i> บันทึกข้อมูล</button>
             </div>
         </form>
     </div>
 </div>
+
+{{-- Modal เปลี่ยนรหัสผ่าน --}}
+<div class="pf-overlay" id="pwOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="pf-modal" onclick="event.stopPropagation()">
+        <div class="pf-modal-header"><i class="bi bi-key me-2"></i> เปลี่ยนรหัสผ่าน</div>
+        <form method="POST" action="{{ route('profile.password') }}">
+            @csrf
+            @method('PUT')
+            <div class="pf-modal-body">
+                <label>รหัสผ่านเดิม <span style="color:red">*</span></label>
+                <input type="password" name="current_password" required autocomplete="current-password">
+
+                <label>รหัสผ่านใหม่ <span style="color:red">*</span></label>
+                <input type="password" name="new_password" required minlength="6" autocomplete="new-password">
+
+                <label>ยืนยันรหัสผ่านใหม่ <span style="color:red">*</span></label>
+                <input type="password" name="new_password_confirmation" required minlength="6" autocomplete="new-password">
+            </div>
+            <div class="pf-modal-footer">
+                <button type="button" class="btn-modal-cancel"
+                    onclick="document.getElementById('pwOverlay').classList.remove('active')">ยกเลิก</button>
+                <button type="submit" class="btn-modal-save"><i class="bi bi-check-lg me-1"></i> บันทึก</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') document.querySelectorAll('.pf-overlay.active').forEach(el => el.classList.remove('active'));
+});
+@if($errors->has('current_password') || $errors->has('new_password'))
+document.getElementById('pwOverlay').classList.add('active');
+@endif
+</script>
 @endsection

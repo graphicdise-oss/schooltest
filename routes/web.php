@@ -81,6 +81,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::controller(\App\Http\Controllers\ProfileController::class)->prefix('profile')->name('profile.')->group(function () {
         Route::get('/', 'edit')->name('edit');
         Route::put('/', 'update')->name('update');
+        Route::put('/password', 'updatePassword')->name('password');
     });
 
     // === หน้ารายการนักเรียน (ตาราง/ค้นหา/ลบ) ===

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
 // หน้าแก้ไขข้อมูลส่วนตัวของผู้ใช้เอง (ทุก role) — ต่างจาก personnels.edit ที่เป็นเครื่องมือของแอดมิน
@@ -53,5 +54,23 @@ class ProfileController extends Controller
         $personnel->update($data);
 
         return redirect()->route('profile.edit')->with('success', 'บันทึกข้อมูลส่วนตัวสำเร็จ');
+    }
+
+    public function updatePassword(Request $request)
+    {
+        $personnel = Personnel::findOrFail(Auth::id());
+
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password' => 'required|string|min:6|confirmed',
+        ]);
+
+        if (!Hash::check($request->current_password, $personnel->password)) {
+            return back()->withErrors(['current_password' => 'รหัสผ่านเดิมไม่ถูกต้อง'])->withInput();
+        }
+
+        $personnel->update(['password' => Hash::make($request->new_password)]);
+
+        return redirect()->route('profile.edit')->with('success', 'เปลี่ยนรหัสผ่านสำเร็จ');
     }
 }
