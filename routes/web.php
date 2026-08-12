@@ -77,12 +77,8 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])
         ->name('dashboard');
 
-    // แก้ไขข้อมูลส่วนตัว (ทุก role แก้ได้เฉพาะของตัวเอง)
-    Route::controller(\App\Http\Controllers\ProfileController::class)->prefix('profile')->name('profile.')->group(function () {
-        Route::get('/', 'edit')->name('edit');
-        Route::put('/', 'update')->name('update');
-        Route::put('/password', 'updatePassword')->name('password');
-    });
+    // เปลี่ยนรหัสผ่านของตัวเอง (ทุก role)
+    Route::put('/profile/password', [\App\Http\Controllers\ProfileController::class, 'updatePassword'])->name('profile.password');
 
     // === หน้ารายการนักเรียน (ตาราง/ค้นหา/ลบ) ===
     Route::controller(StudentListController::class)->group(function () {
