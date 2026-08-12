@@ -491,6 +491,17 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
     Route::get('/class-roster', [ClassRosterController::class, 'index'])->name('class-roster.index');
 
+    // === บันทึกการเยี่ยมบ้าน ===
+    Route::controller(\App\Http\Controllers\Student\HomeVisitController::class)
+        ->prefix('home-visits')->name('home-visits.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/search', 'search')->name('search');
+            Route::post('/', 'store')->name('store');
+            Route::delete('/{id}', 'destroy')->name('destroy');
+            Route::get('/status-summary', 'statusSummary')->name('status-summary');
+            Route::get('/results-summary', 'resultsSummary')->name('results-summary');
+        });
+
     // === ข้อมูลการลา ===
     Route::prefix('leave')->name('leave.')->group(function () {
         Route::get('/personnel', [LeavePersonnelController::class, 'index'])->name('personnel.index');

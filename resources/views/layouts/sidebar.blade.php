@@ -574,13 +574,13 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">บันทึกการเยี่ยมบ้าน</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
+                                        <li><a href="{{ route('home-visits.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกการเยี่ยมบ้านรายบุคคล</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('home-visits.status-summary') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปสถานะการเยี่ยมบ้าน</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('home-visits.results-summary') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปผลการเยี่ยมบ้าน</a>
                                         </li>
                                     </ul>

@@ -53,4 +53,9 @@ class Student extends Model implements Authenticatable
     {
         return $this->hasOne(StudentHealth::class, 'student_id', 'student_id');
     }
+
+    public function homeVisits()
+    {
+        return $this->hasMany(HomeVisit::class, 'student_id', 'student_id');
+    }
 }
