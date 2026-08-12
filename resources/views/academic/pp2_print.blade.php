@@ -327,6 +327,7 @@
         $province = $settings?->province ?? '';
         $affiliation = $settings?->affiliation ?? '';
         $directorName = $settings?->director_name ?? '';
+        $registrarName = $settings?->registrar_name ?? '';
     @endphp
 
     <div class="no-print-me" style="position:fixed;top:10%;right:10px;">
@@ -502,6 +503,18 @@
                         style="display:inline-block; margin:-6pt 0 2pt 0; width:auto; height:17pt; vertical-align:top; text-align:center; padding:0 10px;">
                         <span class="font-tfarluck-data font-size-14em-data input-data"
                             style="text-align:center;height:100%;"></span>
+                    </p>
+                    <span class="font-size-14em spn-label">)</span>
+                </div>
+            </div>
+
+            <div class="row custom-section">
+                <div class="col-6" style="height:23pt;"></div>
+                <div class="col-6 text-left">
+                    <span class="font-size-14em spn-label">(</span>
+                    <p style="display:inline-block; margin:-6pt 0 2pt 0; width:47%; height:17pt; vertical-align:top;">
+                        <span class="font-tfarluck-data font-size-14em-data input-data"
+                            style="width:100%;height:100%;text-align:center;">{{ $registrarName }}</span>
                     </p>
                     <span class="font-size-14em spn-label">)</span>
                 </div>
