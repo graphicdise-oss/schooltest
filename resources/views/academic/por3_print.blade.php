@@ -5,7 +5,7 @@
 <title>ปพ.3 - {{ $section->full_name }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 14px; background: #fff; }
+body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarabun', sans-serif; font-weight: bold; font-size: 14px; background: #fff; }
 
 .page {
     width: 297mm;
