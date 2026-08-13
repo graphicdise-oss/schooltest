@@ -5,7 +5,7 @@
 <title>ปพ.3 - {{ $section->full_name }}</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
-body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarabun', sans-serif; font-weight: bold; font-size: 15px; background: #fff; }
+body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarabun', sans-serif; font-weight: bold; font-size: 16px; background: #fff; }
 
 .page {
     width: 297mm;
@@ -30,12 +30,12 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 /* Header */
 .doc-header { margin-bottom: 3px; flex-shrink: 0; }
 .doc-header table { width: 100%; border-collapse: collapse; }
-.doc-header td { padding: 0 3px; font-size: 14.5px; }
+.doc-header td { padding: 0 3px; font-size: 18px; }
 
 /* Main table — flex-grow to fill remaining height */
 .table-wrap { display: flex; flex-direction: column; }
 .main-table {
-    width: 100%; border-collapse: collapse; font-size: 13px;
+    width: 100%; border-collapse: collapse; font-size: 16px;
     margin-top: 4px; table-layout: fixed;
 }
 .main-table th, .main-table td {
@@ -45,7 +45,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
     text-align: center;
     overflow: hidden;
 }
-.main-table thead th { background: #fff; font-size: 11.5px; font-weight: 700; line-height: 1; }
+.main-table thead th { background: #fff; font-size: 18px; font-weight: 700; line-height: 1; }
 
 .main-table td.left { text-align: left; }
 .main-table tbody tr { height: 14px; max-height: 14px; }
@@ -78,7 +78,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 
 /* Footer */
 .footer { flex-shrink: 0; margin-top: 5px; }
-.count-table { border-collapse: collapse; font-size: 13.5px; }
+.count-table { border-collapse: collapse; font-size: 16px; }
 .count-table th, .count-table td {
     border: 0.5px solid #333; padding: 2px 10px; text-align: center;
 }
@@ -102,8 +102,8 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 // พิมพ์แบบสองหน้า (duplex): หน้าคี่ = ด้านหน้าแผ่น (หัวเต็ม + ท้ายกระดาษ, จุได้ 10 แถว)
 //                            หน้าคู่ = ด้านหลังแผ่น (หัวย่อ ไม่มีท้ายกระดาษ, จุได้ 14 แถว)
 // ตามฟอร์มทางการ ปพ.3 หน้าแรกของแต่ละแผ่นกระดาษต้องมีหัวโรงเรียน+ลงนามครบ ส่วนหน้าหลังมีแค่หัวย่อ
-$FRONT_ROWS = 10;
-$BACK_ROWS  = 14;
+$FRONT_ROWS = 6;
+$BACK_ROWS  = 10;
 
 $yearName  = $section->semester->academicYear->year_name ?? '';
 $termName  = $section->semester->semester_name ?? '';
@@ -177,10 +177,10 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
         <table>
             <tr>
                 <td>สำเร็จการศึกษาภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong> &nbsp; โรงเรียน <strong>{{ $school['name'] ?? '' }}</strong></td>
-                <td style="text-align:right;white-space:nowrap;font-size:14px;">หน้า {{ $pageIdx + 1 }}</td>
+                <td style="text-align:right;white-space:nowrap;font-size:18px;">หน้า {{ $pageIdx + 1 }}</td>
             </tr>
             <tr>
-                <td colspan="2" style="font-size:14px;">
+                <td colspan="2" style="font-size:18px;">
                     ตำบล/แขวง <strong>{{ $school['tambon'] ?? '' }}</strong>
                     &nbsp; อำเภอ/เขต <strong>{{ $school['amphoe'] ?? '' }}</strong>
                     &nbsp; จังหวัด <strong>{{ $school['changwat'] ?? '' }}</strong>
@@ -194,7 +194,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
         <table>
             <tr>
                 <td>แบบรายงานผู้สำเร็จการศึกษา ภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong></td>
-                <td style="text-align:right;white-space:nowrap;font-size:14px;">หน้า {{ $pageIdx + 1 }}</td>
+                <td style="text-align:right;white-space:nowrap;font-size:18px;">หน้า {{ $pageIdx + 1 }}</td>
             </tr>
         </table>
     </div>
@@ -219,8 +219,8 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <th rowspan="2" style="width:38px;">หมาย<br>เหตุ</th>
             </tr>
             <tr>
-                <th class="th-bot" style="font-size:10.5px;">เลขประจำตัวประชาชน</th>
-                <th class="th-bot" style="font-size:10.5px;">เลขที่ ปพ.1:พ</th>
+                <th class="th-bot" style="font-size:18px;">เลขประจำตัวประชาชน</th>
+                <th class="th-bot" style="font-size:18px;">เลขที่ ปพ.1:พ</th>
                 <th class="th-bot">ชื่อสกุลนักเรียน</th>
                 <th class="th-bot">ปีเกิด</th>
                 <th class="th-bot">ชื่อ-ชื่อสกุลมารดา</th>
@@ -248,25 +248,25 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 $rowNum = $page['startNum'] + $i + 1;
             @endphp
             <tr class="row-top">
-                <td rowspan="2" style="font-size:14px;font-weight:600;">{{ $rowNum }}</td>
-                <td style="font-size:13px;">{{ $stu?->student_code }}</td>
-                <td style="font-size:13px;">{{ $doc?->doc_set ?? '' }}</td>
-                <td rowspan="2" style="font-size:14px;font-weight:600;">{{ $rowNum }}</td>
-                <td style="font-size:13px;">{{ $stu?->thai_prefix }}{{ $stu?->thai_firstname }}</td>
-                <td style="font-size:13px;">{{ $birthDayMonth }}</td>
-                <td style="font-size:13px;">{{ $fatherName }}</td>
-                <td rowspan="2" style="font-size:13px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:12px;">{{ $gpa }}</span></td>
+                <td rowspan="2" style="font-size:16px;font-weight:600;">{{ $rowNum }}</td>
+                <td style="font-size:16px;">{{ $stu?->student_code }}</td>
+                <td style="font-size:16px;">{{ $doc?->doc_set ?? '' }}</td>
+                <td rowspan="2" style="font-size:16px;font-weight:600;">{{ $rowNum }}</td>
+                <td style="font-size:16px;">{{ $stu?->thai_prefix }}{{ $stu?->thai_firstname }}</td>
+                <td style="font-size:16px;">{{ $birthDayMonth }}</td>
+                <td style="font-size:16px;">{{ $fatherName }}</td>
+                <td rowspan="2" style="font-size:16px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:16px;">{{ $gpa }}</span></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td></td>
             </tr>
             <tr class="row-bot">
-                <td style="font-size:12px;color:#555;border-top:0.5px dotted #999;">{{ $stu?->id_card_number }}</td>
-                <td style="font-size:12px;">{{ $doc?->doc_number ?? '' }}@if($pp2?->doc_number) / {{ $pp2->doc_number }}@endif</td>
-                <td style="font-size:13px;">{{ $stu?->thai_lastname }}</td>
-                <td style="font-size:13px;">{{ $birthYear }}</td>
-                <td style="font-size:13px;">{{ $motherName }}</td>
+                <td style="font-size:16px;color:#555;border-top:0.5px dotted #999;">{{ $stu?->id_card_number }}</td>
+                <td style="font-size:16px;">{{ $doc?->doc_number ?? '' }}@if($pp2?->doc_number) / {{ $pp2->doc_number }}@endif</td>
+                <td style="font-size:16px;">{{ $stu?->thai_lastname }}</td>
+                <td style="font-size:16px;">{{ $birthYear }}</td>
+                <td style="font-size:16px;">{{ $motherName }}</td>
                 <td></td>
             </tr>
             @else
@@ -290,7 +290,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     <div class="footer">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
             <div>
-                <div style="font-size:13.5px;font-weight:700;margin-bottom:3px;">จำนวนผู้สำเร็จการศึกษา</div>
+                <div style="font-size:16px;font-weight:700;margin-bottom:3px;">จำนวนผู้สำเร็จการศึกษา</div>
                 <table class="count-table">
                     <tr><th>ชาย</th><th>หญิง</th><th>รวม</th></tr>
                     <tr>
@@ -300,19 +300,19 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                     </tr>
                 </table>
             </div>
-            <div style="flex:1;font-size:13.5px;">
+            <div style="flex:1;font-size:16px;">
                 <div style="margin-bottom:4px;"><span style="display:inline-block;border-bottom:0.5px solid #333;min-width:190px;">&nbsp;</span>ผู้เขียน/ผู้พิมพ์</div>
                 <div style="margin-bottom:4px;"><span style="display:inline-block;border-bottom:0.5px solid #333;min-width:190px;">&nbsp;</span>ผู้ทาน</div>
                 <div style="margin-bottom:4px;"><span style="display:inline-block;border-bottom:0.5px solid #333;min-width:190px;">&nbsp;</span>ผู้ตรวจ</div>
                 <div><span style="display:inline-block;border-bottom:0.5px solid #333;min-width:190px;">&nbsp;</span>นายทะเบียน</div>
             </div>
-            <div style="text-align:center;font-size:13.5px;min-width:190px;">
+            <div style="text-align:center;font-size:16px;min-width:190px;">
                 <div style="font-weight:700;margin-bottom:4px;">อนุมัติการจบหลักสูตร</div>
                 <div style="margin-bottom:2px;">(
                     <span style="border-bottom:0.5px solid #333;min-width:150px;display:inline-block;padding:0 6px;">{{ $approverName }}</span>
                 )</div>
-                <div style="font-size:12.5px;">{{ $approverPos }}</div>
-                <div style="margin-top:4px;font-size:12.5px;">วันที่ <span style="border-bottom:0.5px solid #333;min-width:110px;display:inline-block;">{{ $approveDateFormatted }}</span></div>
+                <div style="font-size:16px;">{{ $approverPos }}</div>
+                <div style="margin-top:4px;font-size:16px;">วันที่ <span style="border-bottom:0.5px solid #333;min-width:110px;display:inline-block;">{{ $approveDateFormatted }}</span></div>
             </div>
         </div>
     </div>
