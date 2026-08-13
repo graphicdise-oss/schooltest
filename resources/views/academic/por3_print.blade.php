@@ -206,11 +206,11 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
         <thead>
             <tr>
                 <th rowspan="2" style="width:26px;">ลำดับ<br>ที่</th>
-                <th class="th-top" style="width:68px;">เลขประจำตัวนักเรียน</th>
-                <th class="th-top" style="width:48px;">ชุดที่ ปพ.1:พ</th>
+                <th class="th-top" style="width:78px;">เลขประจำตัวนักเรียน</th>
+                <th class="th-top" style="width:32px;">ชุดที่ ปพ.1:พ</th>
                 <th rowspan="2" style="width:22px;">เลขที่<br>ปพ.2:พ</th>
                 <th class="th-top" style="width:90px;">ชื่อนักเรียน</th>
-                <th class="th-top" style="width:58px;">วัน เดือน</th>
+                <th class="th-top" style="width:64px;">วัน เดือน</th>
                 <th class="th-top" style="width:108px;">ชื่อ-ชื่อสกุลบิดา</th>
                 <th class="th-top" style="width:54px;">จำนวนหน่วยกิต<br>รายวิชาที่เรียน/ที่ได้</th>
                 <th rowspan="2" style="width:46px;">ผลการประเมิน<br>การอ่าน<br>คิดวิเคราะห์<br>และเขียน</th>
