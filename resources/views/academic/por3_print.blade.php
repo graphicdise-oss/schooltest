@@ -23,7 +23,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .doc-header td { padding: 0 3px; font-size: 12.5px; }
 
 /* Main table — flex-grow to fill remaining height */
-.table-wrap { flex: 1; display: flex; flex-direction: column; }
+.table-wrap { display: flex; flex-direction: column; }
 .main-table {
     width: 100%; border-collapse: collapse; font-size: 11px;
     margin-top: 4px; table-layout: fixed;
