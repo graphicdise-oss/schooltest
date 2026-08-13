@@ -11,10 +11,20 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     width: 297mm;
     height: 210mm;
     margin: 0 auto;
-    padding: 6mm 3mm 2mm;
     background: #fff;
+    position: relative;
+    overflow: hidden;
+}
+/* ย่อเนื้อหาทั้งหน้าลงเหลือ 92% แล้วจัดกึ่งกลาง แทนการเว้น padding แต่ละด้านเอง
+   วิธีนี้ทำให้ระยะห่างจากขอบกระดาษเท่ากันทุกด้านโดยอัตโนมัติ ปรับแค่ตัวเลขเดียว (scale) ก็พอ */
+.page-inner {
+    width: 100%;
+    height: 100%;
+    padding: 3mm;
     display: flex;
     flex-direction: column;
+    transform: scale(0.92);
+    transform-origin: center center;
 }
 
 /* Header */
@@ -79,7 +89,6 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .page {
         width: 297mm; height: 210mm;
-        padding: 6mm 3mm 2mm;
         page-break-after: always;
     }
     .page:last-child { page-break-after: avoid; }
@@ -160,6 +169,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
 
 @foreach($pages as $pageIdx => $page)
 <div class="page">
+<div class="page-inner">
 
     {{-- หัวเอกสาร: หน้าหน้า (คี่) = หัวเต็ม, หน้าหลัง (คู่) = หัวย่อ --}}
     @if($page['type'] === 'front')
@@ -308,6 +318,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     </div>
     @endif
 
+</div>
 </div>
 @endforeach
 
