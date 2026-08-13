@@ -74,7 +74,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 }
 .count-table th { font-weight: 700; }
 
-@page { size: A4 landscape; margin: 0; }
+@page { size: 297mm 210mm; margin: 0; }
 @media print {
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .page {
