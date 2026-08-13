@@ -84,11 +84,14 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 <body>
 
 @php
-$ROWS_PER_PAGE = 20;
+// พิมพ์แบบสองหน้า (duplex): หน้าคี่ = ด้านหน้าแผ่น (หัวเต็ม + ท้ายกระดาษ, จุได้ 10 แถว)
+//                            หน้าคู่ = ด้านหลังแผ่น (หัวย่อ ไม่มีท้ายกระดาษ, จุได้ 14 แถว)
+// ตามฟอร์มทางการ ปพ.3 หน้าแรกของแต่ละแผ่นกระดาษต้องมีหัวโรงเรียน+ลงนามครบ ส่วนหน้าหลังมีแค่หัวย่อ
+$FRONT_ROWS = 10;
+$BACK_ROWS  = 14;
 
 $yearName  = $section->semester->academicYear->year_name ?? '';
 $termName  = $section->semester->semester_name ?? '';
-$sectionFullName = $section->full_name;
 $school    = $school ?? config('school');
 
 $thaiMonths = ['','มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
@@ -101,40 +104,37 @@ $formatBirthDay = function($date) use ($thaiMonths) {
     } catch (\Exception $e) { return ['', '']; }
 };
 
-// แบ่งหน้า แล้วแพดแต่ละหน้าให้ครบ ROWS_PER_PAGE
-// หน้าสุดท้ายมี footer (สรุปจำนวน + ลงชื่อ) กินพื้นที่เพิ่ม จึงต้องเว้นแถวไว้ให้น้อยกว่าหน้าอื่น
-// ไม่งั้นตารางจะสูงเกินพื้นที่ที่เหลือและแถวสุดท้ายจะถูกบังโดย overflow ของตาราง
-$ROWS_ON_FOOTER_PAGE = 16;
+// จัดนักเรียนลงหน้าหน้า-หน้าหลังสลับกันไปเรื่อย ๆ จนหมด
+$allRows = $studentSections->values();
+$total = $allRows->count();
 
-$rawChunks = $studentSections->chunk($ROWS_PER_PAGE)->values();
+$pages = collect();
+$offset = 0;
+while ($offset < $total) {
+    $take = min($FRONT_ROWS, $total - $offset);
+    $pages->push(['type' => 'front', 'rows' => $allRows->slice($offset, $take)->values(), 'startNum' => $offset]);
+    $offset += $take;
 
-if ($rawChunks->isNotEmpty()) {
-    $lastIdx = $rawChunks->count() - 1;
-    $lastChunk = $rawChunks[$lastIdx]->values();
-    if ($lastChunk->count() > $ROWS_ON_FOOTER_PAGE) {
-        $rawChunks->put($lastIdx, $lastChunk->slice(0, $ROWS_ON_FOOTER_PAGE)->values());
-        $rawChunks->push($lastChunk->slice($ROWS_ON_FOOTER_PAGE)->values());
-    }
+    if ($offset >= $total) break;
+
+    $take = min($BACK_ROWS, $total - $offset);
+    $pages->push(['type' => 'back', 'rows' => $allRows->slice($offset, $take)->values(), 'startNum' => $offset]);
+    $offset += $take;
 }
 
-// เลขลำดับของแต่ละหน้าต้องต่อจากจำนวนนักเรียนจริงในหน้าก่อน ๆ (ไม่ใช่คูณ ROWS_PER_PAGE ตรง ๆ)
-// เพราะหน้าสุดท้ายอาจมีจำนวนแถวไม่เท่าหน้าอื่น
-$startNums = [];
-$running = 0;
-foreach ($rawChunks as $idx => $chunk) {
-    $startNums[$idx] = $running;
-    $running += $chunk->count();
+if ($pages->isEmpty()) {
+    $pages->push(['type' => 'front', 'rows' => collect(), 'startNum' => 0]);
 }
 
-$pageCount = $rawChunks->count();
-$pages = $rawChunks->map(function($chunk, $idx) use ($pageCount, $ROWS_PER_PAGE, $ROWS_ON_FOOTER_PAGE) {
-    $isLastPage = $idx === $pageCount - 1;
-    $target = $isLastPage ? $ROWS_ON_FOOTER_PAGE : $ROWS_PER_PAGE;
-    $arr = $chunk->values()->all();
+// เติมแถวว่างให้เต็มความจุของแต่ละประเภทหน้า
+$pages = $pages->map(function($page) use ($FRONT_ROWS, $BACK_ROWS) {
+    $target = $page['type'] === 'front' ? $FRONT_ROWS : $BACK_ROWS;
+    $arr = $page['rows']->all();
     while (count($arr) < $target) {
-        $arr[] = null; // empty row
+        $arr[] = null; // แถวว่าง
     }
-    return $arr;
+    $page['rows'] = $arr;
+    return $page;
 });
 
 $approverName = $approver
@@ -152,10 +152,11 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     </button>
 </div>
 
-@foreach($pages as $pageIdx => $rows)
+@foreach($pages as $pageIdx => $page)
 <div class="page">
 
-    {{-- หัวเอกสาร --}}
+    {{-- หัวเอกสาร: หน้าหน้า (คี่) = หัวเต็ม, หน้าหลัง (คู่) = หัวย่อ --}}
+    @if($page['type'] === 'front')
     <div class="doc-header">
         <table>
             <tr>
@@ -171,10 +172,17 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 </td>
             </tr>
         </table>
-        <div style="text-align:center;font-size:13px;font-weight:700;margin:2px 0 1px;">
-            ทะเบียนรายงานผู้สำเร็จการศึกษา ชั้น {{ $sectionFullName }}
-        </div>
     </div>
+    @else
+    <div class="doc-header">
+        <table>
+            <tr>
+                <td>แบบรายงานผู้สำเร็จการศึกษา ภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong></td>
+                <td style="text-align:right;white-space:nowrap;font-size:12px;">หน้า {{ $pageIdx + 1 }}</td>
+            </tr>
+        </table>
+    </div>
+    @endif
 
     {{-- ตารางนักเรียน --}}
     <div class="table-wrap">
@@ -204,7 +212,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
             </tr>
         </thead>
         <tbody>
-            @foreach($rows as $i => $ss)
+            @foreach($page['rows'] as $i => $ss)
             @if($ss !== null)
             @php
                 $stu     = $ss->student;
@@ -221,7 +229,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 $motherName = $mother ? trim(($mother->prefix_th ?? '').' '.($mother->first_name_th ?? '').' '.($mother->last_name_th ?? '')) : '';
 
                 [$birthDayMonth, $birthYear] = $formatBirthDay($stu?->date_of_birth);
-                $rowNum = $startNums[$pageIdx] + $i + 1;
+                $rowNum = $page['startNum'] + $i + 1;
             @endphp
             <tr class="row-top">
                 <td rowspan="2" style="font-size:12px;font-weight:600;">{{ $rowNum }}</td>
@@ -262,8 +270,8 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     </table>
     </div>
 
-    {{-- Footer — หน้าสุดท้ายเท่านั้น --}}
-    @if($loop->last)
+    {{-- Footer — เฉพาะหน้าหน้า (ด้านหน้าแผ่นกระดาษ) --}}
+    @if($page['type'] === 'front')
     <div class="footer">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
             <div>
