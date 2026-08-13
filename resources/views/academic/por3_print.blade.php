@@ -11,7 +11,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     width: 297mm;
     height: 210mm;
     margin: 0 auto;
-    padding: 2mm 3mm;
+    padding: 6mm 3mm 2mm;
     background: #fff;
     display: flex;
     flex-direction: column;
@@ -79,7 +79,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .page {
         width: 297mm; height: 210mm;
-        padding: 2mm 3mm;
+        padding: 6mm 3mm 2mm;
         page-break-after: always;
     }
     .page:last-child { page-break-after: avoid; }
