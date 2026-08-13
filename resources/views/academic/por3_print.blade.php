@@ -27,7 +27,6 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .main-table {
     width: 100%; border-collapse: collapse; font-size: 11px;
     margin-top: 4px; table-layout: fixed;
-    flex: 1;
 }
 .main-table th, .main-table td {
     border: 0.5px solid #333;
@@ -36,7 +35,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     text-align: center;
     overflow: hidden;
 }
-.main-table thead th { background: #fff; font-size: 9.5px; font-weight: 700; line-height: 1.2; }
+.main-table thead th { background: #fff; font-size: 9.5px; font-weight: 700; line-height: 1; }
 
 .main-table td.left { text-align: left; }
 .main-table tbody tr { height: 14px; max-height: 14px; }
@@ -247,7 +246,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td style="font-size:11px;">{{ $birthDayMonth }}</td>
                 <td style="font-size:11px;">{{ $fatherName }}</td>
                 <td rowspan="2" style="font-size:11px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:10px;">{{ $gpa }}</span></td>
-                <td></td>
+                <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td></td>
@@ -259,17 +258,16 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td style="font-size:11px;">{{ $birthYear }}</td>
                 <td style="font-size:11px;">{{ $motherName }}</td>
                 <td></td>
-                <td></td>
             </tr>
             @else
             {{-- แถวว่าง --}}
             <tr class="empty-top">
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
             </tr>
             <tr class="empty-bot">
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
+                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
+                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
             </tr>
             @endif
             @endforeach
