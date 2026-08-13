@@ -11,7 +11,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     width: 297mm;
     height: 210mm;
     margin: 0 auto;
-    padding: 4mm 5mm;
+    padding: 3mm 4mm;
     background: #fff;
     display: flex;
     flex-direction: column;
@@ -45,8 +45,13 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
 .main-table tr.row-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; padding-top: 0; padding-bottom: 1px; }
 .main-table tr.empty-top td { border-bottom: 0.5px dotted #aaa !important; }
 .main-table tr.empty-bot td { border-top: none !important; border-bottom: 0.5px dotted #aaa !important; }
-/* แถวสุดท้ายของตารางแต่ละหน้า ปิดด้วยเส้นทึบแทนเส้นประ */
-.main-table tbody tr:last-child td { border-bottom: 0.5px solid #333 !important; }
+/* แถวสุดท้ายของตารางแต่ละหน้า ปิดด้วยเส้นทึบแทนเส้นประ
+   (ต้องปิดทั้งแถวล่าง (last-child) และแถวบนของคู่เดียวกัน (nth-last-child(2))
+   เพราะช่องที่ rowspan="2" อยู่ในแถวบนแต่มองเห็นเป็นเส้นล่างสุดของแถวคู่นี้) */
+.main-table tbody tr:last-child td,
+.main-table tbody tr:nth-last-child(2) td {
+    border-bottom: 0.5px solid #333 !important;
+}
 .main-table td.no-dot,
 .main-table tr.row-top td.no-dot,
 .main-table tr.row-bot td.no-dot {
@@ -75,7 +80,7 @@ body { font-family: 'TH Sarabun New', 'Sarabun', sans-serif; font-size: 13px; ba
     body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
     .page {
         width: 297mm; height: 210mm;
-        padding: 4mm 5mm;
+        padding: 3mm 4mm;
         page-break-after: always;
     }
     .page:last-child { page-break-after: avoid; }
