@@ -288,10 +288,10 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     {{-- Footer — เฉพาะหน้าหน้า (ด้านหน้าแผ่นกระดาษ) --}}
     @if($page['type'] === 'front')
     <div class="footer">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;">
-            <div>
+        <div style="display:flex;align-items:flex-start;">
+            <div style="flex:1;text-align:center;">
                 <div style="font-size:14px;font-weight:700;margin-bottom:3px;">จำนวนผู้สำเร็จการศึกษา</div>
-                <table class="count-table">
+                <table class="count-table" style="margin:0 auto;">
                     <tr><th>ชาย</th><th>หญิง</th><th>รวม</th></tr>
                     <tr>
                         <td>{{ $maleCount }}</td>
@@ -300,13 +300,13 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                     </tr>
                 </table>
             </div>
-            <div style="flex:1;font-size:14px;">
+            <div style="flex:1;font-size:14px;text-align:center;">
                 <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้เขียน/ผู้พิมพ์</div>
                 <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ทาน</div>
                 <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ตรวจ</div>
                 <div><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>นายทะเบียน</div>
             </div>
-            <div style="text-align:center;font-size:14px;min-width:190px;">
+            <div style="flex:1;text-align:center;font-size:14px;">
                 <div style="font-weight:700;margin-bottom:2px;">อนุมัติการจบหลักสูตร</div>
                 <div style="margin-bottom:2px;">(
                     <span style="border-bottom:0.5px dotted #333;min-width:150px;display:inline-block;padding:0 6px;">{{ $approverName }}</span>
