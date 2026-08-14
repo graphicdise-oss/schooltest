@@ -28,7 +28,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 }
 
 /* Header */
-.doc-header { margin-bottom: 3px; flex-shrink: 0; }
+.doc-header { margin-bottom: 2px; flex-shrink: 0; }
 .doc-header table { width: 100%; border-collapse: collapse; }
 .doc-header td { padding: 0 3px; font-size: 16px; }
 
@@ -36,7 +36,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .table-wrap { display: flex; flex-direction: column; }
 .main-table {
     width: 100%; border-collapse: collapse; font-size: 14px;
-    margin-top: 4px; table-layout: fixed;
+    margin-top: 2px; table-layout: fixed;
 }
 .main-table th, .main-table td {
     border: 0.5px solid #333;
@@ -48,8 +48,8 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .main-table thead th { background: #fff; font-size: 16px; font-weight: 700; line-height: 1; }
 
 .main-table td.left { text-align: left; }
-.main-table tbody tr { height: 14px; max-height: 14px; }
-.main-table tbody td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 14px; }
+.main-table tbody tr { height: 13px; max-height: 13px; }
+.main-table tbody td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 13px; }
 .main-table tr.row-top td { border-bottom: 0.5px dotted #aaa; padding-top: 1px; padding-bottom: 0; }
 .main-table tr.row-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; padding-top: 0; padding-bottom: 1px; }
 .main-table tr.empty-top td { border-bottom: 0.5px dotted #aaa !important; }
@@ -77,7 +77,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 }
 
 /* Footer */
-.footer { flex-shrink: 0; margin-top: 5px; }
+.footer { flex-shrink: 0; margin-top: 3px; }
 .count-table { border-collapse: collapse; font-size: 14px; }
 .count-table th, .count-table td {
     border: 0.5px solid #333; padding: 2px 10px; text-align: center;
@@ -99,10 +99,10 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 <body>
 
 @php
-// พิมพ์แบบสองหน้า (duplex): หน้าคี่ = ด้านหน้าแผ่น (หัวเต็ม + ท้ายกระดาษ, จุได้ 8 แถว)
+// พิมพ์แบบสองหน้า (duplex): หน้าคี่ = ด้านหน้าแผ่น (หัวเต็ม + ท้ายกระดาษ, จุได้ 10 แถว)
 //                            หน้าคู่ = ด้านหลังแผ่น (หัวย่อ ไม่มีท้ายกระดาษ, จุได้ 12 แถว)
 // ตามฟอร์มทางการ ปพ.3 หน้าแรกของแต่ละแผ่นกระดาษต้องมีหัวโรงเรียน+ลงนามครบ ส่วนหน้าหลังมีแค่หัวย่อ
-$FRONT_ROWS = 8;
+$FRONT_ROWS = 10;
 $BACK_ROWS  = 12;
 
 $yearName  = $section->semester->academicYear->year_name ?? '';
@@ -301,13 +301,13 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 </table>
             </div>
             <div style="flex:1;font-size:14px;">
-                <div style="margin-bottom:4px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้เขียน/ผู้พิมพ์</div>
-                <div style="margin-bottom:4px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ทาน</div>
-                <div style="margin-bottom:4px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ตรวจ</div>
+                <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้เขียน/ผู้พิมพ์</div>
+                <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ทาน</div>
+                <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ตรวจ</div>
                 <div><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>นายทะเบียน</div>
             </div>
             <div style="text-align:center;font-size:14px;min-width:190px;">
-                <div style="font-weight:700;margin-bottom:4px;">อนุมัติการจบหลักสูตร</div>
+                <div style="font-weight:700;margin-bottom:2px;">อนุมัติการจบหลักสูตร</div>
                 <div style="margin-bottom:2px;">(
                     <span style="border-bottom:0.5px dotted #333;min-width:150px;display:inline-block;padding:0 6px;">{{ $approverName }}</span>
                 )</div>
