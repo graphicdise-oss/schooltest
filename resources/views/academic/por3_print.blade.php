@@ -20,7 +20,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .page-inner {
     width: 100%;
     height: 100%;
-    padding: 3mm 3mm 14mm;
+    padding: 3mm 3mm 20mm;
     display: flex;
     flex-direction: column;
     transform: scale(0.92);
