@@ -20,7 +20,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .page-inner {
     width: 100%;
     height: 100%;
-    padding: 3mm 3mm 6mm;
+    padding: 3mm 3mm 14mm;
     display: flex;
     flex-direction: column;
     transform: scale(0.92);
@@ -99,11 +99,11 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 <body>
 
 @php
-// พิมพ์แบบสองหน้า (duplex): หน้าคี่ = ด้านหน้าแผ่น (หัวเต็ม + ท้ายกระดาษ, จุได้ 10 แถว)
-//                            หน้าคู่ = ด้านหลังแผ่น (หัวย่อ ไม่มีท้ายกระดาษ, จุได้ 14 แถว)
+// พิมพ์แบบสองหน้า (duplex): หน้าคี่ = ด้านหน้าแผ่น (หัวเต็ม + ท้ายกระดาษ, จุได้ 8 แถว)
+//                            หน้าคู่ = ด้านหลังแผ่น (หัวย่อ ไม่มีท้ายกระดาษ, จุได้ 12 แถว)
 // ตามฟอร์มทางการ ปพ.3 หน้าแรกของแต่ละแผ่นกระดาษต้องมีหัวโรงเรียน+ลงนามครบ ส่วนหน้าหลังมีแค่หัวย่อ
-$FRONT_ROWS = 9;
-$BACK_ROWS  = 11;
+$FRONT_ROWS = 8;
+$BACK_ROWS  = 12;
 
 $yearName  = $section->semester->academicYear->year_name ?? '';
 $termName  = $section->semester->semester_name ?? '';
