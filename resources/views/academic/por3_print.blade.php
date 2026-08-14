@@ -29,7 +29,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 
 /* Header */
 .doc-header { margin-bottom: 2px; flex-shrink: 0; font-size: 16px; }
-.doc-header .fill { display: inline-block; line-height: 1.1; font-weight: 700; border-bottom: 0.5px dotted #333; padding: 0 4px; }
+.doc-header .fill { display: inline-block; line-height: 1.1; font-weight: 700; border-bottom: 0.5px dotted #333; padding: 0 8px; margin: 0 2px; }
 
 /* Main table — flex-grow to fill remaining height */
 .table-wrap { display: flex; flex-direction: column; }
@@ -155,19 +155,19 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     @if($page['type'] === 'front')
     <div class="doc-header" style="position:relative;">
         <div style="text-align:center;white-space:nowrap;">
-            <div>สำเร็จการศึกษาภาคเรียนที่ <span class="fill">{{ $termName }}</span> &nbsp; ปีการศึกษา <span class="fill">{{ $yearName }}</span> &nbsp; โรงเรียน <span class="fill">{{ $school['name'] ?? '' }}</span></div>
+            <div>สำเร็จการศึกษาภาคเรียนที่ <span class="fill">{{ $termName }}</span> &nbsp;&nbsp; ปีการศึกษา <span class="fill">{{ $yearName }}</span> &nbsp;&nbsp; โรงเรียน <span class="fill">{{ $school['name'] ?? '' }}</span></div>
             <div style="font-size:16px;">
                 ตำบล/แขวง <span class="fill">{{ $school['tambon'] ?? '' }}</span>
-                &nbsp; อำเภอ/เขต <span class="fill">{{ $school['amphoe'] ?? '' }}</span>
-                &nbsp; จังหวัด <span class="fill">{{ $school['changwat'] ?? '' }}</span>
-                &nbsp; สำนักงานเขตพื้นที่การศึกษา <span class="fill">{{ $school['education_area'] ?? '' }}</span>
+                &nbsp;&nbsp; อำเภอ/เขต <span class="fill">{{ $school['amphoe'] ?? '' }}</span>
+                &nbsp;&nbsp; จังหวัด <span class="fill">{{ $school['changwat'] ?? '' }}</span>
+                &nbsp;&nbsp; สำนักงานเขตพื้นที่การศึกษา <span class="fill">{{ $school['education_area'] ?? '' }}</span>
             </div>
         </div>
         <div style="position:absolute;top:0;right:0;font-size:16px;">หน้า {{ $pageIdx + 1 }}</div>
     </div>
     @else
     <div class="doc-header" style="position:relative;">
-        <div style="text-align:center;white-space:nowrap;">แบบรายงานผู้สำเร็จการศึกษา ภาคเรียนที่ <span class="fill">{{ $termName }}</span> &nbsp; ปีการศึกษา <span class="fill">{{ $yearName }}</span></div>
+        <div style="text-align:center;white-space:nowrap;">แบบรายงานผู้สำเร็จการศึกษา ภาคเรียนที่ <span class="fill">{{ $termName }}</span> &nbsp;&nbsp; ปีการศึกษา <span class="fill">{{ $yearName }}</span></div>
         <div style="position:absolute;top:0;right:0;font-size:16px;">หน้า {{ $pageIdx + 1 }}</div>
     </div>
     @endif
