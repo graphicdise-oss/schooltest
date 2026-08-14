@@ -65,7 +65,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 }
 
 /* Footer */
-.footer { flex-shrink: 0; margin-top: 3px; }
+.footer { flex-shrink: 0; margin-top: 8px; }
 .count-table { border-collapse: collapse; font-size: 14px; }
 .count-table th, .count-table td {
     border: 0.5px solid #333; padding: 2px 10px; text-align: center;
