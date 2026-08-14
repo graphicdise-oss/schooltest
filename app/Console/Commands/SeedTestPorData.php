@@ -23,15 +23,17 @@ class SeedTestPorData extends Command
 
     public function handle()
     {
-        $studentId = (int) $this->argument('student_id');
+        $input = trim((string) $this->argument('student_id'));
 
-        $student = Student::find($studentId);
+        // รับได้ทั้ง student_id (primary key ในระบบ) และ student_code (รหัสนักเรียนที่เห็นในตาราง)
+        $student = Student::find($input) ?? Student::where('student_code', $input)->first();
         if (!$student) {
-            $this->error("ไม่พบนักเรียน student_id={$studentId} กรุณาสร้างนักเรียนคนนี้ในระบบก่อน (ผ่านหน้าเพิ่มนักเรียนปกติ) แล้วค่อยรันคำสั่งนี้ใหม่");
+            $this->error("ไม่พบนักเรียนที่ student_id หรือ รหัสนักเรียน (student_code) = {$input} กรุณาตรวจสอบรหัสนักเรียนในหน้ารายชื่ออีกครั้ง แล้วค่อยรันคำสั่งนี้ใหม่");
             return 1;
         }
 
-        $this->info("พบนักเรียน: {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} (student_id={$studentId})");
+        $studentId = $student->student_id;
+        $this->info("พบนักเรียน: {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} (student_id={$studentId}, รหัสนักเรียน={$student->student_code})");
 
         // เติมข้อมูลพื้นฐานของนักเรียนเฉพาะช่องที่ยังว่าง (ไม่ทับของเดิมถ้ามีอยู่แล้ว)
         $fill = [];

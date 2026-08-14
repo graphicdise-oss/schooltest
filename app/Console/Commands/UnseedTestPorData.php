@@ -20,13 +20,16 @@ class UnseedTestPorData extends Command
 
     public function handle()
     {
-        $studentId = (int) $this->argument('student_id');
+        $input = trim((string) $this->argument('student_id'));
 
-        $student = Student::find($studentId);
+        // รับได้ทั้ง student_id (primary key ในระบบ) และ student_code (รหัสนักเรียนที่เห็นในตาราง)
+        $student = Student::find($input) ?? Student::where('student_code', $input)->first();
         if (!$student) {
-            $this->error("ไม่พบนักเรียน student_id={$studentId}");
+            $this->error("ไม่พบนักเรียนที่ student_id หรือ รหัสนักเรียน (student_code) = {$input}");
             return 1;
         }
+
+        $studentId = $student->student_id;
 
         if (!$this->confirm("จะลบข้อมูลปลอม (บิดา/มารดา, ผลการเรียน, เลขที่เอกสาร ฯลฯ) ของ {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} (student_id={$studentId}) ใช่ไหม?", true)) {
             $this->info('ยกเลิก');
