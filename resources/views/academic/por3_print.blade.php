@@ -31,6 +31,7 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .doc-header { margin-bottom: 2px; flex-shrink: 0; }
 .doc-header table { width: 100%; border-collapse: collapse; }
 .doc-header td { padding: 0 3px; font-size: 16px; }
+.doc-header .fill { font-weight: 700; border-bottom: 0.5px dotted #333; padding: 0 4px; }
 
 /* Main table — flex-grow to fill remaining height */
 .table-wrap { display: flex; flex-direction: column; }
@@ -52,9 +53,13 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .main-table tbody td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 13px; }
 .main-table tr.row-top td { border-bottom: 0.5px dotted #aaa; padding-top: 1px; padding-bottom: 0; }
 .main-table tr.row-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; padding-top: 0; padding-bottom: 1px; }
-/* แถวสุดท้ายของตารางแต่ละหน้า ปิดด้วยเส้นทึบแทนเส้นประ (คอลัมน์ rowspan="2" ได้เส้นทึบ
-   อยู่แล้วจากกฎ .no-dot ด้านล่าง จึงไม่ต้องปิดแถวบนของคู่ ไม่งั้นเส้นประกลางระเบียนสุดท้ายจะหาย) */
+/* แถวสุดท้ายของตารางแต่ละหน้า ปิดด้วยเส้นทึบแทนเส้นประ (คอลัมน์ rowspan="2" ที่เป็น .no-dot
+   ได้เส้นทึบอยู่แล้วจากกฎด้านล่าง จึงไม่ปิดทั้งแถวบนของคู่ ไม่งั้นเส้นประกลางระเบียนสุดท้ายจะหาย
+   ส่วนคอลัมน์ rowspan="2" อื่น (.rs-plain เช่น ลำดับที่/จำนวนหน่วยกิต) ไม่มีเส้นประกลาง ต้องปิดด้วย) */
 .main-table tbody tr:last-child td {
+    border-bottom: 0.5px solid #333 !important;
+}
+.main-table tbody tr:nth-last-child(2) td.rs-plain {
     border-bottom: 0.5px solid #333 !important;
 }
 .main-table td.no-dot,
@@ -153,15 +158,15 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     <div class="doc-header">
         <table>
             <tr>
-                <td>สำเร็จการศึกษาภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong> &nbsp; โรงเรียน <strong>{{ $school['name'] ?? '' }}</strong></td>
+                <td>สำเร็จการศึกษาภาคเรียนที่ <span class="fill">{{ $termName }}</span> &nbsp; ปีการศึกษา <span class="fill">{{ $yearName }}</span> &nbsp; โรงเรียน <span class="fill">{{ $school['name'] ?? '' }}</span></td>
                 <td style="text-align:right;white-space:nowrap;font-size:16px;">หน้า {{ $pageIdx + 1 }}</td>
             </tr>
             <tr>
                 <td colspan="2" style="font-size:16px;">
-                    ตำบล/แขวง <strong>{{ $school['tambon'] ?? '' }}</strong>
-                    &nbsp; อำเภอ/เขต <strong>{{ $school['amphoe'] ?? '' }}</strong>
-                    &nbsp; จังหวัด <strong>{{ $school['changwat'] ?? '' }}</strong>
-                    &nbsp; สำนักงานเขตพื้นที่การศึกษา <strong>{{ $school['education_area'] ?? '' }}</strong>
+                    ตำบล/แขวง <span class="fill">{{ $school['tambon'] ?? '' }}</span>
+                    &nbsp; อำเภอ/เขต <span class="fill">{{ $school['amphoe'] ?? '' }}</span>
+                    &nbsp; จังหวัด <span class="fill">{{ $school['changwat'] ?? '' }}</span>
+                    &nbsp; สำนักงานเขตพื้นที่การศึกษา <span class="fill">{{ $school['education_area'] ?? '' }}</span>
                 </td>
             </tr>
         </table>
@@ -170,7 +175,7 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
     <div class="doc-header">
         <table>
             <tr>
-                <td>แบบรายงานผู้สำเร็จการศึกษา ภาคเรียนที่ <strong>{{ $termName }}</strong> &nbsp; ปีการศึกษา <strong>{{ $yearName }}</strong></td>
+                <td>แบบรายงานผู้สำเร็จการศึกษา ภาคเรียนที่ <span class="fill">{{ $termName }}</span> &nbsp; ปีการศึกษา <span class="fill">{{ $yearName }}</span></td>
                 <td style="text-align:right;white-space:nowrap;font-size:16px;">หน้า {{ $pageIdx + 1 }}</td>
             </tr>
         </table>
@@ -224,14 +229,14 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 $rowNum = $page['startNum'] + $i + 1;
             @endphp
             <tr class="row-top">
-                <td rowspan="2" style="font-size:14px;font-weight:600;">{{ $rowNum }}</td>
+                <td rowspan="2" class="rs-plain" style="font-size:14px;font-weight:600;">{{ $rowNum }}</td>
                 <td style="font-size:14px;">{{ $stu?->student_code }}</td>
                 <td style="font-size:14px;">{{ $doc?->doc_set ?? '' }}</td>
-                <td rowspan="2" style="font-size:14px;font-weight:600;">{{ $rowNum }}</td>
+                <td rowspan="2" class="rs-plain" style="font-size:14px;font-weight:600;">{{ $rowNum }}</td>
                 <td style="font-size:14px;">{{ $stu?->thai_prefix }}{{ $stu?->thai_firstname }}</td>
                 <td style="font-size:14px;">{{ $birthDayMonth }}</td>
                 <td style="font-size:14px;">{{ $fatherName }}</td>
-                <td rowspan="2" style="font-size:14px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:14px;">{{ $gpa }}</span></td>
+                <td rowspan="2" class="rs-plain" style="font-size:14px;">{{ $credits }}/{{ $credits }}<br><span style="font-size:14px;">{{ $gpa }}</span></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
                 <td rowspan="2" class="no-dot"></td>
