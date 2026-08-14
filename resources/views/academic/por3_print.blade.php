@@ -271,10 +271,10 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 </table>
             </div>
             <div style="flex:1;font-size:14px;text-align:center;">
-                <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้เขียน/ผู้พิมพ์</div>
-                <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ทาน</div>
-                <div style="margin-bottom:2px;"><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>ผู้ตรวจ</div>
-                <div><span style="display:inline-block;border-bottom:0.5px dotted #333;min-width:190px;">&nbsp;</span>นายทะเบียน</div>
+                <div style="width:280px;margin:0 auto 2px;text-align:left;white-space:nowrap;"><span style="display:inline-block;border-bottom:0.5px dotted #333;width:190px;">&nbsp;</span>ผู้เขียน/ผู้พิมพ์</div>
+                <div style="width:280px;margin:0 auto 2px;text-align:left;white-space:nowrap;"><span style="display:inline-block;border-bottom:0.5px dotted #333;width:190px;">&nbsp;</span>ผู้ทาน</div>
+                <div style="width:280px;margin:0 auto 2px;text-align:left;white-space:nowrap;"><span style="display:inline-block;border-bottom:0.5px dotted #333;width:190px;">&nbsp;</span>ผู้ตรวจ</div>
+                <div style="width:280px;margin:0 auto;text-align:left;white-space:nowrap;"><span style="display:inline-block;border-bottom:0.5px dotted #333;width:190px;">&nbsp;</span>นายทะเบียน</div>
             </div>
             <div style="flex:1;text-align:center;font-size:14px;">
                 <div style="font-weight:700;margin-bottom:2px;">อนุมัติการจบหลักสูตร</div>
