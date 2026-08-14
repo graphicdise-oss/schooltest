@@ -52,27 +52,15 @@ body { font-family: 'TH Sarabun PSK', 'TH Sarabun IT9', 'TH Sarabun New', 'Sarab
 .main-table tbody td { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; max-height: 13px; }
 .main-table tr.row-top td { border-bottom: 0.5px dotted #aaa; padding-top: 1px; padding-bottom: 0; }
 .main-table tr.row-bot td { border-top: none; border-bottom: 0.5px dotted #aaa; padding-top: 0; padding-bottom: 1px; }
-.main-table tr.empty-top td { border-bottom: 0.5px dotted #aaa !important; }
-.main-table tr.empty-bot td { border-top: none !important; border-bottom: 0.5px dotted #aaa !important; }
-/* แถวสุดท้ายของตารางแต่ละหน้า ปิดด้วยเส้นทึบแทนเส้นประ
-   (ต้องปิดทั้งแถวล่าง (last-child) และแถวบนของคู่เดียวกัน (nth-last-child(2))
-   เพราะช่องที่ rowspan="2" อยู่ในแถวบนแต่มองเห็นเป็นเส้นล่างสุดของแถวคู่นี้) */
-.main-table tbody tr:last-child td,
-.main-table tbody tr:nth-last-child(2) td {
+/* แถวสุดท้ายของตารางแต่ละหน้า ปิดด้วยเส้นทึบแทนเส้นประ (คอลัมน์ rowspan="2" ได้เส้นทึบ
+   อยู่แล้วจากกฎ .no-dot ด้านล่าง จึงไม่ต้องปิดแถวบนของคู่ ไม่งั้นเส้นประกลางระเบียนสุดท้ายจะหาย) */
+.main-table tbody tr:last-child td {
     border-bottom: 0.5px solid #333 !important;
 }
 .main-table td.no-dot,
 .main-table tr.row-top td.no-dot,
 .main-table tr.row-bot td.no-dot {
     border-top: 0.5px solid #333 !important;
-    border-bottom: 0.5px solid #333 !important;
-}
-.main-table tr.empty-top td.no-dot {
-    border-top: 0.5px solid #333 !important;
-    border-bottom: none !important;
-}
-.main-table tr.empty-bot td.no-dot {
-    border-top: none !important;
     border-bottom: 0.5px solid #333 !important;
 }
 
@@ -140,17 +128,6 @@ while ($offset < $total) {
 if ($pages->isEmpty()) {
     $pages->push(['type' => 'front', 'rows' => collect(), 'startNum' => 0]);
 }
-
-// เติมแถวว่างให้เต็มความจุของแต่ละประเภทหน้า
-$pages = $pages->map(function($page) use ($FRONT_ROWS, $BACK_ROWS) {
-    $target = $page['type'] === 'front' ? $FRONT_ROWS : $BACK_ROWS;
-    $arr = $page['rows']->all();
-    while (count($arr) < $target) {
-        $arr[] = null; // แถวว่าง
-    }
-    $page['rows'] = $arr;
-    return $page;
-});
 
 $approverName = $approver
     ? trim(($approver->thai_prefix ?? '') . $approver->thai_firstname . ' ' . $approver->thai_lastname)
@@ -229,7 +206,6 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
         </thead>
         <tbody>
             @foreach($page['rows'] as $i => $ss)
-            @if($ss !== null)
             @php
                 $stu     = $ss->student;
                 $sid     = $stu?->student_id;
@@ -269,17 +245,6 @@ $approverPos = $approver?->position ?? 'ผู้อำนวยการ/อา
                 <td style="font-size:14px;">{{ $motherName }}</td>
                 <td></td>
             </tr>
-            @else
-            {{-- แถวว่าง --}}
-            <tr class="empty-top">
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
-            </tr>
-            <tr class="empty-bot">
-                <td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-                <td class="no-dot"></td><td class="no-dot"></td><td class="no-dot"></td><td></td>
-            </tr>
-            @endif
             @endforeach
         </tbody>
     </table>
