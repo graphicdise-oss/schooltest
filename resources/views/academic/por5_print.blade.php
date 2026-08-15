@@ -29,6 +29,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 .meta-table .lbl { font-weight:700; width:90px; }
 .meta-table .lbl2 { font-weight:700; width:70px; }
 .meta-table .val { padding-left:6px; }
+.meta-table .val1 { width:140px; }
 
 .grade-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
 .grade-table th, .grade-table td { border:1px solid #000; padding:4px 3px; text-align:center; }
@@ -88,7 +89,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 
     <table class="meta-table">
         <tr>
-            <td class="lbl">ปีการศึกษา</td><td class="val">{{ $semester->semester_name }}/{{ $semester->academicYear->year_name ?? '' }}</td>
+            <td class="lbl">ปีการศึกษา</td><td class="val val1">{{ $semester->semester_name }}/{{ $semester->academicYear->year_name ?? '' }}</td>
             <td class="lbl lbl2">ชั้นปี</td><td class="val">{{ $section->full_name ?? '' }}</td>
         </tr>
         <tr>
