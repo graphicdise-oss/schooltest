@@ -33,14 +33,14 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:16p
 .meta-table .val1 { width:140px; min-width:0; }
 
 .grade-table { width:100%; border-collapse:collapse; font-size:16px; margin-bottom:10px; }
-.grade-table th, .grade-table td { border:1px solid #000; padding:4px 3px; text-align:center; }
+.grade-table th, .grade-table td { border:2px solid #000; padding:4px 3px; text-align:center; }
 .grade-table th { font-weight:700; }
 
 .quality-row { display:flex; gap:6px; margin-bottom:12px; }
-.quality-box { flex:1; border:1px solid #000; }
-.quality-box .qh { text-align:center; font-weight:700; font-size:16px; padding:5px; border-bottom:1px solid #000; }
+.quality-box { flex:1; border:2px solid #000; }
+.quality-box .qh { text-align:center; font-weight:700; font-size:16px; padding:5px; border-bottom:2px solid #000; }
 .quality-box table { width:100%; border-collapse:collapse; font-size:16px; }
-.quality-box th, .quality-box td { border:1px solid #000; padding:3px; text-align:center; }
+.quality-box th, .quality-box td { border:2px solid #000; padding:3px; text-align:center; }
 .quality-box th { font-weight:700; }
 
 .sign-section { margin-top:auto; font-size:16px; }
