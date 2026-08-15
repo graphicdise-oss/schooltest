@@ -221,43 +221,43 @@
                             {{-- คอลัมน์ 1 --}}
                             <div class="flex-1">
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">นักเรียน</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานทะเบียนนักเรียน</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('students.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลนักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ทะเบียนนักเรียน</a>
                                         </li>
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลผู้ปกครอง</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลผู้ปกครอง/ครอบครัว</a>
                                         </li>
                                         <li><a href="{{ route('student-types.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ประเภทนักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จำแนกประเภทนักเรียน</a>
                                         </li>
 
                                         <li><a href="{{ route('promotions.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ย้ายห้อง/เลื่อนห้อง/บันทึกจบ</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการชั้นเรียน/สำเร็จการศึกษา</a>
                                         </li>
                                         @endif
                                         <li><a href="{{ route('student-alumni.index') }}"
-                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลศิษย์เก่า</a>
+                                            class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ทำเนียบศิษย์เก่า</a>
                                         </li>
                                         <li><a href="{{ route('student-alumni.import') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">นำเข้าข้อมูลศิษย์เก่า</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">นำเข้าทำเนียบศิษย์เก่า</a>
                                         </li>
 
                                     </ul>
                                 </div>
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงานนักเรียน</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงาน/สถิตินักเรียน</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('class-roster.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายชื่อนักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บัญชีรายชื่อนักเรียน</a>
                                         </li>
                                         <li><a href="{{ route('student-stat.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานสถิตินักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">สรุปสถิตินักเรียน</a>
                                         </li>
                                         <li><a href="{{ route('student-alumni.withdrawal') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานลาออก</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานนักเรียนพ้นสภาพ</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -266,27 +266,27 @@
                             {{-- คอลัมน์ 2 --}}
                             <div class="flex-1">
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">บุคลากร - อาจารย์</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานบุคคล</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลบุคลากร - อาจารย์</a></li>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ทะเบียนบุคลากร/ครู</a></li>
                                         @endif
                                         <li><a href="{{ route('leave.personnel.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลการลา</a></li>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึกการลางาน</a></li>
                                     </ul>
                                 </div>
                                 <div>
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงานบุคลากร - อาจารย์</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงาน/สถิติบุคลากร</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('personnel-reports.staff-list') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายชื่อพนักงาน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บัญชีรายชื่อบุคลากร</a>
                                         </li>
                                         <li><a href="{{ route('leave.personnel.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานการลา</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">สรุปรายงานการลา</a>
                                         </li>
                                         <li><a href="{{ route('personnel-reports.training') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานการอบรม</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">สรุปการพัฒนา/อบรมบุคลากร</a>
                                         </li>
                                     </ul>
                                 </div>
@@ -297,37 +297,37 @@
                                 {{-- ย้ายกลุ่ม "รับสมัครนักเรียนออนไลน์" ไปที่เมนู บริหารทั่วไป > ระบบรับนักเรียน แล้ว --}}
                                 @if(auth()->user()->isAdmin())
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ตั้งค่า</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">การตั้งค่าระบบ</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('prefixes.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าคำนำหน้า</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการคำนำหน้าชื่อ</a>
                                         </li>
                                         <li><a href="{{ route('personnel-types.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทบุคลากร</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการประเภทบุคลากร</a>
                                         </li>
                                         <li><a href="{{ route('positions.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าตำแหน่ง</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการตำแหน่งงาน</a>
                                         </li>
                                         <li><a href="{{ route('departments.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าแผนก</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการฝ่าย/แผนกงาน</a>
                                         </li>
                                         <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าประเภทการลา</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการประเภทการลา</a>
                                         </li>
                                         <li><a href="{{ route('leave-settings.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าการลา</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการสิทธิ์วันลา</a>
                                         </li>
                                         <li><a href="{{ route('holidays.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ตั้งค่าวันหยุด</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการปฏิทินวันหยุด</a>
                                         </li>
                                     </ul>
                                 </div>
                                 @endif
                                 <div>
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ระบบบัตรนักเรียน/บุคลากร</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานออกบัตรประจำตัว</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('student-cards.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">พิมพ์บัตรนักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ออกบัตรประจำตัวนักเรียน</a>
                                         </li>
                                         {{-- เมนูบัตรอื่น ๆ (บันทึกบัตร / บัตรสอบ / บัตรพนักงาน / บัตรผู้ปกครอง / บัตรสำรอง) ยังไม่เปิดใช้ ซ่อนไว้ก่อน --}}
                                     </ul>
