@@ -49,15 +49,16 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
 .sign-line { margin:22px 0 4px; }
 .sign-approve { display:flex; align-items:center; justify-content:center; gap:16px; margin:8px 0; }
 
-/* ตารางเช็คชื่อ */
+/* ตารางบันทึกเวลาเรียน */
 .att-title { text-align:center; font-weight:700; font-size:16px; margin-bottom:8px; }
 .att-table { width:100%; border-collapse:collapse; font-size:9px; table-layout:fixed; }
-.att-table th, .att-table td { border:1px solid #666; text-align:center; padding:2px 1px; }
-.att-table th { background:#f5f5f5; font-weight:700; }
-.att-table .col-no { width:22px; }
-.att-table .col-code { width:38px; }
-.att-table .col-name { width:110px; text-align:left !important; padding-left:3px; }
-.att-mark { color:#c62828; font-weight:700; }
+.att-table th, .att-table td { border:1px solid #000; text-align:center; padding:2px 1px; }
+.att-table th { font-weight:700; }
+.att-table .col-no { width:26px; }
+.att-table .col-code { width:44px; }
+.att-table .col-rowlbl { width:34px; font-size:8px; }
+.att-check { display:inline-block; width:11px; height:11px; line-height:10px; border:0.75px solid #000; border-radius:50%; font-size:7px; }
+.att-slash { display:inline-block; }
 
 /* ตารางสถิติ/คะแนน */
 .stat-table, .score-table { width:100%; border-collapse:collapse; font-size:11px; }
@@ -69,8 +70,6 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
 <body>
 
 @php
-    $thMonths = [1=>'ม.ค.',2=>'ก.พ.',3=>'มี.ค.',4=>'เม.ย.',5=>'พ.ค.',6=>'มิ.ย.',
-                 7=>'ก.ค.',8=>'ส.ค.',9=>'ก.ย.',10=>'ต.ค.',11=>'พ.ย.',12=>'ธ.ค.'];
     $gradeBuckets = ['4','3.5','3','2.5','2','1.5','1','0'];
     $specialBuckets = ['ร','มส','มก','ผ','มผ','อื่นๆ'];
     $qLabels = ['ดีเยี่ยม (3)' => 'ดีเยี่ยม', 'ดี (2)' => 'ดี', 'ผ่าน (1)' => 'ผ่าน'];
@@ -172,29 +171,47 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
     </div>
 </div>
 
-{{-- ===================== หน้าเช็คชื่อ + สถิติ (ต่อ 45 คน) ===================== --}}
+{{-- ===================== หน้าบันทึกเวลาเรียน (เดือน > สัปดาห์ > วันที่ > คาบ) ต่อ 45 คน ===================== --}}
 @foreach($studentChunks as $chunk)
-    @php $dateChunks = collect($classDates)->chunk(15)->values(); @endphp
-
-    @foreach($dateChunks as $dchunk)
+    @foreach($attendancePages as $page)
         @php
-            $monthGroups = collect($dchunk)->groupBy(fn($d) => $d->format('Y-m'))
-                ->map(fn($g, $k) => ['label' => $thMonths[(int) substr($k, 5, 2)] . ' ' . (substr($k, 0, 4) + 543), 'count' => $g->count()]);
+            $totalCols = collect($page)->sum(fn($m) => collect($m['weeks'])->sum(fn($w) => count($w['dates'])));
         @endphp
         <div class="page">
             <div class="att-title">บันทึกเวลาเรียน วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->full_name ?? '' }}</div>
             <table class="att-table">
                 <thead>
                     <tr>
-                        <th class="col-no" rowspan="3">เลขที่</th>
-                        <th class="col-code" rowspan="3">รหัส</th>
-                        <th class="col-name" rowspan="3">ชื่อ - สกุล</th>
-                        @foreach($monthGroups as $mg)
-                            <th colspan="{{ $mg['count'] }}">{{ $mg['label'] }}</th>
+                        <th class="col-no" rowspan="4">เลขที่</th>
+                        <th class="col-code" rowspan="4">เลขประจำตัว</th>
+                        <th class="col-rowlbl">เดือน</th>
+                        @foreach($page as $month)
+                            <th colspan="{{ collect($month['weeks'])->sum(fn($w) => count($w['dates'])) }}">{{ $month['label'] }}</th>
                         @endforeach
                     </tr>
                     <tr>
-                        @foreach($dchunk as $d)<th>{{ $d->format('d/m') }}</th>@endforeach
+                        <th class="col-rowlbl">สัปดาห์ที่</th>
+                        @foreach($page as $month)
+                            @foreach($month['weeks'] as $week)
+                                <th colspan="{{ count($week['dates']) }}">{{ $week['week'] }}</th>
+                            @endforeach
+                        @endforeach
+                    </tr>
+                    <tr>
+                        <th class="col-rowlbl">วันที่</th>
+                        @foreach($page as $month)
+                            @foreach($month['weeks'] as $week)
+                                @foreach($week['dates'] as $d)<th>{{ $d['day'] }}</th>@endforeach
+                            @endforeach
+                        @endforeach
+                    </tr>
+                    <tr>
+                        <th class="col-rowlbl">คาบ</th>
+                        @foreach($page as $month)
+                            @foreach($month['weeks'] as $week)
+                                @foreach($week['dates'] as $d)<th>{{ $d['period'] ?? '' }}</th>@endforeach
+                            @endforeach
+                        @endforeach
                     </tr>
                 </thead>
                 <tbody>
@@ -202,15 +219,19 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
                         <tr>
                             <td>{{ $s->student_number }}</td>
                             <td>{{ $s->student->student_code }}</td>
-                            <td class="col-name">{{ $studentFullName($s->student) }}</td>
-                            @foreach($dchunk as $d)
-                                @php
-                                    $rec = ($attendance->get($s->student_id) ?? collect())->get($d->format('Y-m-d'));
-                                    $mark = match($rec->status ?? null) {
-                                        'มา' => '✓', 'ป่วย' => 'ป', 'ลา' => 'ล', 'ขาด' => 'ข', default => '',
-                                    };
-                                @endphp
-                                <td class="att-mark">{{ $mark }}</td>
+                            <td class="col-rowlbl"></td>
+                            @foreach($page as $month)
+                                @foreach($month['weeks'] as $week)
+                                    @foreach($week['dates'] as $d)
+                                        <td class="att-mark">
+                                            @if($d['isHoliday'])
+                                                <span class="att-slash">/</span>
+                                            @else
+                                                <span class="att-check">✓</span>
+                                            @endif
+                                        </td>
+                                    @endforeach
+                                @endforeach
                             @endforeach
                         </tr>
                     @endforeach

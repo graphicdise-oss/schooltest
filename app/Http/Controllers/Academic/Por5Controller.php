@@ -142,6 +142,7 @@ class Por5Controller extends Controller
 
         // ===== 3. วันเรียนตลอดภาคเรียน (จาก timetable + วันหยุด) =====
         $classDates = $this->buildClassDates($assign, $semester);
+        $attendancePages = $this->paginateAttendanceGrid($this->buildAttendanceGrid($assign, $semester));
 
         // ===== 4. บันทึกเช็คชื่อ =====
         $attendance = ClassAttendance::where('assign_id', $assignId)->get()
@@ -178,9 +179,37 @@ class Por5Controller extends Controller
         return view('academic.por5_print', compact(
             'assign', 'section', 'semester', 'students', 'studentChunks',
             'gradeCount', 'gradePct', 'specialCount', 'totalStudents',
-            'qualitySummary', 'classDates', 'attendance', 'attendanceStats',
+            'qualitySummary', 'classDates', 'attendancePages', 'attendance', 'attendanceStats',
             'categories', 'scores', 'school', 'schoolLogoPath'
         ));
+    }
+
+    // แบ่งตาราง เดือน>สัปดาห์>วันที่ ออกเป็นหลายหน้า หน้าละไม่เกิน ~20 คอลัมน์วันที่ (พอดีกระดาษแนวนอน)
+    private function paginateAttendanceGrid(array $months, int $maxColsPerPage = 20): array
+    {
+        $pages = [];
+        $currentPage = [];
+        $currentCols = 0;
+
+        foreach ($months as $month) {
+            foreach ($month['weeks'] as $week) {
+                $weekCols = count($week['dates']);
+                if ($currentCols > 0 && $currentCols + $weekCols > $maxColsPerPage) {
+                    $pages[] = $currentPage;
+                    $currentPage = [];
+                    $currentCols = 0;
+                }
+                $monthKey = $month['label'];
+                if (!isset($currentPage[$monthKey])) {
+                    $currentPage[$monthKey] = ['label' => $month['label'], 'weeks' => []];
+                }
+                $currentPage[$monthKey]['weeks'][] = $week;
+                $currentCols += $weekCols;
+            }
+        }
+        if ($currentCols > 0) $pages[] = $currentPage;
+
+        return array_map('array_values', $pages);
     }
 
     private function authorizedAssign($assignId)
@@ -223,5 +252,62 @@ class Por5Controller extends Controller
         }
 
         return $dates;
+    }
+
+    // สร้างตาราง "บันทึกเวลาเรียน" แบบ เดือน > สัปดาห์ > วันที่ > คาบ
+    // ต่างจาก buildClassDates() ตรงที่ยังคงวันหยุดไว้ในตาราง (ไม่ตัดออก) แต่ไม่นับคาบให้วันหยุด
+    private function buildAttendanceGrid(TeachingAssign $assign, Semester $semester): array
+    {
+        if (!$semester->start_date || !$semester->end_date) return [];
+
+        $daysOfWeek = TimetableSlot::where('assign_id', $assign->assign_id)
+            ->pluck('day_of_week')->unique()->all();
+        if (empty($daysOfWeek)) return [];
+
+        $thaiDowMap = ['อาทิตย์' => 0, 'จันทร์' => 1, 'อังคาร' => 2, 'พุธ' => 3, 'พฤหัสบดี' => 4, 'ศุกร์' => 5, 'เสาร์' => 6];
+        $targetDows = array_filter(array_map(fn($d) => $thaiDowMap[$d] ?? null, $daysOfWeek), fn($v) => $v !== null);
+        if (empty($targetDows)) return [];
+
+        $holidays = Holiday::where('year_id', $semester->year_id)->get();
+        $thaiMonths = [1=>'ม.ค.',2=>'ก.พ.',3=>'มี.ค.',4=>'เม.ย.',5=>'พ.ค.',6=>'มิ.ย.',
+                       7=>'ก.ค.',8=>'ส.ค.',9=>'ก.ย.',10=>'ต.ค.',11=>'พ.ย.',12=>'ธ.ค.'];
+
+        $months = [];
+        $period = 0;
+        $weekNum = 0;
+        $lastIsoWeek = null;
+        $currentMonthKey = null;
+
+        $cursor = $semester->start_date->copy();
+        while ($cursor->lte($semester->end_date)) {
+            if (in_array($cursor->dayOfWeek, $targetDows, true)) {
+                $isoWeek = $cursor->format('o-W');
+                if ($isoWeek !== $lastIsoWeek) {
+                    $weekNum++;
+                    $lastIsoWeek = $isoWeek;
+                    // ทั้งสัปดาห์ใช้ชื่อเดือนของวันแรกในสัปดาห์นั้น แม้บางวันจะข้ามไปเดือนถัดไปแล้ว
+                    $currentMonthKey = $cursor->format('Y-m');
+                    if (!isset($months[$currentMonthKey])) {
+                        $months[$currentMonthKey] = ['label' => $thaiMonths[(int) $cursor->format('n')], 'weeks' => []];
+                    }
+                    $months[$currentMonthKey]['weeks'][$weekNum] = ['week' => $weekNum, 'dates' => []];
+                }
+
+                $isHoliday = $holidays->contains(function ($h) use ($cursor) {
+                    $end = $h->end_date ?? $h->start_date;
+                    return $h->start_date && $cursor->between($h->start_date, $end);
+                });
+                if (!$isHoliday) $period++;
+
+                $months[$currentMonthKey]['weeks'][$weekNum]['dates'][] = [
+                    'day' => $cursor->day,
+                    'period' => $isHoliday ? null : $period,
+                    'isHoliday' => $isHoliday,
+                ];
+            }
+            $cursor->addDay();
+        }
+
+        return array_values($months);
     }
 }
