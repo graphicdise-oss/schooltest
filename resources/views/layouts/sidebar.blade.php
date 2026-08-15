@@ -201,7 +201,7 @@
 
                     <a :class="(hoverItem === 'personnel' || (hoverItem === null && activeItem === 'personnel')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
-                        <i class="fa-regular fa-user w-6 text-center mr-2"></i> ข้อมูลนักเรียน-บุคลากร
+                        <i class="fa-regular fa-user w-6 text-center mr-2"></i> นักเรียน-บุคลากร
                     </a>
 
                     <div x-show="hoverItem === 'personnel'" x-transition:enter="transition ease-out duration-200"
