@@ -43,12 +43,12 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .quality-box th, .quality-box td { border:2px solid #000; padding:3px; text-align:center; }
 .quality-box th { font-weight:700; }
 
-.sign-section { margin-top:20px; font-size:18px; }
+.sign-section { margin-top:20px; font-size:18px; line-height:1.2; }
 .sign-grid { display:flex; gap:0 20px; }
-.sign-col { flex:1; display:flex; flex-direction:column; gap:14px; }
+.sign-col { flex:1; display:flex; flex-direction:column; gap:8px; }
 .sign-item { text-align:center; }
-.sign-line { margin:22px 0 4px; }
-.sign-approve { display:flex; align-items:center; justify-content:center; gap:16px; margin:8px 0; }
+.sign-line { margin:14px 0 2px; }
+.sign-approve { display:flex; align-items:center; justify-content:center; gap:16px; margin:4px 0; }
 
 /* ตารางบันทึกเวลาเรียน */
 .att-title { text-align:center; font-weight:700; font-size:16px; margin-bottom:8px; }
