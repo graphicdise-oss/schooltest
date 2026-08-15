@@ -25,12 +25,12 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .doc-title p { font-size:18px; font-weight:700; }
 
 .meta-wrap { text-align:center; margin-bottom:8px; }
-.meta-table { display:inline-table; table-layout:fixed; border-collapse:collapse; font-size:18px; text-align:left; }
+.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:18px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
-.meta-table .lbl { font-weight:700; width:90px; }
-.meta-table .lbl2 { font-weight:700; width:70px; }
-.meta-table .val { padding-left:6px; min-width:260px; }
-.meta-table .val1 { width:140px; min-width:0; }
+.meta-table .lbl { font-weight:700; padding-right:2px; }
+.meta-table .lbl2 { font-weight:700; padding-right:2px; padding-left:20px; }
+.meta-table .val { padding-left:4px; }
+.meta-table .val1 { padding-right:10px; }
 
 .grade-table { width:100%; border-collapse:collapse; font-size:18px; margin-bottom:10px; }
 .grade-table th, .grade-table td { border:2px solid #000; padding:4px 3px; text-align:center; }
