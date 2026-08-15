@@ -24,12 +24,13 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 .doc-title h2 { font-size:19px; font-weight:700; }
 .doc-title p { font-size:15px; }
 
-.meta-table { width:100%; table-layout:fixed; border-collapse:collapse; font-size:15px; margin-bottom:8px; }
+.meta-wrap { text-align:center; margin-bottom:8px; }
+.meta-table { display:inline-table; table-layout:fixed; border-collapse:collapse; font-size:15px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .meta-table .lbl { font-weight:700; width:90px; }
 .meta-table .lbl2 { font-weight:700; width:70px; }
-.meta-table .val { padding-left:6px; }
-.meta-table .val1 { width:140px; }
+.meta-table .val { padding-left:6px; min-width:260px; }
+.meta-table .val1 { width:140px; min-width:0; }
 
 .grade-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
 .grade-table th, .grade-table td { border:1px solid #000; padding:4px 3px; text-align:center; }
@@ -87,6 +88,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
         <p>{{ config('school.name') }}</p>
     </div>
 
+    <div class="meta-wrap">
     <table class="meta-table">
         <tr>
             <td class="lbl">ปีการศึกษา</td><td class="val val1">{{ $semester->semester_name }}/{{ $semester->academicYear->year_name ?? '' }}</td>
@@ -99,6 +101,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
             <td class="lbl">ครูผู้สอน</td><td class="val" colspan="3">{{ $assign->personnel->thai_prefix ?? '' }}{{ $assign->personnel->thai_firstname ?? '' }} {{ $assign->personnel->thai_lastname ?? '' }}</td>
         </tr>
     </table>
+    </div>
 
     <table class="grade-table">
         <tr>
