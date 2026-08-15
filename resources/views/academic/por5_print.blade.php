@@ -13,13 +13,14 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     page-break-after:always; display:flex; flex-direction:column;
 }
 .page:last-child { page-break-after:auto; }
+@page { size: A4; margin: 0; }
 @media print { body{background:#fff;} .page{margin:0; box-shadow:none;} }
 
 .doc-top { display:flex; align-items:center; justify-content:center; gap:5mm; position:relative; margin-bottom:6px; }
 .doc-logo { width:16mm; height:16mm; flex-shrink:0; }
 .doc-logo img { width:100%; height:100%; object-fit:contain; }
 .doc-tag { position:absolute; right:0; top:0; font-weight:700; }
-.doc-title { text-align:center; margin-bottom:8px; }
+.doc-title { width:100%; text-align:center; margin-bottom:8px; }
 .doc-title h2 { font-size:19px; font-weight:700; }
 .doc-title p { font-size:15px; }
 
@@ -110,16 +111,17 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
         </tr>
         <tr><td colspan="{{ count($gradeBuckets)+count($specialBuckets) }}"></td></tr>
         <tr>
-            <td rowspan="2">{{ $totalStudents }}</td>
+            <td>{{ $totalStudents }}</td>
             @foreach($gradeBuckets as $b)<td>{{ $gradeCount[$b] ?: '-' }}</td>@endforeach
             @foreach($specialBuckets as $b)<td>{{ $specialCount[$b] ?: '-' }}</td>@endforeach
         </tr>
         <tr>
+            <td>ร้อยละ</td>
             @foreach($gradeBuckets as $b)<td>{{ $gradeCount[$b] ? number_format($gradePct[$b],2) : '-' }}</td>@endforeach
             @foreach($specialBuckets as $b)<td>-</td>@endforeach
         </tr>
     </table>
-    <p style="font-size:11px; text-align:right; margin-top:-6px; margin-bottom:10px;">ร้อยละ</p>
+    <div style="margin-bottom:10px;"></div>
 
     <div class="quality-row">
         @foreach($qualitySummary as $q)
