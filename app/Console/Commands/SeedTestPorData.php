@@ -76,8 +76,11 @@ class SeedTestPorData extends Command
             $this->line('  - สร้างข้อมูลการศึกษา (ปลอม)');
         }
 
-        // หา/สร้างห้องเรียนที่นักเรียนสังกัดอยู่
-        $studentSection = StudentSection::where('student_id', $studentId)->latest('id')->first();
+        // หา/สร้างห้องเรียนที่นักเรียนสังกัดอยู่ — ข้ามห้องปลอม "นำเข้าเกรดจากไฟล์ (ไม่ใช่ห้องเรียนจริง)"
+        // (section_number 9998 ที่ import:transcript สร้างไว้เก็บเกรด ไม่ใช่ห้องเรียนจริงที่มีตารางสอน)
+        $studentSection = StudentSection::where('student_id', $studentId)
+            ->whereHas('classSection', fn($q) => $q->where('section_number', '!=', 9998))
+            ->latest('id')->first();
 
         if (!$studentSection) {
             $sectionOpt = $this->option('section_id');

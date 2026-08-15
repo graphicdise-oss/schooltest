@@ -7,6 +7,8 @@ use App\Models\Academic\Pp2Document;
 use App\Models\Academic\StudentAssessment;
 use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\SubjectAssessment;
+use App\Models\Academic\TeachingAssign;
+use App\Models\Academic\TimetableSlot;
 use App\Models\Student;
 use App\Models\StudentEducation;
 use App\Models\StudentFamily;
@@ -59,6 +61,16 @@ class UnseedTestPorData extends Command
 
         $pp2Count = Pp2Document::where('student_id', $studentId)->delete();
         $this->line("  - ลบเอกสาร ปพ.2 {$pp2Count} รายการ");
+
+        // แก้ผลข้างเคียงจากบั๊กเดิม: seed เคยเผลอเติมตารางสอนปลอมให้ห้อง "นำเข้าเกรดจากไฟล์ (ไม่ใช่ห้องเรียนจริง)"
+        // (section_number 9998) ถ้าห้องนี้ของนักเรียนคนนี้ดันเป็นห้องล่าสุดตอนรัน seed — ห้องนี้ไม่มีตารางสอนจริง
+        // เลยต้องลบตารางสอนที่ติดมาออกเสมอ ไม่ผูกกับ student คนใดคนหนึ่ง เพราะห้องปลอมนี้ใช้ร่วมกันทุกคน
+        $fakeAssignIds = TeachingAssign::whereHas('classSection', fn($q) => $q->where('section_number', 9998))
+            ->pluck('assign_id');
+        $fakeSlotCount = TimetableSlot::whereIn('assign_id', $fakeAssignIds)->delete();
+        if ($fakeSlotCount) {
+            $this->line("  - ลบตารางสอนปลอมที่ติดห้อง 'นำเข้าเกรดจากไฟล์ (ไม่ใช่ห้องเรียนจริง)' {$fakeSlotCount} รายการ (ไม่ใช่ห้องเรียนจริง ไม่ควรมีตารางสอน)");
+        }
 
         if ($this->option('with-section')) {
             $ssCount = \App\Models\Academic\StudentSection::where('student_id', $studentId)->delete();
