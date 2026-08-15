@@ -3,7 +3,10 @@
 
 @section('content')
 @php
-    $levels = ['', 'ดีเยี่ยม', 'ดี', 'ผ่าน'];
+    $competencyLevels = ['', 'ดีเยี่ยม', 'ดี', 'ผ่าน'];
+    $charLabels = \App\Models\Academic\SubjectAssessment::CHAR_LABELS;
+    $readLabels = \App\Models\Academic\SubjectAssessment::READ_LABELS;
+    $levelLabels = \App\Models\Academic\SubjectAssessment::LEVEL_LABELS; // [3=>ดีเยี่ยม,2=>ดี,1=>ผ่าน,0=>ไม่ผ่าน]
 @endphp
 <div class="ac-page">
     <nav class="ac-breadcrumb">
@@ -19,7 +22,8 @@
             @if($students->isEmpty())
                 <p class="ac-empty">ไม่มีนักเรียนในห้องนี้</p>
             @else
-                <form method="POST" action="{{ route('por5.saveAssessment', $assign->assign_id) }}">
+                <p class="text-muted" style="margin-bottom:12px;">กด "แก้ไขรายข้อ" เพื่อกรอกคุณลักษณะอันพึงประสงค์ (8 ข้อ) และการอ่านคิดวิเคราะห์และเขียน (5 ข้อ) — ระบบคำนวณผลรวมให้อัตโนมัติตามเกณฑ์ สพฐ.</p>
+                <form method="POST" action="{{ route('por5.saveAssessment', $assign->assign_id) }}" id="assessForm">
                     @csrf
                     <div class="ac-table-wrap">
                         <table class="ac-table">
@@ -28,9 +32,9 @@
                                     <th style="width:55px;">เลขที่</th>
                                     <th style="width:110px;">รหัส</th>
                                     <th style="text-align:left;">ชื่อ - สกุล</th>
-                                    <th style="width:180px;">คุณลักษณะอันพึงประสงค์</th>
-                                    <th style="width:180px;">การอ่านคิดวิเคราะห์ฯ</th>
-                                    <th style="width:180px;">สมรรถนะสำคัญของผู้เรียน</th>
+                                    <th style="width:200px;">คุณลักษณะอันพึงประสงค์</th>
+                                    <th style="width:200px;">การอ่านคิดวิเคราะห์ฯ</th>
+                                    <th style="width:150px;">สมรรถนะสำคัญของผู้เรียน</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -41,22 +45,26 @@
                                         <td>{{ $s->student->student_code }}</td>
                                         <td style="text-align:left">{{ $s->student->thai_prefix }}{{ $s->student->thai_firstname }} {{ $s->student->thai_lastname }}</td>
                                         <td>
-                                            <select name="assess[{{ $s->student_id }}][char]" class="ac-select">
-                                                @foreach($levels as $opt)
-                                                    <option value="{{ $opt }}" {{ ($a->desired_char ?? '') === $opt ? 'selected' : '' }}>{{ $opt === '' ? '—' : $opt }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="assess-cell">
+                                                <span class="assess-preview" id="char-preview-{{ $s->student_id }}">{{ $a->desired_char ?? '—' }}</span>
+                                                <button type="button" class="ac-action-btn" onclick="openItemModal('char', {{ $s->student_id }}, '{{ addslashes($s->student->thai_prefix . $s->student->thai_firstname . ' ' . $s->student->thai_lastname) }}')"><i class="bi bi-pencil"></i> แก้ไขรายข้อ</button>
+                                            </div>
+                                            @foreach(range(1,8) as $i)
+                                                <input type="hidden" name="assess[{{ $s->student_id }}][char][{{ $i }}]" id="char-{{ $i }}-{{ $s->student_id }}" value="{{ $a?->{"char_$i"} }}">
+                                            @endforeach
                                         </td>
                                         <td>
-                                            <select name="assess[{{ $s->student_id }}][reading]" class="ac-select">
-                                                @foreach($levels as $opt)
-                                                    <option value="{{ $opt }}" {{ ($a->reading_thinking ?? '') === $opt ? 'selected' : '' }}>{{ $opt === '' ? '—' : $opt }}</option>
-                                                @endforeach
-                                            </select>
+                                            <div class="assess-cell">
+                                                <span class="assess-preview" id="read-preview-{{ $s->student_id }}">{{ $a->reading_thinking ?? '—' }}</span>
+                                                <button type="button" class="ac-action-btn" onclick="openItemModal('read', {{ $s->student_id }}, '{{ addslashes($s->student->thai_prefix . $s->student->thai_firstname . ' ' . $s->student->thai_lastname) }}')"><i class="bi bi-pencil"></i> แก้ไขรายข้อ</button>
+                                            </div>
+                                            @foreach(range(1,5) as $i)
+                                                <input type="hidden" name="assess[{{ $s->student_id }}][read][{{ $i }}]" id="read-{{ $i }}-{{ $s->student_id }}" value="{{ $a?->{"read_$i"} }}">
+                                            @endforeach
                                         </td>
                                         <td>
                                             <select name="assess[{{ $s->student_id }}][competency]" class="ac-select">
-                                                @foreach($levels as $opt)
+                                                @foreach($competencyLevels as $opt)
                                                     <option value="{{ $opt }}" {{ ($a->competency ?? '') === $opt ? 'selected' : '' }}>{{ $opt === '' ? '—' : $opt }}</option>
                                                 @endforeach
                                             </select>
@@ -75,4 +83,88 @@
         </div>
     </div>
 </div>
+
+<div class="ac-overlay" id="itemOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+    <div class="ac-modal">
+        <div class="ac-modal-header"><i class="bi bi-pencil-square me-2"></i><span id="itemModalTitle">แก้ไขรายข้อ</span></div>
+        <div class="ac-modal-body" id="itemModalBody"></div>
+        <div class="ac-modal-footer">
+            <button type="button" class="ac-btn ac-btn-secondary" onclick="document.getElementById('itemOverlay').classList.remove('active')">ยกเลิก</button>
+            <button type="button" class="ac-btn ac-btn-primary" onclick="applyItemModal()"><i class="bi bi-check-lg"></i> ตกลง</button>
+        </div>
+    </div>
+</div>
+
+<script>
+const CHAR_LABELS = @json($charLabels);
+const READ_LABELS = @json($readLabels);
+const LEVEL_OPTS = [['', '—'], [3, 'ดีเยี่ยม (3)'], [2, 'ดี (2)'], [1, 'ผ่าน (1)'], [0, 'ไม่ผ่าน (0)']];
+
+let currentModal = { type: null, studentId: null, count: 0 };
+
+function openItemModal(type, studentId, studentName) {
+    const isChar = type === 'char';
+    const labels = isChar ? CHAR_LABELS : READ_LABELS;
+    const count = isChar ? 8 : 5;
+    currentModal = { type, studentId, count };
+
+    document.getElementById('itemModalTitle').textContent = (isChar ? 'คุณลักษณะอันพึงประสงค์' : 'การอ่านคิดวิเคราะห์และเขียน') + ' — ' + studentName;
+
+    let html = '';
+    for (let i = 1; i <= count; i++) {
+        const current = document.getElementById(`${type}-${i}-${studentId}`).value;
+        let options = '';
+        LEVEL_OPTS.forEach(([val, label]) => {
+            const selected = String(val) === String(current) ? 'selected' : '';
+            options += `<option value="${val}" ${selected}>${label}</option>`;
+        });
+        html += `<div class="ac-field" style="margin-bottom:8px">
+            <label>${i}. ${labels[i]}</label>
+            <select class="ac-select" id="modal-item-${i}">${options}</select>
+        </div>`;
+    }
+    document.getElementById('itemModalBody').innerHTML = html;
+    document.getElementById('itemOverlay').classList.add('active');
+}
+
+function computeDesiredCharLevel(items) {
+    if (items.some(v => v === null || v === '')) return null;
+    items = items.map(Number);
+    const min = Math.min(...items);
+    if (min === 0) return 0;
+    const excellent = items.filter(v => v === 3).length;
+    if (excellent >= 5 && min >= 2) return 3;
+    if (excellent >= 1 && min >= 2) return 2;
+    if (excellent >= 4 && min >= 1) return 2;
+    if (min >= 1) return 1;
+    return 0;
+}
+
+function computeReadingThinkingLevel(items) {
+    if (items.some(v => v === null || v === '')) return null;
+    return Math.min(...items.map(Number));
+}
+
+const LEVEL_LABEL = { 3: 'ดีเยี่ยม', 2: 'ดี', 1: 'ผ่าน', 0: 'ไม่ผ่าน' };
+
+function applyItemModal() {
+    const { type, studentId, count } = currentModal;
+    const items = [];
+    for (let i = 1; i <= count; i++) {
+        const val = document.getElementById(`modal-item-${i}`).value;
+        document.getElementById(`${type}-${i}-${studentId}`).value = val;
+        items.push(val === '' ? null : val);
+    }
+    const level = type === 'char' ? computeDesiredCharLevel(items) : computeReadingThinkingLevel(items);
+    document.getElementById(`${type}-preview-${studentId}`).textContent = level === null ? '—' : LEVEL_LABEL[level];
+    document.getElementById('itemOverlay').classList.remove('active');
+}
+
+document.addEventListener('keydown', e => { if (e.key === 'Escape') document.querySelectorAll('.ac-overlay.active').forEach(el => el.classList.remove('active')); });
+</script>
+
+<style>
+.assess-cell { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.assess-preview { font-weight: 600; }
+</style>
 @endsection

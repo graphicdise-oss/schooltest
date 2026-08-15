@@ -70,13 +70,21 @@ class Por5Controller extends Controller
         $rows = $request->input('assess', []);
 
         foreach ($rows as $studentId => $vals) {
+            $charItems = array_map(fn($i) => isset($vals['char'][$i]) && $vals['char'][$i] !== '' ? (int) $vals['char'][$i] : null, range(1, 8));
+            $readItems = array_map(fn($i) => isset($vals['read'][$i]) && $vals['read'][$i] !== '' ? (int) $vals['read'][$i] : null, range(1, 5));
+
+            $charLevel = SubjectAssessment::computeDesiredCharLevel($charItems);
+            $readLevel = SubjectAssessment::computeReadingThinkingLevel($readItems);
+
+            $data = ['competency' => $vals['competency'] ?: null];
+            foreach (range(1, 8) as $i) $data["char_{$i}"] = $charItems[$i - 1];
+            foreach (range(1, 5) as $i) $data["read_{$i}"] = $readItems[$i - 1];
+            $data['desired_char'] = SubjectAssessment::levelLabel($charLevel) ?: null;
+            $data['reading_thinking'] = SubjectAssessment::levelLabel($readLevel) ?: null;
+
             SubjectAssessment::updateOrCreate(
                 ['assign_id' => $assignId, 'student_id' => $studentId],
-                [
-                    'desired_char'     => $vals['char'] ?: null,
-                    'reading_thinking' => $vals['reading'] ?: null,
-                    'competency'       => $vals['competency'] ?: null,
-                ]
+                $data
             );
         }
 
@@ -127,7 +135,7 @@ class Por5Controller extends Controller
         $subjectAssessments = SubjectAssessment::where('assign_id', $assignId)->get()->keyBy('student_id');
         $qualitySummary = [];
         foreach (['desired_char' => 'คุณลักษณะอันพึงประสงค์', 'reading_thinking' => 'การอ่านคิดวิเคราะห์และเขียน', 'competency' => 'สมรรถนะที่สำคัญของผู้เรียน'] as $field => $label) {
-            $counts = ['ดีเยี่ยม' => 0, 'ดี' => 0, 'ผ่าน' => 0];
+            $counts = ['ดีเยี่ยม' => 0, 'ดี' => 0, 'ผ่าน' => 0, 'ไม่ผ่าน' => 0];
             foreach ($students as $s) {
                 $a = $subjectAssessments->get($s->student_id);
                 $v = $a?->{$field};
@@ -182,7 +190,7 @@ class Por5Controller extends Controller
             'assign', 'section', 'semester', 'students', 'studentChunks',
             'gradeCount', 'gradePct', 'specialCount', 'totalStudents',
             'qualitySummary', 'classDates', 'attendancePages', 'attendance', 'attendanceStats',
-            'categories', 'scores', 'school', 'schoolLogoPath', 'subjectGroupHead'
+            'categories', 'scores', 'school', 'schoolLogoPath', 'subjectGroupHead', 'subjectAssessments'
         ));
     }
 

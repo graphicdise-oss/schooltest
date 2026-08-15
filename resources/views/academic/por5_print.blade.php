@@ -62,10 +62,11 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .att-slash { display:inline-block; }
 
 /* ตารางสถิติ/คะแนน */
-.stat-table, .score-table { width:100%; border-collapse:collapse; font-size:11px; }
-.stat-table th, .stat-table td, .score-table th, .score-table td { border:1px solid #666; text-align:center; padding:4px 3px; }
-.stat-table th, .score-table th { background:#f5f5f5; font-weight:700; }
-.stat-table .col-name, .score-table .col-name { text-align:left !important; padding-left:5px; }
+.stat-table, .score-table, .char-table { width:100%; border-collapse:collapse; font-size:11px; }
+.stat-table th, .stat-table td, .score-table th, .score-table td, .char-table th, .char-table td { border:1px solid #666; text-align:center; padding:4px 3px; }
+.stat-table th, .score-table th, .char-table th { background:#f5f5f5; font-weight:700; }
+.stat-table .col-name, .score-table .col-name, .char-table .col-name { text-align:left !important; padding-left:5px; }
+.char-legend { font-size:10px; margin-top:8px; display:flex; flex-wrap:wrap; gap:4px 16px; }
 </style>
 </head>
 <body>
@@ -73,7 +74,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 @php
     $gradeBuckets = ['4','3.5','3','2.5','2','1.5','1','0'];
     $specialBuckets = ['ร','มส','มก','ผ','มผ','อื่นๆ'];
-    $qLabels = ['ดีเยี่ยม (3)' => 'ดีเยี่ยม', 'ดี (2)' => 'ดี', 'ผ่าน (1)' => 'ผ่าน'];
+    $qLabels = ['ดีเยี่ยม (3)' => 'ดีเยี่ยม', 'ดี (2)' => 'ดี', 'ผ่าน (1)' => 'ผ่าน', 'ไม่ผ่าน (0)' => 'ไม่ผ่าน'];
     $studentFullName = fn($stu) => trim(($stu->thai_prefix ?? '').($stu->thai_firstname ?? '').' '.($stu->thai_lastname ?? ''));
 @endphp
 
@@ -331,6 +332,47 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
     @endforeach
 @endforeach
 @endif
+
+{{-- ===================== หน้าผลการประเมินคุณลักษณะอันพึงประสงค์รายข้อ (ต่อ 45 คน) ===================== --}}
+@php $charLabels = \App\Models\Academic\SubjectAssessment::CHAR_LABELS; @endphp
+@foreach($studentChunks as $chunk)
+    <div class="page">
+        <div class="att-title">ผลการประเมินคุณลักษณะอันพึงประสงค์ วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->full_name ?? '' }}</div>
+        <table class="char-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:45px;">เลขที่</th>
+                    <th rowspan="2" style="width:70px;">รหัส</th>
+                    <th rowspan="2" class="col-name">ชื่อ - สกุล</th>
+                    <th colspan="8">ข้อที่</th>
+                    <th rowspan="2">ผลที่ได้</th>
+                </tr>
+                <tr>
+                    @foreach(range(1,8) as $i)<th>{{ $i }}</th>@endforeach
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($chunk as $s)
+                    @php
+                        $a = $subjectAssessments->get($s->student_id);
+                        $charItems = $a ? array_map(fn($i) => $a->{"char_$i"}, range(1,8)) : array_fill(0, 8, null);
+                        $level = $a ? \App\Models\Academic\SubjectAssessment::computeDesiredCharLevel($charItems) : null;
+                    @endphp
+                    <tr>
+                        <td>{{ $s->student_number }}</td>
+                        <td>{{ $s->student->student_code }}</td>
+                        <td class="col-name">{{ $studentFullName($s->student) }}</td>
+                        @foreach($charItems as $v)<td>{{ $v ?? '' }}</td>@endforeach
+                        <td>{{ \App\Models\Academic\SubjectAssessment::levelLabel($level) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+        <div class="char-legend">
+            @foreach($charLabels as $i => $label)<span>{{ $i }}. {{ $label }}</span>@endforeach
+        </div>
+    </div>
+@endforeach
 
 </body>
 </html>
