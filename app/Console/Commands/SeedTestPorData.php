@@ -8,9 +8,11 @@ use App\Models\Academic\Pp2Document;
 use App\Models\Academic\StudentAssessment;
 use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\StudentSection;
+use App\Models\Academic\Semester;
 use App\Models\Academic\Subject;
 use App\Models\Academic\SubjectAssessment;
 use App\Models\Academic\TeachingAssign;
+use App\Models\Academic\TimetableSlot;
 use App\Models\Personne\Personnel;
 use App\Models\Student;
 use App\Models\StudentEducation;
@@ -101,6 +103,21 @@ class SeedTestPorData extends Command
         $section = ClassSection::find($studentSection->section_id);
         $semesterId = $section->semester_id;
 
+        // วันเริ่ม-สิ้นสุดภาคเรียน (ใช้ใน ปพ.5 หน้าบันทึกเวลาเรียน — ถ้าไม่มีวันที่ ระบบจะไม่สร้างตารางเวลาเรียนให้เลย)
+        $semester = Semester::find($semesterId);
+        if ($semester && (!$semester->start_date || !$semester->end_date)) {
+            $gregYear = ((int) ($semester->academicYear->year_name ?? now()->year + 543)) - 543;
+            if ($semester->semester_name == '1') {
+                $start = "{$gregYear}-05-16";
+                $end   = "{$gregYear}-10-10";
+            } else {
+                $start = "{$gregYear}-11-01";
+                $end   = ($gregYear + 1) . "-03-31";
+            }
+            $semester->update(['start_date' => $start, 'end_date' => $end]);
+            $this->line("  - เติมวันเริ่ม-สิ้นสุดภาคเรียน (ปลอม): {$start} ถึง {$end}");
+        }
+
         // เลขที่เอกสาร ปพ.2 รายภาคเรียน (ใช้ใน ปพ.3)
         $docNum = StudentDocNumber::where('student_id', $studentId)->where('semester_id', $semesterId)->first();
         if (!$docNum) {
@@ -164,6 +181,17 @@ class SeedTestPorData extends Command
 
         // ผลการเรียนทุกวิชาที่สอนในห้องนี้ (ใช้ใน ปพ.1, ปพ.3, ปพ.5, ปพ.6)
         $assigns = TeachingAssign::where('section_id', $section->section_id)->get();
+
+        // ตารางสอน (ใช้ใน ปพ.5 หน้าบันทึกเวลาเรียน — ถ้าวิชาไหนไม่มีตารางสอนเลย ระบบจะไม่รู้ว่าสอนวันไหน เลยไม่สร้างหน้านี้ให้)
+        $slotCount = 0;
+        foreach ($assigns as $assign) {
+            if (TimetableSlot::where('assign_id', $assign->assign_id)->count() > 0) continue;
+            TimetableSlot::create(['assign_id' => $assign->assign_id, 'day_of_week' => 'จันทร์', 'start_time' => '08:30', 'end_time' => '09:20']);
+            TimetableSlot::create(['assign_id' => $assign->assign_id, 'day_of_week' => 'พุธ', 'start_time' => '08:30', 'end_time' => '09:20']);
+            $slotCount++;
+        }
+        if ($slotCount) $this->line("  - เติมตารางสอน (ปลอม จันทร์+พุธ) ให้ {$slotCount} วิชาที่ยังไม่มีตารางสอน");
+
         $gradeCount = 0;
         foreach ($assigns as $assign) {
             $exists = FinalGrade::where('student_id', $studentId)->where('assign_id', $assign->assign_id)->first();
@@ -198,6 +226,7 @@ class SeedTestPorData extends Command
         $this->info("เสร็จแล้ว! ทดสอบพิมพ์เอกสารของนักเรียนคนนี้ได้เลย (section_id={$section->section_id}, semester_id={$semesterId})");
         $this->warn("ข้อมูลของนักเรียนที่สร้างเป็นข้อมูลปลอม ก่อนใช้งานจริงให้รัน: php artisan test:unseed-por-data {$studentId}");
         $this->comment('หมายเหตุ: ถ้าคำสั่งนี้สร้างวิชา/ครูผู้สอนปลอมให้ห้องด้วย (ตอนที่ห้องยังไม่มีวิชาเลย) ตัวเลือก unseed จะไม่ลบวิชา/ครูผู้สอนออกให้ เพราะอาจถูกห้องอื่นใช้ร่วมด้วย ต้องไปลบเองที่หน้าจัดตารางสอนถ้าไม่ต้องการ');
+        $this->comment('หมายเหตุ: วันเริ่ม-สิ้นสุดภาคเรียน และตารางสอนที่เติมให้ (ถ้ายังไม่มี) เป็นข้อมูลที่ใช้ร่วมกันทั้งภาคเรียน/ห้องเรียน ตัวเลือก unseed จะไม่ลบให้เช่นกัน ต้องไปแก้ที่หน้าตั้งค่าภาคเรียน/จัดตารางสอนเอง');
 
         return 0;
     }
