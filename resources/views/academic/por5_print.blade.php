@@ -37,8 +37,8 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:16p
 .grade-table th { font-weight:700; }
 
 .quality-row { display:flex; gap:6px; margin-bottom:12px; }
-.quality-box { flex:1; border:2px solid #000; }
-.quality-box .qh { text-align:center; font-weight:700; font-size:16px; padding:5px; border-bottom:2px solid #000; }
+.quality-box { flex:1; }
+.quality-box .qh { text-align:center; font-weight:700; font-size:16px; padding:5px; border:2px solid #000; border-bottom:none; }
 .quality-box table { width:100%; border-collapse:collapse; font-size:16px; }
 .quality-box th, .quality-box td { border:2px solid #000; padding:3px; text-align:center; }
 .quality-box th { font-weight:700; }
