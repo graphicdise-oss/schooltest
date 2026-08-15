@@ -62,10 +62,10 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .att-slash { display:inline-block; }
 
 /* ตารางสถิติ/คะแนน */
-.stat-table, .score-table, .char-table { width:100%; border-collapse:collapse; font-size:11px; }
-.stat-table th, .stat-table td, .score-table th, .score-table td, .char-table th, .char-table td { border:1px solid #666; text-align:center; padding:4px 3px; }
-.stat-table th, .score-table th, .char-table th { background:#f5f5f5; font-weight:700; }
-.stat-table .col-name, .score-table .col-name, .char-table .col-name { text-align:left !important; padding-left:5px; }
+.stat-table, .score-table, .char-table, .eval-table { width:100%; border-collapse:collapse; font-size:11px; }
+.stat-table th, .stat-table td, .score-table th, .score-table td, .char-table th, .char-table td, .eval-table th, .eval-table td { border:1px solid #666; text-align:center; padding:4px 3px; }
+.stat-table th, .score-table th, .char-table th, .eval-table th { background:#f5f5f5; font-weight:700; }
+.stat-table .col-name, .score-table .col-name, .char-table .col-name, .eval-table .col-name { text-align:left !important; padding-left:5px; }
 .char-legend { font-size:10px; margin-top:8px; display:flex; flex-wrap:wrap; gap:4px 16px; }
 </style>
 </head>
@@ -240,7 +240,9 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
                                 @foreach($month['weeks'] as $week)
                                     @foreach($week['dates'] as $d)
                                         <td class="att-mark">
-                                            @if($d['isHoliday'])
+                                            @if(!($d['isTeachingDay'] ?? true))
+                                                {{-- วันธรรมดาที่ไม่ใช่วันเรียนของวิชานี้ — เว้นว่าง --}}
+                                            @elseif($d['isHoliday'])
                                                 <span class="att-slash">/</span>
                                             @else
                                                 <span class="att-check">✓</span>
@@ -289,41 +291,54 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
     </div>
 @endforeach
 
-{{-- ===================== หน้าคะแนนเก็บ (ต่อ 45 คน) ===================== --}}
+{{-- ===================== หน้าคะแนนเก็บ (ต่อ 45 คน) — แต่ละหมวดคะแนนแบ่ง 2 คอลัมน์ [คะแนนเต็ม/สรุป] ตามแบบฟอร์มจริง ===================== --}}
 @if($categories->isNotEmpty())
+@php $totalMaxScore = $categories->sum(fn($c) => (float) $c->max_score); @endphp
 @foreach($studentChunks as $chunk)
     @php $catChunks = $categories->chunk(9)->values(); @endphp
-    @foreach($catChunks as $catChunk)
+    @foreach($catChunks as $ci => $catChunk)
+        @php $isLastChunk = $ci === $catChunks->count() - 1; @endphp
         <div class="page">
-            <div class="att-title">คะแนนเก็บ วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->full_name ?? '' }}</div>
+            <div class="att-title">คะแนนเก็บ วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->full_name ?? '' }}</div>
             <table class="score-table">
                 <thead>
                     <tr>
-                        <th rowspan="2" style="width:45px;">เลขที่</th>
-                        <th rowspan="2" style="width:70px;">รหัส</th>
-                        <th rowspan="2" class="col-name">ชื่อ - สกุล</th>
-                        @foreach($catChunk as $cat)<th colspan="1">{{ $cat->name }} ({{ (float) $cat->max_score }})</th>@endforeach
-                        <th rowspan="2">รวม</th>
+                        <th rowspan="2" style="width:40px;">เลขที่</th>
+                        <th rowspan="2" style="width:65px;">เลขประจำตัว</th>
+                        <th rowspan="2" class="col-name">ชื่อ - นามสกุล</th>
+                        @foreach($catChunk as $idx => $cat)<th colspan="2">{{ $idx + 1 }}</th>@endforeach
+                        @if($isLastChunk)<th colspan="2">รวม</th>@endif
+                    </tr>
+                    <tr>
+                        @foreach($catChunk as $cat)
+                            <th>{{ (float) $cat->max_score }}</th><th>สรุป</th>
+                        @endforeach
+                        @if($isLastChunk)<th>{{ $totalMaxScore }}</th><th>สรุป</th>@endif
                     </tr>
                 </thead>
                 <tbody>
                     @foreach($chunk as $s)
                         @php
                             $rowScores = $scores->get($s->student_id) ?? collect();
-                            $sum = 0;
+                            $sum = 0; $hasAny = false;
+                            foreach ($categories as $cat) {
+                                $v = $rowScores->get($cat->category_id)?->score;
+                                if ($v !== null) { $sum += (float) $v; $hasAny = true; }
+                            }
                         @endphp
                         <tr>
                             <td>{{ $s->student_number }}</td>
                             <td>{{ $s->student->student_code }}</td>
                             <td class="col-name">{{ $studentFullName($s->student) }}</td>
                             @foreach($catChunk as $cat)
-                                @php
-                                    $val = $rowScores->get($cat->category_id)?->score;
-                                    if ($val !== null) $sum += (float) $val;
-                                @endphp
+                                @php $val = $rowScores->get($cat->category_id)?->score; @endphp
                                 <td>{{ $val !== null ? (float) $val : '' }}</td>
+                                <td>{{ $val !== null ? 'ผ.' : '' }}</td>
                             @endforeach
-                            <td>{{ $sum ?: '' }}</td>
+                            @if($isLastChunk)
+                                <td>{{ $hasAny ? $sum : '' }}</td>
+                                <td>{{ $hasAny ? 'ผ.' : '' }}</td>
+                            @endif
                         </tr>
                     @endforeach
                 </tbody>
@@ -333,29 +348,29 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 @endforeach
 @endif
 
-{{-- ===================== หน้าผลการประเมินคุณลักษณะอันพึงประสงค์รายข้อ (ต่อ 45 คน) ===================== --}}
-@php $charLabels = \App\Models\Academic\SubjectAssessment::CHAR_LABELS; @endphp
+{{-- ===================== หน้าผลการประเมินคุณลักษณะอันพึงประสงค์ รายหน่วยที่ (ต่อ 45 คน) ===================== --}}
+@php $charRefLabels = \App\Models\Academic\SubjectAssessment::CHAR_REFERENCE_LABELS; @endphp
 @foreach($studentChunks as $chunk)
     <div class="page">
-        <div class="att-title">ผลการประเมินคุณลักษณะอันพึงประสงค์ วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->full_name ?? '' }}</div>
+        <div class="att-title">ผลการประเมินคุณลักษณะอันพึงประสงค์ วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->full_name ?? '' }}</div>
         <table class="char-table">
             <thead>
                 <tr>
                     <th rowspan="2" style="width:45px;">เลขที่</th>
-                    <th rowspan="2" style="width:70px;">รหัส</th>
-                    <th rowspan="2" class="col-name">ชื่อ - สกุล</th>
-                    <th colspan="8">ข้อที่</th>
+                    <th rowspan="2" style="width:70px;">เลขประจำตัว</th>
+                    <th rowspan="2" class="col-name">ชื่อ - นามสกุล</th>
+                    <th colspan="{{ $unitCount }}">หน่วยที่</th>
                     <th rowspan="2">ผลที่ได้</th>
                 </tr>
                 <tr>
-                    @foreach(range(1,8) as $i)<th>{{ $i }}</th>@endforeach
+                    @foreach(range(1,$unitCount) as $i)<th>{{ $i }}</th>@endforeach
                 </tr>
             </thead>
             <tbody>
                 @foreach($chunk as $s)
                     @php
                         $a = $subjectAssessments->get($s->student_id);
-                        $charItems = $a ? array_map(fn($i) => $a->{"char_$i"}, range(1,8)) : array_fill(0, 8, null);
+                        $charItems = $a ? $a->charItems($unitCount) : array_fill(0, $unitCount, null);
                         $level = $a ? \App\Models\Academic\SubjectAssessment::computeDesiredCharLevel($charItems) : null;
                     @endphp
                     <tr>
@@ -369,8 +384,106 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
             </tbody>
         </table>
         <div class="char-legend">
-            @foreach($charLabels as $i => $label)<span>{{ $i }}. {{ $label }}</span>@endforeach
+            @foreach($charRefLabels as $i => $label)<span>{{ $i }}. {{ $label }}</span>@endforeach
         </div>
+    </div>
+@endforeach
+
+{{-- ===================== หน้าประเมินผลการเรียน (รวมคะแนน+ผลประเมินคุณภาพ ต่อ 45 คน) ===================== --}}
+@foreach($studentChunks as $chunk)
+    <div class="page">
+        <div class="att-title">ประเมินผลการเรียน วิชา{{ $assign->subject->name_th }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ชั้น {{ $section->full_name ?? '' }}</div>
+        <table class="eval-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:40px;">เลขที่</th>
+                    <th rowspan="2" style="width:65px;">เลขประจำตัว</th>
+                    <th rowspan="2" class="col-name">ชื่อ - นามสกุล</th>
+                    <th colspan="5">การประเมินผลการเรียน</th>
+                    <th rowspan="2">ผลการประเมิน<br>คุณลักษณะอันพึงประสงค์</th>
+                    <th rowspan="2">ผลการประเมิน<br>อ่านคิดวิเคราะห์และเขียน</th>
+                    <th rowspan="2">ผลการประเมิน<br>สมรรถนะที่สำคัญของผู้เรียน</th>
+                </tr>
+                <tr>
+                    <th>ระหว่างภาค<br>(30)</th>
+                    <th>กลางภาค<br>(40)</th>
+                    <th>ปลายภาค<br>(30)</th>
+                    <th>รวม<br>(100)</th>
+                    <th>เกรด</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($chunk as $s)
+                    @php
+                        $g = $grades->get($s->student_id);
+                        $a = $subjectAssessments->get($s->student_id);
+                    @endphp
+                    <tr>
+                        <td>{{ $s->student_number }}</td>
+                        <td>{{ $s->student->student_code }}</td>
+                        <td class="col-name">{{ $studentFullName($s->student) }}</td>
+                        <td></td>
+                        <td></td>
+                        <td></td>
+                        <td>{{ $g->total_score ?? '' }}</td>
+                        <td>{{ $g->grade ?? '' }}</td>
+                        <td>{{ $a->desired_char ?? '' }}</td>
+                        <td>{{ $a->reading_thinking ?? '' }}</td>
+                        <td>{{ $a->competency ?? '' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@endforeach
+
+{{-- ===================== หน้าประเมินผลการเรียนรายปี (จัดอันดับ ต่อ 45 คน) ===================== --}}
+@foreach($studentChunks as $chunk)
+    <div class="page">
+        <div class="att-title">ประเมินผลการเรียนรายปี วิชา{{ $assign->subject->name_th }} ชั้น {{ $section->full_name ?? '' }}</div>
+        <table class="eval-table">
+            <thead>
+                <tr>
+                    <th rowspan="2" style="width:40px;">เลขที่</th>
+                    <th rowspan="2" style="width:65px;">เลขประจำตัว</th>
+                    <th rowspan="2" class="col-name">ชื่อ - นามสกุล</th>
+                    <th colspan="2">ผลการเรียน</th>
+                    <th rowspan="2">ลำดับที่</th>
+                    <th rowspan="2">ผลการประเมิน<br>คุณลักษณะอันพึงประสงค์</th>
+                    <th rowspan="2">ผลการประเมิน<br>อ่านคิดวิเคราะห์และเขียน</th>
+                    <th rowspan="2">ผลการประเมิน<br>สมรรถนะที่สำคัญของผู้เรียน</th>
+                    <th rowspan="2">สรุป</th>
+                    <th rowspan="2">ร้อยละเวลา<br>ที่มาเรียน</th>
+                </tr>
+                <tr>
+                    <th>คะแนน<br>100%</th>
+                    <th>ระดับผล<br>การเรียน</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($chunk as $s)
+                    @php
+                        $g = $grades->get($s->student_id);
+                        $a = $subjectAssessments->get($s->student_id);
+                        $att = $attendanceStatsById->get($s->student_id);
+                        $summary = $g ? ($g->grade === '0' ? 'ไม่ผ่าน' : 'ผ่าน') : '';
+                    @endphp
+                    <tr>
+                        <td>{{ $s->student_number }}</td>
+                        <td>{{ $s->student->student_code }}</td>
+                        <td class="col-name">{{ $studentFullName($s->student) }}</td>
+                        <td>{{ $g->total_score ?? '' }}</td>
+                        <td>{{ $g->grade ?? '' }}</td>
+                        <td>{{ $g ? ($ranks[$s->student_id] ?? '') : '' }}</td>
+                        <td>{{ $a->desired_char ?? '' }}</td>
+                        <td>{{ $a->reading_thinking ?? '' }}</td>
+                        <td>{{ $a->competency ?? '' }}</td>
+                        <td>{{ $summary }}</td>
+                        <td>{{ $att ? number_format($att->pct, 2) : '' }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     </div>
 @endforeach
 

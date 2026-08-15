@@ -61,23 +61,35 @@ class Por5Controller extends Controller
         $assessments = SubjectAssessment::where('assign_id', $assignId)
             ->get()->keyBy('student_id');
 
-        return view('academic.por5_manage', compact('assign', 'students', 'assessments'));
+        $unitCount = $assign->char_unit_count ?: 8;
+
+        return view('academic.por5_manage', compact('assign', 'students', 'assessments', 'unitCount'));
+    }
+
+    // ตั้งจำนวน "หน่วยที่" ของวิชานี้ ที่จะใช้ประเมินคุณลักษณะอันพึงประสงค์ (แต่ละวิชากำหนดได้ไม่เท่ากัน)
+    public function saveUnitCount(Request $request, $assignId)
+    {
+        $assign = $this->authorizedAssign($assignId);
+        $data = $request->validate(['char_unit_count' => 'required|integer|min:1|max:30']);
+        $assign->update($data);
+
+        return redirect()->route('por5.manage', $assignId)->with('success', 'ตั้งจำนวนหน่วยการเรียนสำเร็จ');
     }
 
     public function saveAssessment(Request $request, $assignId)
     {
         $assign = $this->authorizedAssign($assignId);
+        $unitCount = $assign->char_unit_count ?: 8;
         $rows = $request->input('assess', []);
 
         foreach ($rows as $studentId => $vals) {
-            $charItems = array_map(fn($i) => isset($vals['char'][$i]) && $vals['char'][$i] !== '' ? (int) $vals['char'][$i] : null, range(1, 8));
+            $charItems = array_map(fn($i) => isset($vals['char'][$i]) && $vals['char'][$i] !== '' ? (int) $vals['char'][$i] : null, range(1, $unitCount));
             $readItems = array_map(fn($i) => isset($vals['read'][$i]) && $vals['read'][$i] !== '' ? (int) $vals['read'][$i] : null, range(1, 5));
 
             $charLevel = SubjectAssessment::computeDesiredCharLevel($charItems);
             $readLevel = SubjectAssessment::computeReadingThinkingLevel($readItems);
 
-            $data = ['competency' => $vals['competency'] ?: null];
-            foreach (range(1, 8) as $i) $data["char_{$i}"] = $charItems[$i - 1];
+            $data = ['competency' => $vals['competency'] ?: null, 'char_units' => $charItems];
             foreach (range(1, 5) as $i) $data["read_{$i}"] = $readItems[$i - 1];
             $data['desired_char'] = SubjectAssessment::levelLabel($charLevel) ?: null;
             $data['reading_thinking'] = SubjectAssessment::levelLabel($readLevel) ?: null;
@@ -172,6 +184,16 @@ class Por5Controller extends Controller
                 'pct' => $total ? round($present / $total * 100, 2) : 0,
             ];
         });
+        $attendanceStatsById = $attendanceStats->keyBy(fn($a) => $a->student->student_id);
+
+        // ===== ลำดับที่ (จัดอันดับจากคะแนนรวม มาก→น้อย คะแนนเท่ากันได้อันดับเดียวกัน) =====
+        $ranks = [];
+        $sortedScores = $students->map(fn($s) => (float) ($grades->get($s->student_id)->total_score ?? -1))
+            ->sortDesc()->values();
+        foreach ($students as $s) {
+            $score = (float) ($grades->get($s->student_id)->total_score ?? -1);
+            $ranks[$s->student_id] = $sortedScores->search($score) + 1;
+        }
 
         // ===== 5. คะแนนเก็บ =====
         $categories = ScoreCategory::where('assign_id', $assignId)->orderBy('sort_order')->get();
@@ -185,17 +207,19 @@ class Por5Controller extends Controller
             ->first();
 
         $studentChunks = $students->chunk(45)->values();
+        $unitCount = $assign->char_unit_count ?: 8;
 
         return view('academic.por5_print', compact(
             'assign', 'section', 'semester', 'students', 'studentChunks',
-            'gradeCount', 'gradePct', 'specialCount', 'totalStudents',
-            'qualitySummary', 'classDates', 'attendancePages', 'attendance', 'attendanceStats',
-            'categories', 'scores', 'school', 'schoolLogoPath', 'subjectGroupHead', 'subjectAssessments'
+            'gradeCount', 'gradePct', 'specialCount', 'totalStudents', 'grades', 'ranks',
+            'qualitySummary', 'classDates', 'attendancePages', 'attendance', 'attendanceStats', 'attendanceStatsById',
+            'categories', 'scores', 'school', 'schoolLogoPath', 'subjectGroupHead', 'subjectAssessments', 'unitCount'
         ));
     }
 
     // แบ่งตาราง เดือน>สัปดาห์>วันที่ ออกเป็นหลายหน้า หน้าละไม่เกิน ~20 คอลัมน์วันที่ (พอดีกระดาษแนวนอน)
-    private function paginateAttendanceGrid(array $months, int $maxColsPerPage = 20): array
+    // ตอนนี้ทุกสัปดาห์มี 5 คอลัมน์เสมอ (จ.-ศ.) จึงต้องเผื่อพื้นที่มากกว่าเดิม (เดิมนับเฉพาะวันเรียนจริง ~2 คอลัมน์/สัปดาห์)
+    private function paginateAttendanceGrid(array $months, int $maxColsPerPage = 50): array
     {
         $pages = [];
         $currentPage = [];
@@ -265,7 +289,8 @@ class Por5Controller extends Controller
     }
 
     // สร้างตาราง "บันทึกเวลาเรียน" แบบ เดือน > สัปดาห์ > วันที่ > คาบ
-    // ต่างจาก buildClassDates() ตรงที่ยังคงวันหยุดไว้ในตาราง (ไม่ตัดออก) แต่ไม่นับคาบให้วันหยุด
+    // แสดงทุกวันทำการ (จ.-ศ.) ของแต่ละสัปดาห์เป็นคอลัมน์อ้างอิง แต่จะมีเลข "คาบ" เฉพาะวันที่วิชานี้เรียนจริงเท่านั้น
+    // (วันธรรมดาที่ไม่ใช่วันเรียนของวิชานี้จะเป็นคอลัมน์ว่าง — ตามแบบฟอร์ม ปพ.5 ที่ใช้จริง)
     private function buildAttendanceGrid(TeachingAssign $assign, Semester $semester): array
     {
         if (!$semester->start_date || !$semester->end_date) return [];
@@ -277,6 +302,10 @@ class Por5Controller extends Controller
         $thaiDowMap = ['อาทิตย์' => 0, 'จันทร์' => 1, 'อังคาร' => 2, 'พุธ' => 3, 'พฤหัสบดี' => 4, 'ศุกร์' => 5, 'เสาร์' => 6];
         $targetDows = array_filter(array_map(fn($d) => $thaiDowMap[$d] ?? null, $daysOfWeek), fn($v) => $v !== null);
         if (empty($targetDows)) return [];
+
+        // คอลัมน์อ้างอิง = วันจันทร์-ศุกร์เสมอ รวมกับวันที่วิชานี้เรียนจริง (เผื่อกรณีเรียนเสาร์-อาทิตย์)
+        $referenceDows = array_unique(array_merge([1, 2, 3, 4, 5], $targetDows));
+        sort($referenceDows);
 
         $holidays = Holiday::where('year_id', $semester->year_id)->get();
         $thaiMonths = [1=>'ม.ค.',2=>'ก.พ.',3=>'มี.ค.',4=>'เม.ย.',5=>'พ.ค.',6=>'มิ.ย.',
@@ -290,7 +319,7 @@ class Por5Controller extends Controller
 
         $cursor = $semester->start_date->copy();
         while ($cursor->lte($semester->end_date)) {
-            if (in_array($cursor->dayOfWeek, $targetDows, true)) {
+            if (in_array($cursor->dayOfWeek, $referenceDows, true)) {
                 $isoWeek = $cursor->format('o-W');
                 if ($isoWeek !== $lastIsoWeek) {
                     $weekNum++;
@@ -303,16 +332,26 @@ class Por5Controller extends Controller
                     $months[$currentMonthKey]['weeks'][$weekNum] = ['week' => $weekNum, 'dates' => []];
                 }
 
-                $isHoliday = $holidays->contains(function ($h) use ($cursor) {
-                    $end = $h->end_date ?? $h->start_date;
-                    return $h->start_date && $cursor->between($h->start_date, $end);
-                });
-                if (!$isHoliday) $period++;
+                $isTeachingDay = in_array($cursor->dayOfWeek, $targetDows, true);
+                $isHoliday = false;
+                $periodForDate = null;
+
+                if ($isTeachingDay) {
+                    $isHoliday = $holidays->contains(function ($h) use ($cursor) {
+                        $end = $h->end_date ?? $h->start_date;
+                        return $h->start_date && $cursor->between($h->start_date, $end);
+                    });
+                    if (!$isHoliday) {
+                        $period++;
+                        $periodForDate = $period;
+                    }
+                }
 
                 $months[$currentMonthKey]['weeks'][$weekNum]['dates'][] = [
                     'day' => $cursor->day,
-                    'period' => $isHoliday ? null : $period,
+                    'period' => $periodForDate,
                     'isHoliday' => $isHoliday,
+                    'isTeachingDay' => $isTeachingDay,
                 ];
             }
             $cursor->addDay();

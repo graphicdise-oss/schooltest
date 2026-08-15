@@ -466,6 +466,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::get('/{assign}/manage', 'manage')->name('manage');
             Route::post('/{assign}/manage', 'saveAssessment')->name('saveAssessment');
+            Route::post('/{assign}/unit-count', 'saveUnitCount')->name('saveUnitCount');
             Route::get('/{assign}/print', 'print')->name('print');
         });
 

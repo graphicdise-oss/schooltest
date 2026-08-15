@@ -7,7 +7,7 @@ class TeachingAssign extends Model
 {
     protected $table = 'teaching_assigns';
     protected $primaryKey = 'assign_id';
-    protected $fillable = ['personnel_id', 'subject_id', 'section_id', 'semester_id'];
+    protected $fillable = ['personnel_id', 'subject_id', 'section_id', 'semester_id', 'char_unit_count'];
     public function personnel() { return $this->belongsTo(Personnel::class, 'personnel_id', 'personnel_id'); }
     public function subject() { return $this->belongsTo(Subject::class, 'subject_id', 'subject_id'); }
     public function classSection() { return $this->belongsTo(ClassSection::class, 'section_id', 'section_id'); }
