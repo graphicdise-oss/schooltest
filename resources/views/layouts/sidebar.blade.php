@@ -179,7 +179,7 @@
                 <a id="menu-dashboard" data-menu="dashboard" href="{{ route('dashboard') }}" @mouseenter="moveIndicator($el); hoverItem = 'dashboard'"
                     :class="(hoverItem === 'dashboard' || (hoverItem === null && activeItem === 'dashboard')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                     class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
-                    <i class="fa-solid fa-border-all w-6 text-center mr-2"></i> Dashboard
+                    <i class="fa-solid fa-border-all w-6 text-center mr-2"></i> ภาพรวมระบบ
                 </a>
 
                 {{-- ===== ข้อมูลบุคคล ===== --}}
@@ -201,7 +201,7 @@
 
                     <a :class="(hoverItem === 'personnel' || (hoverItem === null && activeItem === 'personnel')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
-                        <i class="fa-regular fa-user w-6 text-center mr-2"></i> ข้อมูลบุคคล
+                        <i class="fa-regular fa-user w-6 text-center mr-2"></i> ข้อมูลนักเรียน-บุคลากร
                     </a>
 
                     <div x-show="hoverItem === 'personnel'" x-transition:enter="transition ease-out duration-200"
@@ -357,7 +357,7 @@
 
                     <a :class="(hoverItem === 'academic' || (hoverItem === null && activeItem === 'academic')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
-                        <i class="fa-solid fa-book-open w-6 text-center mr-2"></i> วิชาการ
+                        <i class="fa-solid fa-book-open w-6 text-center mr-2"></i> งานวิชาการ
                     </a>
 
                     <div x-show="hoverItem === 'academic'" x-transition:enter="transition ease-out duration-200"
@@ -499,7 +499,7 @@
 
                     <a :class="(hoverItem === 'student_affairs' || (hoverItem === null && activeItem === 'student_affairs')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
-                        <i class="fa-solid fa-graduation-cap w-6 text-center mr-2"></i> กิจการนักเรียน
+                        <i class="fa-solid fa-graduation-cap w-6 text-center mr-2"></i> กิจกรรมพัฒนาผู้เรียน
                     </a>
 
                     <div x-show="hoverItem === 'student_affairs'" x-transition:enter="transition ease-out duration-200"
