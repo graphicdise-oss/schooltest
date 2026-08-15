@@ -28,7 +28,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:18px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .meta-table .lbl { font-weight:700; padding-right:10px; }
-.meta-table .lbl2 { font-weight:700; padding-right:10px; padding-left:28px; }
+.meta-table .lbl2 { font-weight:700; padding-right:10px; padding-left:50px; }
 .meta-table .val { padding-left:6px; }
 .meta-table .val1 { padding-right:10px; }
 
