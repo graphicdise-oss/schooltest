@@ -101,7 +101,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 
     <table class="grade-table">
         <tr>
-            <th rowspan="3" style="width:60px;">จำนวน<br>นักเรียน</th>
+            <th rowspan="2" style="width:60px;">จำนวน<br>นักเรียน</th>
             <th colspan="{{ count($gradeBuckets) }}">ระดับผลการเรียน</th>
             <th colspan="{{ count($specialBuckets) }}">ผลการประเมิน</th>
         </tr>
@@ -109,7 +109,6 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
             @foreach($gradeBuckets as $b)<th>{{ $b }}</th>@endforeach
             @foreach($specialBuckets as $b)<th>{{ $b }}</th>@endforeach
         </tr>
-        <tr><td colspan="{{ count($gradeBuckets)+count($specialBuckets) }}"></td></tr>
         <tr>
             <td>{{ $totalStudents }}</td>
             @foreach($gradeBuckets as $b)<td>{{ $gradeCount[$b] ?: '-' }}</td>@endforeach
