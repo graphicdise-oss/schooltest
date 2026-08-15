@@ -10,6 +10,9 @@ use App\Models\Academic\AcademicYear;
 use App\Models\Academic\Level;
 use App\Models\Student;
 use App\Models\StudentFamily;
+use App\Models\StudentAddress;
+use App\Models\StudentEducation;
+use App\Models\StudentHealth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -47,56 +50,112 @@ class AdmissionController extends Controller
         }
 
         $data = $request->validate([
+            // ข้อมูลนักเรียน (students)
             'thai_prefix'    => 'required|string|max:50',
             'thai_firstname' => 'required|string|max:100',
             'thai_lastname'  => 'required|string|max:100',
+            'thai_nickname'  => 'nullable|string|max:100',
             'gender'         => 'required|string|max:20',
             'id_card_number' => 'required|digits:13|unique:students,id_card_number',
             'date_of_birth'  => 'required|date',
+            'nationality'    => 'nullable|string|max:50',
+            'ethnicity'      => 'nullable|string|max:50',
             'religion'       => 'nullable|string|max:50',
             'phone'          => 'nullable|string|max:20',
             'level_id'       => 'nullable|exists:levels,level_id',
-            // ผู้ปกครอง
+            // ที่อยู่ปัจจุบัน (student_address)
+            'house_number'   => 'nullable|string|max:50',
+            'village_no'     => 'nullable|string|max:20',
+            'soi'            => 'nullable|string|max:100',
+            'road'           => 'nullable|string|max:100',
+            'subdistrict_id' => 'nullable|string|max:100',
+            'district_id'    => 'nullable|string|max:100',
+            'province_id'    => 'nullable|string|max:100',
+            'postal_code'    => 'nullable|string|max:10',
+            'home_phone'     => 'nullable|string|max:20',
+            // การศึกษาเดิม (student_education)
+            'school_name'    => 'nullable|string|max:255',
+            'education_level'=> 'nullable|string|max:100',
+            // สุขภาพ (student_health)
+            'blood_group'      => 'nullable|string|max:10',
+            'food_allergy'     => 'nullable|string|max:255',
+            'medicine_allergy' => 'nullable|string|max:255',
+            'chronic_disease'  => 'nullable|string|max:255',
+            // ผู้ปกครอง (student_family)
+            'guardian_type'  => 'nullable|string|in:บิดา,มารดา,ผู้ปกครอง',
             'g_prefix'       => 'nullable|string|max:50',
             'g_firstname'    => 'nullable|string|max:100',
             'g_lastname'     => 'nullable|string|max:100',
             'g_phone'        => 'nullable|string|max:20',
             'g_relationship' => 'nullable|string|max:50',
+            'g_occupation'   => 'nullable|string|max:100',
+            'g_workplace'    => 'nullable|string|max:150',
         ], [
             'id_card_number.unique' => 'เลขบัตรประชาชนนี้เคยสมัคร/มีในระบบแล้ว',
             'id_card_number.digits' => 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก',
         ]);
 
-        DB::transaction(function () use ($data, $request, $setting) {
+        DB::transaction(function () use ($data, $setting) {
             // 1) สร้างนักเรียน สถานะ รอการตรวจสอบ
             $student = Student::create([
                 'thai_prefix'    => $data['thai_prefix'],
                 'thai_firstname' => $data['thai_firstname'],
                 'thai_lastname'  => $data['thai_lastname'],
+                'thai_nickname'  => $data['thai_nickname'] ?? null,
                 'gender'         => $data['gender'],
                 'id_card_number' => $data['id_card_number'],
                 'date_of_birth'  => $data['date_of_birth'],
-                'nationality'    => $request->input('nationality', 'ไทย'),
-                'ethnicity'      => $request->input('ethnicity', 'ไทย'),
+                'nationality'    => $data['nationality'] ?? 'ไทย',
+                'ethnicity'      => $data['ethnicity'] ?? 'ไทย',
                 'religion'       => $data['religion'] ?? null,
                 'status'         => 'รอการตรวจสอบ',
                 'created_by'     => 'สมัครออนไลน์',
             ]);
 
-            // 2) ผู้ปกครอง (ถ้ากรอก)
+            // 2) ที่อยู่ปัจจุบัน (ถ้ากรอกอย่างน้อย 1 ช่อง)
+            $addressFields = ['house_number', 'village_no', 'soi', 'road', 'subdistrict_id', 'district_id', 'province_id', 'postal_code', 'home_phone'];
+            if (collect($addressFields)->contains(fn($f) => !empty($data[$f]))) {
+                StudentAddress::create([
+                    'student_id'   => $student->student_id,
+                    'address_type' => 'current',
+                    ...collect($data)->only($addressFields)->toArray(),
+                ]);
+            }
+
+            // 3) การศึกษาเดิม (ถ้ากรอกอย่างน้อย 1 ช่อง)
+            if (!empty($data['school_name']) || !empty($data['education_level'])) {
+                StudentEducation::create([
+                    'student_id'      => $student->student_id,
+                    'school_name'     => $data['school_name'] ?? null,
+                    'education_level' => $data['education_level'] ?? null,
+                ]);
+            }
+
+            // 4) ข้อมูลสุขภาพ (ถ้ากรอกอย่างน้อย 1 ช่อง)
+            $healthFields = ['blood_group', 'food_allergy', 'medicine_allergy', 'chronic_disease'];
+            if (collect($healthFields)->contains(fn($f) => !empty($data[$f]))) {
+                StudentHealth::create([
+                    'student_id' => $student->student_id,
+                    ...collect($data)->only($healthFields)->toArray(),
+                ]);
+            }
+
+            // 5) ผู้ปกครอง (ถ้ากรอก)
             if (!empty($data['g_firstname'])) {
                 StudentFamily::create([
                     'student_id'    => $student->student_id,
-                    'guardian_type' => 'ผู้ปกครอง',
+                    'guardian_type' => $data['guardian_type'] ?? 'ผู้ปกครอง',
                     'prefix_th'     => $data['g_prefix'] ?? null,
                     'first_name_th' => $data['g_firstname'],
                     'last_name_th'  => $data['g_lastname'] ?? null,
                     'phone_mobile'  => $data['g_phone'] ?? null,
                     'relationship'  => $data['g_relationship'] ?? null,
+                    'occupation'    => $data['g_occupation'] ?? null,
+                    'workplace'     => $data['g_workplace'] ?? null,
                 ]);
             }
 
-            // 3) ข้อมูลการสมัคร
+            // 6) ข้อมูลการสมัคร
             AdmissionApplication::create([
                 'student_id'      => $student->student_id,
                 'year_id'         => $setting->year_id,
