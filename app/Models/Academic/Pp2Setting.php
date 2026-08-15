@@ -19,6 +19,10 @@ class Pp2Setting extends Model
         'registrar_name',
         'registrar_personnel_id',
         'director_personnel_id',
+        'deputy_academic_name',
+        'deputy_academic_personnel_id',
+        'measurement_head_name',
+        'measurement_head_personnel_id',
     ];
 
     public static function getInstance(): self
@@ -42,6 +46,8 @@ class Pp2Setting extends Model
         if ($s->education_area)  $school['education_area']  = $s->education_area;
         if ($s->registrar_name)  $school['registrar_name']  = $s->registrar_name;
         if ($s->director_name)   $school['director_name']   = $s->director_name;
+        if ($s->deputy_academic_name)  $school['deputy_academic_name']  = $s->deputy_academic_name;
+        if ($s->measurement_head_name) $school['measurement_head_name'] = $s->measurement_head_name;
 
         return $school;
     }

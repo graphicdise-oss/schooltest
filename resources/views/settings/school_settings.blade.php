@@ -181,6 +181,50 @@
                     </div>
                 </div>
             </div>
+            <div class="ac-grid-2" style="margin-top:14px">
+                <div>
+                    <div class="ac-field" style="margin-bottom:8px">
+                        <label>รองผู้อำนวยการฝ่ายวิชาการ</label>
+                        <select name="deputy_academic_personnel_id" class="ac-select" onchange="onPersonnelChange('deputy_academic')" id="deputy_academic_personnel_id">
+                            <option value="">-- เลือกจากบุคลากร --</option>
+                            @foreach($personnels as $p)
+                            <option value="{{ $p->personnel_id }}" {{ ($setting->deputy_academic_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
+                                {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                                @if($p->position) ({{ $p->position }}) @endif
+                            </option>
+                            @endforeach
+                            <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
+                        </select>
+                    </div>
+                    <div class="ac-field" id="deputy_academic_manual_row" style="display:{{ ($setting->deputy_academic_personnel_id ?? null) ? 'none' : '' }}">
+                        <label>ชื่อรองผู้อำนวยการฝ่ายวิชาการ (พิมพ์เอง)</label>
+                        <input type="text" name="deputy_academic_name_manual" class="ac-input"
+                               value="{{ $setting->deputy_academic_name ?? '' }}"
+                               placeholder="ชื่อ-นามสกุล รองผู้อำนวยการฝ่ายวิชาการ">
+                    </div>
+                </div>
+                <div>
+                    <div class="ac-field" style="margin-bottom:8px">
+                        <label>หัวหน้าฝ่ายวัดผลและประเมินผล</label>
+                        <select name="measurement_head_personnel_id" class="ac-select" onchange="onPersonnelChange('measurement_head')" id="measurement_head_personnel_id">
+                            <option value="">-- เลือกจากบุคลากร --</option>
+                            @foreach($personnels as $p)
+                            <option value="{{ $p->personnel_id }}" {{ ($setting->measurement_head_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
+                                {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                                @if($p->position) ({{ $p->position }}) @endif
+                            </option>
+                            @endforeach
+                            <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
+                        </select>
+                    </div>
+                    <div class="ac-field" id="measurement_head_manual_row" style="display:{{ ($setting->measurement_head_personnel_id ?? null) ? 'none' : '' }}">
+                        <label>ชื่อหัวหน้าฝ่ายวัดผลและประเมินผล (พิมพ์เอง)</label>
+                        <input type="text" name="measurement_head_name_manual" class="ac-input"
+                               value="{{ $setting->measurement_head_name ?? '' }}"
+                               placeholder="ชื่อ-นามสกุล หัวหน้าฝ่ายวัดผลและประเมินผล">
+                    </div>
+                </div>
+            </div>
             <div class="ac-save-wrap">
                 <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกผู้ลงนาม</button>
             </div>

@@ -44,7 +44,8 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .quality-box th { font-weight:700; }
 
 .sign-section { margin-top:20px; font-size:18px; }
-.sign-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
+.sign-grid { display:flex; gap:0 20px; }
+.sign-col { flex:1; display:flex; flex-direction:column; gap:14px; }
 .sign-item { text-align:center; }
 .sign-line { margin:22px 0 4px; }
 .sign-approve { display:flex; align-items:center; justify-content:center; gap:16px; margin:8px 0; }
@@ -146,26 +147,40 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
     <div class="sign-section">
         <p style="margin-bottom:6px;">การอนุมัติผลการเรียน</p>
         <div class="sign-grid">
-            <div class="sign-item">
-                <div class="sign-line">ลงชื่อ ........................................................</div>
-                <div>( {{ $assign->personnel->thai_prefix ?? '' }}{{ $assign->personnel->thai_firstname ?? '' }} {{ $assign->personnel->thai_lastname ?? '' }} )</div>
-                <div>ครูผู้สอน</div>
-            </div>
-            <div class="sign-item">
-                <div class="sign-line">ลงชื่อ ........................................................</div>
-                <div>( {{ $subjectGroupHead->head_name ?? '................................................' }} )</div>
-                <div>หัวหน้ากลุ่มสาระการเรียนรู้</div>
-            </div>
-            <div class="sign-item">
-                <div class="sign-approve">
-                    <label>☐ อนุมัติ</label><label>☐ ไม่อนุมัติ</label>
+            <div class="sign-col">
+                <div class="sign-item">
+                    <div class="sign-line">ลงชื่อ ........................................................</div>
+                    <div>( {{ $assign->personnel->thai_prefix ?? '' }}{{ $assign->personnel->thai_firstname ?? '' }} {{ $assign->personnel->thai_lastname ?? '' }} )</div>
+                    <div>ครูผู้สอน</div>
                 </div>
-                <div class="sign-line">ลงชื่อ ........................................................</div>
-                <div>( {{ $school['director_name'] ?? '' }} )</div>
-                <div>ผู้อำนวยการโรงเรียน</div>
+                <div class="sign-item">
+                    <div class="sign-line">ลงชื่อ ........................................................</div>
+                    <div>( {{ $subjectGroupHead->head_name ?? '................................................' }} )</div>
+                    <div>หัวหน้ากลุ่มสาระการเรียนรู้</div>
+                </div>
+                <div class="sign-item">
+                    <div class="sign-line">ลงชื่อ ........................................................</div>
+                    <div>( {{ $school['measurement_head_name'] ?? '................................................' }} )</div>
+                    <div>หัวหน้าฝ่ายวัดผลและประเมินผล</div>
+                </div>
             </div>
-            <div class="sign-item">
-                <div class="sign-line">วันที่ ............ เดือน .................... พ.ศ. ..............</div>
+            <div class="sign-col">
+                <div class="sign-item">
+                    <div class="sign-line">ลงชื่อ ........................................................</div>
+                    <div>( {{ $school['deputy_academic_name'] ?? '................................................' }} )</div>
+                    <div>รองผู้อำนวยการฝ่ายวิชาการ</div>
+                </div>
+                <div class="sign-item">
+                    <div class="sign-approve">
+                        <label>☐ อนุมัติ</label><label>☐ ไม่อนุมัติ</label>
+                    </div>
+                    <div class="sign-line">ลงชื่อ ........................................................</div>
+                    <div>( {{ $school['director_name'] ?? '' }} )</div>
+                    <div>ผู้อำนวยการโรงเรียน</div>
+                </div>
+                <div class="sign-item">
+                    <div class="sign-line">วันที่ ............ เดือน .................... พ.ศ. ..............</div>
+                </div>
             </div>
         </div>
     </div>

@@ -63,6 +63,8 @@ class SchoolSettingController extends Controller
         $request->validate([
             'registrar_personnel_id' => 'nullable|integer',
             'director_personnel_id'  => 'nullable|integer',
+            'deputy_academic_personnel_id'  => 'nullable|integer',
+            'measurement_head_personnel_id' => 'nullable|integer',
         ]);
 
         $setting = Pp2Setting::getInstance();
@@ -76,16 +78,30 @@ class SchoolSettingController extends Controller
         $director = $request->director_personnel_id
             ? Personnel::find($request->director_personnel_id)
             : null;
+        $deputyAcademic = $request->deputy_academic_personnel_id
+            ? Personnel::find($request->deputy_academic_personnel_id)
+            : null;
+        $measurementHead = $request->measurement_head_personnel_id
+            ? Personnel::find($request->measurement_head_personnel_id)
+            : null;
 
         $setting->update([
             'registrar_personnel_id' => $registrar?->personnel_id,
             'director_personnel_id'  => $director?->personnel_id,
+            'deputy_academic_personnel_id'  => $deputyAcademic?->personnel_id,
+            'measurement_head_personnel_id' => $measurementHead?->personnel_id,
             'registrar_name' => $registrar
                 ? trim(($registrar->thai_prefix ?? '') . $registrar->thai_firstname . ' ' . $registrar->thai_lastname)
                 : $request->registrar_name_manual,
             'director_name' => $director
                 ? trim(($director->thai_prefix ?? '') . $director->thai_firstname . ' ' . $director->thai_lastname)
                 : $request->director_name_manual,
+            'deputy_academic_name' => $deputyAcademic
+                ? trim(($deputyAcademic->thai_prefix ?? '') . $deputyAcademic->thai_firstname . ' ' . $deputyAcademic->thai_lastname)
+                : $request->deputy_academic_name_manual,
+            'measurement_head_name' => $measurementHead
+                ? trim(($measurementHead->thai_prefix ?? '') . $measurementHead->thai_firstname . ' ' . $measurementHead->thai_lastname)
+                : $request->measurement_head_name_manual,
         ]);
 
         return redirect()->route('settings.school.index')->with('success', 'บันทึกชื่อผู้ลงนามสำเร็จ');
