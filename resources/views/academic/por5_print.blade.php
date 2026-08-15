@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18px; color:#222; background:#e0e0e0; }
+body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18px; color:#222; background:#e0e0e0; line-height:1.0; }
 .page {
     width:210mm; min-height:297mm; margin:0 auto 10mm; padding:10mm 12mm;
     background:#fff; box-shadow:0 0 8px rgba(0,0,0,.15);
@@ -21,11 +21,11 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .doc-logo img { width:100%; height:100%; object-fit:contain; }
 .doc-tag { position:absolute; right:0; top:0; font-weight:700; }
 .doc-title { width:100%; text-align:center; margin-bottom:2px; }
-.doc-title h2 { font-size:24px; font-weight:700; }
-.doc-title p { font-size:20px; font-weight:700; }
+.doc-title h2 { font-size:28px; font-weight:700; }
+.doc-title p { font-size:28px; font-weight:700; }
 
 .meta-wrap { text-align:center; margin-bottom:8px; }
-.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:20px; text-align:left; }
+.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:28px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .meta-table .lbl { font-weight:700; padding-right:10px; }
 .meta-table .lbl2 { font-weight:700; padding-right:10px; padding-left:50px; }
@@ -43,7 +43,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .quality-box th, .quality-box td { border:2px solid #000; padding:3px; text-align:center; }
 .quality-box th { font-weight:700; }
 
-.sign-section { margin-top:20px; font-size:18px; line-height:1.2; }
+.sign-section { margin-top:20px; font-size:18px; line-height:1.0; }
 .sign-grid { display:flex; gap:0 20px; }
 .sign-col { flex:1; display:flex; flex-direction:column; gap:8px; }
 .sign-item { text-align:center; }
