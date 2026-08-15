@@ -21,11 +21,11 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .doc-logo img { width:100%; height:100%; object-fit:contain; }
 .doc-tag { position:absolute; right:0; top:0; font-weight:700; }
 .doc-title { width:100%; text-align:center; margin-bottom:2px; }
-.doc-title h2 { font-size:20px; font-weight:700; }
-.doc-title p { font-size:18px; font-weight:700; }
+.doc-title h2 { font-size:24px; font-weight:700; }
+.doc-title p { font-size:20px; font-weight:700; }
 
 .meta-wrap { text-align:center; margin-bottom:8px; }
-.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:18px; text-align:left; }
+.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:20px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .meta-table .lbl { font-weight:700; padding-right:10px; }
 .meta-table .lbl2 { font-weight:700; padding-right:10px; padding-left:50px; }
