@@ -43,7 +43,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .quality-box th, .quality-box td { border:2px solid #000; padding:3px; text-align:center; }
 .quality-box th { font-weight:700; }
 
-.sign-section { margin-top:auto; font-size:18px; }
+.sign-section { margin-top:20px; font-size:18px; }
 .sign-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
 .sign-item { text-align:center; }
 .sign-line { margin:22px 0 4px; }
