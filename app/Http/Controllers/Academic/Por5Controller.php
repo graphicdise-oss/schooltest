@@ -173,6 +173,8 @@ class Por5Controller extends Controller
         // ===== ข้อมูลโรงเรียน/ลายเซ็นผู้อนุมัติ (จากหน้า "ตั้งค่าเริ่มต้น") =====
         $school = Pp2Setting::mergedSchoolConfig();
         $schoolLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
+        $subjectGroupHead = \App\Models\Academic\SubjectGroupHead::where('subject_group', $assign->subject->subject_group ?? null)
+            ->first();
 
         $studentChunks = $students->chunk(45)->values();
 
@@ -180,7 +182,7 @@ class Por5Controller extends Controller
             'assign', 'section', 'semester', 'students', 'studentChunks',
             'gradeCount', 'gradePct', 'specialCount', 'totalStudents',
             'qualitySummary', 'classDates', 'attendancePages', 'attendance', 'attendanceStats',
-            'categories', 'scores', 'school', 'schoolLogoPath'
+            'categories', 'scores', 'school', 'schoolLogoPath', 'subjectGroupHead'
         ));
     }
 

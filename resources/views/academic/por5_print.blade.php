@@ -153,7 +153,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
             </div>
             <div class="sign-item">
                 <div class="sign-line">ลงชื่อ ........................................................</div>
-                <div>( ................................................ )</div>
+                <div>( {{ $subjectGroupHead->head_name ?? '................................................' }} )</div>
                 <div>หัวหน้ากลุ่มสาระการเรียนรู้</div>
             </div>
             <div class="sign-item">

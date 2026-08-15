@@ -187,6 +187,38 @@
         </form>
     </div>
 
+    <div class="ss-card">
+        <div class="ss-icon ss-icon-sign"><i class="bi bi-people"></i></div>
+        <div class="ss-card-header">
+            <span class="ss-card-title">
+                หัวหน้ากลุ่มสาระการเรียนรู้
+                <small>คนเดียวต่อกลุ่มสาระ ใช้ร่วมกันทุกวิชา/ทุกห้อง/ทุกเทอมในกลุ่มนั้น (เช่น ปพ.5)</small>
+            </span>
+        </div>
+        <form method="POST" action="{{ route('settings.school.updateSubjectGroupHeads') }}">
+            @csrf
+            <div class="ac-grid-2">
+                @foreach($subjectGroups as $group)
+                <div class="ac-field" style="margin-bottom:8px">
+                    <label>{{ $group }}</label>
+                    <select name="heads[{{ $group }}]" class="ac-select">
+                        <option value="">-- ยังไม่กำหนด --</option>
+                        @foreach($personnels as $p)
+                        <option value="{{ $p->personnel_id }}" {{ ($subjectGroupHeads[$group]->personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
+                            {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
+                            @if($p->position) ({{ $p->position }}) @endif
+                        </option>
+                        @endforeach
+                    </select>
+                </div>
+                @endforeach
+            </div>
+            <div class="ac-save-wrap">
+                <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกหัวหน้ากลุ่มสาระ</button>
+            </div>
+        </form>
+    </div>
+
 </div>
 
 <script>

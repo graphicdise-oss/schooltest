@@ -565,6 +565,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
             Route::get('/', 'index')->name('index');
             Route::post('/school', 'updateSchool')->name('updateSchool');
             Route::post('/signatures', 'updateSignatures')->name('updateSignatures');
+            Route::post('/subject-group-heads', 'updateSubjectGroupHeads')->name('updateSubjectGroupHeads');
             Route::post('/logo', 'uploadLogo')->name('uploadLogo');
         });
 

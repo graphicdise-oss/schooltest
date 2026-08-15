@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Academic\Pp2Setting;
+use App\Models\Academic\SubjectGroupHead;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 
@@ -29,7 +30,10 @@ class SchoolSettingController extends Controller
             }
         }
 
-        return view('settings.school_settings', compact('setting', 'personnels', 'logoUrl'));
+        $subjectGroupHeads = SubjectGroupHead::all()->keyBy('subject_group');
+        $subjectGroups = SubjectGroupHead::groupList();
+
+        return view('settings.school_settings', compact('setting', 'personnels', 'logoUrl', 'subjectGroupHeads', 'subjectGroups'));
     }
 
     public function updateSchool(Request $request)
@@ -85,6 +89,27 @@ class SchoolSettingController extends Controller
         ]);
 
         return redirect()->route('settings.school.index')->with('success', 'บันทึกชื่อผู้ลงนามสำเร็จ');
+    }
+
+    // หัวหน้ากลุ่มสาระการเรียนรู้ — คนเดียวต่อกลุ่มสาระ ใช้ร่วมกันทุกวิชา/ทุกห้อง/ทุกเทอมในกลุ่มนั้น (เช่น ปพ.5)
+    public function updateSubjectGroupHeads(Request $request)
+    {
+        foreach (SubjectGroupHead::groupList() as $group) {
+            $personnelId = $request->input("heads.$group");
+            $personnel = $personnelId ? Personnel::find($personnelId) : null;
+
+            SubjectGroupHead::updateOrCreate(
+                ['subject_group' => $group],
+                [
+                    'personnel_id' => $personnel?->personnel_id,
+                    'head_name' => $personnel
+                        ? trim(($personnel->thai_prefix ?? '') . $personnel->thai_firstname . ' ' . $personnel->thai_lastname)
+                        : null,
+                ]
+            );
+        }
+
+        return redirect()->route('settings.school.index')->with('success', 'บันทึกหัวหน้ากลุ่มสาระการเรียนรู้สำเร็จ');
     }
 
     public function uploadLogo(Request $request)
