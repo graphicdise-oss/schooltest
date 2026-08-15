@@ -57,7 +57,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
         <div class="doc-title">
             <h2>แบบรายงานผลพัฒนาคุณภาพผู้เรียนรายบุคคล</h2>
             <p>{{ $section->level->name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }}</p>
-            <p>{{ config('school.education_area') }} จังหวัด {{ config('school.changwat') }}</p>
+            <p>{{ $school['education_area'] ?? config('school.education_area') }} จังหวัด {{ $school['changwat'] ?? config('school.changwat') }}</p>
         </div>
         <div style="width:16mm;"></div>
     </div>

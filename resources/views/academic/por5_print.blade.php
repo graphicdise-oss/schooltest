@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15px; color:#222; background:#e0e0e0; }
+body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:16px; color:#222; background:#e0e0e0; }
 .page {
     width:210mm; min-height:297mm; margin:0 auto 10mm; padding:10mm 12mm;
     background:#fff; box-shadow:0 0 8px rgba(0,0,0,.15);
@@ -21,29 +21,29 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 .doc-logo img { width:100%; height:100%; object-fit:contain; }
 .doc-tag { position:absolute; right:0; top:0; font-weight:700; }
 .doc-title { width:100%; text-align:center; margin-bottom:8px; }
-.doc-title h2 { font-size:19px; font-weight:700; }
-.doc-title p { font-size:15px; }
+.doc-title h2 { font-size:21px; font-weight:700; }
+.doc-title p { font-size:16px; }
 
 .meta-wrap { text-align:center; margin-bottom:8px; }
-.meta-table { display:inline-table; table-layout:fixed; border-collapse:collapse; font-size:15px; text-align:left; }
+.meta-table { display:inline-table; table-layout:fixed; border-collapse:collapse; font-size:16px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .meta-table .lbl { font-weight:700; width:90px; }
 .meta-table .lbl2 { font-weight:700; width:70px; }
 .meta-table .val { padding-left:6px; min-width:260px; }
 .meta-table .val1 { width:140px; min-width:0; }
 
-.grade-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
+.grade-table { width:100%; border-collapse:collapse; font-size:14px; margin-bottom:10px; }
 .grade-table th, .grade-table td { border:1px solid #000; padding:4px 3px; text-align:center; }
 .grade-table th { font-weight:700; background:#f5f5f5; }
 
 .quality-row { display:flex; gap:6px; margin-bottom:12px; }
 .quality-box { flex:1; border:1px solid #000; }
-.quality-box .qh { text-align:center; font-weight:700; font-size:13px; padding:5px; border-bottom:1px solid #000; background:#f5f5f5; }
-.quality-box table { width:100%; border-collapse:collapse; font-size:12.5px; }
+.quality-box .qh { text-align:center; font-weight:700; font-size:14px; padding:5px; border-bottom:1px solid #000; background:#f5f5f5; }
+.quality-box table { width:100%; border-collapse:collapse; font-size:13.5px; }
 .quality-box th, .quality-box td { border:1px solid #000; padding:3px; text-align:center; }
 .quality-box th { font-weight:700; }
 
-.sign-section { margin-top:auto; font-size:14px; }
+.sign-section { margin-top:auto; font-size:15px; }
 .sign-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px 20px; }
 .sign-item { text-align:center; }
 .sign-line { margin:22px 0 4px; }
@@ -85,7 +85,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
     </div>
     <div class="doc-title">
         <h2>แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน</h2>
-        <p>{{ config('school.name') }}</p>
+        <p>{{ $school['name'] ?? config('school.name') }}</p>
     </div>
 
     <div class="meta-wrap">
