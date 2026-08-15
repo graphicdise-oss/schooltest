@@ -8,8 +8,10 @@ use App\Models\Academic\Pp2Document;
 use App\Models\Academic\StudentAssessment;
 use App\Models\Academic\StudentDocNumber;
 use App\Models\Academic\StudentSection;
+use App\Models\Academic\Subject;
 use App\Models\Academic\SubjectAssessment;
 use App\Models\Academic\TeachingAssign;
+use App\Models\Personne\Personnel;
 use App\Models\Student;
 use App\Models\StudentEducation;
 use App\Models\StudentFamily;
@@ -120,6 +122,46 @@ class SeedTestPorData extends Command
             $this->line('  - สร้างเอกสาร ปพ.2 (ปลอม)');
         }
 
+        // ถ้าห้องนี้ยังไม่มีวิชา/ครูผู้สอนเลย (teaching_assigns ว่าง) ให้สร้างให้ก่อน
+        // เพราะ ปพ.1/3/5/6 ต้องมีผลการเรียนถึงจะมีข้อมูลให้ทดสอบ
+        if (TeachingAssign::where('section_id', $section->section_id)->count() === 0) {
+            $teacher = Personnel::where('status', 'ปฏิบัติงาน')->first() ?? Personnel::first();
+            if (!$teacher) {
+                $teacher = Personnel::create([
+                    'thai_prefix' => 'นาย', 'thai_firstname' => 'ครูทดสอบ', 'thai_lastname' => 'ระบบ',
+                    'position' => 'ครู', 'status' => 'ปฏิบัติงาน', 'gender' => 'M',
+                ]);
+                $this->line('  - สร้างครูปลอม 1 คน (ไม่มีบุคลากรในระบบเลย)');
+            }
+
+            $subjects = Subject::inRandomOrder()->limit(8)->get();
+            if ($subjects->isEmpty()) {
+                $fakeSubjects = [
+                    ['code' => 'ท21101', 'name_th' => 'ภาษาไทย',            'subject_group' => 'ภาษาไทย',            'subject_type' => 'พื้นฐาน', 'credits' => 1.5],
+                    ['code' => 'ค21101', 'name_th' => 'คณิตศาสตร์',          'subject_group' => 'คณิตศาสตร์',          'subject_type' => 'พื้นฐาน', 'credits' => 1.5],
+                    ['code' => 'ว21101', 'name_th' => 'วิทยาศาสตร์',         'subject_group' => 'วิทยาศาสตร์',         'subject_type' => 'พื้นฐาน', 'credits' => 1.5],
+                    ['code' => 'ส21101', 'name_th' => 'สังคมศึกษา',          'subject_group' => 'สังคมศึกษา',          'subject_type' => 'พื้นฐาน', 'credits' => 1.5],
+                    ['code' => 'อ21101', 'name_th' => 'ภาษาอังกฤษ',          'subject_group' => 'ภาษาต่างประเทศ',      'subject_type' => 'พื้นฐาน', 'credits' => 1.5],
+                    ['code' => 'พ21101', 'name_th' => 'สุขศึกษาและพลศึกษา',  'subject_group' => 'สุขศึกษาและพลศึกษา',  'subject_type' => 'พื้นฐาน', 'credits' => 1.0],
+                    ['code' => 'ศ21101', 'name_th' => 'ศิลปะ',               'subject_group' => 'ศิลปะ',               'subject_type' => 'พื้นฐาน', 'credits' => 1.0],
+                    ['code' => 'ง21101', 'name_th' => 'การงานอาชีพ',         'subject_group' => 'การงานอาชีพ',         'subject_type' => 'พื้นฐาน', 'credits' => 1.0],
+                ];
+                $subjects = collect();
+                foreach ($fakeSubjects as $fs) {
+                    $subjects->push(Subject::create($fs + ['is_active' => true]));
+                }
+                $this->line('  - สร้างรายวิชาปลอม ' . $subjects->count() . ' วิชา (ไม่มีวิชาในระบบเลย)');
+            }
+
+            foreach ($subjects as $subj) {
+                TeachingAssign::firstOrCreate(
+                    ['section_id' => $section->section_id, 'subject_id' => $subj->subject_id, 'semester_id' => $semesterId],
+                    ['personnel_id' => $teacher->personnel_id]
+                );
+            }
+            $this->line("  - มอบหมายวิชาให้ห้องนี้ {$subjects->count()} วิชา (ครูผู้สอน: {$teacher->thai_firstname})");
+        }
+
         // ผลการเรียนทุกวิชาที่สอนในห้องนี้ (ใช้ใน ปพ.1, ปพ.3, ปพ.5, ปพ.6)
         $assigns = TeachingAssign::where('section_id', $section->section_id)->get();
         $gradeCount = 0;
@@ -144,9 +186,6 @@ class SeedTestPorData extends Command
             );
         }
         $this->line("  - สร้าง/อัปเดตผลการเรียน {$gradeCount} รายวิชา (คะแนนสุ่ม 60-95, ปลอม)");
-        if ($assigns->isEmpty()) {
-            $this->warn('  - ห้องนี้ยังไม่มีรายวิชา/ครูผู้สอน (teaching_assigns) จึงไม่มีผลการเรียนให้สร้าง — ปพ.3/5/6 จะไม่มีข้อมูลวิชา');
-        }
 
         // ผลประเมินคุณลักษณะ/การอ่านคิดวิเคราะห์ภาพรวมรายภาคเรียน (ใช้ใน ปพ.6)
         StudentAssessment::firstOrCreate(
@@ -157,7 +196,8 @@ class SeedTestPorData extends Command
 
         $this->newLine();
         $this->info("เสร็จแล้ว! ทดสอบพิมพ์เอกสารของนักเรียนคนนี้ได้เลย (section_id={$section->section_id}, semester_id={$semesterId})");
-        $this->warn("ข้อมูลทั้งหมดที่สร้างเป็นข้อมูลปลอม ก่อนใช้งานจริงให้รัน: php artisan test:unseed-por-data {$studentId}");
+        $this->warn("ข้อมูลของนักเรียนที่สร้างเป็นข้อมูลปลอม ก่อนใช้งานจริงให้รัน: php artisan test:unseed-por-data {$studentId}");
+        $this->comment('หมายเหตุ: ถ้าคำสั่งนี้สร้างวิชา/ครูผู้สอนปลอมให้ห้องด้วย (ตอนที่ห้องยังไม่มีวิชาเลย) ตัวเลือก unseed จะไม่ลบวิชา/ครูผู้สอนออกให้ เพราะอาจถูกห้องอื่นใช้ร่วมด้วย ต้องไปลบเองที่หน้าจัดตารางสอนถ้าไม่ต้องการ');
 
         return 0;
     }
