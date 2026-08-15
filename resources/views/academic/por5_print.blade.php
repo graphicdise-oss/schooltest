@@ -17,7 +17,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 @media print { body{background:#fff;} .page{margin:0; box-shadow:none;} }
 
 .doc-top { display:flex; align-items:center; justify-content:center; gap:5mm; position:relative; margin-bottom:6px; }
-.doc-logo { width:22mm; height:22mm; flex-shrink:0; }
+.doc-logo { width:28mm; height:28mm; flex-shrink:0; }
 .doc-logo img { width:100%; height:100%; object-fit:contain; }
 .doc-tag { position:absolute; right:0; top:0; font-weight:700; }
 .doc-title { width:100%; text-align:center; margin-bottom:2px; }
@@ -25,7 +25,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:18p
 .doc-title p { font-size:24px; font-weight:700; }
 
 .meta-wrap { text-align:center; margin-bottom:8px; }
-.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:24px; text-align:left; }
+.meta-table { display:inline-table; table-layout:auto; border-collapse:collapse; font-size:22px; text-align:left; }
 .meta-table td { padding:2px 4px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
 .meta-table .lbl { font-weight:700; padding-right:10px; }
 .meta-table .lbl2 { font-weight:700; padding-right:10px; padding-left:50px; }
