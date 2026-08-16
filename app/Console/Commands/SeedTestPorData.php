@@ -78,9 +78,20 @@ class SeedTestPorData extends Command
 
         // หา/สร้างห้องเรียนที่นักเรียนสังกัดอยู่ — ข้ามห้องปลอม "นำเข้าเกรดจากไฟล์ (ไม่ใช่ห้องเรียนจริง)"
         // (section_number 9998 ที่ import:transcript สร้างไว้เก็บเกรด ไม่ใช่ห้องเรียนจริงที่มีตารางสอน)
+        // เลือกห้องที่อยู่ในภาคเรียนปัจจุบัน (is_current) ก่อนเสมอ เพราะหน้าพิมพ์ ปพ.ต่างๆ ค่าเริ่มต้นจะกรองด้วยภาคเรียนปัจจุบัน
+        // ถ้าใช้ latest('id') เฉยๆ อาจได้ห้องเก่า/ซ้ำจากภาคเรียนอื่นที่บังเอิญเป็นแถวล่าสุดในตาราง ทำให้ข้อมูลที่ seed ไปคนละภาคเรียนกับที่พิมพ์จริง
         $studentSection = StudentSection::where('student_id', $studentId)
-            ->whereHas('classSection', fn($q) => $q->where('section_number', '!=', 9998))
+            ->whereHas('classSection', function ($q) {
+                $q->where('section_number', '!=', 9998)
+                    ->whereHas('semester', fn ($sq) => $sq->where('is_current', true));
+            })
             ->latest('id')->first();
+
+        if (!$studentSection) {
+            $studentSection = StudentSection::where('student_id', $studentId)
+                ->whereHas('classSection', fn($q) => $q->where('section_number', '!=', 9998))
+                ->latest('id')->first();
+        }
 
         if (!$studentSection) {
             $sectionOpt = $this->option('section_id');
