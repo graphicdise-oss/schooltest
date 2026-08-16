@@ -300,7 +300,12 @@ class CurriculumController extends Controller
 
         set_time_limit(0);
 
-        $path = $request->file('file')->store('imports');
+        $file = $request->file('file');
+        if (!$file || !$file->isValid()) {
+            return back()->with('curriculum_import_output', 'อัปโหลดไฟล์ไม่สำเร็จ กรุณาเลือกไฟล์ใหม่แล้วลองอีกครั้ง');
+        }
+
+        $path = $file->store('imports');
         $fullPath = Storage::path($path);
 
         $options = ['curriculum_id' => $id, 'file' => $fullPath];
@@ -327,7 +332,12 @@ class CurriculumController extends Controller
 
         set_time_limit(0);
 
-        $path = $request->file('file')->store('imports');
+        $file = $request->file('file');
+        if (!$file || !$file->isValid()) {
+            return back()->with('curriculum_import_output', 'อัปโหลดไฟล์ไม่สำเร็จ กรุณาเลือกไฟล์ใหม่แล้วลองอีกครั้ง');
+        }
+
+        $path = $file->store('imports');
         $fullPath = Storage::path($path);
 
         $options = ['curriculum_id' => $id, 'file' => $fullPath];

@@ -25,5 +25,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 return redirect()->route('parent.login')
                     ->with('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
+
+            // ไม่ต้องการให้ผู้ใช้เห็นหน้า debug ของ Laravel (stack trace เต็มๆ) ไม่ว่า APP_DEBUG จะเปิดหรือปิด
+            // ยกเว้น HTTP exception ปกติ (404/403/419/429/503 ฯลฯ) ที่มีหน้า errors/{code}.blade.php ของตัวเองอยู่แล้ว
+            if (! $request->expectsJson()
+                && ! $e instanceof \Illuminate\Validation\ValidationException
+                && ! $e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                return response()->view('errors.500', [], 500);
+            }
         });
     })->create();
