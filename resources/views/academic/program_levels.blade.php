@@ -195,7 +195,7 @@
                 </div>
                 <div>
                     <label>ชื่อแผน *</label>
-                    <input type="text" name="name" required placeholder="เช่น วิทย์-คณิต ม.4/1">
+                    <input type="text" name="name" required value="{{ $program->name }}" placeholder="เช่น วิทย์-คณิต ม.4/1">
                 </div>
                 <div>
                     <label>ปีการศึกษา</label>
