@@ -266,7 +266,7 @@
                             {{-- คอลัมน์ 2 --}}
                             <div class="flex-1">
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานบุคคล</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานข้อมูลบุคลากร</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
@@ -297,7 +297,7 @@
                                 {{-- ย้ายกลุ่ม "รับสมัครนักเรียนออนไลน์" ไปที่เมนู บริหารทั่วไป > ระบบรับนักเรียน แล้ว --}}
                                 @if(auth()->user()->isAdmin())
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">การตั้งค่าระบบ</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">ตั้งค่าข้อมูลพื้นฐาน</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('prefixes.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการคำนำหน้าชื่อ</a>
