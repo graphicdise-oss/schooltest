@@ -73,7 +73,8 @@ class StudentCardController extends Controller
             ->get()
             ->map(fn($student) => ['student' => $student, 'ss' => null]);
 
-        return view('student.student_card_print', compact('students'));
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
+        return view('student.student_card_print', compact('students', 'school'));
     }
 
     // พิมพ์บัตรคนเดียว
@@ -86,7 +87,8 @@ class StudentCardController extends Controller
             ->latest()->first();
 
         $students = collect([['student' => $student, 'ss' => $ss]]);
-        return view('student.student_card_print', compact('students'));
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
+        return view('student.student_card_print', compact('students', 'school'));
     }
 
     // พิมพ์ทั้งห้อง / พิมพ์ผลการค้นหาทั้งหมด
@@ -116,6 +118,7 @@ class StudentCardController extends Controller
             $students = collect();
         }
 
-        return view('student.student_card_print', compact('students'));
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
+        return view('student.student_card_print', compact('students', 'school'));
     }
 }

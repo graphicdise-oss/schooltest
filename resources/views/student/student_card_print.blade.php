@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <title>พิมพ์บัตรนักเรียน</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -38,14 +37,8 @@
     .card-head .logo {
         width: 28px; height: 28px; object-fit: contain; flex-shrink: 0;
     }
-    .card-head .logo-placeholder {
-        width: 28px; height: 28px; background: rgba(255,255,255,0.3);
-        border-radius: 50%; display: flex; align-items: center; justify-content: center;
-        font-size: 14px; color: #fff; flex-shrink: 0;
-    }
     .card-head-text { color: #fff; line-height: 1.3; }
     .card-head-text .school-th { font-size: 6.5pt; font-weight: 700; }
-    .card-head-text .school-en { font-size: 5pt; opacity: 0.9; }
 
     /* Body */
     .card-body {
@@ -75,10 +68,6 @@
     .card-code {
         font-size: 9pt; color: #333; text-align: center; margin-bottom: 6px;
     }
-    .card-qr {
-        margin: 4px 0; display: flex; justify-content: center;
-    }
-    .card-qr canvas, .card-qr img { width: 22mm !important; height: 22mm !important; }
 
     /* Footer */
     .card-foot {
@@ -120,6 +109,11 @@
     </button>
 </div>
 
+@php
+    $cardLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
+    $cardLogoSrc  = $cardLogoPath ? asset('storage/' . $cardLogoPath) : asset('img/pp_1/logo.png');
+@endphp
+
 <div class="cards-wrap">
     @foreach($students as $idx => $row)
     @php
@@ -140,10 +134,9 @@
 
         {{-- Header --}}
         <div class="card-head">
-            <div class="logo-placeholder">🏫</div>
+            <img src="{{ $cardLogoSrc }}" class="logo" alt="logo" onerror="this.style.display='none'">
             <div class="card-head-text">
-                <div class="school-th">โรงเรียนสาธิตมหาวิทยาลัยราชภัฏ</div>
-                <div class="school-en">Valaya Alongkorn Rajabhat University</div>
+                <div class="school-th">{{ $school['name'] ?? config('school.name') }}</div>
             </div>
         </div>
 
@@ -160,9 +153,6 @@
             <div class="card-name-en">{{ $nameEn }}</div>
             @endif
             <div class="card-code">{{ $s->student_code }}</div>
-
-            {{-- QR Code --}}
-            <div class="card-qr" id="qr-wrap-{{ $idx }}"></div>
         </div>
 
         {{-- Footer --}}
@@ -181,17 +171,6 @@
 </div>
 
 <script>
-// สร้าง QR Code ทุกบัตร
-@foreach($students as $idx => $row)
-@php $s = $row['student']; @endphp
-new QRCode(document.getElementById('qr-wrap-{{ $idx }}'), {
-    text: '{{ $s->student_code }}',
-    width: 83, height: 83,
-    colorDark: '#000', colorLight: '#fff',
-    correctLevel: QRCode.CorrectLevel.M
-});
-@endforeach
-
 // auto print
 window.onload = function() {
     setTimeout(() => window.print(), 800);
