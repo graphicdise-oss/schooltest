@@ -223,6 +223,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     // ไม่มี curriculums.index แล้ว (ลบหน้าลิสต์รวมทิ้งไปเพราะซ้ำกับ /programs) — เข้าถึงแผนทีละหลักสูตรผ่าน /programs แทน
     Route::controller(CurriculumController::class)->prefix('curriculums')->name('curriculums.')->middleware('admin')->group(function () {
         Route::post('/', 'store')->name('store');
+        Route::get('/import-template', 'downloadTemplate')->name('importTemplate');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');

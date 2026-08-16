@@ -13,9 +13,56 @@ use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class CurriculumController extends Controller
 {
+    // แบบฟอร์มเปล่าสำหรับ "นำเข้าจาก Excel" — คอลัมน์ตรงตามที่ ImportCurriculumPlanFromExcel อ่านจริง (อิงตำแหน่ง A-S)
+    public function downloadTemplate()
+    {
+        $headers = [
+            'A' => 'รหัสวิชา', 'B' => 'ชื่อวิชา', 'C' => 'ประเภทรายวิชา', 'D' => 'กลุ่มสาระการเรียนรู้',
+            'E' => 'หน่วยกิต', 'F' => 'ภาคเรียน', 'G' => 'ชม./สัปดาห์', 'H' => 'ชม./ปี',
+            'O' => 'เลขบัตร ปชช. ครูผู้สอน 1', 'P' => 'เลขบัตร ปชช. ครูผู้สอน 2', 'Q' => 'เลขบัตร ปชช. ครูผู้สอน 3',
+            'R' => 'เลขบัตร ปชช. ครูผู้สอน 4', 'S' => 'เลขบัตร ปชช. ครูผู้สอน 5',
+        ];
+        $sample = [
+            'A' => 'ท33101', 'B' => 'ภาษาไทย 5', 'C' => 'รายวิชาพื้นฐาน', 'D' => 'ภาษาไทย',
+            'E' => '1.0', 'F' => '1', 'G' => '2', 'H' => '40',
+            'O' => '1234567890123',
+        ];
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('PlanCourses');
+
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue("{$col}1", $label);
+        }
+        $sheet->getStyle('A1:S1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:S1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8F0FE');
+        foreach (range('A', 'S') as $col) {
+            $sheet->getColumnDimension($col)->setWidth(18);
+        }
+
+        foreach ($sample as $col => $val) {
+            $sheet->setCellValue("{$col}2", $val);
+        }
+
+        $sheet->setCellValue('B4', 'ประเภทรายวิชา (คอลัมน์ C) กรอกได้: รายวิชาพื้นฐาน / รายวิชาเพิ่มเติม / กิจกรรมพัฒนาผู้เรียน');
+        $sheet->setCellValue('B5', 'ภาคเรียน (คอลัมน์ F) กรอก 1 หรือ 2 — ถ้าเรียนทั้งปีเว้นว่างไว้');
+        $sheet->setCellValue('B6', 'คอลัมน์ O-S คือเลขบัตรประชาชนครูผู้สอน กรอกได้สูงสุด 5 คน (เว้นว่างช่องที่ไม่ใช้)');
+        $sheet->setCellValue('B7', 'วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์นี้');
+        $sheet->getStyle('B4:B7')->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'curriculum_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        return response()->download($tmpPath, 'แบบฟอร์มนำเข้ารายวิชา_PlanCourses.xlsx')->deleteFileAfterSend(true);
+    }
+
     // ตรวจ return_to ที่ส่งมาจากหน้าที่ผู้ใช้มาจริงๆ (เช่น /programs หรือ /programs/{id}/plans) ก่อนเอาไปใช้
     // เป็นปลายทางของปุ่ม "ย้อนกลับ" — รับเฉพาะ URL ของแอปเราเอง กัน open redirect ไปโดเมนอื่น
     private function sanitizeReturnTo(?string $url): ?string

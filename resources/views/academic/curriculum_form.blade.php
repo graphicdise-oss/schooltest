@@ -384,6 +384,11 @@
                         วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์ ครูผู้สอนจับคู่ด้วยเลขบัตรประชาชน — คนไหนหาไม่เจอในระบบจะข้ามเฉพาะคนนั้น ไม่กระทบข้อมูลส่วนอื่นของแถวนั้น
                     </p>
                     <div>
+                        <a href="{{ route('curriculums.importTemplate') }}" style="font-size:0.82rem; color:#039be5; display:inline-flex; align-items:center; gap:5px;">
+                            <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์ม Excel เปล่า
+                        </a>
+                    </div>
+                    <div>
                         <input type="file" name="file" accept=".xlsx" required>
                     </div>
                     <div>
