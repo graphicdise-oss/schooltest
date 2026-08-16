@@ -25,11 +25,11 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
 .meta-row { display:flex; gap:14px; font-size:16px; margin:8px 0 10px; flex-wrap:wrap; }
 .meta-row b { font-weight:700; }
 
-.subj-table { width:100%; border-collapse:collapse; font-size:15px; margin-bottom:10px; }
+.subj-table { width:100%; border-collapse:collapse; font-size:15px; margin-bottom:10px; table-layout:fixed; }
 .subj-table th, .subj-table td { border:1px solid #000; padding:4px 6px; }
+.subj-table td { word-wrap:break-word; overflow-wrap:break-word; }
 .subj-table th { text-align:center; font-weight:700; background:#f5f5f5; }
 .subj-table td.c { text-align:center; }
-.subj-table td.l { text-align:left; }
 .subj-table tbody tr { height:20px; }
 
 .bottom-row { display:flex; gap:14px; margin-top:auto; margin-bottom:25mm; }
@@ -73,13 +73,13 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
     <table class="subj-table">
         <thead>
             <tr>
-                <th style="width:35px;">ลำดับ</th>
-                <th style="width:70px;">รหัสวิชา</th>
+                <th style="width:32px;">ลำดับ</th>
+                <th style="width:105px;">รหัสวิชา</th>
                 <th>รายวิชา</th>
-                <th style="width:70px;">ประเภท</th>
-                <th style="width:55px;">น้ำหนัก<br>หน่วยกิต</th>
-                <th style="width:60px;">ระดับผล<br>การเรียน</th>
-                <th style="width:90px;">หมายเหตุ</th>
+                <th style="width:75px;">ประเภท</th>
+                <th style="width:68px;">น้ำหนัก<br>หน่วยกิต</th>
+                <th style="width:78px;">ระดับผล<br>การเรียน</th>
+                <th style="width:80px;">หมายเหตุ</th>
             </tr>
         </thead>
         <tbody>
@@ -87,7 +87,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
                 <tr>
                     <td class="c">{{ $i + 1 }}</td>
                     <td class="c">{{ $r->code }}</td>
-                    <td class="l">{{ $r->name }}</td>
+                    <td class="c">{{ $r->name }}</td>
                     <td class="c">{{ $r->type }}</td>
                     <td class="c">{{ $r->is_activity ? '-' : number_format($r->credits, 1) }}</td>
                     <td class="c">{{ $r->grade }}</td>
@@ -95,7 +95,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17p
                 </tr>
             @endforeach
             @for($i = $data->rows->count(); $i < max(10, $data->rows->count()); $i++)
-                <tr><td class="c"></td><td class="c"></td><td class="l"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
+                <tr><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td><td class="c"></td></tr>
             @endfor
         </tbody>
     </table>
