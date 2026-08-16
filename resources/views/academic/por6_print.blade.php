@@ -32,7 +32,7 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 .subj-table td.l { text-align:left; }
 .subj-table tbody tr { height:18px; }
 
-.bottom-row { display:flex; gap:14px; margin-top:auto; }
+.bottom-row { display:flex; gap:14px; margin-top:24px; }
 .summary-box { flex:1.1; border:1px solid #000; font-size:13.5px; }
 .summary-box .head { text-align:center; font-weight:700; padding:5px; border-bottom:1px solid #000; background:#f5f5f5; }
 .summary-box table { width:100%; border-collapse:collapse; }
