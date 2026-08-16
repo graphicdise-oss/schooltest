@@ -742,8 +742,18 @@
 
         {{-- Header --}}
         <header class="h-[70px] bg-white flex items-center justify-between px-6 z-10 shadow-sm">
+            @php
+                $siteBrand = \App\Models\SchoolInfoSetting::getInstance();
+                $siteBrandLogoUrl = $siteBrand->logo_path ? asset('storage/' . $siteBrand->logo_path) : null;
+                $siteBrandName = $siteBrand->school_name ?: 'SCHOOL TECH';
+            @endphp
             <div class="flex items-center gap-2 text-[#3b5cb4] font-bold text-[18px] tracking-wide">
-                <i class="fa-solid fa-graduation-cap text-[#3b5cb4] text-xl"></i> SCHOOL TECH
+                @if($siteBrandLogoUrl)
+                    <img src="{{ $siteBrandLogoUrl }}" alt="logo" class="h-7 w-7 object-contain rounded" onerror="this.style.display='none'">
+                @else
+                    <i class="fa-solid fa-graduation-cap text-[#3b5cb4] text-xl"></i>
+                @endif
+                {{ $siteBrandName }}
             </div>
             <div class="flex items-center gap-4">
                 <button class="text-gray-700 hover:text-orange-500 transition">
