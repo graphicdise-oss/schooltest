@@ -224,6 +224,13 @@
                 <input type="date" name="issue_date" id="modal_issue_date" required>
             </div>
             <div class="p7-modal-field">
+                <label>สถานะการศึกษา</label>
+                <select name="study_status" id="modal_study_status">
+                    <option value="studying">กำลังศึกษาอยู่</option>
+                    <option value="graduated">สำเร็จการศึกษาแล้ว</option>
+                </select>
+            </div>
+            <div class="p7-modal-field">
                 <label>ผลการเรียน</label>
                 <select name="grade_result" id="modal_grade_result">
                     <option value="ดีเยี่ยม">ดีเยี่ยม</option>

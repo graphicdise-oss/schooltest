@@ -255,7 +255,8 @@ $fullName = ($student->thai_prefix ?? '') . ($student->thai_firstname ?? '') . '
     <div class="data-row" style="margin-top:1mm;">
         <span class="lbl">เป็นนักเรียนของ</span>
         <span class="val no-border">
-            กำลังศึกษาชั้น &nbsp;{{ $levelSection }}
+            {{ $school['name'] ?? '' }}
+            &nbsp;&nbsp;{{ ($studyStatus ?? 'studying') === 'graduated' ? 'สำเร็จการศึกษาชั้น' : 'กำลังศึกษาชั้น' }} &nbsp;{{ $levelSection }}
             @if($section?->program) &nbsp;&nbsp;{{ $section->program }} @endif
             &nbsp;&nbsp;&nbsp; ปีการศึกษา &nbsp;{{ $yearName }}
         </span>

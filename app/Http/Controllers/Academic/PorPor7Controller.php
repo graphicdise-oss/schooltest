@@ -113,6 +113,7 @@ class PorPor7Controller extends Controller
         $issueDate   = $request->issue_date ?? date('Y-m-d');
         $gradeResult = $request->grade_result ?? '';
         $behavior    = $request->behavior ?? '';
+        $studyStatus = $request->study_status === 'graduated' ? 'graduated' : 'studying';
 
         $issueDateFormatted = $this->formatThaiDate($issueDate);
 
@@ -127,7 +128,7 @@ class PorPor7Controller extends Controller
             'student', 'school',
             'level', 'section', 'levelSection', 'yearName',
             'father', 'mother',
-            'issueDateFormatted', 'gradeResult', 'behavior',
+            'issueDateFormatted', 'gradeResult', 'behavior', 'studyStatus',
             'dobFormatted'
         ));
     }
