@@ -135,6 +135,7 @@
                                 </select>
                                 <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของระดับชั้นถัดไปเท่านั้น (เลือกห้องเดิมก่อนถึงจะเห็นตัวเลือก)</p>
                                 <p id="promoteToEmptyHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ยังไม่มีห้องของระดับนี้ในเทอม "{{ $nextSemester->academicYear->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }}" กรุณาไปสร้างห้องเรียนที่หน้า "จัดการห้องเรียน" ก่อน</p>
+                                <p id="promoteToNoNextLevelHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ระดับชั้นนี้เป็นระดับสุดท้ายในระบบแล้ว ไม่มีระดับถัดไปให้เลื่อนขึ้น — ถ้าจบการศึกษาแล้ว ให้ใช้แท็บ "บันทึกสำเร็จการศึกษา" แทน</p>
                             </div>
                             @else
                             <div class="ac-empty">ยังไม่มีเทอมถัดไป กรุณาสร้างเทอมใหม่ก่อน</div>
@@ -279,7 +280,11 @@ function filterPromoteStudents() {
 function filterPromoteToRooms(fromLevelId) {
     const toSelect = document.getElementById('promoteToSection');
     if (!toSelect) return;
-    const nextLevelId = fromLevelId ? String(nextLevelMap[fromLevelId] ?? '') : '';
+    // ระดับสุดท้ายในระบบ (เช่น ม.6) จะไม่มี key นี้เลยใน nextLevelMap หรือค่าเป็น null ตรงๆ
+    // ต่างจากกรณีมีระดับถัดไปแต่แค่ยังไม่มีห้องสร้างไว้ในเทอมนั้น (nextLevelId จะมีค่าแต่หาห้องไม่เจอ)
+    const rawNext = fromLevelId ? nextLevelMap[fromLevelId] : undefined;
+    const isTerminalLevel = !!fromLevelId && (rawNext === null || rawNext === undefined);
+    const nextLevelId = isTerminalLevel ? '' : String(rawNext);
     let currentStillVisible = false;
     let anyMatch = false;
     Array.from(toSelect.options).forEach(opt => {
@@ -292,7 +297,9 @@ function filterPromoteToRooms(fromLevelId) {
     if (!currentStillVisible) toSelect.value = '';
 
     const hint = document.getElementById('promoteToEmptyHint');
-    if (hint) hint.style.display = (fromLevelId && !anyMatch) ? 'block' : 'none';
+    const noNextHint = document.getElementById('promoteToNoNextLevelHint');
+    if (noNextHint) noNextHint.style.display = isTerminalLevel ? 'block' : 'none';
+    if (hint) hint.style.display = (fromLevelId && !isTerminalLevel && !anyMatch) ? 'block' : 'none';
 }
 
 function renderPromoteLists() {
