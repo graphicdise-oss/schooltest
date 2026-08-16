@@ -55,7 +55,16 @@ class PromotionController extends Controller
             ? $levels
             : $levels->whereIn('level_id', $terminalLevelIds)->sortBy('sort_order')->values();
 
-        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester'));
+        // แผนที่ "ระดับถัดไป" ของแต่ละระดับชั้น (เรียงตาม sort_order) ใช้จำกัดตอนเลื่อนชั้น
+        // ไม่ให้เลือกห้องปลายทางข้ามระดับได้ (เช่น ม.2 ต้องขึ้น ม.3 เท่านั้น)
+        $nextLevelMap = [];
+        $orderedLevels = $levels->values();
+        foreach ($orderedLevels as $i => $lv) {
+            // key เป็น string เสมอ กัน json_encode ตีความเป็น array แทน object ตอนส่งไปหน้าเว็บ
+            $nextLevelMap[(string) $lv->level_id] = $orderedLevels[$i + 1]->level_id ?? null;
+        }
+
+        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester', 'nextLevelMap'));
     }
 
     // ย้ายห้อง (เทอมเดียวกัน)
@@ -106,7 +115,18 @@ class PromotionController extends Controller
             'from_section_id' => 'required|exists:class_sections,section_id',
         ]);
 
+        $fromSection = ClassSection::findOrFail($request->from_section_id);
         $toSection = ClassSection::findOrFail($request->to_section_id);
+
+        // กันเลื่อนชั้นข้ามระดับ (เช่น ม.2 ต้องเลื่อนไป ม.3 เท่านั้น จะข้ามไป ม.4 ไม่ได้)
+        // เทียบจาก sort_order ของระดับชั้น ห้องปลายทางต้องเป็นระดับ "ถัดไปทันที" เท่านั้น
+        $levelIds = Level::orderBy('sort_order')->pluck('level_id')->values();
+        $fromIndex = $levelIds->search($fromSection->level_id);
+        $toIndex = $levelIds->search($toSection->level_id);
+        if ($fromIndex === false || $toIndex === false || $toIndex !== $fromIndex + 1) {
+            return redirect()->back()->with('error', 'เลื่อนชั้นข้ามระดับไม่ได้ กรุณาเลือกห้องของระดับถัดไปเท่านั้น');
+        }
+
         $lastNumber = StudentSection::where('section_id', $toSection->section_id)->max('student_number') ?? 0;
 
         foreach ($request->student_ids as $studentId) {

@@ -80,10 +80,16 @@
                     <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:start">
                         <div class="transfer-panel">
                             <h6>ห้องเดิม (เทอมปัจจุบัน)</h6>
+                            <div class="ac-field" style="margin-bottom:12px"><label>ระดับ</label>
+                                <select id="promoteFromLevel" class="ac-select" onchange="filterPromoteRoomsByLevel()">
+                                    <option value="">ทุกระดับชั้น</option>
+                                    @foreach($levels as $lv)<option value="{{ $lv->level_id }}">{{ $lv->name }}</option>@endforeach
+                                </select>
+                            </div>
                             <div class="ac-field" style="margin-bottom:12px"><label>เลือกห้อง</label>
                                 <select name="from_section_id" id="promoteFrom" class="ac-select" onchange="filterPromoteStudents()">
                                     <option value="">เลือกห้อง</option>
-                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
                                 </select>
                             </div>
                             <ul class="transfer-list" id="promoteFromList"></ul>
@@ -98,10 +104,11 @@
                             <h6>ห้องใหม่ (เทอมถัดไป)</h6>
                             @if($nextSemester)
                             <div class="ac-field" style="margin-bottom:12px"><label>เลือกห้อง</label>
-                                <select name="to_section_id" class="ac-select">
-                                    <option value="">เลือกห้อง</option>
-                                    @foreach($toSections as $sec)<option value="{{ $sec->section_id }}">{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                <select name="to_section_id" id="promoteToSection" class="ac-select">
+                                    <option value="">เลือกห้องเดิมก่อน</option>
+                                    @foreach($toSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" hidden>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
                                 </select>
+                                <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของระดับชั้นถัดไปเท่านั้น (เลือกห้องเดิมก่อนถึงจะเห็นตัวเลือก)</p>
                             </div>
                             @else
                             <div class="ac-empty">ยังไม่มีเทอมถัดไป กรุณาสร้างเทอมใหม่ก่อน</div>
@@ -191,14 +198,49 @@ function moveSelected() {
 function moveBack() { fromStudents = [...fromStudents, ...toStudents]; toStudents = []; renderTransferLists(); }
 
 // ===== เลื่อนชั้น =====
+const nextLevelMap = @json($nextLevelMap ?? []);
 let promoteFrom = [], promoteTo = [];
+
+function filterPromoteRoomsByLevel() {
+    const levelId = document.getElementById('promoteFromLevel').value;
+    const roomSelect = document.getElementById('promoteFrom');
+    let currentStillVisible = false;
+    Array.from(roomSelect.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; }
+        const matches = !levelId || opt.dataset.level === levelId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) {
+        roomSelect.value = '';
+        filterPromoteStudents();
+    }
+}
+
 function filterPromoteStudents() {
     const sel = document.getElementById('promoteFrom');
     const opt = sel.options[sel.selectedIndex];
     promoteFrom = opt.dataset.students ? JSON.parse(opt.dataset.students) : [];
     promoteTo = [];
     renderPromoteLists();
+    filterPromoteToRooms(opt.value ? opt.dataset.level : null);
 }
+
+// จำกัดห้องปลายทางให้เห็นเฉพาะระดับชั้น "ถัดไป" ของห้องต้นทางที่เลือกไว้เท่านั้น กันเลื่อนข้ามชั้น
+function filterPromoteToRooms(fromLevelId) {
+    const toSelect = document.getElementById('promoteToSection');
+    if (!toSelect) return;
+    const nextLevelId = fromLevelId ? String(nextLevelMap[fromLevelId] ?? '') : '';
+    let currentStillVisible = false;
+    Array.from(toSelect.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; }
+        const matches = !!nextLevelId && opt.dataset.level === nextLevelId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) toSelect.value = '';
+}
+
 function renderPromoteLists() {
     document.getElementById('promoteFromList').innerHTML = promoteFrom.map(s => `<li><input type="checkbox" class="promo-cb" value="${s.id}"> ${s.num}. ${s.name}</li>`).join('');
     document.getElementById('promoteToList').innerHTML = promoteTo.map(s => `<li><input type="hidden" name="student_ids[]" value="${s.id}">${s.num}. ${s.name}</li>`).join('');
@@ -242,5 +284,9 @@ function toggleGradAll(el) { document.querySelectorAll('.grad-cb').forEach(cb =>
 @if(session('success'))
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>Swal.fire({icon:'success',title:'สำเร็จ!',text:'{{ session("success") }}',timer:2000,showConfirmButton:false});</script>
+@endif
+@if(session('error'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>Swal.fire({icon:'error',title:'ทำรายการไม่สำเร็จ',text:'{{ session("error") }}'});</script>
 @endif
 @endsection
