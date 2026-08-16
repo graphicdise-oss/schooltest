@@ -79,6 +79,59 @@ class CurriculumController extends Controller
         return response()->download($tmpPath, 'แบบฟอร์มนำเข้ารายวิชา_PlanCourses.xlsx')->deleteFileAfterSend(true);
     }
 
+    // แบบฟอร์มเปล่าสำหรับ "มอบหมายครูผู้สอน" — เบากว่าแบบฟอร์มนำเข้ารายวิชาเต็ม เพราะรับแค่ 3 คอลัมน์
+    // (รหัสวิชา/ชื่อครู/ภาคเรียน) ไม่แตะชื่อวิชา หน่วยกิต ชั่วโมง หรือประเภทเลย — ดึงข้อมูลวิชาจากของจริงในระบบเสมอ
+    // ต้องตรงกับที่ ImportCurriculumTeacherAssignFromExcel::parseFile() อ่านจริง ถ้าแก้เลย์เอาต์ตรงนี้ต้องแก้คู่กันที่นั่นด้วย
+    public function downloadAssignTemplate()
+    {
+        $headers = [
+            'A' => 'รหัสวิชา', 'B' => 'ชื่อ-นามสกุลครูผู้สอน', 'C' => 'ภาคเรียน',
+        ];
+
+        $totalCols = Coordinate::columnIndexFromString('C');
+        $lastCol = 'C';
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('AssignTeacher');
+
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
+        ExcelSchoolHeader::applyInstructionRow(
+            $sheet, $totalCols,
+            'แบบฟอร์มมอบหมายครูผู้สอน — สำหรับวิชาที่มีอยู่แล้วในระบบเท่านั้น กรอกข้อมูลเริ่มแถวที่ 7 (แถว 1-6 ห้ามลบ/ห้ามแก้) | '
+            . 'คอลัมน์ A กรอกรหัสวิชาที่มีอยู่ในระบบแล้วเท่านั้น (วิชาที่ยังไม่มีในระบบจะถูกข้าม) | '
+            . 'คอลัมน์ B กรอกชื่อ-นามสกุลครูผู้สอนหลัก 1 คน (จะใส่คำนำหน้าหรือไม่ใส่ก็ได้ ต้องสะกดตรงกับที่มีในระบบ) | '
+            . 'คอลัมน์ C (ภาคเรียน) กรอก 1 หรือ 2 เว้นว่าง=ทั้งปี | '
+            . 'ไฟล์นี้จะไม่แก้ไขชื่อวิชา หน่วยกิต ชั่วโมง หรือประเภทรายวิชา — ข้อมูลเหล่านั้นดึงจากของเดิมในระบบเสมอ'
+        );
+
+        $headerRow = 6;
+        foreach ($headers as $col => $label) {
+            $sheet->setCellValue("{$col}{$headerRow}", $label);
+            ExcelSchoolHeader::setColumnWidth($sheet, $col, 24, $hasLogo);
+        }
+        $sheet->getStyle("A{$headerRow}:{$lastCol}{$headerRow}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(28);
+
+        $firstDataRow = $headerRow + 1;
+        $lastDataRow = $firstDataRow + 29;
+        $sheet->getStyle("A{$firstDataRow}:{$lastCol}{$lastDataRow}")->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+        ]);
+
+        $sheet->freezePane("A{$firstDataRow}");
+
+        $tmpPath = tempnam(sys_get_temp_dir(), 'curriculum_assign_template') . '.xlsx';
+        (new Xlsx($spreadsheet))->save($tmpPath);
+
+        return response()->download($tmpPath, 'แบบฟอร์มมอบหมายครูผู้สอน_AssignTeacher.xlsx')->deleteFileAfterSend(true);
+    }
+
     // ตรวจ return_to ที่ส่งมาจากหน้าที่ผู้ใช้มาจริงๆ (เช่น /programs หรือ /programs/{id}/plans) ก่อนเอาไปใช้
     // เป็นปลายทางของปุ่ม "ย้อนกลับ" — รับเฉพาะ URL ของแอปเราเอง กัน open redirect ไปโดเมนอื่น
     private function sanitizeReturnTo(?string $url): ?string
@@ -256,6 +309,33 @@ class CurriculumController extends Controller
         }
 
         Artisan::call('import:curriculum-plan', $options);
+        $output = Artisan::output();
+
+        @unlink($fullPath);
+
+        return back()->with('curriculum_import_output', $output);
+    }
+
+    public function importAssign(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx',
+        ], [
+            'file.required' => 'กรุณาเลือกไฟล์ Excel',
+            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+        ]);
+
+        set_time_limit(0);
+
+        $path = $request->file('file')->store('imports');
+        $fullPath = Storage::path($path);
+
+        $options = ['curriculum_id' => $id, 'file' => $fullPath];
+        if ($request->boolean('dry_run')) {
+            $options['--dry-run'] = true;
+        }
+
+        Artisan::call('import:curriculum-assign', $options);
         $output = Artisan::output();
 
         @unlink($fullPath);

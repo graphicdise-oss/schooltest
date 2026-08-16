@@ -263,6 +263,12 @@
                 <button class="btn-add-subj" style="background:#039be5" onclick="document.getElementById('importSubjOverlay').classList.add('active')">
                     <i class="bi bi-file-earmark-excel"></i> นำเข้าจาก Excel
                 </button>
+                <a href="{{ route('curriculums.assignTemplate') }}" style="font-size:0.8rem; color:#6a1b9a; display:inline-flex; align-items:center; gap:5px; text-decoration:none;">
+                    <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์มมอบหมายครู
+                </a>
+                <button class="btn-add-subj" style="background:#6a1b9a" onclick="document.getElementById('importAssignOverlay').classList.add('active')">
+                    <i class="bi bi-person-check"></i> มอบหมายครูผู้สอนจาก Excel
+                </button>
                 <button class="btn-add-subj" onclick="openAddSubjectModal()">
                     <i class="bi bi-plus-lg"></i> เพิ่มวิชา
                 </button>
@@ -405,6 +411,39 @@
                     <button type="button" class="btn-modal-cancel" onclick="document.getElementById('importSubjOverlay').classList.remove('active')">ยกเลิก</button>
                     <button type="submit" id="importSubjSubmitBtn" class="btn-modal-ok">
                         <i class="bi bi-upload"></i> เริ่มนำเข้า
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {{-- Modal มอบหมายครูผู้สอนจาก Excel --}}
+    <div class="cf-overlay" id="importAssignOverlay" onclick="if(event.target===this)this.classList.remove('active')">
+        <div class="cf-modal">
+            <div class="cf-modal-header"><i class="bi bi-person-check"></i> มอบหมายครูผู้สอนจาก Excel</div>
+            <form method="POST" action="{{ route('curriculums.importAssign', $curriculum->curriculum_id) }}"
+                  enctype="multipart/form-data" onsubmit="submitImportAssignForm()">
+                @csrf
+                <div class="cf-modal-body">
+                    <p style="font-size:0.8rem; color:#777; margin:0">
+                        รองรับไฟล์รูปแบบ AssignTeacher (.xlsx) — ใช้สำหรับ "มอบหมายครูผู้สอน" ให้วิชาที่มีอยู่แล้วในระบบเท่านั้น
+                        กรอกแค่รหัสวิชา ชื่อครู และภาคเรียน ไม่ต้องกรอกชื่อวิชา หน่วยกิต ชั่วโมง หรือประเภท เพราะจะดึงจากข้อมูลเดิมในระบบเสมอ —
+                        วิชาที่ไม่พบในระบบจะถูกข้ามทั้งแถวพร้อมแจ้งเตือน ครูผู้สอนจับคู่ด้วยชื่อ-นามสกุล (สะกดให้ตรงกับที่มีในระบบ จะใส่คำนำหน้าหรือไม่ใส่ก็ได้)
+                    </p>
+                    <div>
+                        <input type="file" name="file" accept=".xlsx" required>
+                    </div>
+                    <div>
+                        <label style="display:flex; align-items:center; gap:6px; font-weight:400; font-size:0.85rem; color:#444">
+                            <input type="checkbox" name="dry_run" value="1" style="width:auto">
+                            ทดสอบก่อน (dry-run) — ยังไม่บันทึกข้อมูลจริง
+                        </label>
+                    </div>
+                </div>
+                <div class="cf-modal-footer">
+                    <button type="button" class="btn-modal-cancel" onclick="document.getElementById('importAssignOverlay').classList.remove('active')">ยกเลิก</button>
+                    <button type="submit" id="importAssignSubmitBtn" class="btn-modal-ok">
+                        <i class="bi bi-upload"></i> เริ่มมอบหมาย
                     </button>
                 </div>
             </form>
@@ -635,6 +674,10 @@ function onCurriculumProgramChange(select) {
 function submitImportSubjForm() {
     document.getElementById('importSubjSubmitBtn').disabled = true;
     document.getElementById('importSubjSubmitBtn').innerText = 'กำลังนำเข้า... กรุณารอสักครู่';
+}
+function submitImportAssignForm() {
+    document.getElementById('importAssignSubmitBtn').disabled = true;
+    document.getElementById('importAssignSubmitBtn').innerText = 'กำลังมอบหมาย... กรุณารอสักครู่';
 }
 function openAddSubjectModal() {
     document.getElementById('add_subject_id').value = '';

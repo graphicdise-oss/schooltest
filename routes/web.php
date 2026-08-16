@@ -224,11 +224,13 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
     Route::controller(CurriculumController::class)->prefix('curriculums')->name('curriculums.')->middleware('admin')->group(function () {
         Route::post('/', 'store')->name('store');
         Route::get('/import-template', 'downloadTemplate')->name('importTemplate');
+        Route::get('/assign-template', 'downloadAssignTemplate')->name('assignTemplate');
         Route::get('/{id}/edit', 'edit')->name('edit');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::post('/{id}/subjects', 'addSubject')->name('addSubject');
         Route::post('/{id}/import-subjects', 'importSubjects')->name('importSubjects');
+        Route::post('/{id}/import-assign', 'importAssign')->name('importAssign');
         Route::put('/{id}/subjects/{csId}', 'updateSubject')->name('updateSubject');
         Route::delete('/{id}/subjects/{csId}', 'removeSubject')->name('removeSubject');
         Route::post('/{id}/subjects/{csId}/toggle', 'toggleSubject')->name('toggleSubject');
