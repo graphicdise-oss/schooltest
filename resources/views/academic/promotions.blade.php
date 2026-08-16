@@ -2,7 +2,7 @@
 @push('styles')<link rel="stylesheet" href="{{ asset('css/academic/academic.css') }}?v={{ time() }}">@endpush
 
 @section('content')
-<div class="ac-page" x-data="{ tab: 'transfer' }">
+<div class="ac-page" x-data="{ tab: '{{ in_array(request('tab'), ['transfer','promote','graduate']) ? request('tab') : 'transfer' }}' }">
     <nav class="ac-breadcrumb"><a href="#">ข้อมูลบุคคล</a><i class="bi bi-chevron-right"></i><span>ย้ายห้อง/เลื่อนชั้น/บันทึกจบ</span></nav>
 
     <div class="ac-card" style="overflow:visible">
@@ -37,7 +37,7 @@
                                 </div>
                                 <div class="ac-field" style="width:150px; flex:none">
                                     <label>ภาคการศึกษา</label>
-                                    <select id="filterSemester" class="ac-select" onchange="window.location='?semester_id='+this.value">
+                                    <select id="filterSemester" class="ac-select" onchange="window.location='?tab=transfer&semester_id='+this.value">
                                         @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" data-year="{{ $sem->year_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>เทอม {{ $sem->semester_name }}</option>@endforeach
                                     </select>
                                 </div>
@@ -98,7 +98,13 @@
                     @csrf
                     <div style="display:grid; grid-template-columns:1fr auto 1fr; gap:16px; align-items:start">
                         <div class="transfer-panel">
-                            <h6>ห้องเดิม (เทอมปัจจุบัน)</h6>
+                            <h6>ห้องเดิม</h6>
+                            <div class="ac-field" style="margin-bottom:12px"><label>ภาคการศึกษา</label>
+                                <select class="ac-select" onchange="window.location='{{ route('promotions.index') }}?tab=promote&semester_id='+this.value">
+                                    @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>{{ $sem->academicYear->year_name ?? '' }} เทอม {{ $sem->semester_name }}</option>@endforeach
+                                </select>
+                                <p style="font-size:.78rem;color:#999;margin:6px 0 0">เลือกเทอมอื่นได้ เผื่อมีนักเรียนบางคนยังค้างอยู่ห้องของเทอมก่อนหน้า</p>
+                            </div>
                             <div class="ac-field" style="margin-bottom:12px"><label>ระดับ</label>
                                 <select id="promoteFromLevel" class="ac-select" onchange="filterPromoteRoomsByLevel()">
                                     <option value="">ทุกระดับชั้น</option>
@@ -189,7 +195,7 @@ function filterSemesterByYear() {
     });
     if (!currentStillVisible) {
         const firstVisible = Array.from(semSelect.options).find(opt => !opt.hidden);
-        if (firstVisible) window.location = '?semester_id=' + firstVisible.value;
+        if (firstVisible) window.location = '?tab=transfer&semester_id=' + firstVisible.value;
     }
 }
 
