@@ -221,10 +221,10 @@
                             {{-- คอลัมน์ 1 --}}
                             <div class="flex-1">
                                 <div class="mb-5">
-                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานทะเบียนนักเรียน</h4>
+                                    <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานข้อมูลนักเรียน</h4>
                                     <ul class="space-y-1.5 pl-2">
                                         <li><a href="{{ route('students.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ทะเบียนนักเรียน</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลนักเรียน</a>
                                         </li>
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
@@ -270,7 +270,7 @@
                                     <ul class="space-y-1.5 pl-2">
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('personnels.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ทะเบียนบุคลากร/ครู</a></li>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลบุคลากร/ครู</a></li>
                                         @endif
                                         <li><a href="{{ route('leave.personnel.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึกการลางาน</a></li>
