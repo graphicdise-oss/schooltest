@@ -12,12 +12,12 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
  * นำเข้ารายวิชาของแผนการเรียน (หลักสูตร) จากไฟล์ Excel รูปแบบ "PlanCourses" — 1 แถว = 1 วิชา
- * คอลัมน์คงที่ตามตำแหน่ง (A-S) เพราะหัวตารางในไฟล์ต้นทางบางคอลัมน์ติดป้ายผิดสลับกัน (เช่น C ป้ายบอกว่า
- * "กลุ่มสาระ" แต่ค่าจริงเป็นประเภทรายวิชา และ D สลับกัน) จึงอิงตำแหน่งคอลัมน์แทนข้อความหัวตาราง:
+ * คอลัมน์คงที่ตามตำแหน่ง (A-M):
  *   A=รหัสวิชา B=ชื่อวิชา C=ประเภทรายวิชา(รายวิชาพื้นฐาน/เพิ่มเติม/กิจกรรมพัฒนาผู้เรียน) D=กลุ่มสาระการเรียนรู้
- *   E=หน่วยกิต F=ภาคเรียน(1/2) G=ชม./สัปดาห์ H=ชม./ปี O-S=เลขบัตรประชาชนครูผู้สอน (สูงสุด 5 คน)
+ *   E=หน่วยกิต F=ภาคเรียน(1/2) G=ชม./สัปดาห์ H=ชม./ปี I-M=ชื่อ-นามสกุลครูผู้สอน (สูงสุด 5 คน)
  * วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ (จับคู่ด้วยรหัสวิชา) ส่วนที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์
- * ครูผู้สอนจับคู่ด้วยเลขบัตรประชาชน (personnels.id_card_number) — คนไหนหาไม่เจอ ข้ามเฉพาะคนนั้น ไม่ข้ามทั้งแถว
+ * ครูผู้สอนจับคู่ด้วยชื่อ-นามสกุล (เทียบแบบตัดช่องว่าง/คำนำหน้าทิ้ง จะใส่คำนำหน้าหรือไม่ใส่ก็ได้)
+ * คนไหนหาไม่เจอหรือชื่อซ้ำกันหลายคน ข้ามเฉพาะคนนั้น ไม่ข้ามทั้งแถว
  */
 class ImportCurriculumPlanFromExcel extends Command
 {
@@ -27,7 +27,7 @@ class ImportCurriculumPlanFromExcel extends Command
         'กิจกรรมพัฒนาผู้เรียน' => 'กิจกรรม',
     ];
 
-    private const TEACHER_COLUMNS = ['O', 'P', 'Q', 'R', 'S'];
+    private const TEACHER_COLUMNS = ['I', 'J', 'K', 'L', 'M'];
 
     protected $signature = 'import:curriculum-plan
         {curriculum_id : รหัสหลักสูตร/แผนที่จะนำเข้าวิชาเข้าไป}
@@ -63,6 +63,9 @@ class ImportCurriculumPlanFromExcel extends Command
         $dryRun = (bool) $this->option('dry-run');
         $this->info($dryRun ? '=== โหมดทดสอบ (dry-run) — จะไม่บันทึกข้อมูลจริง ===' : '=== กำลังบันทึกข้อมูลจริง ===');
 
+        // ดึงบุคลากรทั้งหมดมาไว้ล่วงหน้าครั้งเดียว แล้วจับคู่ชื่อในหน่วยความจำ (เร็วกว่า query ทีละแถว)
+        $allPersonnel = Personnel::all();
+
         $subjectCreated = 0;
         $subjectUpdated = 0;
         $planCreated = 0;
@@ -90,14 +93,16 @@ class ImportCurriculumPlanFromExcel extends Command
                         $subjectCreated++;
                     }
 
-                    // จับคู่ครูผู้สอนด้วยเลขบัตรประชาชน — หาไม่เจอคนไหน ข้ามเฉพาะคนนั้น (ไม่ error ทั้งแถว)
+                    // จับคู่ครูผู้สอนด้วยชื่อ-นามสกุล — หาไม่เจอ/ชื่อซ้ำกันหลายคน ข้ามเฉพาะคนนั้น (ไม่ error ทั้งแถว)
                     $teacherIds = [];
-                    foreach ($row['teacher_id_cards'] as $idCard) {
-                        $teacher = Personnel::where('id_card_number', $idCard)->first();
-                        if ($teacher) {
-                            $teacherIds[] = $teacher->personnel_id;
+                    foreach ($row['teacher_names'] as $teacherName) {
+                        $matches = $this->findPersonnelByName($teacherName, $allPersonnel);
+                        if (count($matches) === 1) {
+                            $teacherIds[] = $matches[0]->personnel_id;
+                        } elseif (count($matches) > 1) {
+                            $warnings[] = "วิชา {$row['code']}: ชื่อครูผู้สอน \"{$teacherName}\" ตรงกับบุคลากรมากกว่า 1 คนในระบบ — ข้ามคนนี้ (กรุณาระบุให้ชัดเจนกว่านี้)";
                         } else {
-                            $warnings[] = "วิชา {$row['code']}: ไม่พบครูผู้สอนเลขบัตรประชาชน \"{$idCard}\" ในระบบ — ข้ามคนนี้";
+                            $warnings[] = "วิชา {$row['code']}: ไม่พบครูผู้สอนชื่อ \"{$teacherName}\" ในระบบ — ข้ามคนนี้";
                         }
                     }
 
@@ -200,11 +205,11 @@ class ImportCurriculumPlanFromExcel extends Command
             $type = self::SUBJECT_TYPE_MAP[$typeRaw] ?? ($typeRaw !== '' ? $typeRaw : 'พื้นฐาน');
             $semesterType = in_array($semester, ['1', '2'], true) ? $semester : 'both';
 
-            $teacherIdCards = [];
+            $teacherNames = [];
             foreach (self::TEACHER_COLUMNS as $col) {
                 $v = trim((string) ($sheet->getCell("{$col}{$r}")->getValue() ?? ''));
                 if ($v !== '') {
-                    $teacherIdCards[] = $v;
+                    $teacherNames[] = $v;
                 }
             }
 
@@ -217,7 +222,7 @@ class ImportCurriculumPlanFromExcel extends Command
                 'semester_type' => $semesterType,
                 'hours_per_week' => $hoursPerWeek,
                 'hours_per_year' => $hoursPerYear,
-                'teacher_id_cards' => $teacherIdCards,
+                'teacher_names' => $teacherNames,
             ];
         }
 
@@ -230,5 +235,23 @@ class ImportCurriculumPlanFromExcel extends Command
             return null;
         }
         return is_numeric($value) ? (float) $value : null;
+    }
+
+    // จับคู่ชื่อจากไฟล์กับบุคลากรในระบบ — เทียบแบบตัดช่องว่างทั้งหมดทิ้ง ลองทั้งแบบมี/ไม่มีคำนำหน้า
+    // เผื่อผู้กรอกพิมพ์ "นายสมชาย ใจดี", "สมชาย ใจดี" หรือเว้นวรรคไม่ตรงกันก็ยังจับคู่ได้
+    // คืนค่าเป็น array เผื่อกรณีชื่อซ้ำกันหลายคน (ผู้เรียกจะตัดสินใจเองว่าจะข้ามหรือไม่)
+    private function findPersonnelByName(string $inputName, \Illuminate\Support\Collection $allPersonnel): array
+    {
+        $normalize = fn ($s) => preg_replace('/\s+/u', '', trim((string) $s));
+        $target = $normalize($inputName);
+        if ($target === '') {
+            return [];
+        }
+
+        return $allPersonnel->filter(function ($p) use ($normalize, $target) {
+            $withoutPrefix = $normalize($p->thai_firstname . $p->thai_lastname);
+            $withPrefix = $normalize(($p->thai_prefix ?? '') . $p->thai_firstname . $p->thai_lastname);
+            return $target === $withoutPrefix || $target === $withPrefix;
+        })->values()->all();
     }
 }
