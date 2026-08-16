@@ -36,7 +36,7 @@
 
                 @php
                     $times = $slots->pluck('start_time')->unique()->sort()->values();
-                    $slotsByDayTime = $slots->groupBy(fn($s) => $s->day_of_week . '|' . $s->start_time->format('H:i'));
+                    $slotsByDayTime = $slots->groupBy(fn($s) => $s->day_of_week . '|' . \Carbon\Carbon::parse($s->start_time)->format('H:i'));
                 @endphp
 
                 @foreach($times as $time)

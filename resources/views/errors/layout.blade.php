@@ -38,7 +38,7 @@
         <div class="err-code">@yield('code')</div>
         <h1 class="err-title">@yield('title')</h1>
         <p class="err-message">@yield('message')</p>
-        <a href="{{ url('/') }}" class="err-btn">@yield('button', 'กลับหน้าหลัก')</a>
+        <a href="{{ url('/') }}" class="err-btn" onclick="@yield('button_onclick', 'if (window.history.length > 1) { event.preventDefault(); window.history.back(); }')">@yield('button', 'ย้อนกลับ')</a>
     </div>
 </body>
 </html>
