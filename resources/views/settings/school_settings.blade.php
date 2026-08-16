@@ -164,7 +164,7 @@
                         <label>ผู้อำนวยการโรงเรียน</label>
                         <select name="director_personnel_id" class="ac-select" onchange="onPersonnelChange('director')" id="director_personnel_id">
                             <option value="">-- เลือกจากบุคลากร --</option>
-                            @foreach($personnels as $p)
+                            @foreach($directors as $p)
                             <option value="{{ $p->personnel_id }}" {{ ($setting->director_personnel_id ?? null) == $p->personnel_id ? 'selected' : '' }}>
                                 {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
                                 @if($p->position) ({{ $p->position }}) @endif
@@ -172,6 +172,9 @@
                             @endforeach
                             <option value="__manual__">-- พิมพ์ชื่อเอง --</option>
                         </select>
+                        @if($directors->isEmpty())
+                            <small style="color:#94a3b8">ไม่พบบุคลากรที่ตำแหน่งมีคำว่า "ผู้อำนวยการ" ในระบบ — ใช้ "พิมพ์ชื่อเอง" แทนได้</small>
+                        @endif
                     </div>
                     <div class="ac-field" id="director_manual_row" style="display:{{ ($setting->director_personnel_id ?? null) ? 'none' : '' }}">
                         <label>ชื่อผู้อำนวยการ (พิมพ์เอง)</label>

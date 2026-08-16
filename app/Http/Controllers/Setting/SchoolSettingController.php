@@ -21,6 +21,9 @@ class SchoolSettingController extends Controller
             ->orderBy('thai_firstname')
             ->get(['personnel_id', 'thai_prefix', 'thai_firstname', 'thai_lastname', 'position']);
 
+        // ตัวเลือกผู้อำนวยการ กรองเฉพาะคนที่ตำแหน่งมีคำว่า "ผู้อำนวยการ" เท่านั้น ไม่ต้องไล่ดูทั้งโรงเรียน
+        $directors = $personnels->filter(fn ($p) => $p->position && str_contains($p->position, 'ผู้อำนวยการ'))->values();
+
         $logoUrl = null;
         foreach (['png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG'] as $ext) {
             $path = public_path('img/pp_1/logo.' . $ext);
@@ -33,7 +36,7 @@ class SchoolSettingController extends Controller
         $subjectGroupHeads = SubjectGroupHead::all()->keyBy('subject_group');
         $subjectGroups = SubjectGroupHead::groupList();
 
-        return view('settings.school_settings', compact('setting', 'personnels', 'logoUrl', 'subjectGroupHeads', 'subjectGroups'));
+        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'subjectGroupHeads', 'subjectGroups'));
     }
 
     public function updateSchool(Request $request)

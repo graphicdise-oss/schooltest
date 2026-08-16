@@ -6,7 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15px; color:#222; background:#e0e0e0; }
+body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:17px; color:#222; background:#e0e0e0; }
 .page {
     width:210mm; min-height:297mm; margin:0 auto 10mm; padding:10mm 12mm;
     background:#fff; box-shadow:0 0 8px rgba(0,0,0,.15);
@@ -16,30 +16,30 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 @media print { body{background:#fff;} .page{margin:0; box-shadow:none;} }
 
 .doc-top { display:flex; align-items:center; gap:5mm; margin-bottom:4px; }
-.doc-logo { width:16mm; height:16mm; flex-shrink:0; }
+.doc-logo { width:26mm; height:26mm; flex-shrink:0; }
 .doc-logo img { width:100%; height:100%; object-fit:contain; }
 .doc-title { flex:1; text-align:center; }
-.doc-title h2 { font-size:18px; font-weight:700; }
-.doc-title p { font-size:14px; }
+.doc-title h2 { font-size:21px; font-weight:700; }
+.doc-title p { font-size:16px; }
 
-.meta-row { display:flex; gap:14px; font-size:14px; margin:8px 0 10px; flex-wrap:wrap; }
+.meta-row { display:flex; gap:14px; font-size:16px; margin:8px 0 10px; flex-wrap:wrap; }
 .meta-row b { font-weight:700; }
 
-.subj-table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:10px; }
-.subj-table th, .subj-table td { border:1px solid #000; padding:3px 5px; }
+.subj-table { width:100%; border-collapse:collapse; font-size:15px; margin-bottom:10px; }
+.subj-table th, .subj-table td { border:1px solid #000; padding:4px 6px; }
 .subj-table th { text-align:center; font-weight:700; background:#f5f5f5; }
 .subj-table td.c { text-align:center; }
 .subj-table td.l { text-align:left; }
-.subj-table tbody tr { height:18px; }
+.subj-table tbody tr { height:20px; }
 
 .bottom-row { display:flex; gap:14px; margin-top:auto; margin-bottom:25mm; }
-.summary-box { flex:1.1; border:1px solid #000; font-size:13.5px; }
+.summary-box { flex:1.1; border:1px solid #000; font-size:15.5px; }
 .summary-box .head { text-align:center; font-weight:700; padding:5px; border-bottom:1px solid #000; background:#f5f5f5; }
 .summary-box table { width:100%; border-collapse:collapse; }
 .summary-box td { padding:4px 8px; border-top:1px solid #ccc; }
 .summary-box td.v { text-align:center; width:70px; font-weight:700; }
 
-.sign-box { flex:1; font-size:14px; text-align:center; }
+.sign-box { flex:1; font-size:16px; text-align:center; }
 .sign-item { margin-bottom:14px; }
 .sign-line { margin-bottom:4px; text-align:center; }
 </style>
