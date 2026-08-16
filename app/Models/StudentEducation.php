@@ -8,7 +8,7 @@ class StudentEducation extends Model
     protected $table = 'student_education'; 
 
     // เปลี่ยน Primary Key ตาม Database ของพี่
-    protected $primaryKey = 'std_add_id'; 
+    protected $primaryKey = 'std_education_id';
 
     protected $guarded = [];
 }
