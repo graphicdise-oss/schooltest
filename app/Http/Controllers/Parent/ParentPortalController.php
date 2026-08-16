@@ -125,7 +125,9 @@ class ParentPortalController extends Controller
             $dayBlocks = $this->buildDayBlocks($section, $assigns, $days);
         }
 
-        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'dayBlocks', 'assigns'));
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
+
+        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'dayBlocks', 'assigns', 'school'));
     }
 
     // สร้างรายการคาบเรียนต่อวัน เรียงตามเวลาเริ่มจริง (ไม่ยึดกริด 30 นาที) พร้อมแทรกพักกลางวันตามตำแหน่งเวลา

@@ -551,28 +551,6 @@
                                     </ul>
                                 </div>
                             </div>
-                            <div class="flex-1">
-                                <div>
-                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานกิจการนักเรียน</h4>
-                                    <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการมาโรงเรียน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการเช็คชื่อรายคาบเรียน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการมาโรงเรียนสาย</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานคะแนนพฤติกรรม</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานการตัดคะแนนจากคุณครูที่ปรึกษา</a>
-                                        </li>
-                                    </ul>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </div>
