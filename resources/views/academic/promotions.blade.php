@@ -217,7 +217,11 @@ function filterStudents() {
     toStudents = [];
     renderTransferLists();
 }
+const byStudentNum = (a, b) => (a.num ?? 0) - (b.num ?? 0);
+
 function renderTransferLists() {
+    fromStudents.sort(byStudentNum);
+    toStudents.sort(byStudentNum);
     document.getElementById('fromList').innerHTML = fromStudents.map(s => `<li><input type="checkbox" class="from-cb" value="${s.id}"> ${s.num}. ${s.name}</li>`).join('');
     document.getElementById('toList').innerHTML = toStudents.map(s => `<li><input type="hidden" name="student_ids[]" value="${s.id}">${s.num}. ${s.name}</li>`).join('');
     document.getElementById('toCount').textContent = toStudents.length;
@@ -277,6 +281,8 @@ function filterPromoteToRooms(fromLevelId) {
 }
 
 function renderPromoteLists() {
+    promoteFrom.sort(byStudentNum);
+    promoteTo.sort(byStudentNum);
     document.getElementById('promoteFromList').innerHTML = promoteFrom.map(s => `<li><input type="checkbox" class="promo-cb" value="${s.id}"> ${s.num}. ${s.name}</li>`).join('');
     document.getElementById('promoteToList').innerHTML = promoteTo.map(s => `<li><input type="hidden" name="student_ids[]" value="${s.id}">${s.num}. ${s.name}</li>`).join('');
 }
