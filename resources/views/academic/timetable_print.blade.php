@@ -5,6 +5,8 @@
     <title>ตารางสอน {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; }
+        html, body { width: 100%; overflow-x: hidden; }
         body {
             font-family: 'Sarabun', sans-serif;
             margin: 0; padding: 16px; font-size: 11px; color: #000;
