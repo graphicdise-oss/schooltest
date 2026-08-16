@@ -12,7 +12,6 @@ use App\Models\Academic\ClassSection;
 use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
 use App\Services\ExcelSchoolHeader;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -307,8 +306,7 @@ class CurriculumController extends Controller
 
         $fullPath = null;
         try {
-            $path = $file->store('imports');
-            $fullPath = Storage::path($path);
+            $fullPath = $this->moveUploadedImportFile($file);
 
             $options = ['curriculum_id' => $id, 'file' => $fullPath];
             if ($request->boolean('dry_run')) {
@@ -347,8 +345,7 @@ class CurriculumController extends Controller
 
         $fullPath = null;
         try {
-            $path = $file->store('imports');
-            $fullPath = Storage::path($path);
+            $fullPath = $this->moveUploadedImportFile($file);
 
             $options = ['curriculum_id' => $id, 'file' => $fullPath];
             if ($request->boolean('dry_run')) {
@@ -367,5 +364,20 @@ class CurriculumController extends Controller
         }
 
         return back()->with('curriculum_import_output', $output);
+    }
+
+    // ย้ายไฟล์ที่อัปโหลดไปเก็บที่ storage/app/private/imports ด้วย move_uploaded_file() ตรงๆ (ผ่าน UploadedFile::move())
+    // แทนการใช้ Storage::disk()->putFileAs()/file->store() เพราะบางเครื่อง (โดยเฉพาะ Windows ที่มีโปรแกรมป้องกันไวรัส
+    // สแกนไฟล์ temp แบบ real-time) ไฟล์ temp ต้นทางอาจถูกสแกน/ล็อกไว้ชั่วขณะจน getRealPath() คืนค่าว่าง ทำให้ fopen()
+    // ภายใน store() พังด้วย "Path cannot be empty" — move_uploaded_file() ยืนยันแหล่งที่มาจาก $_FILES ตรงๆ ทนทานกว่า
+    private function moveUploadedImportFile(\Illuminate\Http\UploadedFile $file): string
+    {
+        $dir = storage_path('app/private/imports');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        $filename = uniqid('import_', true) . '.' . ($file->getClientOriginalExtension() ?: 'xlsx');
+
+        return $file->move($dir, $filename)->getPathname();
     }
 }
