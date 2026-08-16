@@ -604,9 +604,6 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานประชาสัมพันธ์</a>
                                         </li>
                                         @endif
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่ากลุ่มประชาสัมพันธ์</a>
-                                        </li>
                                     </ul>
                                 </div>
                                 <div class="mb-4">
