@@ -36,14 +36,21 @@ class PromotionController extends Controller
             : collect();
 
         // บันทึกจบ (Tab 3) เลือกได้เฉพาะห้องของ "ชั้นปีสุดท้าย" ของแต่ละช่วงชั้นเท่านั้น (ป.6/ม.3/ม.6)
-        // หาโดยดู sort_order สูงสุดในแต่ละ level_group ประถมศึกษา/มัธยมศึกษาตอนต้น/มัธยมศึกษาตอนปลาย
-        // (ไม่รวมอนุบาล เพราะไม่ถือเป็นการ "จบการศึกษา" ในความหมายนี้)
-        $terminalLevelIds = $levels
-            ->whereIn('level_group', ['ประถมศึกษา', 'มัธยมศึกษาตอนต้น', 'มัธยมศึกษาตอนปลาย'])
-            ->groupBy('level_group')
-            ->map(fn($group) => $group->sortByDesc('sort_order')->first()?->level_id)
-            ->filter()
-            ->values();
+        // ใช้ชื่อระดับชั้นตรงๆ แทนการอิง level_group เพราะแต่ละโรงเรียนตั้ง level_group ไม่เหมือนกัน
+        // (บางที่แยก "มัธยมศึกษาตอนต้น/ตอนปลาย" บางที่รวม ม.1-ม.6 เป็น "มัธยมศึกษา" กลุ่มเดียว ซึ่งถ้าอิงกลุ่ม
+        // จะหาจุดจบ ม.3 ไม่เจอเลยเพราะ sort_order สูงสุดในกลุ่มเดียวกันจะเป็น ม.6 เท่านั้น)
+        $terminalLevelIds = $levels->whereIn('name', ['ป.6', 'ม.3', 'ม.6'])->pluck('level_id')->values();
+
+        // เผื่อโรงเรียนตั้งชื่อระดับชั้นไม่ตรงรูปแบบมาตรฐาน ("ป.6" ฯลฯ) ให้ลองเดาจาก level_group แทน
+        // โดยเอาระดับสุดท้าย (sort_order สูงสุด) ของแต่ละกลุ่มที่ไม่ใช่อนุบาล/เตรียมอนุบาล
+        if ($terminalLevelIds->isEmpty()) {
+            $terminalLevelIds = $levels
+                ->reject(fn($lv) => str_contains($lv->level_group ?? '', 'อนุบาล'))
+                ->groupBy('level_group')
+                ->map(fn($group) => $group->sortByDesc('sort_order')->first()?->level_id)
+                ->filter()
+                ->values();
+        }
         // ถ้าหาชั้นปีสุดท้ายไม่เจอเลยสักช่วงชั้น (เช่น ยังไม่ได้ตั้งค่า level_group ให้ระดับชั้นในระบบ) ให้แสดงห้องทั้งหมด
         // แทนปล่อยดรอปดาวน์ว่างเปล่าจนใช้งานไม่ได้เลย — ต่างจากกรณีเทอมนี้แค่ยังไม่มีห้อง ป.6/ม.3/ม.6 ที่ควรปล่อยว่างไว้ตามจริง
         $graduateSections = $terminalLevelIds->isEmpty()
