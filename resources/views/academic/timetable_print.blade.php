@@ -14,20 +14,29 @@
         .section-name { font-size: 15px; margin-top: 4px; }
         .meta { font-size: 12px; color: #444; margin-top: 4px; }
 
-        table { width: 100%; border-collapse: collapse; table-layout: fixed; }
-        th, td { border: 1px solid #000; padding: 4px 2px; text-align: center; vertical-align: middle; word-break: break-word; }
-        th.day-col, td.day-col { width: 70px; background: #f0f0f0; font-weight: bold; }
-        th { font-size: 10px; background: #f0f0f0; }
-        .slot { font-size: 10px; line-height: 1.3; padding: 3px 2px; color: #fff; }
-        .slot-code { font-weight: bold; }
-        .slot-room, .slot-time { font-size: 9px; opacity: .85; }
-        .lunch-col { background: #eee; font-weight: bold; color: #555; }
+        .days { border:1px solid #000; border-collapse:collapse; width:100%; }
+        .day-row { display:flex; border-bottom:1px solid #000; align-items:stretch; }
+        .day-row:last-child { border-bottom:none; }
+        .day-label {
+            flex-shrink:0; width:70px; display:flex; align-items:center; justify-content:center;
+            background:#f0f0f0; font-weight:bold; font-size:12px; border-right:1px solid #000; padding:6px 2px;
+        }
+        .day-blocks { flex:1; display:flex; flex-wrap:wrap; gap:6px; align-items:center; padding:6px; }
+        .block {
+            width:118px; min-height:64px; border-radius:4px; padding:5px 6px;
+            font-size:10px; line-height:1.3; display:flex; flex-direction:column;
+            justify-content:center; align-items:center; text-align:center; color:#fff;
+        }
+        .block-code { font-weight:bold; font-size:11px; }
+        .block-room, .block-time { font-size:9px; opacity:.9; }
+        .block-lunch { background:#eee; color:#555; border:1px solid #ccc; }
+        .block-empty { font-size:11px; color:#999; padding:6px; }
 
         @media print {
             body { padding: 0; }
             @page { size: A4 landscape; margin: 1cm; }
             .no-print { display: none !important; }
-            .slot { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .block { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
         }
     </style>
 </head>
@@ -53,95 +62,37 @@
         $palette = ['#1e88e5','#43a047','#e53935','#fb8c00','#8e24aa','#00897b','#3949ab','#f4511e','#039be5','#7cb342','#6d4c41','#00acc1'];
         $colorMap = [];
         foreach ($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($palette)]; }
-
-        $skipCells = [];
-        $nextBlockAt = [];
-        $prevBlockAt = [];
-        foreach ($slotGrid as $d => $daySlots) {
-            foreach ($daySlots as $startIdx => $cell) {
-                $span = $cell['span'] ?? 1;
-                for ($s = 1; $s < $span; $s++) {
-                    $skipCells[$d][$startIdx + $s] = true;
-                }
-                $endIdx = $startIdx + $span;
-                if (isset($daySlots[$endIdx])) {
-                    $nextBlockAt[$d][$startIdx] = $daySlots[$endIdx];
-                    $prevBlockAt[$d][$endIdx] = $cell;
-                }
-            }
-        }
     @endphp
 
-    <table>
-        <thead>
-            <tr>
-                <th class="day-col">วัน / เวลา</th>
-                @foreach($units as $i => $u)
-                    @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
-                        <th class="lunch-col" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</th>
-                    @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
-                        @continue
+    <div class="days">
+        @foreach($days as $day)
+        <div class="day-row">
+            <div class="day-label">{{ $day }}</div>
+            <div class="day-blocks">
+                @forelse($dayBlocks[$day] as $block)
+                    @if($block->type === 'lunch')
+                        <div class="block block-lunch">
+                            <div class="block-code">พักกลางวัน</div>
+                            <div class="block-time">{{ $block->start->format('H:i') }}–{{ $block->end->format('H:i') }}</div>
+                        </div>
                     @else
-                        <th>{{ $u }}</th>
-                    @endif
-                @endforeach
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($days as $dIdx => $day)
-                <tr>
-                    <td class="day-col">{{ $day }}</td>
-                    @foreach($units as $i => $u)
-                        @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
-                            @if($dIdx === 0)
-                                <td class="lunch-col" rowspan="{{ count($days) }}" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</td>
+                        <div class="block" style="background:{{ $colorMap[$block->assign->assign_id] }};">
+                            <div class="block-code">{{ $block->assign->subject->code ?? '' }}</div>
+                            <div>{{ Str::limit($block->assign->subject->name_th ?? '-', 16) }}</div>
+                            <div class="block-room">{{ $block->assign->personnel->thai_firstname ?? '' }}</div>
+                            @if($block->slot->room)
+                                <div class="block-room">ห้อง {{ $block->slot->room }}</div>
                             @endif
-                            @continue
-                        @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
-                            @continue
-                        @endif
-                        @if(isset($skipCells[$day][$i]))
-                            @continue
-                        @endif
-                        @php $cell = $slotGrid[$day][$i] ?? null; @endphp
-                        @if($cell)
-                            @php
-                                $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
-                                $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
-                                $ownColor = $colorMap[$cell['assign']->assign_id];
-                                $ownSpan  = $cell['span'] ?? 1;
-                                $notchPct = min(50, 50 / $ownSpan);
-                                $bgLayers = [];
-                                if (isset($nextBlockAt[$day][$i])) {
-                                    $nextColor = $colorMap[$nextBlockAt[$day][$i]['assign']->assign_id];
-                                    $bgLayers[] = "linear-gradient(to top right, transparent " . (100 - $notchPct) . "%, {$nextColor} 100%)";
-                                }
-                                if (isset($prevBlockAt[$day][$i])) {
-                                    $prevColor = $colorMap[$prevBlockAt[$day][$i]['assign']->assign_id];
-                                    $bgLayers[] = "linear-gradient(to bottom left, transparent " . (100 - $notchPct) . "%, {$prevColor} 100%)";
-                                }
-                                $bgLayers[] = $ownColor;
-                                $bgStyle = implode(', ', $bgLayers);
-                            @endphp
-                            <td colspan="{{ $cell['span'] ?? 1 }}" style="padding:0;">
-                                <div class="slot" style="background:{{ $bgStyle }};">
-                                    <div class="slot-code">{{ $cell['assign']->subject->code ?? '' }}</div>
-                                    <div>{{ Str::limit($cell['assign']->subject->name_th ?? '-', 16) }}</div>
-                                    <div class="slot-room">{{ $cell['assign']->personnel->thai_firstname ?? '' }}</div>
-                                    @if($cell['slot']->room)
-                                        <div class="slot-room">ห้อง {{ $cell['slot']->room }}</div>
-                                    @endif
-                                    <div class="slot-time">{{ $tStart }}–{{ $tEnd }}</div>
-                                </div>
-                            </td>
-                        @else
-                            <td></td>
-                        @endif
-                    @endforeach
-                </tr>
-            @endforeach
-        </tbody>
-    </table>
+                            <div class="block-time">{{ $block->start->format('H:i') }}–{{ $block->end->format('H:i') }}</div>
+                        </div>
+                    @endif
+                @empty
+                    <div class="block-empty">— ไม่มีคาบเรียน —</div>
+                @endforelse
+            </div>
+        </div>
+        @endforeach
+    </div>
 
 </body>
 </html>

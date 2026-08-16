@@ -50,15 +50,75 @@ class TimetableController extends Controller
 
     public function storeSlot(Request $request)
     {
-        $request->validate(['assign_id' => 'required', 'day_of_week' => 'required', 'start_time' => 'required', 'end_time' => 'required']);
+        $request->validate([
+            'assign_id'   => 'required',
+            'day_of_week' => 'required',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
+        ]);
+
+        $assign = TeachingAssign::findOrFail($request->assign_id);
+        $conflict = $this->findScheduleConflict($assign->section_id, $request->day_of_week, $request->start_time, $request->end_time);
+        if ($conflict) {
+            return redirect()->back()->with('error', $conflict)->withInput();
+        }
+
         TimetableSlot::create($request->only(['assign_id', 'day_of_week', 'start_time', 'end_time', 'room']));
         return redirect()->back()->with('success', 'เพิ่มคาบเรียนสำเร็จ');
     }
 
     public function updateSlot(Request $request, $id)
     {
-        TimetableSlot::findOrFail($id)->update($request->only(['day_of_week', 'start_time', 'end_time', 'room']));
+        $request->validate([
+            'day_of_week' => 'required',
+            'start_time'  => 'required|date_format:H:i',
+            'end_time'    => 'required|date_format:H:i|after:start_time',
+        ]);
+
+        $slot = TimetableSlot::findOrFail($id);
+        $conflict = $this->findScheduleConflict($slot->teachingAssign->section_id, $request->day_of_week, $request->start_time, $request->end_time, $slot->slot_id);
+        if ($conflict) {
+            return redirect()->back()->with('error', $conflict)->withInput();
+        }
+
+        $slot->update($request->only(['day_of_week', 'start_time', 'end_time', 'room']));
         return redirect()->back()->with('success', 'แก้ไขคาบเรียนสำเร็จ');
+    }
+
+    // ตรวจสอบว่าคาบเรียนใหม่ (วัน+ช่วงเวลา) ชนกับคาบอื่นของห้องเดียวกัน หรือชนเวลาพักกลางวันหรือไม่
+    // คืนค่าข้อความ error ถ้าชน หรือ null ถ้าไม่ชน — ไม่ยึดกริด 30 นาทีอีกต่อไป กำหนดเวลาอะไรก็ได้ขอแค่ไม่ทับกัน
+    private function findScheduleConflict(int $sectionId, string $day, string $start, string $end, ?int $excludeSlotId = null): ?string
+    {
+        $newStart = \Carbon\Carbon::createFromFormat('H:i', $start);
+        $newEnd   = \Carbon\Carbon::createFromFormat('H:i', $end);
+
+        $existingSlots = TimetableSlot::with(['teachingAssign.subject'])
+            ->whereHas('teachingAssign', fn($q) => $q->where('section_id', $sectionId))
+            ->where('day_of_week', $day)
+            ->when($excludeSlotId, fn($q) => $q->where('slot_id', '!=', $excludeSlotId))
+            ->get();
+
+        foreach ($existingSlots as $existing) {
+            $exStart = \Carbon\Carbon::parse($existing->start_time);
+            $exEnd   = \Carbon\Carbon::parse($existing->end_time);
+            if ($newStart->lt($exEnd) && $newEnd->gt($exStart)) {
+                $subjectName = $existing->teachingAssign->subject->name_th ?? 'วิชาอื่น';
+                return "เวลาชนกับวิชา \"{$subjectName}\" ({$exStart->format('H:i')}-{$exEnd->format('H:i')} วัน{$day})";
+            }
+        }
+
+        $section = ClassSection::find($sectionId);
+        $lunchStart = $section?->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+        $lunchEnd   = $section?->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+        if ($lunchStart && $lunchEnd) {
+            $lStart = \Carbon\Carbon::createFromFormat('H:i', $lunchStart);
+            $lEnd   = \Carbon\Carbon::createFromFormat('H:i', $lunchEnd);
+            if ($newStart->lt($lEnd) && $newEnd->gt($lStart)) {
+                return "เวลาชนกับพักกลางวัน ({$lStart->format('H:i')}-{$lEnd->format('H:i')})";
+            }
+        }
+
+        return null;
     }
 
     public function destroySlot($id)
@@ -103,35 +163,7 @@ class TimetableController extends Controller
     $subjects = Subject::where('is_active', true)->orderBy('code')->get();
     $days     = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
-    $dayStartHour = 6;
-    $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
-    $units = [];
-    for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-        $units[] = sprintf('%02d:00', $h);
-        $units[] = sprintf('%02d:30', $h);
-    }
-    $baseMinutes = $dayStartHour * 60;
-
-    $slotGrid = [];
-    foreach ($assigns as $assign) {
-        foreach ($assign->timetableSlots as $slot) {
-            $start = \Carbon\Carbon::parse($slot->start_time);
-            $end   = \Carbon\Carbon::parse($slot->end_time);
-            $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
-            $span      = max(1, (int) round($start->diffInMinutes($end) / 30));
-            if ($unitIndex >= 0 && $unitIndex < count($units)) {
-                $span = min($span, count($units) - $unitIndex);
-                $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
-            }
-        }
-    }
-
-    $lunchStart = $section->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
-    $lunchEnd   = $section->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
-    [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
-    [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
-    $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
-    $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+    $dayBlocks = $this->buildDayBlocks($section, $assigns, $days);
 
     $curriculums = Curriculum::with([
             'curriculumSubjects' => fn ($q) => $q->where('is_active', true),
@@ -143,9 +175,12 @@ class TimetableController extends Controller
         ->orderBy('year_applied', 'desc')
         ->get();
 
+    $lunchStart = $section->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+    $lunchEnd   = $section->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+
     return view('academic.timetable_section', compact(
-        'section', 'assigns', 'teachers', 'subjects', 'days', 'units', 'slotGrid', 'curriculums',
-        'lunchStartIdx', 'lunchEndIdx', 'lunchStart', 'lunchEnd'
+        'section', 'assigns', 'teachers', 'subjects', 'days', 'dayBlocks', 'curriculums',
+        'lunchStart', 'lunchEnd'
     ));
 }
 
@@ -157,6 +192,22 @@ public function updateLunch(Request $request, $sectionId)
         'lunch_start' => ['nullable', 'date_format:H:i'],
         'lunch_end'   => ['nullable', 'date_format:H:i', 'after:lunch_start'],
     ]);
+
+    if (!empty($data['lunch_start']) && !empty($data['lunch_end'])) {
+        $lStart = \Carbon\Carbon::createFromFormat('H:i', $data['lunch_start']);
+        $lEnd   = \Carbon\Carbon::createFromFormat('H:i', $data['lunch_end']);
+        $existingSlots = TimetableSlot::with(['teachingAssign.subject'])
+            ->whereHas('teachingAssign', fn($q) => $q->where('section_id', $sectionId))
+            ->get();
+        foreach ($existingSlots as $existing) {
+            $exStart = \Carbon\Carbon::parse($existing->start_time);
+            $exEnd   = \Carbon\Carbon::parse($existing->end_time);
+            if ($lStart->lt($exEnd) && $lEnd->gt($exStart)) {
+                $subjectName = $existing->teachingAssign->subject->name_th ?? 'วิชาอื่น';
+                return back()->with('error', "เวลาพักกลางวันชนกับวิชา \"{$subjectName}\" ({$exStart->format('H:i')}-{$exEnd->format('H:i')} วัน{$existing->day_of_week}) กรุณาย้ายคาบนั้นก่อน")->withInput();
+            }
+        }
+    }
 
     $section->update([
         'lunch_start' => $data['lunch_start'] ?? null,
@@ -177,37 +228,45 @@ public function updateLunch(Request $request, $sectionId)
 
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
-        $dayStartHour = 6;
-        $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
-        $units = [];
-        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-            $units[] = sprintf('%02d:00', $h);
-            $units[] = sprintf('%02d:30', $h);
-        }
-        $baseMinutes = $dayStartHour * 60;
+        $dayBlocks = $this->buildDayBlocks($section, $assigns, $days);
 
-        $slotGrid = [];
+        return view('academic.timetable_print', compact('section', 'assigns', 'days', 'dayBlocks'));
+    }
+
+    // สร้างรายการคาบเรียนต่อวัน เรียงตามเวลาเริ่มจริง (ไม่ยึดกริด 30 นาที) พร้อมแทรกพักกลางวันตามตำแหน่งเวลา
+    private function buildDayBlocks(ClassSection $section, $assigns, array $days): array
+    {
+        $dayBlocks = [];
+        foreach ($days as $day) $dayBlocks[$day] = collect();
+
         foreach ($assigns as $assign) {
             foreach ($assign->timetableSlots as $slot) {
-                $start = \Carbon\Carbon::parse($slot->start_time);
-                $end   = \Carbon\Carbon::parse($slot->end_time);
-                $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
-                $span      = max(1, (int) round($start->diffInMinutes($end) / 30));
-                if ($unitIndex >= 0 && $unitIndex < count($units)) {
-                    $span = min($span, count($units) - $unitIndex);
-                    $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
-                }
+                if (!isset($dayBlocks[$slot->day_of_week])) continue;
+                $dayBlocks[$slot->day_of_week]->push((object) [
+                    'type'   => 'period',
+                    'start'  => \Carbon\Carbon::parse($slot->start_time),
+                    'end'    => \Carbon\Carbon::parse($slot->end_time),
+                    'slot'   => $slot,
+                    'assign' => $assign,
+                ]);
             }
         }
 
         $lunchStart = $section->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
         $lunchEnd   = $section->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
-        [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
-        [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
-        $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
-        $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+        if ($lunchStart && $lunchEnd) {
+            $lStart = \Carbon\Carbon::createFromFormat('H:i', $lunchStart);
+            $lEnd   = \Carbon\Carbon::createFromFormat('H:i', $lunchEnd);
+            foreach ($days as $day) {
+                $dayBlocks[$day]->push((object) ['type' => 'lunch', 'start' => $lStart, 'end' => $lEnd]);
+            }
+        }
 
-        return view('academic.timetable_print', compact('section', 'assigns', 'days', 'units', 'slotGrid', 'lunchStartIdx', 'lunchEndIdx'));
+        foreach ($days as $day) {
+            $dayBlocks[$day] = $dayBlocks[$day]->sortBy(fn($b) => $b->start->format('H:i:s'))->values();
+        }
+
+        return $dayBlocks;
     }
 
     public function clearSection($sectionId)

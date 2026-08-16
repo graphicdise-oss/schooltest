@@ -87,40 +87,18 @@ class ParentPortalController extends Controller
         $section = $studentSection?->classSection;
 
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
-
-        $dayStartHour = 6;
-        $dayEndHour   = 19;
-        $units = [];
-        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-            $units[] = sprintf('%02d:00', $h);
-            $units[] = sprintf('%02d:30', $h);
-        }
-        $baseMinutes = $dayStartHour * 60;
-
-        $slotGrid = [];
         $assigns = collect();
+        $dayBlocks = collect($days)->mapWithKeys(fn($d) => [$d => collect()])->all();
 
         if ($section) {
             $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
                 ->where('section_id', $section->section_id)
                 ->where('semester_id', $section->semester_id)
                 ->get();
-
-            foreach ($assigns as $assign) {
-                foreach ($assign->timetableSlots as $slot) {
-                    $start = \Carbon\Carbon::parse($slot->start_time);
-                    $end = \Carbon\Carbon::parse($slot->end_time);
-                    $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
-                    $span = max(1, (int) round($start->diffInMinutes($end) / 30));
-                    if ($unitIndex >= 0 && $unitIndex < count($units)) {
-                        $span = min($span, count($units) - $unitIndex);
-                        $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
-                    }
-                }
-            }
+            $dayBlocks = $this->buildDayBlocks($section, $assigns, $days);
         }
 
-        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns'));
+        return view('parent.timetable', compact('student', 'studentSection', 'section', 'days', 'dayBlocks', 'assigns'));
     }
 
     public function timetablePrint()
@@ -130,47 +108,54 @@ class ParentPortalController extends Controller
         $section = $studentSection?->classSection;
 
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
-
-        $dayStartHour = 6;
-        $dayEndHour   = (int) explode(':', config('school.timetable_end', '18:30'))[0] + 1;
-        $units = [];
-        for ($h = $dayStartHour; $h < $dayEndHour; $h++) {
-            $units[] = sprintf('%02d:00', $h);
-            $units[] = sprintf('%02d:30', $h);
-        }
-        $baseMinutes = $dayStartHour * 60;
-
-        $slotGrid = [];
         $assigns = collect();
+        $dayBlocks = collect($days)->mapWithKeys(fn($d) => [$d => collect()])->all();
 
         if ($section) {
             $assigns = TeachingAssign::with(['personnel', 'subject', 'timetableSlots'])
                 ->where('section_id', $section->section_id)
                 ->where('semester_id', $section->semester_id)
                 ->get();
+            $dayBlocks = $this->buildDayBlocks($section, $assigns, $days);
+        }
 
-            foreach ($assigns as $assign) {
-                foreach ($assign->timetableSlots as $slot) {
-                    $start = \Carbon\Carbon::parse($slot->start_time);
-                    $end = \Carbon\Carbon::parse($slot->end_time);
-                    $unitIndex = (int) round((($start->hour * 60 + $start->minute) - $baseMinutes) / 30);
-                    $span = max(1, (int) round($start->diffInMinutes($end) / 30));
-                    if ($unitIndex >= 0 && $unitIndex < count($units)) {
-                        $span = min($span, count($units) - $unitIndex);
-                        $slotGrid[$slot->day_of_week][$unitIndex] = ['slot' => $slot, 'assign' => $assign, 'span' => $span];
-                    }
-                }
+        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'dayBlocks', 'assigns'));
+    }
+
+    // สร้างรายการคาบเรียนต่อวัน เรียงตามเวลาเริ่มจริง (ไม่ยึดกริด 30 นาที) พร้อมแทรกพักกลางวันตามตำแหน่งเวลา
+    private function buildDayBlocks($section, $assigns, array $days): array
+    {
+        $dayBlocks = [];
+        foreach ($days as $day) $dayBlocks[$day] = collect();
+
+        foreach ($assigns as $assign) {
+            foreach ($assign->timetableSlots as $slot) {
+                if (!isset($dayBlocks[$slot->day_of_week])) continue;
+                $dayBlocks[$slot->day_of_week]->push((object) [
+                    'type'   => 'period',
+                    'start'  => \Carbon\Carbon::parse($slot->start_time),
+                    'end'    => \Carbon\Carbon::parse($slot->end_time),
+                    'slot'   => $slot,
+                    'assign' => $assign,
+                ]);
             }
         }
 
-        $lunchStart = $section?->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
-        $lunchEnd   = $section?->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
-        [$lsH, $lsM] = array_map('intval', explode(':', $lunchStart));
-        [$leH, $leM] = array_map('intval', explode(':', $lunchEnd));
-        $lunchStartIdx = max(0, min(count($units), (int) round((($lsH * 60 + $lsM) - $baseMinutes) / 30)));
-        $lunchEndIdx   = max($lunchStartIdx, min(count($units), (int) round((($leH * 60 + $leM) - $baseMinutes) / 30)));
+        $lunchStart = $section->lunch_start ? substr($section->lunch_start, 0, 5) : config('school.lunch_start', '12:00');
+        $lunchEnd   = $section->lunch_end   ? substr($section->lunch_end, 0, 5)   : config('school.lunch_end', '13:00');
+        if ($lunchStart && $lunchEnd) {
+            $lStart = \Carbon\Carbon::createFromFormat('H:i', $lunchStart);
+            $lEnd   = \Carbon\Carbon::createFromFormat('H:i', $lunchEnd);
+            foreach ($days as $day) {
+                $dayBlocks[$day]->push((object) ['type' => 'lunch', 'start' => $lStart, 'end' => $lEnd]);
+            }
+        }
 
-        return view('parent.timetable_print', compact('student', 'studentSection', 'section', 'days', 'units', 'slotGrid', 'assigns', 'lunchStartIdx', 'lunchEndIdx'));
+        foreach ($days as $day) {
+            $dayBlocks[$day] = $dayBlocks[$day]->sortBy(fn($b) => $b->start->format('H:i:s'))->values();
+        }
+
+        return $dayBlocks;
     }
 
     public function calendar(Request $request)

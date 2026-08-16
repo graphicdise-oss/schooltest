@@ -34,39 +34,45 @@
 }
 .btn-assign:hover { background:#1565c0; }
 
-/* Grid */
-.ts-grid-wrap { overflow-x:auto; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.07); background:#fff; }
-.ts-grid { border-collapse:collapse; width:100%; min-width:1700px; }
-.ts-grid th {
-    border:1px solid #e0e0e0; padding:8px 4px;
-    font-size:0.72rem; color:#555; font-weight:600; text-align:center; white-space:nowrap;
-    background:#f8f9fa;
-}
-.ts-grid th.day-col { background:#3949ab; color:#fff; width:90px; font-size:0.85rem; }
-.ts-grid td {
-    border:1px solid #ececec; padding:0; height:58px;
-    min-width:48px; vertical-align:top; cursor:pointer;
-}
-.ts-grid td:hover { background:#e8f4fd; }
-.ts-grid td.occupied { cursor:default; padding:0; }
-.ts-grid td.lunch-col, .ts-grid th.lunch-col { background:#eee; font-weight:700; color:#666; cursor:default; vertical-align:middle; text-align:center; }
+/* Alerts */
+.ts-alert { border-radius:8px; padding:11px 16px; font-size:0.85rem; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.ts-alert-success { background:#e8f5e9; color:#2e7d32; border:1px solid #c8e6c9; }
+.ts-alert-error { background:#fdecea; color:#c62828; border:1px solid #f5c6cb; }
 
-.ts-slot {
-    height:100%; min-height:58px; padding:5px 6px;
+/* Day rows (แทนกริดตายตัว — แต่ละวันแสดงเฉพาะคาบที่มีจริง เรียงตามเวลา ไม่ยึด 30 นาที) */
+.ts-days { display:flex; flex-direction:column; gap:10px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.07); background:#fff; padding:16px; }
+.ts-day-row { display:flex; align-items:stretch; gap:12px; border-bottom:1px solid #f0f0f0; padding-bottom:10px; }
+.ts-day-row:last-child { border-bottom:none; padding-bottom:0; }
+.ts-day-label {
+    flex-shrink:0; width:78px; display:flex; align-items:center; justify-content:center;
+    background:#3949ab; color:#fff; border-radius:8px; font-size:0.85rem; font-weight:700;
+}
+.ts-day-blocks { flex:1; display:flex; flex-wrap:wrap; gap:8px; align-items:center; }
+.ts-block {
+    width:132px; min-height:78px; border-radius:8px; padding:6px 8px;
     font-size:0.72rem; line-height:1.35; display:flex; flex-direction:column;
     justify-content:center; align-items:center; text-align:center;
     color:#fff; font-weight:600; position:relative;
 }
-.ts-slot-code { font-size:0.8rem; font-weight:700; }
-.ts-slot-name { font-size:0.68rem; opacity:.9; }
-.ts-slot-teacher { font-size:0.65rem; opacity:.85; }
-.ts-slot-del {
+.ts-block-code { font-size:0.8rem; font-weight:700; }
+.ts-block-name { font-size:0.68rem; opacity:.9; }
+.ts-block-teacher { font-size:0.65rem; opacity:.85; }
+.ts-block-time { font-size:0.62rem; opacity:.85; margin-top:2px; }
+.ts-block-lunch { background:#e0e0e0; color:#555; }
+.ts-block-empty { font-size:0.78rem; color:#bbb; padding:6px 4px; }
+.ts-block-del {
     position:absolute; top:3px; right:4px;
     background:rgba(0,0,0,0.25); border:none; color:#fff;
     border-radius:3px; font-size:0.65rem; padding:1px 5px;
     cursor:pointer; display:none;
 }
-.ts-slot:hover .ts-slot-del { display:block; }
+.ts-block:hover .ts-block-del { display:block; }
+.ts-add-block {
+    width:44px; min-height:78px; border-radius:8px; border:2px dashed #ccc;
+    background:#fafafa; color:#999; font-size:1.2rem; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+}
+.ts-add-block:hover { border-color:#43a047; color:#43a047; background:#f1f8f1; }
 
 /* Legend */
 .ts-legend { margin-top:24px; }
@@ -114,6 +120,13 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
 @endphp
 
 <div class="ts-page">
+
+    @if(session('success'))
+        <div class="ts-alert ts-alert-success"><i class="bi bi-check-circle"></i> {{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="ts-alert ts-alert-error"><i class="bi bi-exclamation-triangle"></i> {{ session('error') }}</div>
+    @endif
 
     <a href="{{ route('timetable.index') }}" class="ts-back">
         <i class="bi bi-arrow-left"></i> กลับรายการห้องเรียน
@@ -177,104 +190,43 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
         </div>
     </div>
 
-    {{-- ตาราง --}}
-<div class="ts-grid-wrap">
-    <table class="ts-grid">
-        <thead>
-            <tr>
-                <th class="day-col">วัน / เวลา</th>
-                @foreach($units as $i => $u)
-                    @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
-                        <th class="lunch-col" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</th>
-                    @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
-                        @continue
+    {{-- ตารางรายวัน: แสดงเฉพาะคาบที่มีจริง เรียงตามเวลาเริ่ม ไม่ยึดกริด 30 นาที --}}
+    <div class="ts-days">
+        @foreach($days as $day)
+        <div class="ts-day-row">
+            <div class="ts-day-label">{{ $day }}</div>
+            <div class="ts-day-blocks">
+                @forelse($dayBlocks[$day] as $block)
+                    @if($block->type === 'lunch')
+                        <div class="ts-block ts-block-lunch">
+                            <div class="ts-block-code"><i class="bi bi-cup-hot"></i> พักกลางวัน</div>
+                            <div class="ts-block-time">{{ $block->start->format('H:i') }}–{{ $block->end->format('H:i') }}</div>
+                        </div>
                     @else
-                        <th>{{ $u }}</th>
+                        <div class="ts-block" style="background:{{ $colorMap[$block->assign->assign_id] }};">
+                            <div class="ts-block-code">{{ $block->assign->subject->code }}</div>
+                            <div class="ts-block-name">{{ Str::limit($block->assign->subject->name_th, 12) }}</div>
+                            <div class="ts-block-teacher">{{ $block->assign->personnel->thai_firstname }}</div>
+                            @if($block->slot->room)
+                                <div class="ts-block-time">ห้อง {{ $block->slot->room }}</div>
+                            @endif
+                            <div class="ts-block-time">{{ $block->start->format('H:i') }}–{{ $block->end->format('H:i') }}</div>
+                            <form method="POST" action="{{ route('timetable.destroySlot', $block->slot->slot_id) }}"
+                                  onsubmit="return confirm('ลบคาบนี้?')" style="display:inline">
+                                @csrf @method('DELETE')
+                                <button type="submit" class="ts-block-del">✕</button>
+                            </form>
+                        </div>
                     @endif
-                @endforeach
-            </tr>
-        </thead>
-      <tbody>
-    @php
-    $skipCells = [];
-    $nextBlockAt = [];
-    $prevBlockAt = [];
-    foreach ($slotGrid as $d => $daySlots) {
-        foreach ($daySlots as $startIdx => $cell) {
-            $span = $cell['span'] ?? 1;
-            for ($s = 1; $s < $span; $s++) {
-                $skipCells[$d][$startIdx + $s] = true;
-            }
-            $endIdx = $startIdx + $span;
-            if (isset($daySlots[$endIdx])) {
-                $nextBlockAt[$d][$startIdx] = $daySlots[$endIdx];
-                $prevBlockAt[$d][$endIdx] = $cell;
-            }
-        }
-    }
-    @endphp
-    @foreach($days as $dIdx => $day)
-    <tr>
-        <th class="day-col">{{ $day }}</th>
-        @foreach($units as $i => $u)
-            @if(isset($lunchStartIdx) && $i === $lunchStartIdx && $lunchEndIdx > $lunchStartIdx)
-                @if($dIdx === 0)
-                    <td class="lunch-col" rowspan="{{ count($days) }}" colspan="{{ $lunchEndIdx - $lunchStartIdx }}">พักกลางวัน</td>
-                @endif
-                @continue
-            @elseif(isset($lunchStartIdx) && $i > $lunchStartIdx && $i < $lunchEndIdx)
-                @continue
-            @endif
-            @if(isset($skipCells[$day][$i]))
-                @continue
-            @endif
-            @php $cell = $slotGrid[$day][$i] ?? null; @endphp
-            @if($cell)
-                @php
-                    $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
-                    $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
-                @endphp
-                @php
-                    $ownColor = $colorMap[$cell['assign']->assign_id];
-                    $ownSpan  = $cell['span'] ?? 1;
-                    $notchPct = min(50, 50 / $ownSpan);
-                    $bgLayers = [];
-                    if (isset($nextBlockAt[$day][$i])) {
-                        $nextColor = $colorMap[$nextBlockAt[$day][$i]['assign']->assign_id];
-                        $bgLayers[] = "linear-gradient(to top right, transparent " . (100 - $notchPct) . "%, {$nextColor} 100%)";
-                    }
-                    if (isset($prevBlockAt[$day][$i])) {
-                        $prevColor = $colorMap[$prevBlockAt[$day][$i]['assign']->assign_id];
-                        $bgLayers[] = "linear-gradient(to bottom left, transparent " . (100 - $notchPct) . "%, {$prevColor} 100%)";
-                    }
-                    $bgLayers[] = $ownColor;
-                    $bgStyle = implode(', ', $bgLayers);
-                @endphp
-                <td class="occupied" colspan="{{ $cell['span'] ?? 1 }}">
-                    <div class="ts-slot" style="background:{{ $bgStyle }};">
-                        <div class="ts-slot-code">{{ $cell['assign']->subject->code }}</div>
-                        <div class="ts-slot-name">{{ Str::limit($cell['assign']->subject->name_th, 12) }}</div>
-                        <div class="ts-slot-teacher">{{ $cell['assign']->personnel->thai_firstname }}</div>
-                        @if($cell['slot']->room)
-                            <div style="font-size:0.62rem;opacity:0.85;">ห้อง {{ $cell['slot']->room }}</div>
-                        @endif
-                        <div style="font-size:0.62rem;opacity:0.85;margin-top:2px">{{ $tStart }}–{{ $tEnd }}</div>
-                        <form method="POST" action="{{ route('timetable.destroySlot', $cell['slot']->slot_id) }}"
-                              onsubmit="return confirm('ลบคาบนี้?')" style="display:inline">
-                            @csrf @method('DELETE')
-                            <button type="submit" class="ts-slot-del">✕</button>
-                        </form>
-                    </div>
-                </td>
-            @else
-                @php $endLabel = \Carbon\Carbon::createFromFormat('H:i', $u)->addMinutes(30)->format('H:i'); @endphp
-                <td onclick="openSlotModal('{{ $day }}','{{ $u }}','{{ $endLabel }}')"></td>
-            @endif
+                @empty
+                    <div class="ts-block-empty">— ไม่มีคาบเรียน —</div>
+                @endforelse
+                <button type="button" class="ts-add-block" onclick="openSlotModal('{{ $day }}')" title="เพิ่มคาบเรียนวัน{{ $day }}">
+                    <i class="bi bi-plus-lg"></i>
+                </button>
+            </div>
+        </div>
         @endforeach
-    </tr>
-    @endforeach
-</tbody>
-        </table>
     </div>
 
     {{-- Legend --}}
@@ -333,23 +285,14 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
              <div class="mrow">
     <div class="mfield">
         <label>เวลาเริ่ม *</label>
-        <select name="start_time" id="slotStart" required>
-            @for($i = 6; $i <= 17; $i++)
-            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
-            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
-            @endfor
-        </select>
+        <input type="time" name="start_time" id="slotStart" required>
     </div>
     <div class="mfield">
         <label>เวลาสิ้นสุด *</label>
-        <select name="end_time" id="slotEnd" required>
-            @for($i = 7; $i <= 18; $i++)
-            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
-            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30">{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
-            @endfor
-        </select>
+        <input type="time" name="end_time" id="slotEnd" required>
     </div>
 </div>
+                <div style="font-size:0.75rem;color:#888">กำหนดเวลาได้อิสระ (ไม่ต้องลงตัว 30 นาที) ระบบจะเตือนถ้าเวลาชนกับคาบอื่นหรือพักกลางวัน</div>
                 <div class="mfield">
                     <label>ห้องเรียน</label>
                     <input type="text" name="room" placeholder="เช่น 301, ห้องวิทย์">
@@ -375,21 +318,11 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                 <div class="mrow">
                     <div class="mfield">
                         <label>เวลาเริ่มพัก *</label>
-                        <select name="lunch_start" required>
-                            @for($i = 6; $i <= 17; $i++)
-                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00" {{ $lunchStart === str_pad($i,2,'0',STR_PAD_LEFT).':00' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
-                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30" {{ $lunchStart === str_pad($i,2,'0',STR_PAD_LEFT).':30' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
-                            @endfor
-                        </select>
+                        <input type="time" name="lunch_start" value="{{ $lunchStart }}" required>
                     </div>
                     <div class="mfield">
                         <label>เวลาสิ้นสุดพัก *</label>
-                        <select name="lunch_end" required>
-                            @for($i = 6; $i <= 18; $i++)
-                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00" {{ $lunchEnd === str_pad($i,2,'0',STR_PAD_LEFT).':00' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:00</option>
-                            <option value="{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30" {{ $lunchEnd === str_pad($i,2,'0',STR_PAD_LEFT).':30' ? 'selected' : '' }}>{{ str_pad($i,2,'0',STR_PAD_LEFT) }}:30</option>
-                            @endfor
-                        </select>
+                        <input type="time" name="lunch_end" value="{{ $lunchEnd }}" required>
                     </div>
                 </div>
                 <div style="font-size:0.78rem;color:#888">ตั้งค่านี้จะมีผลเฉพาะห้อง {{ $section->level?->name }}/{{ $section->section_number }} เท่านั้น ทั้งในตารางนี้และตอนพิมพ์</div>
@@ -564,10 +497,10 @@ function openImportModal()  {
 function closeImportModal() { document.getElementById('importModal').classList.remove('open'); }
 </script>
 <script>
-function openSlotModal(day, start, end) {
-    if(day)  document.getElementById('slotDay').value  = day;
-    if(start) document.getElementById('slotStart').value = start;
-    if(end)   document.getElementById('slotEnd').value   = end;
+function openSlotModal(day) {
+    if(day) document.getElementById('slotDay').value = day;
+    document.getElementById('slotStart').value = '';
+    document.getElementById('slotEnd').value = '';
     document.getElementById('slotModal').classList.add('open');
 }
 function closeSlotModal()  { document.getElementById('slotModal').classList.remove('open'); }

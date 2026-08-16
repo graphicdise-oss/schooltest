@@ -28,82 +28,36 @@
                 $palette = ['#1e88e5','#43a047','#e53935','#fb8c00','#8e24aa','#00897b','#3949ab','#f4511e','#039be5','#7cb342','#6d4c41','#00acc1'];
                 $colorMap = [];
                 foreach ($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($palette)]; }
-
-                $skipCells = [];
-                $nextBlockAt = [];
-                $prevBlockAt = [];
-                foreach ($slotGrid as $d => $daySlots) {
-                    foreach ($daySlots as $startIdx => $cell) {
-                        $span = $cell['span'] ?? 1;
-                        for ($s = 1; $s < $span; $s++) {
-                            $skipCells[$d][$startIdx + $s] = true;
-                        }
-                        $endIdx = $startIdx + $span;
-                        if (isset($daySlots[$endIdx])) {
-                            $nextBlockAt[$d][$startIdx] = $daySlots[$endIdx];
-                            $prevBlockAt[$d][$endIdx] = $cell;
-                        }
-                    }
-                }
             @endphp
 
-            <div class="table-responsive">
-                <table class="table table-bordered align-middle text-center" style="min-width:1700px;">
-                    <thead class="table-light">
-                        <tr>
-                            <th style="width:90px;">วัน / เวลา</th>
-                            @foreach($units as $u)
-                                <th>{{ $u }}</th>
-                            @endforeach
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach($days as $day)
-                        <tr>
-                            <th class="table-light">{{ $day }}</th>
-                            @foreach($units as $i => $u)
-                                @if(isset($skipCells[$day][$i]))
-                                    @continue
-                                @endif
-                                @php $cell = $slotGrid[$day][$i] ?? null; @endphp
-                                @if($cell)
-                                    @php
-                                        $tStart = \Carbon\Carbon::parse($cell['slot']->start_time)->format('H:i');
-                                        $tEnd   = \Carbon\Carbon::parse($cell['slot']->end_time)->format('H:i');
-                                        $ownColor = $colorMap[$cell['assign']->assign_id];
-                                        $ownSpan  = $cell['span'] ?? 1;
-                                        $notchPct = min(50, 50 / $ownSpan);
-                                        $bgLayers = [];
-                                        if (isset($nextBlockAt[$day][$i])) {
-                                            $nextColor = $colorMap[$nextBlockAt[$day][$i]['assign']->assign_id];
-                                            $bgLayers[] = "linear-gradient(to top right, transparent " . (100 - $notchPct) . "%, {$nextColor} 100%)";
-                                        }
-                                        if (isset($prevBlockAt[$day][$i])) {
-                                            $prevColor = $colorMap[$prevBlockAt[$day][$i]['assign']->assign_id];
-                                            $bgLayers[] = "linear-gradient(to bottom left, transparent " . (100 - $notchPct) . "%, {$prevColor} 100%)";
-                                        }
-                                        $bgLayers[] = $ownColor;
-                                        $bgStyle = implode(', ', $bgLayers);
-                                    @endphp
-                                    <td colspan="{{ $cell['span'] ?? 1 }}" style="padding:0;">
-                                        <div style="background:{{ $bgStyle }}; color:#fff; padding:6px 4px; height:100%; font-size:.78rem; line-height:1.35;">
-                                            <div style="font-weight:700;">{{ $cell['assign']->subject->code ?? '' }}</div>
-                                            <div>{{ Str::limit($cell['assign']->subject->name_th ?? '-', 14) }}</div>
-                                            <div style="opacity:.85;">{{ $cell['assign']->personnel->thai_firstname ?? '' }}</div>
-                                            @if($cell['slot']->room)
-                                                <div style="font-size:.7rem; opacity:.8;">ห้อง {{ $cell['slot']->room }}</div>
-                                            @endif
-                                            <div style="font-size:.7rem; opacity:.8;">{{ $tStart }}–{{ $tEnd }}</div>
-                                        </div>
-                                    </td>
-                                @else
-                                    <td></td>
-                                @endif
-                            @endforeach
-                        </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+            <div style="display:flex; flex-direction:column; gap:10px; border-radius:8px; box-shadow:0 2px 10px rgba(0,0,0,0.07); background:#fff; padding:16px;">
+                @foreach($days as $day)
+                <div style="display:flex; align-items:stretch; gap:12px; border-bottom:1px solid #f0f0f0; padding-bottom:10px;">
+                    <div style="flex-shrink:0; width:78px; display:flex; align-items:center; justify-content:center; background:#3949ab; color:#fff; border-radius:8px; font-size:.85rem; font-weight:700;">{{ $day }}</div>
+                    <div style="flex:1; display:flex; flex-wrap:wrap; gap:8px; align-items:center;">
+                        @forelse($dayBlocks[$day] as $block)
+                            @if($block->type === 'lunch')
+                                <div style="width:132px; min-height:78px; border-radius:8px; padding:6px 8px; font-size:.72rem; line-height:1.35; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; background:#e0e0e0; color:#555;">
+                                    <div style="font-size:.8rem; font-weight:700;"><i class="bi bi-cup-hot"></i> พักกลางวัน</div>
+                                    <div style="font-size:.62rem; opacity:.85; margin-top:2px;">{{ $block->start->format('H:i') }}–{{ $block->end->format('H:i') }}</div>
+                                </div>
+                            @else
+                                <div style="width:132px; min-height:78px; border-radius:8px; padding:6px 8px; font-size:.72rem; line-height:1.35; display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; color:#fff; font-weight:600; background:{{ $colorMap[$block->assign->assign_id] }};">
+                                    <div style="font-size:.8rem; font-weight:700;">{{ $block->assign->subject->code ?? '' }}</div>
+                                    <div style="font-size:.68rem; opacity:.9;">{{ Str::limit($block->assign->subject->name_th ?? '-', 14) }}</div>
+                                    <div style="font-size:.65rem; opacity:.85;">{{ $block->assign->personnel->thai_firstname ?? '' }}</div>
+                                    @if($block->slot->room)
+                                        <div style="font-size:.62rem; opacity:.85;">ห้อง {{ $block->slot->room }}</div>
+                                    @endif
+                                    <div style="font-size:.62rem; opacity:.85; margin-top:2px;">{{ $block->start->format('H:i') }}–{{ $block->end->format('H:i') }}</div>
+                                </div>
+                            @endif
+                        @empty
+                            <div style="font-size:.78rem; color:#bbb; padding:6px 4px;">— ไม่มีคาบเรียน —</div>
+                        @endforelse
+                    </div>
+                </div>
+                @endforeach
             </div>
         @endif
     @endif
