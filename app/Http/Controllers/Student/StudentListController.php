@@ -8,6 +8,7 @@ use App\Models\SchoolInfoSetting;
 use App\Models\Academic\Level;
 use App\Models\Academic\ClassSection;
 use App\Services\ExcelSchoolHeader;
+use App\Services\SchoolInfoSync;
 use App\Services\StudentExcelExporter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
@@ -195,6 +196,12 @@ class StudentListController extends Controller
             $setting->update($data);
         } else {
             $setting->fill($data)->save();
+        }
+
+        // เชื่อมกับหน้า "ตั้งค่าเริ่มต้น" (Pp2Setting) ที่ใช้พิมพ์เอกสาร ปพ.ต่างๆ ด้วย
+        SchoolInfoSync::syncName($data['school_name'] ?? null);
+        if (!empty($data['logo_path'])) {
+            SchoolInfoSync::propagateLogoToStatic($data['logo_path']);
         }
 
         return back()->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');

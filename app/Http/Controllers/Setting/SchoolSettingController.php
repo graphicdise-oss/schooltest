@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Academic\Pp2Setting;
 use App\Models\Academic\SubjectGroupHead;
 use App\Models\Personne\Personnel;
+use App\Services\SchoolInfoSync;
 use Illuminate\Http\Request;
 
 class SchoolSettingController extends Controller
@@ -57,6 +58,9 @@ class SchoolSettingController extends Controller
         $setting->update($request->only([
             'school_name', 'affiliation', 'tambon', 'amphoe', 'province', 'education_area',
         ]));
+
+        // เชื่อมชื่อโรงเรียนไปยัง SchoolInfoSetting ด้วย (ใช้โดยหน้าสมัครเรียน/ส่งออก Excel/หัวกระดาษรายชื่อ)
+        SchoolInfoSync::syncName($request->school_name);
 
         return redirect()->route('settings.school.index')->with('success', 'บันทึกข้อมูลโรงเรียนสำเร็จ');
     }
@@ -149,6 +153,9 @@ class SchoolSettingController extends Controller
 
         $ext = strtolower($request->file('logo')->getClientOriginalExtension());
         $request->file('logo')->move($dir, 'logo.' . $ext);
+
+        // เชื่อมโลโก้ไปยัง SchoolInfoSetting ด้วย (ใช้โดยหน้าสมัครเรียน/ส่งออก Excel/หัวกระดาษรายชื่อ)
+        SchoolInfoSync::propagateLogoFromStatic($dir . '/logo.' . $ext, $ext);
 
         return redirect()->route('settings.school.index')->with('success', 'อัปโหลดตราโรงเรียนสำเร็จ');
     }

@@ -38,6 +38,13 @@ class Pp2Setting extends Model
         $s = self::getInstance();
         $school = config('school');
 
+        // เผื่อข้อมูลเก่าก่อนที่จะเชื่อมสองระบบเข้าด้วยกัน (SchoolInfoSync) — ถ้ายังไม่เคยตั้งชื่อไว้ที่นี่เลย
+        // ให้ลองดึงจาก SchoolInfoSetting (ตั้งค่าผ่านหน้ารายชื่อนักเรียน) มาใช้แทน จะได้ไม่ต้องกรอกซ้ำ
+        if (!$s->school_name) {
+            $fallbackName = \App\Models\SchoolInfoSetting::getInstance()->school_name;
+            if ($fallbackName) $school['name'] = $fallbackName;
+        }
+
         if ($s->school_name)     $school['name']           = $s->school_name;
         if ($s->affiliation)     $school['affiliation']     = $s->affiliation;
         if ($s->tambon)          $school['tambon']          = $s->tambon;
