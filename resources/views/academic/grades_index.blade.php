@@ -97,6 +97,15 @@
                     @endforeach
                 </select>
             </div>
+            <div class="sem-select-wrap">
+                <span class="sem-label"><i class="bi bi-mortarboard"></i> ระดับชั้น</span>
+                <select name="level_id" class="sem-select" onchange="this.form.submit()">
+                    <option value="">ทุกระดับชั้น</option>
+                    @foreach($levels as $lv)
+                    <option value="{{ $lv->level_id }}" {{ (string)$levelId === (string)$lv->level_id ? 'selected' : '' }}>{{ $lv->name }}</option>
+                    @endforeach
+                </select>
+            </div>
         </form>
 
         @php $currentSem = $semesters->firstWhere('semester_id', $semesterId); @endphp

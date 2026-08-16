@@ -379,11 +379,20 @@
                         </select>
                     </div>
                     <div class="col-12 col-sm-6 col-lg-4">
+                        <label class="form-label fw-bold text-dark mb-0">ระดับ</label>
+                        <select id="personnelSectionLevel" class="form-select input-material text-muted mt-2" onchange="filterPersonnelSectionsByLevel()">
+                            <option value="">ทุกระดับชั้น</option>
+                            @foreach ($sections->pluck('level')->filter()->unique('level_id')->sortBy('sort_order') as $lv)
+                                <option value="{{ $lv->level_id }}">{{ $lv->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div class="col-12 col-sm-6 col-lg-4">
                         <label class="form-label fw-bold text-dark mb-0">ห้อง (ครูประจำชั้น)</label>
-                        <select name="section_id" class="form-select input-material text-muted mt-2">
+                        <select name="section_id" id="personnelSectionSelect" class="form-select input-material text-muted mt-2">
                             <option value="">ทั้งหมด</option>
                             @foreach ($sections as $sec)
-                                <option value="{{ $sec->section_id }}" {{ request('section_id') == $sec->section_id ? 'selected' : '' }}>
+                                <option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" {{ request('section_id') == $sec->section_id ? 'selected' : '' }}>
                                     {{ $sec->full_name }}
                                 </option>
                             @endforeach
@@ -678,6 +687,19 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        function filterPersonnelSectionsByLevel() {
+            const levelId = document.getElementById('personnelSectionLevel').value;
+            const roomSelect = document.getElementById('personnelSectionSelect');
+            let currentStillVisible = false;
+            Array.from(roomSelect.options).forEach(opt => {
+                if (!opt.value) { opt.hidden = false; return; }
+                const matches = !levelId || opt.dataset.level === levelId;
+                opt.hidden = !matches;
+                if (matches && opt.selected) currentStillVisible = true;
+            });
+            if (!currentStillVisible) roomSelect.value = '';
+        }
+
         function closePersonnelImportModal() {
             document.getElementById('personnelImportOverlay').classList.remove('active');
         }

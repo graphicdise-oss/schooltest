@@ -7,6 +7,7 @@ use App\Models\Academic\Semester;
 use App\Models\Academic\ClassSection;
 use App\Models\Academic\StudentSection;
 use App\Models\Academic\StudentAssessment;
+use App\Models\Academic\Level;
 use Illuminate\Http\Request;
 
 class AssessmentController extends Controller
@@ -19,8 +20,12 @@ class AssessmentController extends Controller
             ?? optional(Semester::current())->semester_id
             ?? optional($semesters->first())->semester_id;
 
+        $levels  = Level::orderBy('sort_order')->get();
+        $levelId = $request->get('level_id');
+
         $sections = ClassSection::with('level')
             ->where('semester_id', $semesterId)
+            ->when($levelId, fn($q) => $q->where('level_id', $levelId))
             ->get()
             ->sortBy(fn($s) => [$s->level->sort_order ?? 99, $s->section_number])
             ->values();
@@ -43,7 +48,7 @@ class AssessmentController extends Controller
         }
 
         return view('academic.assessments_index', compact(
-            'semesters', 'semesterId', 'sections', 'sectionId', 'students', 'assessments'
+            'semesters', 'semesterId', 'levels', 'levelId', 'sections', 'sectionId', 'students', 'assessments'
         ));
     }
 

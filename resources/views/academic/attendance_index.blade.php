@@ -33,7 +33,7 @@
             ไม่มีเน็ตตอนสอน? กด "Excel" ที่แถววิชาด้านล่างเพื่อดาวน์โหลดแบบฟอร์มไปกรอกออฟไลน์ แล้วค่อยอัปโหลดย้อนหลังด้วยปุ่ม "นำเข้าไฟล์ Excel" ด้านบนได้ทีหลัง
         </p>
         <div class="ac-card-body">
-            <form method="GET" action="{{ route('attendance.index') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:12px;align-items:flex-end;max-width:1120px;margin-bottom:20px">
+            <form method="GET" action="{{ route('attendance.index') }}" style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr auto;gap:12px;align-items:flex-end;max-width:1320px;margin-bottom:20px">
                 <div class="ac-field" style="margin:0">
                     <label>ปีการศึกษา / เทอม</label>
                     <select class="ac-select" name="semester_id">
@@ -45,11 +45,20 @@
                     </select>
                 </div>
                 <div class="ac-field" style="margin:0">
+                    <label>ระดับ</label>
+                    <select class="ac-select" id="attLevelFilter" onchange="filterAttendanceSectionsByLevel()">
+                        <option value="">ทุกระดับชั้น</option>
+                        @foreach($sections->pluck('level')->filter()->unique('level_id')->sortBy('sort_order') as $lv)
+                        <option value="{{ $lv->level_id }}">{{ $lv->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="ac-field" style="margin:0">
                     <label>ห้องเรียน</label>
-                    <select class="ac-select" name="section_id">
+                    <select class="ac-select" name="section_id" id="attSectionSelect">
                         <option value="">-- ทุกห้อง --</option>
                         @foreach($sections as $sec)
-                        <option value="{{ $sec->section_id }}" {{ $sectionId==$sec->section_id?'selected':'' }}>{{ $sec->full_name }}</option>
+                        <option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" {{ $sectionId==$sec->section_id?'selected':'' }}>{{ $sec->full_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -178,6 +187,19 @@
 @endif
 
 <script>
+function filterAttendanceSectionsByLevel() {
+    const levelId = document.getElementById('attLevelFilter').value;
+    const roomSelect = document.getElementById('attSectionSelect');
+    let currentStillVisible = false;
+    Array.from(roomSelect.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; }
+        const matches = !levelId || opt.dataset.level === levelId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) roomSelect.value = '';
+}
+
 var attExportAssignId = null;
 function openExportModal(assignId, label) {
     attExportAssignId = assignId;

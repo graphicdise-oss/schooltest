@@ -78,6 +78,15 @@
                 </select>
             </div>
             <div class="filter-field">
+                <label>ระดับชั้น</label>
+                <select name="level_id" class="filter-select" onchange="this.form.submit()">
+                    <option value="">— ทุกระดับชั้น —</option>
+                    @foreach ($levels as $lv)
+                        <option value="{{ $lv->level_id }}" {{ (string)$levelId === (string)$lv->level_id ? 'selected' : '' }}>{{ $lv->name }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="filter-field">
                 <label>ห้องเรียน</label>
                 <select name="section_id" class="filter-select" onchange="this.form.submit()">
                     <option value="">— เลือกห้องเรียน —</option>

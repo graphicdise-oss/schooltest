@@ -38,11 +38,18 @@
                                         @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" data-year="{{ $sem->year_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>เทอม {{ $sem->semester_name }}</option>@endforeach
                                     </select>
                                 </div>
+                                <div class="ac-field" style="width:140px; flex:none">
+                                    <label>ระดับ</label>
+                                    <select id="fromLevel" class="ac-select" onchange="filterFromRoomsByLevel()">
+                                        <option value="">ทุกระดับชั้น</option>
+                                        @foreach($levels as $lv)<option value="{{ $lv->level_id }}">{{ $lv->name }}</option>@endforeach
+                                    </select>
+                                </div>
                                 <div class="ac-field" style="flex:1; min-width:180px">
                                     <label>ห้อง</label>
                                     <select name="from_section_id" id="fromSection" class="ac-select" onchange="filterStudents()">
                                         <option value="">เลือกห้อง</option>
-                                        @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->full_name }} ({{ $sec->studentSections->count() }} คน)</option>@endforeach
+                                        @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->full_name }} ({{ $sec->studentSections->count() }} คน)</option>@endforeach
                                     </select>
                                 </div>
                             </div>
@@ -59,11 +66,20 @@
                         {{-- ขวา: ห้องปลายทาง --}}
                         <div class="transfer-panel">
                             <h6>ข้อมูลนักเรียนในชั้นเรียน (ห้องปลายทาง)</h6>
-                            <div class="ac-field" style="margin-bottom:12px"><label>ห้องปลายทาง</label>
-                                <select name="to_section_id" class="ac-select">
-                                    <option value="">เลือกห้อง</option>
-                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}">{{ $sec->full_name }}</option>@endforeach
-                                </select>
+                            <div style="display:flex; gap:14px; margin-bottom:12px; flex-wrap:wrap">
+                                <div class="ac-field" style="width:140px; flex:none">
+                                    <label>ระดับ</label>
+                                    <select id="toLevel" class="ac-select" onchange="filterToRoomsByLevel()">
+                                        <option value="">ทุกระดับชั้น</option>
+                                        @foreach($levels as $lv)<option value="{{ $lv->level_id }}">{{ $lv->name }}</option>@endforeach
+                                    </select>
+                                </div>
+                                <div class="ac-field" style="flex:1; min-width:180px"><label>ห้องปลายทาง</label>
+                                    <select name="to_section_id" id="toSection" class="ac-select">
+                                        <option value="">เลือกห้อง</option>
+                                        @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}">{{ $sec->full_name }}</option>@endforeach
+                                    </select>
+                                </div>
                             </div>
                             <ul class="transfer-list" id="toList"></ul>
                             <p style="font-size:0.8rem; color:#888; margin-top:8px">จำนวนนักเรียน <span id="toCount">0</span> คน</p>
@@ -175,6 +191,25 @@ function filterSemesterByYear() {
 
 // ===== ย้ายห้อง =====
 let fromStudents = [], toStudents = [];
+
+function filterLevelRoomOptions(levelSelectId, roomSelectId, onCleared) {
+    const levelId = document.getElementById(levelSelectId).value;
+    const roomSelect = document.getElementById(roomSelectId);
+    let currentStillVisible = false;
+    Array.from(roomSelect.options).forEach(opt => {
+        if (!opt.value) { opt.hidden = false; return; }
+        const matches = !levelId || opt.dataset.level === levelId;
+        opt.hidden = !matches;
+        if (matches && opt.selected) currentStillVisible = true;
+    });
+    if (!currentStillVisible) {
+        roomSelect.value = '';
+        if (onCleared) onCleared();
+    }
+}
+function filterFromRoomsByLevel() { filterLevelRoomOptions('fromLevel', 'fromSection', filterStudents); }
+function filterToRoomsByLevel() { filterLevelRoomOptions('toLevel', 'toSection', null); }
+
 function filterStudents() {
     const sel = document.getElementById('fromSection');
     const opt = sel.options[sel.selectedIndex];
