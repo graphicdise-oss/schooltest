@@ -345,7 +345,8 @@
             @csrf
             <div class="ac-modal-body">
                 <label>ปีการศึกษา (พ.ศ.) *</label>
-                <input type="text" name="year_name" class="ac-input" required placeholder="เช่น 2568">
+                <input type="text" name="year_name" class="ac-input" required placeholder="เช่น 2568" value="{{ old('year_name') }}">
+                @error('year_name')<div style="color:#dc2626; font-size:0.82rem; margin-top:4px;">⚠ {{ $message }}</div>@enderror
 
                 <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:14px; background:#f0fdf4; padding:10px; border-radius:8px; border:1px solid #dcfce7;">
                     <input type="checkbox" name="is_current" value="1" style="width:18px; height:18px; accent-color:#10b981; margin:0;" checked>
@@ -371,12 +372,14 @@
                 <select name="year_id" class="ac-select" required>
                     <option value="">-- เลือกปีการศึกษา --</option>
                     @foreach($academicYears as $year)
-                        <option value="{{ $year->year_id }}" {{ $year->is_current ? 'selected' : '' }}>{{ $year->year_name }}</option>
+                        <option value="{{ $year->year_id }}" {{ (string) old('year_id', $year->is_current ? $year->year_id : '') === (string) $year->year_id ? 'selected' : '' }}>{{ $year->year_name }}</option>
                     @endforeach
                 </select>
+                @error('year_id')<div style="color:#dc2626; font-size:0.82rem; margin-top:4px;">⚠ {{ $message }}</div>@enderror
 
                 <label style="margin-top:12px;">ภาคเรียน / เทอม *</label>
-                <input type="text" name="semester_name" class="ac-input" required placeholder="เช่น 1, 2 หรือ ฤดูร้อน">
+                <input type="text" name="semester_name" class="ac-input" required placeholder="เช่น 1, 2 หรือ ฤดูร้อน" value="{{ old('semester_name') }}">
+                @error('semester_name')<div style="color:#dc2626; font-size:0.82rem; margin-top:4px;">⚠ {{ $message }}</div>@enderror
 
                 <label style="margin-top:12px;">วันเริ่ม-สิ้นสุดภาคเรียน (ไม่บังคับ ใส่ทีหลังได้)</label>
                 <div style="display:flex; gap:8px; align-items:center;">
@@ -435,5 +438,21 @@ document.addEventListener('DOMContentLoaded', () => {
 document.addEventListener('keydown', e => {
     if (e.key === 'Escape') document.querySelectorAll('.pg-overlay.active, .ac-overlay.active').forEach(el => el.classList.remove('active'));
 });
+
+@if ($errors->has('year_name'))
+document.getElementById('addYearOverlay').classList.add('active');
+@endif
+@if ($errors->has('year_id') || $errors->has('semester_name'))
+document.getElementById('addSemOverlay').classList.add('active');
+@endif
 </script>
+
+@if(session('success'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>Swal.fire({icon:'success',title:'สำเร็จ!',text:'{{ session("success") }}',timer:2000,showConfirmButton:false});</script>
+@endif
+@if(session('error'))
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>Swal.fire({icon:'error',title:'ทำรายการไม่สำเร็จ',text:'{{ session("error") }}'});</script>
+@endif
 @endsection
