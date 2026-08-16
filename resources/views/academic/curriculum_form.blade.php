@@ -294,15 +294,16 @@
                     <td>{{ $cs->subject->name_th ?? '-' }}</td>
                     <td style="font-size:0.82rem;color:#555">
                         @php
-                            $csTeacherList = $cs->teachers->isNotEmpty() ? $cs->teachers : ($cs->personnel ? collect([$cs->personnel]) : collect());
-                            $csPrimaryTeacher = $csTeacherList->first();
-                            $csExtraCount = max(0, $csTeacherList->count() - 1);
+                            // personnel_id คือครูคนหลัก/คนแรกที่ตั้งใจไว้จริงๆ (ดู CurriculumSubject::teachers() docblock)
+                            // ต้องใช้ตัวนี้เป็นหลัก ไม่ใช่ teachers()->first() เพราะความสัมพันธ์นั้นไม่ได้เรียงลำดับไว้
+                            $csPrimaryTeacher = $cs->personnel ?: $cs->teachers->first();
+                            $csOtherTeachers = $cs->teachers->reject(fn($t) => $csPrimaryTeacher && $t->personnel_id === $csPrimaryTeacher->personnel_id);
                         @endphp
                         @if($csPrimaryTeacher)
                             {{ ($csPrimaryTeacher->thai_prefix ?? '') . $csPrimaryTeacher->thai_firstname . ' ' . $csPrimaryTeacher->thai_lastname }}
-                            @if($csExtraCount > 0)
-                                <span title="{{ $csTeacherList->skip(1)->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}"
-                                      style="color:#039be5;font-size:0.75rem;cursor:default">+{{ $csExtraCount }} คน</span>
+                            @if($csOtherTeachers->isNotEmpty())
+                                <span title="{{ $csOtherTeachers->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}"
+                                      style="color:#039be5;font-size:0.75rem;cursor:default">+{{ $csOtherTeachers->count() }} คน</span>
                             @endif
                         @else
                             <span style="color:#ccc">—</span>
