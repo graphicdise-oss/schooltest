@@ -127,27 +127,18 @@ class TimetableController extends Controller
         return redirect()->back()->with('success', 'ลบคาบเรียนสำเร็จ');
     }
 
-    // แสดงตารางสอนแบบตาราง (วัน x คาบ)
+    // เลือกห้องเรียนแล้วไปดูตารางสอนแบบพิมพ์ (timetable.print) ของห้องนั้นต่อ
     public function viewTimetable(Request $request)
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
-        $sectionId = $request->section_id;
-        $teacherId = $request->teacher_id;
 
-        $query = TimetableSlot::with(['teachingAssign.personnel', 'teachingAssign.subject', 'teachingAssign.classSection.level'])
-            ->whereHas('teachingAssign', fn($q) => $q->where('semester_id', $semesterId));
-
-        if ($sectionId) $query->whereHas('teachingAssign', fn($q) => $q->where('section_id', $sectionId));
-        if ($teacherId) $query->whereHas('teachingAssign', fn($q) => $q->where('personnel_id', $teacherId));
-
-        $slots = $query->orderBy('start_time')->get();
-
-        $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์'];
-        $sections = ClassSection::with('level')->where('semester_id', $semesterId)->orderBy('level_id')->orderBy('section_number')->get();
-        $teachers = Personnel::where('status', 'ปฏิบัติงาน')->orderBy('thai_firstname')->get();
+        $sections = ClassSection::with('level')
+            ->where('semester_id', $semesterId)
+            ->orderBy('level_id')->orderBy('section_number')
+            ->get();
         $semesters = Semester::with('academicYear')->orderedByRecency()->get();
 
-        return view('academic.timetable_view', compact('slots', 'days', 'sections', 'teachers', 'semesters', 'semesterId', 'sectionId', 'teacherId'));
+        return view('academic.timetable_view', compact('sections', 'semesters', 'semesterId'));
     }
 
     public function sectionView($sectionId)
@@ -229,8 +220,9 @@ public function updateLunch(Request $request, $sectionId)
         $days = ['จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์', 'อาทิตย์'];
 
         $dayBlocks = $this->buildDayBlocks($section, $assigns, $days);
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
 
-        return view('academic.timetable_print', compact('section', 'assigns', 'days', 'dayBlocks'));
+        return view('academic.timetable_print', compact('section', 'assigns', 'days', 'dayBlocks', 'school'));
     }
 
     // สร้างรายการคาบเรียนต่อวัน เรียงตามเวลาเริ่มจริง (ไม่ยึดกริด 30 นาที) พร้อมแทรกพักกลางวันตามตำแหน่งเวลา
