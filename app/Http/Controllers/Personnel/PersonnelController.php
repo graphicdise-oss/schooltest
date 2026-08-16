@@ -236,6 +236,13 @@ class PersonnelController extends Controller
             ['personnel_id' => $request->personnel_id],
             $request->except('_token')
         );
+
+        // บันทึกผ่าน AJAX (ไม่รีโหลดหน้า) ไม่ต้อง flash ข้อความ success ไว้ในเซสชัน เพราะจะไม่มีการโหลดหน้าใหม่มาแสดงข้อความนี้
+        // ถ้า flash ไว้ ข้อความจะค้างไปโผล่ตอนโหลดหน้าอื่นครั้งถัดไปแบบไม่เกี่ยวข้องกัน
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
         return redirect()->back()->with('success', 'บันทึกข้อมูลตำแหน่งงานสำเร็จ');
     }
 

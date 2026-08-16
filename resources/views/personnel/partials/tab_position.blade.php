@@ -4,7 +4,7 @@
 <div class="pn-card">
     <div class="pn-card-header"><i class="bi bi-briefcase"></i> ข้อมูลตำแหน่งงาน</div>
     <div class="pn-card-body">
-        <form method="POST" action="{{ route('personnels.position.store') }}">
+        <form method="POST" action="{{ route('personnels.position.store') }}" id="positionForm" onsubmit="return submitPositionForm(event)">
             @csrf
             <input type="hidden" name="personnel_id" value="{{ $personnel->personnel_id }}">
             <div class="pn-grid-3">
@@ -45,8 +45,38 @@
             </div>
 
             <div class="pn-save-wrap">
-                <button type="submit" class="pn-btn-save"><i class="bi bi-check-lg"></i> บันทึกข้อมูลตำแหน่ง</button>
+                <button type="submit" class="pn-btn-save" id="positionSaveBtn"><i class="bi bi-check-lg"></i> บันทึกข้อมูลตำแหน่ง</button>
             </div>
         </form>
     </div>
 </div>
+
+<script>
+// บันทึกแบบ AJAX ไม่รีโหลดหน้า (เดิม submit ปกติแล้วรีเฟรชทั้งหน้า สลับแท็บ/เลื่อนตำแหน่งหน้าจอเดิมหาย)
+function submitPositionForm(event) {
+    event.preventDefault();
+    const form = document.getElementById('positionForm');
+    const btn = document.getElementById('positionSaveBtn');
+    const originalText = btn.innerHTML;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="bi bi-hourglass-split"></i> กำลังบันทึก...';
+
+    fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+    })
+        .then(res => {
+            if (!res.ok) throw new Error('save failed');
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-exclamation-triangle"></i> บันทึกไม่สำเร็จ ลองใหม่';
+        });
+
+    return false;
+}
+</script>
