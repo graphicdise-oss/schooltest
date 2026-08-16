@@ -71,8 +71,8 @@
         <span><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</span>
         <span><i class="bi bi-house-door"></i> ที่อยู่</span>
         <span><i class="bi bi-mortarboard"></i> การศึกษาเดิม</span>
-        <span><i class="bi bi-heart-pulse"></i> สุขภาพ</span>
         <span><i class="bi bi-people"></i> ผู้ปกครอง</span>
+        <span><i class="bi bi-heart-pulse"></i> สุขภาพ</span>
     </div>
 
     <form method="POST" action="{{ route('admission.submit') }}">
@@ -238,7 +238,62 @@
             </div>
         </div>
 
-        {{-- ===================== 4. ข้อมูลสุขภาพ ===================== --}}
+        {{-- ===================== 4. ข้อมูลผู้ปกครอง ===================== --}}
+        <div class="card2">
+            <div class="sec-head">
+                <div class="sec-num"><i class="bi bi-people"></i></div>
+                <div class="sec-titles">
+                    <h2>ข้อมูลผู้ปกครอง</h2>
+                    <p>ผู้ที่โรงเรียนสามารถติดต่อได้</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label>เกี่ยวข้องเป็น</label>
+                    <select name="guardian_type" class="form-select">
+                        @foreach(['ผู้ปกครอง','บิดา','มารดา'] as $gt)
+                            <option value="{{ $gt }}" {{ old('guardian_type', 'ผู้ปกครอง') === $gt ? 'selected' : '' }}>{{ $gt }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>คำนำหน้า</label>
+                    <select name="g_prefix" class="form-select">
+                        @foreach(['','นาย','นาง','นางสาว'] as $p)
+                            <option value="{{ $p }}" {{ old('g_prefix') === $p ? 'selected' : '' }}>{{ $p === '' ? '—' : $p }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>ชื่อ <span class="req">*</span></label>
+                    <input type="text" name="g_firstname" class="form-control" value="{{ old('g_firstname') }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label>นามสกุล</label>
+                    <input type="text" name="g_lastname" class="form-control" value="{{ old('g_lastname') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label>ความเกี่ยวข้อง (ระบุเพิ่มเติม)</label>
+                    <input type="text" name="g_relationship" class="form-control" value="{{ old('g_relationship') }}" placeholder="เช่น ปู่ / ย่า / ญาติ">
+                </div>
+                <div class="col-md-3">
+                    <label>เบอร์โทรผู้ปกครอง <span class="req">*</span></label>
+                    <input type="text" name="g_phone" class="form-control" value="{{ old('g_phone') }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label>อาชีพ</label>
+                    <input type="text" name="g_occupation" class="form-control" value="{{ old('g_occupation') }}">
+                </div>
+                <div class="col-md-3">
+                    <label>สถานที่ทำงาน</label>
+                    <input type="text" name="g_workplace" class="form-control" value="{{ old('g_workplace') }}">
+                </div>
+            </div>
+        </div>
+
+        {{-- ===================== 5. ข้อมูลสุขภาพ ===================== --}}
         <div class="card2">
             <div class="sec-head">
                 <div class="sec-num"><i class="bi bi-heart-pulse"></i></div>
@@ -270,62 +325,6 @@
                 <div class="col-md-3">
                     <label>แพ้ยา</label>
                     <input type="text" name="medicine_allergy" class="form-control" value="{{ old('medicine_allergy') }}">
-                </div>
-            </div>
-        </div>
-
-        {{-- ===================== 5. ข้อมูลผู้ปกครอง ===================== --}}
-        <div class="card2">
-            <div class="sec-head">
-                <div class="sec-num"><i class="bi bi-people"></i></div>
-                <div class="sec-titles">
-                    <h2>ข้อมูลผู้ปกครอง</h2>
-                    <p>ผู้ที่โรงเรียนสามารถติดต่อได้</p>
-                </div>
-                <span class="sec-optional">ไม่บังคับ</span>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label>เกี่ยวข้องเป็น</label>
-                    <select name="guardian_type" class="form-select">
-                        @foreach(['ผู้ปกครอง','บิดา','มารดา'] as $gt)
-                            <option value="{{ $gt }}" {{ old('guardian_type', 'ผู้ปกครอง') === $gt ? 'selected' : '' }}>{{ $gt }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label>คำนำหน้า</label>
-                    <select name="g_prefix" class="form-select">
-                        @foreach(['','นาย','นาง','นางสาว'] as $p)
-                            <option value="{{ $p }}" {{ old('g_prefix') === $p ? 'selected' : '' }}>{{ $p === '' ? '—' : $p }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>ชื่อ</label>
-                    <input type="text" name="g_firstname" class="form-control" value="{{ old('g_firstname') }}">
-                </div>
-                <div class="col-md-4">
-                    <label>นามสกุล</label>
-                    <input type="text" name="g_lastname" class="form-control" value="{{ old('g_lastname') }}">
-                </div>
-
-                <div class="col-md-3">
-                    <label>ความเกี่ยวข้อง (ระบุเพิ่มเติม)</label>
-                    <input type="text" name="g_relationship" class="form-control" value="{{ old('g_relationship') }}" placeholder="เช่น ปู่ / ย่า / ญาติ">
-                </div>
-                <div class="col-md-3">
-                    <label>เบอร์โทรผู้ปกครอง</label>
-                    <input type="text" name="g_phone" class="form-control" value="{{ old('g_phone') }}">
-                </div>
-                <div class="col-md-3">
-                    <label>อาชีพ</label>
-                    <input type="text" name="g_occupation" class="form-control" value="{{ old('g_occupation') }}">
-                </div>
-                <div class="col-md-3">
-                    <label>สถานที่ทำงาน</label>
-                    <input type="text" name="g_workplace" class="form-control" value="{{ old('g_workplace') }}">
                 </div>
             </div>
         </div>

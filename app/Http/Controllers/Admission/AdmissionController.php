@@ -81,18 +81,20 @@ class AdmissionController extends Controller
             'food_allergy'     => 'nullable|string|max:255',
             'medicine_allergy' => 'nullable|string|max:255',
             'chronic_disease'  => 'nullable|string|max:255',
-            // ผู้ปกครอง (student_family)
+            // ผู้ปกครอง (student_family) — ชื่อ/เบอร์โทรผู้ปกครอง บังคับกรอกตอนสมัคร (แค่ระดับฟอร์ม ไม่ได้บังคับที่ฐานข้อมูล)
             'guardian_type'  => 'nullable|string|in:บิดา,มารดา,ผู้ปกครอง',
             'g_prefix'       => 'nullable|string|max:50',
-            'g_firstname'    => 'nullable|string|max:100',
+            'g_firstname'    => 'required|string|max:100',
             'g_lastname'     => 'nullable|string|max:100',
-            'g_phone'        => 'nullable|string|max:20',
+            'g_phone'        => 'required|string|max:20',
             'g_relationship' => 'nullable|string|max:50',
             'g_occupation'   => 'nullable|string|max:100',
             'g_workplace'    => 'nullable|string|max:150',
         ], [
             'id_card_number.unique' => 'เลขบัตรประชาชนนี้เคยสมัคร/มีในระบบแล้ว',
             'id_card_number.digits' => 'เลขบัตรประชาชนต้องเป็นตัวเลข 13 หลัก',
+            'g_firstname.required'  => 'กรุณากรอกชื่อผู้ปกครอง',
+            'g_phone.required'      => 'กรุณากรอกเบอร์โทรผู้ปกครอง',
         ]);
 
         DB::transaction(function () use ($data, $setting) {
