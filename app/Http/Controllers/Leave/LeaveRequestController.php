@@ -92,7 +92,9 @@ class LeaveRequestController extends Controller
             ->groupBy('leave_type_key')
             ->pluck('total', 'leave_type_key');
 
-        return view('leave.request_print', compact('request', 'personnel', 'stats'));
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
+
+        return view('leave.request_print', compact('request', 'personnel', 'stats', 'school'));
     }
 
     public function destroy($id)

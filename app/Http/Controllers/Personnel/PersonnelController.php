@@ -340,6 +340,8 @@ class PersonnelController extends Controller
     // บันทึกเฉพาะรูปบุคลากร (AJAX จากปุ่มข้างรูป)
     public function updatePhoto(Request $request, $id)
     {
+        $this->authorizeSelfOrAdmin($id);
+
         $personnel = Personnel::where('personnel_id', $id)->firstOrFail();
 
         $path = null;

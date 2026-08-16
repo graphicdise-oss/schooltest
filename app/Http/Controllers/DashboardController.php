@@ -81,8 +81,8 @@ class DashboardController extends Controller
                 ->join('class_sections', 'student_sections.section_id', '=', 'class_sections.section_id')
                 ->select(
                     'class_sections.level_id',
-                    DB::raw("SUM(CASE WHEN students.gender = 'ชาย' THEN 1 ELSE 0 END) as male"),
-                    DB::raw("SUM(CASE WHEN students.gender = 'หญิง' THEN 1 ELSE 0 END) as female"),
+                    DB::raw("SUM(CASE WHEN students.gender = 'M' THEN 1 ELSE 0 END) as male"),
+                    DB::raw("SUM(CASE WHEN students.gender = 'F' THEN 1 ELSE 0 END) as female"),
                     DB::raw('COUNT(*) as total')
                 )
                 ->groupBy('class_sections.level_id')

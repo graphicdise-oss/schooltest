@@ -119,6 +119,14 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         });
 
     // === บุคลากร ===
+    // เส้นทางแก้ไขข้อมูลของตัวเอง (edit/update/photo) แยกออกจากกลุ่ม admin เพราะพนักงานทั่วไปต้องเข้าถึงได้เพื่อแก้ไขข้อมูลตัวเอง
+    // ป้องกันสิทธิ์ในระดับ controller เอง (authorizeSelfOrAdmin) แทนที่จะกันด้วย middleware ทั้งกลุ่ม
+    Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->group(function () {
+        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::put('/{id}', 'update')->name('update');
+        Route::post('/{id}/photo', 'updatePhoto')->name('photo');
+    });
+
     Route::controller(PersonnelController::class)->prefix('personnels')->name('personnels.')->middleware('admin')->group(function () {
 
         Route::get('/', 'index')->name('index');
@@ -126,11 +134,8 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::post('/', 'store')->name('store');
         Route::get('/import-template', 'importTemplate')->name('import-template');
         Route::post('/import', 'importUpload')->name('import');
-        Route::get('/{id}/edit', 'edit')->name('edit');
-        Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
         Route::put('/{id}/credentials', 'updateCredentials')->name('updateCredentials');
-        Route::post('/{id}/photo', 'updatePhoto')->name('photo');
 
         // ข้อมูลการศึกษา
         Route::post('/education', 'storeEducation')->name('education.store');
