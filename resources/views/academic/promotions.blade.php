@@ -126,8 +126,9 @@
                         </div>
 
                         <div class="transfer-panel">
-                            <h6>ห้องใหม่ (เทอมถัดไป)</h6>
+                            <h6>ห้องใหม่ (ปีการศึกษาถัดไป)</h6>
                             @if($nextSemester)
+                            <p style="font-size:.78rem;color:#999;margin:0 0 10px">เทอมปลายทาง: {{ $nextSemester->academicYear->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }} (เลื่อนชั้นข้ามปีการศึกษาเสมอ จะข้ามไปเทอม 2 ของปีเดียวกันไม่ได้)</p>
                             <div class="ac-field" style="margin-bottom:12px"><label>เลือกห้อง</label>
                                 <select name="to_section_id" id="promoteToSection" class="ac-select">
                                     <option value="">เลือกห้องเดิมก่อน</option>
@@ -138,7 +139,7 @@
                                 <p id="promoteToNoNextLevelHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ระดับชั้นนี้เป็นระดับสุดท้ายในระบบแล้ว ไม่มีระดับถัดไปให้เลื่อนขึ้น — ถ้าจบการศึกษาแล้ว ให้ใช้แท็บ "บันทึกสำเร็จการศึกษา" แทน</p>
                             </div>
                             @else
-                            <div class="ac-empty">ยังไม่มีเทอมถัดไป กรุณาสร้างเทอมใหม่ก่อน</div>
+                            <div class="ac-empty">ยังไม่มีปีการศึกษาถัดไป กรุณาสร้างปีการศึกษาใหม่ก่อน</div>
                             @endif
                             <ul class="transfer-list" id="promoteToList"></ul>
                         </div>

@@ -29,11 +29,13 @@ class PromotionController extends Controller
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number')->get();
 
-        // ห้องปลายทาง (เทอมถัดไป ถ้ามี) — ห้ามใช้ semester_id เทียบตรงๆ เพราะไม่ได้เรียงตามลำดับปี/เทอมจริงเสมอไป
-        // (เหตุผลเดียวกับที่ scope orderedByRecency() มีอยู่) ต้องเรียงตามปีการศึกษา+ชื่อภาคเรียนจริงแล้วหาตัวถัดไป
+        // ห้องปลายทาง (แท็บเลื่อนชั้น) ต้องเป็น "เทอมแรกของปีการศึกษาถัดไป" เสมอ ไม่ใช่แค่เทอมถัดไปตามลำดับเวลา
+        // เพราะเลื่อนชั้น (ขึ้นทั้งระดับ เช่น ม.5 -> ม.6) เกิดข้ามปีการศึกษาเท่านั้น ถ้าเผลอใช้แค่ "เทอมถัดไป"
+        // ตามลำดับเวลา จะข้ามไปเทอม 2 ของปีเดียวกันได้ ซึ่งผิด (นักเรียนเรียนไม่จบปียังไม่ควรขึ้นชั้นกลางคัน)
+        // ห้ามใช้ semester_id เทียบตรงๆ เพราะไม่ได้เรียงตามลำดับปี/เทอมจริงเสมอไป (เหตุผลเดียวกับ orderedByRecency())
         $semestersAsc = $semesters->sortBy(fn($s) => [(string) ($s->academicYear->year_name ?? ''), (string) $s->semester_name])->values();
-        $currentIndex = $semestersAsc->search(fn($s) => $s->semester_id == $semesterId);
-        $nextSemester = ($currentIndex !== false) ? $semestersAsc->get($currentIndex + 1) : null;
+        $currentYearName = (string) ($semestersAsc->firstWhere('semester_id', $semesterId)?->academicYear?->year_name ?? '');
+        $nextSemester = $semestersAsc->first(fn($s) => (string) ($s->academicYear->year_name ?? '') > $currentYearName);
         $toSections = $nextSemester
             ? ClassSection::with('level')->where('semester_id', $nextSemester->semester_id)->orderBy('level_id')->orderBy('section_number')->get()
             : collect();
@@ -125,8 +127,8 @@ class PromotionController extends Controller
             'from_section_id' => 'required|exists:class_sections,section_id',
         ]);
 
-        $fromSection = ClassSection::findOrFail($request->from_section_id);
-        $toSection = ClassSection::findOrFail($request->to_section_id);
+        $fromSection = ClassSection::with('semester.academicYear')->findOrFail($request->from_section_id);
+        $toSection = ClassSection::with('semester.academicYear')->findOrFail($request->to_section_id);
 
         // กันเลื่อนชั้นข้ามระดับ (เช่น ม.2 ต้องเลื่อนไป ม.3 เท่านั้น จะข้ามไป ม.4 ไม่ได้)
         // เทียบจาก sort_order ของระดับชั้น ห้องปลายทางต้องเป็นระดับ "ถัดไปทันที" เท่านั้น
@@ -135,6 +137,14 @@ class PromotionController extends Controller
         $toIndex = $levelIds->search($toSection->level_id);
         if ($fromIndex === false || $toIndex === false || $toIndex !== $fromIndex + 1) {
             return redirect()->back()->with('error', 'เลื่อนชั้นข้ามระดับไม่ได้ กรุณาเลือกห้องของระดับถัดไปเท่านั้น');
+        }
+
+        // กันเลื่อนชั้นข้ามไปเทอมของปีการศึกษาเดียวกัน (เช่น ม.5 เทอม 1 -> ม.6 เทอม 2 ปีเดียวกัน) ต้องข้ามปีการศึกษาเท่านั้น
+        // เพราะนักเรียนเรียนไม่จบปียังไม่ควรขึ้นชั้นกลางคัน
+        $fromYearName = (string) ($fromSection->semester?->academicYear?->year_name ?? '');
+        $toYearName   = (string) ($toSection->semester?->academicYear?->year_name ?? '');
+        if ($fromYearName === '' || $toYearName === '' || $toYearName <= $fromYearName) {
+            return redirect()->back()->with('error', 'เลื่อนชั้นได้เฉพาะข้ามปีการศึกษาเท่านั้น กรุณาเลือกห้องของปีการศึกษาถัดไป');
         }
 
         $lastNumber = StudentSection::where('section_id', $toSection->section_id)->max('student_number') ?? 0;
