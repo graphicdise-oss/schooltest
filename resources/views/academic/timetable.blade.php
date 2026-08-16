@@ -31,7 +31,7 @@
                 <div class="ac-field"><label>ห้อง *</label>
                     <select name="section_id" class="ac-select" required>
                         <option value="">-- เลือก --</option>
-                        @foreach($sections as $sec)<option value="{{ $sec->section_id }}">{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                        @foreach($sections as $sec)<option value="{{ $sec->section_id }}">{{ $sec->full_name }}</option>@endforeach
                     </select>
                 </div>
                 <div class="ac-field" style="justify-content:flex-end"><button type="submit" class="ac-btn ac-btn-success" style="margin-top:20px"><i class="bi bi-plus"></i> มอบหมาย</button></div>
@@ -47,7 +47,7 @@
                             <td>{{ $i+1 }}</td>
                             <td>{{ $a->personnel->thai_firstname }} {{ $a->personnel->thai_lastname }}</td>
                             <td style="text-align:left">{{ $a->subject->code }} — {{ $a->subject->name_th }}</td>
-                            <td>{{ $a->classSection->level->name }}/{{ $a->classSection->section_number }}</td>
+                            <td>{{ $a->classSection->full_name }}</td>
                             <td>
                                 @foreach($a->timetableSlots as $slot)
                                     <span class="ac-badge ac-badge-info" style="margin:2px">{{ $slot->day_of_week }} {{ \Carbon\Carbon::parse($slot->start_time)->format('H:i') }}-{{ \Carbon\Carbon::parse($slot->end_time)->format('H:i') }}</span>

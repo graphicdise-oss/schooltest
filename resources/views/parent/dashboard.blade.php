@@ -14,7 +14,7 @@
         <div class="pp-title" style="border:none; padding:0; margin-bottom:6px;">{{ $student->thai_prefix }}{{ $student->thai_firstname }} {{ $student->thai_lastname }}</div>
         <div style="color:#475569;">รหัสนักเรียน: <strong>{{ $student->student_code }}</strong></div>
         @if($studentSection?->classSection)
-            <div style="color:#475569;">ห้องเรียน: <strong>{{ $studentSection->classSection->level->name ?? '' }}/{{ $studentSection->classSection->section_number }}</strong> · เลขที่ {{ $studentSection->student_number }}</div>
+            <div style="color:#475569;">ห้องเรียน: <strong>{{ $studentSection->classSection->full_name ?? '' }}</strong> · เลขที่ {{ $studentSection->student_number }}</div>
             <div style="color:#475569;">ครูประจำชั้น: <strong>{{ $studentSection->classSection->homeroomTeacher->thai_prefix ?? '' }}{{ $studentSection->classSection->homeroomTeacher->thai_firstname ?? '-' }} {{ $studentSection->classSection->homeroomTeacher->thai_lastname ?? '' }}</strong></div>
         @else
             <div style="color:#94a3b8;">ยังไม่มีข้อมูลห้องเรียนปัจจุบัน</div>

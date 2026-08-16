@@ -88,7 +88,7 @@
                     <option value="">— เลือกห้องเรียน —</option>
                     @foreach ($sections as $sec)
                         <option value="{{ $sec->section_id }}" {{ (string)$sectionId === (string)$sec->section_id ? 'selected' : '' }}>
-                            {{ $levels->firstWhere('level_id', $sec->level_id)->name ?? '' }}/{{ $sec->section_number }}
+                            {{ $sec->full_name }}
                         </option>
                     @endforeach
                 </select>

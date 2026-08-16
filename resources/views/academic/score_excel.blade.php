@@ -33,7 +33,7 @@ th, td { border: 1px solid #333; padding: 4px 6px; text-align: center; vertical-
     </tr>
     <tr>
         <td colspan="{{ 4 + $categories->count() + 2 }}" style="border:none;text-align:center">
-            ชั้น {{ $assign->classSection->level->name }}/{{ $assign->classSection->section_number }}
+            ชั้น {{ $assign->classSection->full_name }}
             &nbsp;&nbsp; ปีการศึกษา {{ $assign->classSection->semester->academicYear->year_name ?? '' }}
             ภาคเรียน {{ $assign->classSection->semester->semester_name ?? '' }}
             &nbsp;&nbsp; ครูผู้สอน: {{ $assign->personnel->thai_prefix ?? '' }}{{ $assign->personnel->thai_firstname }} {{ $assign->personnel->thai_lastname }}

@@ -42,7 +42,7 @@
                                     <label>ห้อง</label>
                                     <select name="from_section_id" id="fromSection" class="ac-select" onchange="filterStudents()">
                                         <option value="">เลือกห้อง</option>
-                                        @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }} ({{ $sec->studentSections->count() }} คน)</option>@endforeach
+                                        @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->full_name }} ({{ $sec->studentSections->count() }} คน)</option>@endforeach
                                     </select>
                                 </div>
                             </div>
@@ -62,7 +62,7 @@
                             <div class="ac-field" style="margin-bottom:12px"><label>ห้องปลายทาง</label>
                                 <select name="to_section_id" class="ac-select">
                                     <option value="">เลือกห้อง</option>
-                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}">{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}">{{ $sec->full_name }}</option>@endforeach
                                 </select>
                             </div>
                             <ul class="transfer-list" id="toList"></ul>
@@ -89,7 +89,7 @@
                             <div class="ac-field" style="margin-bottom:12px"><label>เลือกห้อง</label>
                                 <select name="from_section_id" id="promoteFrom" class="ac-select" onchange="filterPromoteStudents()">
                                     <option value="">เลือกห้อง</option>
-                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                    @foreach($fromSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->full_name }}</option>@endforeach
                                 </select>
                             </div>
                             <ul class="transfer-list" id="promoteFromList"></ul>
@@ -106,7 +106,7 @@
                             <div class="ac-field" style="margin-bottom:12px"><label>เลือกห้อง</label>
                                 <select name="to_section_id" id="promoteToSection" class="ac-select">
                                     <option value="">เลือกห้องเดิมก่อน</option>
-                                    @foreach($toSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" hidden>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                    @foreach($toSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" hidden>{{ $sec->full_name }}</option>@endforeach
                                 </select>
                                 <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของระดับชั้นถัดไปเท่านั้น (เลือกห้องเดิมก่อนถึงจะเห็นตัวเลือก)</p>
                             </div>
@@ -134,7 +134,7 @@
                         <div class="ac-field"><label>เลือกห้อง</label>
                             <select name="from_section_id" id="gradFrom" class="ac-select" onchange="filterGradStudents()">
                                 <option value="">เลือกห้อง</option>
-                                @foreach($graduateSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->level->name }}/{{ $sec->section_number }}</option>@endforeach
+                                @foreach($graduateSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" data-students='@json($sec->studentSections->map(fn($ss)=>["id"=>$ss->student_id,"num"=>$ss->student_number,"name"=>$ss->student->thai_prefix.$ss->student->thai_firstname." ".$ss->student->thai_lastname]))'>{{ $sec->full_name }}</option>@endforeach
                             </select>
                             <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของชั้นปีสุดท้ายในแต่ละช่วงชั้น (ป.6 / ม.3 / ม.6) เท่านั้น</p>
                         </div>

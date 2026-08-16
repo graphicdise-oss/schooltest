@@ -25,8 +25,8 @@
                                     {{ $p->promo_type == 'ซ้ำชั้น' ? 'ac-badge-inactive' : '' }}
                                 ">{{ $p->promo_type }}</span>
                             </td>
-                            <td>{{ $p->fromSection ? $p->fromSection->level->name . '/' . $p->fromSection->section_number : '-' }}</td>
-                            <td>{{ $p->toSection ? $p->toSection->level->name . '/' . $p->toSection->section_number : 'จบ/ออก' }}</td>
+                            <td>{{ $p->fromSection ? $p->fromSection->full_name : '-' }}</td>
+                            <td>{{ $p->toSection ? $p->toSection->full_name : 'จบ/ออก' }}</td>
                             <td>{{ $p->remark ?? '-' }}</td>
                             <td>{{ $p->created_by ?? '-' }}</td>
                         </tr>

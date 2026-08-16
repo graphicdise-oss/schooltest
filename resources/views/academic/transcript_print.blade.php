@@ -118,8 +118,7 @@ table.course-table tr.sem-total td {
                 @php
                     $latestSection = $student->studentSections()->with('classSection.level')->latest()->first() ?? null;
                 @endphp
-                {{ $latestSection?->classSection?->level?->name ?? '-' }}
-                / {{ $latestSection?->classSection?->section_number ?? '-' }}
+                {{ $latestSection?->classSection?->full_name ?? '-' }}
             </span>
         </div>
         <div class="student-info-row student-info-full">

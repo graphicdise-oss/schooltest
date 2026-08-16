@@ -102,7 +102,7 @@ body { font-family: 'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size: 1
             <div class="title3">
                 วิชา: <strong>{{ $assign->subject->name_th }}</strong>
                 ({{ $assign->subject->code }})
-                &emsp; ห้อง: {{ $assign->classSection->level->name }}/{{ $assign->classSection->section_number }}
+                &emsp; ห้อง: {{ $assign->classSection->full_name }}
                 &emsp; ภาคเรียน: {{ $assign->classSection->semester->semester_name ?? '' }}
             </div>
             <div style="font-size:11pt;margin-top:2px">

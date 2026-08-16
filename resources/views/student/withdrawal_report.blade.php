@@ -164,7 +164,7 @@
                                         {{ $promo->student?->thai_prefix ?? '' }}{{ $promo->student?->thai_firstname ?? '-' }}
                                         {{ $promo->student?->thai_lastname ?? '' }}
                                     </td>
-                                    <td>{{ $level?->name ?? '-' }} / {{ $section?->section_number ?? '-' }}</td>
+                                    <td>{{ $section?->full_name ?? '-' }}</td>
                                     <td>
                                         @if ($enrollDate)
                                             {{ $enrollDate->format('d/m/') . ($enrollDate->year + 543) }}

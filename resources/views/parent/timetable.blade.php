@@ -18,7 +18,7 @@
         <div style="color:#475569; margin-bottom:14px;">
             ปีการศึกษา <strong>{{ $section->semester?->academicYear?->year_name }}</strong>
             ภาคเรียนที่ <strong>{{ $section->semester?->semester_name }}</strong>
-            · ห้อง <strong>{{ $section->level?->name }}/{{ $section->section_number }}</strong>
+            · ห้อง <strong>{{ $section->full_name }}</strong>
         </div>
 
         @if($assigns->isEmpty())

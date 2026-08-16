@@ -55,7 +55,7 @@
                             <td>{{ $i+1 }}</td>
                             <td>{{ $a->subject->code }}</td>
                             <td style="text-align:left">{{ $a->subject->name_th }}</td>
-                            <td>{{ $a->classSection->level->name }}/{{ $a->classSection->section_number }}</td>
+                            <td>{{ $a->classSection->full_name }}</td>
                             <td>{{ $a->personnel->thai_firstname }} {{ $a->personnel->thai_lastname }}</td>
                             <td><span class="ac-badge ac-badge-info">{{ $a->scoreCategories->count() }} หมวด</span></td>
                             <td><a href="{{ route('scores.manage', $a->assign_id) }}" class="ac-btn ac-btn-primary ac-btn-sm"><i class="bi bi-pencil"></i> บันทึกคะแนน</a></td>

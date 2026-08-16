@@ -103,7 +103,7 @@
         <div class="ss-icon ss-icon-blue"><i class="bi bi-door-open-fill"></i></div>
         <div class="ss-card-header">
             <span class="ss-card-title">
-                รายวิชาในห้อง {{ $section->level->name ?? '' }}/{{ $section->section_number }}
+                รายวิชาในห้อง {{ $section->full_name }}
             </span>
             <a href="{{ url()->previous() }}" class="btn-back">
                 <i class="bi bi-arrow-left"></i> ย้อนกลับ
@@ -113,7 +113,7 @@
         <div class="sec-info">
             <div class="sec-info-item">
                 <i class="bi bi-building"></i>
-                <span>ห้อง <strong>{{ $section->level->name ?? '' }}/{{ $section->section_number }}</strong></span>
+                <span>ห้อง <strong>{{ $section->full_name }}</strong></span>
             </div>
             <div class="sec-info-item">
                 <i class="bi bi-calendar3"></i>

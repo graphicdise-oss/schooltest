@@ -129,8 +129,7 @@
                 @forelse($alumni as $i => $p)
                 @php
                     $student = $p->student;
-                    $level   = $p->fromSection?->level?->name ?? '-';
-                    $section = $p->fromSection?->section_number ?? '';
+                    $sectionLabel = $p->fromSection?->full_name ?? '-';
                     $year    = $p->fromSection?->semester?->academicYear?->year_name ?? '-';
                     $isJob   = $p->promo_type === 'บันทึกจบ';
                 @endphp
@@ -138,7 +137,7 @@
                     <td>{{ $alumni->firstItem() + $i }}</td>
                     <td>{{ $student?->student_code ?? '-' }}</td>
                     <td>{{ ($student?->thai_firstname ?? '') . ' ' . ($student?->thai_lastname ?? '') }}</td>
-                    <td>{{ $level }}{{ $section ? '/'.$section : '' }}</td>
+                    <td>{{ $sectionLabel }}</td>
                     <td>{{ $year }}</td>
                     <td>
                         <span class="al-badge {{ $isJob ? 'badge-จบ' : 'badge-ลาออก' }}">

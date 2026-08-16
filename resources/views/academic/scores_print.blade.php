@@ -47,7 +47,7 @@
     <div class="header-container">
         <img src="{{ $scoreSheetLogoPath ? asset('storage/' . $scoreSheetLogoPath) : asset('img/pp_1/logo.png') }}" class="logo" alt="Logo" onerror="this.style.display='none'">
         <div class="title">
-            บัญชีรายชื่อนักเรียนชั้น {{ $assign->classSection->level->name }}/{{ $assign->classSection->section_number }}
+            บัญชีรายชื่อนักเรียนชั้น {{ $assign->classSection->full_name }}
             ปีการศึกษา {{ $assign->classSection->semester->academicYear->year_name }}<br>
             {{ $school['name'] ?? '' }} สังกัด{{ $school['affiliation'] ?? '' }}<br>
             วิชา {{ $assign->subject->name_th }} ({{ $assign->subject->code }}) <br>

@@ -40,7 +40,7 @@
                 </div>
                 <div>
                     <div style="font-size:0.75rem; color:#888; font-weight:600; margin-bottom:2px">ระดับชั้น / ห้อง</div>
-                    <div style="font-size:0.9rem; font-weight:700; color:#333">{{ $assign->classSection->level->name }} / {{ $assign->classSection->section_number }}</div>
+                    <div style="font-size:0.9rem; font-weight:700; color:#333">{{ $assign->classSection->full_name }}</div>
                 </div>
                 <div>
                     <div style="font-size:0.75rem; color:#888; font-weight:600; margin-bottom:2px">ครูผู้สอน</div>

@@ -19,7 +19,7 @@
             <div>
                 <div style="font-weight:700; font-size:1.1rem; color:#082b75;">{{ $teacher->thai_prefix }}{{ $teacher->thai_firstname }} {{ $teacher->thai_lastname }}</div>
                 <div style="color:#475569;">ตำแหน่ง: {{ $teacher->position ?? '-' }}</div>
-                <div style="color:#475569;">ครูประจำชั้น: {{ $studentSection->classSection->level->name ?? '' }}/{{ $studentSection->classSection->section_number ?? '' }}</div>
+                <div style="color:#475569;">ครูประจำชั้น: {{ $studentSection->classSection->full_name ?? '' }}</div>
                 <div style="margin-top:8px;">
                     @if($teacher->phone)
                         <div><i class="bi bi-telephone text-primary"></i> {{ $teacher->phone }}</div>

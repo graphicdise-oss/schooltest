@@ -139,7 +139,7 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                 ปีการศึกษา <strong>{{ $section->semester?->academicYear?->year_name }} ภาคเรียนที่ {{ $section->semester?->semester_name }}</strong>
             </div>
             <div class="ts-info-row">
-                ห้อง <strong>{{ $section->level?->name }}/{{ $section->section_number }}</strong>
+                ห้อง <strong>{{ $section->full_name }}</strong>
             </div>
             <div class="ts-info-row">
                 อาจารย์ประจำชั้น
@@ -325,7 +325,7 @@ foreach($assigns as $i => $a) { $colorMap[$a->assign_id] = $palette[$i % count($
                         <input type="time" name="lunch_end" value="{{ $lunchEnd }}" required>
                     </div>
                 </div>
-                <div style="font-size:0.78rem;color:#888">ตั้งค่านี้จะมีผลเฉพาะห้อง {{ $section->level?->name }}/{{ $section->section_number }} เท่านั้น ทั้งในตารางนี้และตอนพิมพ์</div>
+                <div style="font-size:0.78rem;color:#888">ตั้งค่านี้จะมีผลเฉพาะห้อง {{ $section->full_name }} เท่านั้น ทั้งในตารางนี้และตอนพิมพ์</div>
             </div>
             <div class="ts-modal-foot">
                 <button type="button" class="btn-mcancel" onclick="closeLunchModal()">ยกเลิก</button>

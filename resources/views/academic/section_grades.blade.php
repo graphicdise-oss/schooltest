@@ -10,7 +10,7 @@
         <i class="bi bi-chevron-right"></i>
         <a href="{{ route('grades.index') }}">ผลการเรียน</a>
         <i class="bi bi-chevron-right"></i>
-        <span>{{ $section->level->name }}/{{ $section->section_number }}</span>
+        <span>{{ $section->full_name }}</span>
     </nav>
 
     {{-- ===== Card: ผลการเรียนรายห้อง ===== --}}
@@ -20,7 +20,7 @@
                 <span style="background:#4479DA; color:#fff; border-radius:8px; width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; margin-right:10px; font-size:1.1rem; vertical-align:middle">
                     <i class="bi bi-people-fill"></i>
                 </span>
-                ผลการเรียน — {{ $section->level->name }}/{{ $section->section_number }}
+                ผลการเรียน — {{ $section->full_name }}
                 <span style="font-size:0.82rem; color:#888; font-weight:400; margin-left:8px">
                     {{ $section->semester->academicYear->year_name }} เทอม {{ $section->semester->semester_name }}
                 </span>

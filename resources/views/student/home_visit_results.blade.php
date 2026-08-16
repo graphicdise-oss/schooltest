@@ -61,7 +61,7 @@
                     <select name="section_id" class="hv-select">
                         <option value="">ทั้งหมด</option>
                         @foreach($sections as $sec)
-                            <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>{{ $sec->level->name }}/{{ $sec->section_number }}</option>
+                            <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>{{ $sec->full_name }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -82,7 +82,7 @@
                 <div class="stu-bar-meta">
                     รหัส {{ $student->student_code ?? '-' }}
                     @if($currentSection)
-                        &nbsp;•&nbsp;{{ $currentSection->classSection?->level?->name }}/{{ $currentSection->classSection?->section_number }}
+                        &nbsp;•&nbsp;{{ $currentSection->classSection?->full_name }}
                     @endif
                 </div>
             </div>

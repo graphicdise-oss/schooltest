@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ตารางสอน {{ $section->level->name ?? '' }}/{{ $section->section_number }}</title>
+    <title>ตารางสอน {{ $section->full_name }}</title>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
@@ -51,7 +51,7 @@
 
     <div class="header-container">
         <div class="school-name">{{ $school['name'] ?? config('school.name') }}</div>
-        <div class="section-name">ตารางสอน ชั้น {{ $section->level->name ?? '' }}/{{ $section->section_number }}</div>
+        <div class="section-name">ตารางสอน ชั้น {{ $section->full_name }}</div>
         <div class="meta">
             ปีการศึกษา {{ $section->semester?->academicYear?->year_name }} ภาคเรียนที่ {{ $section->semester?->semester_name }}
             @if($section->homeroomTeacher)

@@ -149,7 +149,7 @@
                         <option value="">เลือกชั้นเรียน</option>
                         @foreach ($sections as $sec)
                             <option value="{{ $sec->section_id }}" {{ $sectionId == $sec->section_id ? 'selected' : '' }}>
-                                {{ $sec->level->name ?? '' }}/{{ $sec->section_number }}
+                                {{ $sec->full_name }}
                             </option>
                         @endforeach
                     </select>
@@ -225,8 +225,7 @@
                             </td>
                             <td style="text-align:center;">{{ $yr?->year_name ?? '-' }}</td>
                             <td style="text-align:center;">
-                                {{ $sec?->level?->name ?? '-' }}
-                                @if ($sec) /{{ $sec->section_number }} @endif
+                                {{ $sec ? $sec->full_name : '-' }}
                             </td>
                             <td style="text-align:center;">
                                 @if ($promo->promo_type === 'บันทึกจบ')
@@ -328,7 +327,7 @@
 
         const sections = allSections[levelId] || [];
         sections.forEach(sec => {
-            const name = (sec.level?.name || '') + '/' + sec.section_number;
+            const name = (sec.level?.name || '') + '/' + sec.section_number + (sec.study_plan ? ' ' + sec.study_plan : '');
             sectionSel.innerHTML += `<option value="${sec.section_id}">${name}</option>`;
         });
     }
