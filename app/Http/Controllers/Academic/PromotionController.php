@@ -33,9 +33,9 @@ class PromotionController extends Controller
         // เพราะเลื่อนชั้น (ขึ้นทั้งระดับ เช่น ม.5 -> ม.6) เกิดข้ามปีการศึกษาเท่านั้น ถ้าเผลอใช้แค่ "เทอมถัดไป"
         // ตามลำดับเวลา จะข้ามไปเทอม 2 ของปีเดียวกันได้ ซึ่งผิด (นักเรียนเรียนไม่จบปียังไม่ควรขึ้นชั้นกลางคัน)
         // ห้ามใช้ semester_id เทียบตรงๆ เพราะไม่ได้เรียงตามลำดับปี/เทอมจริงเสมอไป (เหตุผลเดียวกับ orderedByRecency())
-        $semestersAsc = $semesters->sortBy(fn($s) => [(string) ($s->academicYear->year_name ?? ''), (string) $s->semester_name])->values();
+        $semestersAsc = $semesters->sortBy(fn($s) => [(string) ($s->academicYear?->year_name ?? ''), (string) $s->semester_name])->values();
         $currentYearName = (string) ($semestersAsc->firstWhere('semester_id', $semesterId)?->academicYear?->year_name ?? '');
-        $nextSemester = $semestersAsc->first(fn($s) => (string) ($s->academicYear->year_name ?? '') > $currentYearName);
+        $nextSemester = $semestersAsc->first(fn($s) => (string) ($s->academicYear?->year_name ?? '') > $currentYearName);
         $toSections = $nextSemester
             ? ClassSection::with('level')->where('semester_id', $nextSemester->semester_id)->orderBy('level_id')->orderBy('section_number')->get()
             : collect();
@@ -77,9 +77,12 @@ class PromotionController extends Controller
         }
 
         // ห้องทั้งหมดของ "เทอม 1" ทุกปีการศึกษา ใช้ในแท็บ "เปิดเทอม 2" (คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างในเทอม 2)
+        // กรอง semester ที่โหลดไม่ได้ออกอีกชั้น (กันหน้าเว็บพังถ้าข้อมูลไม่ครบ)
         $term1Sections = ClassSection::with(['level', 'semester'])
             ->whereHas('semester', fn($q) => $q->where('semester_name', '1'))
-            ->orderBy('level_id')->orderBy('section_number')->get();
+            ->orderBy('level_id')->orderBy('section_number')->get()
+            ->filter(fn($s) => $s->semester !== null)
+            ->values();
 
         return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester', 'nextLevelMap', 'term1Sections'));
     }

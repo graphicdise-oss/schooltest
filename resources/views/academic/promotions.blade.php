@@ -102,7 +102,7 @@
                             <h6>ห้องเดิม</h6>
                             <div class="ac-field" style="margin-bottom:12px"><label>ภาคการศึกษา</label>
                                 <select class="ac-select" onchange="window.location='{{ route('promotions.index') }}?tab=promote&semester_id='+this.value">
-                                    @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>{{ $sem->academicYear->year_name ?? '' }} เทอม {{ $sem->semester_name }}</option>@endforeach
+                                    @foreach($semesters as $sem)<option value="{{ $sem->semester_id }}" {{ $semesterId==$sem->semester_id?'selected':'' }}>{{ $sem->academicYear?->year_name ?? '' }} เทอม {{ $sem->semester_name }}</option>@endforeach
                                 </select>
                                 <p style="font-size:.78rem;color:#999;margin:6px 0 0">เลือกเทอมอื่นได้ เผื่อมีนักเรียนบางคนยังค้างอยู่ห้องของเทอมก่อนหน้า</p>
                             </div>
@@ -129,14 +129,14 @@
                         <div class="transfer-panel">
                             <h6>ห้องใหม่ (ปีการศึกษาถัดไป)</h6>
                             @if($nextSemester)
-                            <p style="font-size:.78rem;color:#999;margin:0 0 10px">เทอมปลายทาง: {{ $nextSemester->academicYear->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }} (เลื่อนชั้นข้ามปีการศึกษาเสมอ จะข้ามไปเทอม 2 ของปีเดียวกันไม่ได้)</p>
+                            <p style="font-size:.78rem;color:#999;margin:0 0 10px">เทอมปลายทาง: {{ $nextSemester->academicYear?->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }} (เลื่อนชั้นข้ามปีการศึกษาเสมอ จะข้ามไปเทอม 2 ของปีเดียวกันไม่ได้)</p>
                             <div class="ac-field" style="margin-bottom:12px"><label>เลือกห้อง</label>
                                 <select name="to_section_id" id="promoteToSection" class="ac-select">
                                     <option value="">เลือกห้องเดิมก่อน</option>
                                     @foreach($toSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" hidden>{{ $sec->full_name }}</option>@endforeach
                                 </select>
                                 <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของระดับชั้นถัดไปเท่านั้น (เลือกห้องเดิมก่อนถึงจะเห็นตัวเลือก)</p>
-                                <p id="promoteToEmptyHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ยังไม่มีห้องของระดับนี้ในเทอม "{{ $nextSemester->academicYear->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }}" กรุณาไปสร้างห้องเรียนที่หน้า "จัดการห้องเรียน" ก่อน</p>
+                                <p id="promoteToEmptyHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ยังไม่มีห้องของระดับนี้ในเทอม "{{ $nextSemester->academicYear?->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }}" กรุณาไปสร้างห้องเรียนที่หน้า "จัดการห้องเรียน" ก่อน</p>
                                 <p id="promoteToNoNextLevelHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ระดับชั้นนี้เป็นระดับสุดท้ายในระบบแล้ว ไม่มีระดับถัดไปให้เลื่อนขึ้น — ถ้าจบการศึกษาแล้ว ให้ใช้แท็บ "บันทึกสำเร็จการศึกษา" แทน</p>
                             </div>
                             @else
@@ -225,11 +225,11 @@
 // ===== เปิดเทอม 2 =====
 const term1Sections = @json($term1Sections->map(fn($s) => [
     'section_id' => $s->section_id,
-    'year_id'    => $s->semester->year_id,
+    'year_id'    => $s->semester?->year_id,
     'level_id'   => $s->level_id,
     'label'      => $s->full_name,
     'study_plan' => $s->study_plan,
-]));
+])->values());
 
 function filterOs2Sections() {
     const yearId = document.getElementById('os2Year').value;
