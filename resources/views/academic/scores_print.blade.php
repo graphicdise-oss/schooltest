@@ -41,12 +41,15 @@
         <button onclick="window.print()" style="padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer;">🖨️ พิมพ์แบบบันทึกคะแนน</button>
     </div>
 
+    @php
+        $scoreSheetLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
+    @endphp
     <div class="header-container">
-        <img src="{{ asset('img/logo/vrulogo.png') }}" class="logo" alt="Logo">
+        <img src="{{ $scoreSheetLogoPath ? asset('storage/' . $scoreSheetLogoPath) : asset('img/pp_1/logo.png') }}" class="logo" alt="Logo" onerror="this.style.display='none'">
         <div class="title">
-            บัญชีรายชื่อนักเรียนชั้น {{ $assign->classSection->level->name }}/{{ $assign->classSection->section_number }} 
+            บัญชีรายชื่อนักเรียนชั้น {{ $assign->classSection->level->name }}/{{ $assign->classSection->section_number }}
             ปีการศึกษา {{ $assign->classSection->semester->academicYear->year_name }}<br>
-            โรงเรียน................................................... สังกัด...................................................<br>
+            {{ $school['name'] ?? '' }} สังกัด{{ $school['affiliation'] ?? '' }}<br>
             วิชา {{ $assign->subject->name_th }} ({{ $assign->subject->code }}) <br>
             ครูผู้สอน: {{ $assign->personnel->thai_firstname }} {{ $assign->personnel->thai_lastname }}
         </div>

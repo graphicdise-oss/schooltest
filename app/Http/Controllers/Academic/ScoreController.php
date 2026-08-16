@@ -235,7 +235,9 @@ class ScoreController extends Controller
             }
         }
 
-        return view('academic.scores_print', compact('assign', 'students', 'categories', 'scoreMatrix'));
+        $school = \App\Models\Academic\Pp2Setting::mergedSchoolConfig();
+
+        return view('academic.scores_print', compact('assign', 'students', 'categories', 'scoreMatrix', 'school'));
     }
 
     // เพิ่มหมวดคะแนน
