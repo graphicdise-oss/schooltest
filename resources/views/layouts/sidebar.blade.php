@@ -749,7 +749,7 @@
             @endphp
             <div class="flex items-center gap-2 text-[#3b5cb4] font-bold text-[18px] tracking-wide">
                 @if($siteBrandLogoUrl)
-                    <img src="{{ $siteBrandLogoUrl }}" alt="logo" class="h-7 w-7 object-contain rounded" onerror="this.style.display='none'">
+                    <img src="{{ $siteBrandLogoUrl }}" alt="logo" class="h-12 w-12 object-contain" onerror="this.style.display='none'">
                 @else
                     <i class="fa-solid fa-graduation-cap text-[#3b5cb4] text-xl"></i>
                 @endif
