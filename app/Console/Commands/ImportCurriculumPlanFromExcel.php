@@ -163,7 +163,21 @@ class ImportCurriculumPlanFromExcel extends Command
         $rows = [];
         $warnings = [];
 
-        for ($r = 2; $r <= $highestRow; $r++) {
+        // หาแถวข้อมูลเริ่มต้นแบบยืดหยุ่น แทนการอิงเลขแถวตายตัว เพราะไฟล์ที่นำเข้าได้มีสองรูปแบบ:
+        // 1) ไฟล์ "PlanCourses" ต้นฉบับจากภายนอก — หัวตารางอยู่แถว 1 ข้อมูลเริ่มแถว 2
+        // 2) แบบฟอร์มที่ดาวน์โหลดจากปุ่ม "นำเข้าจาก Excel" ในระบบ (CurriculumController::downloadTemplate())
+        //    ซึ่งมีหัวโรงเรียน+คำแนะนำนำหน้า หัวตารางเลยไปอยู่แถว 6 ข้อมูลเริ่มแถว 7
+        // จึงค้นหาแถวที่คอลัมน์ A มีคำว่า "รหัสวิชา" (หัวตารางจริง ไม่ใช่ข้อมูลวิชา) แล้วเริ่มอ่านข้อมูลถัดจากแถวนั้น
+        $firstDataRow = 2;
+        for ($r = 1; $r <= min(15, $highestRow); $r++) {
+            $cellA = trim((string) ($sheet->getCell("A{$r}")->getValue() ?? ''));
+            if ($cellA === 'รหัสวิชา') {
+                $firstDataRow = $r + 1;
+                break;
+            }
+        }
+
+        for ($r = $firstDataRow; $r <= $highestRow; $r++) {
             $code = trim((string) ($sheet->getCell("A{$r}")->getValue() ?? ''));
             if ($code === '') {
                 continue; // แถวว่าง ข้ามเงียบๆ

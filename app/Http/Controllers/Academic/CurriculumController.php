@@ -13,13 +13,19 @@ use App\Models\Personne\Personnel;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Storage;
+use App\Services\ExcelSchoolHeader;
+use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class CurriculumController extends Controller
 {
     // แบบฟอร์มเปล่าสำหรับ "นำเข้าจาก Excel" — คอลัมน์ตรงตามที่ ImportCurriculumPlanFromExcel อ่านจริง (อิงตำแหน่ง A-S)
+    // ใช้หัวฟอร์ม/แถบคำแนะนำแบบเดียวกับแบบฟอร์มนำเข้าอื่นๆ ในระบบ (ExcelSchoolHeader: หัวโรงเรียนแถว 1-4, คำแนะนำแถว 5,
+    // หัวตารางแถว 6, ข้อมูลเริ่มแถว 7) — แถวข้อมูลต้องตรงกับที่ ImportCurriculumPlanFromExcel::parseFile() อ่านจริง ถ้าแก้เลย์เอาต์ตรงนี้ต้องแก้คู่กันที่นั่นด้วย
     public function downloadTemplate()
     {
         $headers = [
@@ -28,34 +34,43 @@ class CurriculumController extends Controller
             'O' => 'เลขบัตร ปชช. ครูผู้สอน 1', 'P' => 'เลขบัตร ปชช. ครูผู้สอน 2', 'Q' => 'เลขบัตร ปชช. ครูผู้สอน 3',
             'R' => 'เลขบัตร ปชช. ครูผู้สอน 4', 'S' => 'เลขบัตร ปชช. ครูผู้สอน 5',
         ];
-        $sample = [
-            'A' => 'ท33101', 'B' => 'ภาษาไทย 5', 'C' => 'รายวิชาพื้นฐาน', 'D' => 'ภาษาไทย',
-            'E' => '1.0', 'F' => '1', 'G' => '2', 'H' => '40',
-            'O' => '1234567890123',
-        ];
+
+        $totalCols = Coordinate::columnIndexFromString('S'); // 19 คอลัมน์ (A-S) รวมช่องว่าง I-N ที่ไม่ใช้แต่ต้องเว้นตำแหน่งไว้
+        $lastCol = 'S';
 
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('PlanCourses');
 
+        $hasLogo = ExcelSchoolHeader::apply($sheet, $totalCols, null);
+        ExcelSchoolHeader::applyInstructionRow(
+            $sheet, $totalCols,
+            'แบบฟอร์มนำเข้ารายวิชาของแผนการเรียน — กรอกข้อมูลเริ่มแถวที่ 7 (แถว 1-6 ห้ามลบ/ห้ามแก้) | '
+            . 'คอลัมน์ C กรอกได้: รายวิชาพื้นฐาน/รายวิชาเพิ่มเติม/กิจกรรมพัฒนาผู้เรียน | คอลัมน์ F (ภาคเรียน) กรอก 1 หรือ 2 เว้นว่าง=ทั้งปี | '
+            . 'คอลัมน์ O-S คือเลขบัตร ปชช. ครูผู้สอนสูงสุด 5 คน | วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์นี้'
+        );
+
+        $headerRow = 6;
         foreach ($headers as $col => $label) {
-            $sheet->setCellValue("{$col}1", $label);
+            $sheet->setCellValue("{$col}{$headerRow}", $label);
+            ExcelSchoolHeader::setColumnWidth($sheet, $col, 18, $hasLogo);
         }
-        $sheet->getStyle('A1:S1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:S1')->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8F0FE');
-        foreach (range('A', 'S') as $col) {
-            $sheet->getColumnDimension($col)->setWidth(18);
-        }
+        $sheet->getStyle("A{$headerRow}:{$lastCol}{$headerRow}")->applyFromArray([
+            'font' => ['bold' => true, 'size' => 10],
+            'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'EAF2F8']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER, 'wrapText' => true],
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'B0B8C1']]],
+        ]);
+        $sheet->getRowDimension($headerRow)->setRowHeight(28);
 
-        foreach ($sample as $col => $val) {
-            $sheet->setCellValue("{$col}2", $val);
-        }
+        // เผื่อแถวเปล่าไว้ให้กรอก 30 แถว (ตีเส้นไว้ล่วงหน้าให้กรอกง่าย ไม่ใส่ข้อมูลตัวอย่างเพราะเสี่ยงถูกนำเข้าจริงถ้าลืมลบ)
+        $firstDataRow = $headerRow + 1;
+        $lastDataRow = $firstDataRow + 29;
+        $sheet->getStyle("A{$firstDataRow}:{$lastCol}{$lastDataRow}")->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
+        ]);
 
-        $sheet->setCellValue('B4', 'ประเภทรายวิชา (คอลัมน์ C) กรอกได้: รายวิชาพื้นฐาน / รายวิชาเพิ่มเติม / กิจกรรมพัฒนาผู้เรียน');
-        $sheet->setCellValue('B5', 'ภาคเรียน (คอลัมน์ F) กรอก 1 หรือ 2 — ถ้าเรียนทั้งปีเว้นว่างไว้');
-        $sheet->setCellValue('B6', 'คอลัมน์ O-S คือเลขบัตรประชาชนครูผู้สอน กรอกได้สูงสุด 5 คน (เว้นว่างช่องที่ไม่ใช้)');
-        $sheet->setCellValue('B7', 'วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์นี้');
-        $sheet->getStyle('B4:B7')->getFont()->setItalic(true)->setColor(new \PhpOffice\PhpSpreadsheet\Style\Color('FF888888'));
+        $sheet->freezePane("A{$firstDataRow}");
 
         $tmpPath = tempnam(sys_get_temp_dir(), 'curriculum_template') . '.xlsx';
         (new Xlsx($spreadsheet))->save($tmpPath);
