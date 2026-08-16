@@ -6,7 +6,10 @@
     <nav class="ac-breadcrumb"><a href="#">ข้อมูลบุคคล</a><i class="bi bi-chevron-right"></i><span>ย้ายห้อง/เลื่อนชั้น/บันทึกจบ</span></nav>
 
     <div class="ac-card" style="overflow:visible">
-        <div class="ac-card-header"><i class="bi bi-arrow-left-right"></i> ย้ายห้อง/เลื่อนชั้น/บันทึกจบ</div>
+        <div class="ac-card-header" style="display:flex; align-items:center; justify-content:space-between">
+            <span><i class="bi bi-arrow-left-right"></i> ย้ายห้อง/เลื่อนชั้น/บันทึกจบ</span>
+            <a href="{{ route('promotions.history') }}" class="ac-btn ac-btn-secondary ac-btn-sm"><i class="bi bi-clock-history"></i> ดูประวัติการเลื่อนชั้น/ย้ายห้อง</a>
+        </div>
         <div class="ac-card-body">
 
             {{-- Tabs --}}
