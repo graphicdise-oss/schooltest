@@ -256,7 +256,10 @@
         <div class="cf-icon cf-icon-subj"><i class="bi bi-journal-bookmark"></i></div>
         <div class="cf-card-header">
             <span class="cf-card-title">จัดการวิชาเรียน</span>
-            <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+                <a href="{{ route('curriculums.importTemplate') }}" style="font-size:0.8rem; color:#039be5; display:inline-flex; align-items:center; gap:5px; text-decoration:none;">
+                    <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์ม Excel
+                </a>
                 <button class="btn-add-subj" style="background:#039be5" onclick="document.getElementById('importSubjOverlay').classList.add('active')">
                     <i class="bi bi-file-earmark-excel"></i> นำเข้าจาก Excel
                 </button>
@@ -272,13 +275,13 @@
                     <th style="width:50px">ลำดับ</th>
                     <th>รหัสวิชา</th>
                     <th style="text-align:center">หน่วยกิต</th>
+                    <th>ชื่อวิชา</th>
+                    <th>ครูผู้สอน</th>
+                    <th style="text-align:center">เทอม</th>
+                    <th style="text-align:center">สถานะ</th>
                     <th style="text-align:center">ชั่วโมง/ปี</th>
                     <th style="text-align:center">ชั่วโมง/สัปดาห์</th>
-                    <th>ชื่อวิชา</th>
-                    <th style="text-align:center">เทอม</th>
                     <th style="text-align:center">ประเภท</th>
-                    <th>ครูผู้สอน</th>
-                    <th style="text-align:center">สถานะ</th>
                     <th style="text-align:center">จัดการข้อมูล</th>
                 </tr>
             </thead>
@@ -288,9 +291,23 @@
                     <td>{{ $i + 1 }}</td>
                     <td><strong>{{ $cs->subject->code ?? '-' }}</strong></td>
                     <td style="text-align:center">{{ $cs->credits ?? $cs->subject->credits ?? '-' }}</td>
-                    <td style="text-align:center">{{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? '-' }}</td>
-                    <td style="text-align:center">{{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? '-' }}</td>
                     <td>{{ $cs->subject->name_th ?? '-' }}</td>
+                    <td style="font-size:0.82rem;color:#555">
+                        @php
+                            $csTeacherList = $cs->teachers->isNotEmpty() ? $cs->teachers : ($cs->personnel ? collect([$cs->personnel]) : collect());
+                            $csPrimaryTeacher = $csTeacherList->first();
+                            $csExtraCount = max(0, $csTeacherList->count() - 1);
+                        @endphp
+                        @if($csPrimaryTeacher)
+                            {{ ($csPrimaryTeacher->thai_prefix ?? '') . $csPrimaryTeacher->thai_firstname . ' ' . $csPrimaryTeacher->thai_lastname }}
+                            @if($csExtraCount > 0)
+                                <span title="{{ $csTeacherList->skip(1)->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}"
+                                      style="color:#039be5;font-size:0.75rem;cursor:default">+{{ $csExtraCount }} คน</span>
+                            @endif
+                        @else
+                            <span style="color:#ccc">—</span>
+                        @endif
+                    </td>
                     <td style="text-align:center">
                         <span class="badge-sem">
                             @if($cs->semester_type === 'both') 1, 2
@@ -298,6 +315,18 @@
                             @endif
                         </span>
                     </td>
+                    <td style="text-align:center">
+                        <form action="{{ route('curriculums.toggleSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST" style="display:inline">
+                            @csrf
+                            <button type="submit"
+                                style="border:none;background:none;cursor:pointer;padding:2px;color:{{ $cs->is_active ? '#2e7d32' : '#e65100' }};font-size:1.6rem;line-height:1"
+                                title="{{ $cs->is_active ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน' }}">
+                                <i class="bi {{ $cs->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
+                            </button>
+                        </form>
+                    </td>
+                    <td style="text-align:center">{{ $cs->hours_per_year ?? $cs->subject->hours_per_year ?? '-' }}</td>
+                    <td style="text-align:center">{{ $cs->hours_per_week ?? $cs->subject->hours_per_week ?? '-' }}</td>
                     <td style="text-align:center">
                         @php
                             $subjType = $cs->subject->subject_type ?? '-';
@@ -309,28 +338,6 @@
                             };
                         @endphp
                         <span class="{{ $typeBadgeClass }}">{{ $subjType }}</span>
-                    </td>
-                    <td style="font-size:0.82rem;color:#555">
-                        @if($cs->teachers->isNotEmpty())
-                            {{ $cs->teachers->map(fn($t) => ($t->thai_prefix ?? '') . $t->thai_firstname . ' ' . $t->thai_lastname)->implode(', ') }}
-                            @if($cs->teachers->count() > 3)
-                                <div style="color:#e65100;font-size:0.72rem;margin-top:2px">(แก้ไขผ่านฟอร์มได้สูงสุด 3 คน — เกิน 3 คนต้องนำเข้าจาก Excel)</div>
-                            @endif
-                        @elseif($cs->personnel)
-                            {{ $cs->personnel->thai_prefix ?? '' }}{{ $cs->personnel->thai_firstname }} {{ $cs->personnel->thai_lastname }}
-                        @else
-                            <span style="color:#ccc">—</span>
-                        @endif
-                    </td>
-                    <td style="text-align:center">
-                        <form action="{{ route('curriculums.toggleSubject', [$curriculum->curriculum_id, $cs->id]) }}" method="POST" style="display:inline">
-                            @csrf
-                            <button type="submit"
-                                style="border:none;background:none;cursor:pointer;padding:2px;color:{{ $cs->is_active ? '#2e7d32' : '#e65100' }};font-size:1.6rem;line-height:1"
-                                title="{{ $cs->is_active ? 'คลิกเพื่อปิดใช้งาน' : 'คลิกเพื่อเปิดใช้งาน' }}">
-                                <i class="bi {{ $cs->is_active ? 'bi-toggle-on' : 'bi-toggle-off' }}"></i>
-                            </button>
-                        </form>
                     </td>
                     <td style="text-align:center">
                         <div class="cf-action-wrap">
@@ -383,11 +390,6 @@
                         รองรับไฟล์รูปแบบ PlanCourses (.xlsx) — วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ (จับคู่ด้วยรหัสวิชา)
                         วิชาที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์ ครูผู้สอนจับคู่ด้วยชื่อ-นามสกุล (สะกดให้ตรงกับที่มีในระบบ จะใส่คำนำหน้าหรือไม่ใส่ก็ได้) — คนไหนหาไม่เจอหรือชื่อซ้ำกันหลายคนจะข้ามเฉพาะคนนั้น ไม่กระทบข้อมูลส่วนอื่นของแถวนั้น
                     </p>
-                    <div>
-                        <a href="{{ route('curriculums.importTemplate') }}" style="font-size:0.82rem; color:#039be5; display:inline-flex; align-items:center; gap:5px;">
-                            <i class="bi bi-download"></i> ดาวน์โหลดแบบฟอร์ม Excel เปล่า
-                        </a>
-                    </div>
                     <div>
                         <input type="file" name="file" accept=".xlsx" required>
                     </div>
