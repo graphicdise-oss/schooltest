@@ -8,6 +8,8 @@ use App\Models\Academic\FinalGrade;
 use App\Models\Academic\Semester;
 use App\Models\Academic\TeachingAssign;
 use App\Models\Holiday;
+use App\Models\Announcement;
+use App\Models\AnnouncementRecipient;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -28,7 +30,11 @@ class ParentPortalController extends Controller
         $student = Auth::guard('parent')->user();
         $studentSection = $this->currentSection($student);
 
-        return view('parent.dashboard', compact('student', 'studentSection'));
+        $unreadAnnouncements = AnnouncementRecipient::where('student_id', $student->student_id)
+            ->whereNull('read_at')
+            ->count();
+
+        return view('parent.dashboard', compact('student', 'studentSection', 'unreadAnnouncements'));
     }
 
     public function grades(Request $request)
@@ -223,5 +229,53 @@ class ParentPortalController extends Controller
         ]);
 
         return back()->with('success', 'เปลี่ยนรหัสผ่านสำเร็จแล้ว');
+    }
+
+    // รายการประกาศที่ส่งถึงนักเรียนคนนี้ (ล่าสุดก่อน)
+    public function announcements()
+    {
+        $student = Auth::guard('parent')->user();
+
+        $recipients = AnnouncementRecipient::with('announcement')
+            ->where('student_id', $student->student_id)
+            ->whereHas('announcement')
+            ->get()
+            ->sortByDesc(fn($r) => $r->announcement->created_at)
+            ->values();
+
+        return view('parent.announcements', compact('student', 'recipients'));
+    }
+
+    // ดูรายละเอียดประกาศ + ทำเครื่องหมายว่าอ่านแล้ว
+    public function announcementShow($id)
+    {
+        $student = Auth::guard('parent')->user();
+
+        $recipient = AnnouncementRecipient::where('announcement_id', $id)
+            ->where('student_id', $student->student_id)
+            ->firstOrFail();
+
+        if (!$recipient->read_at) {
+            $recipient->update(['read_at' => now()]);
+        }
+
+        $announcement = Announcement::findOrFail($id);
+
+        return view('parent.announcement_show', compact('student', 'announcement', 'recipient'));
+    }
+
+    public function announcementAcknowledge($id)
+    {
+        $student = Auth::guard('parent')->user();
+
+        $recipient = AnnouncementRecipient::where('announcement_id', $id)
+            ->where('student_id', $student->student_id)
+            ->firstOrFail();
+
+        if (!$recipient->acknowledged_at) {
+            $recipient->update(['acknowledged_at' => now()]);
+        }
+
+        return back()->with('success', 'กดรับทราบเรียบร้อยแล้ว');
     }
 }

@@ -74,6 +74,10 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
         Route::get('/contact', 'contact')->name('contact');
         Route::get('/change-password', 'changePasswordForm')->name('change-password');
         Route::post('/change-password', 'changePassword')->name('change-password.submit');
+
+        Route::get('/announcements', 'announcements')->name('announcements');
+        Route::get('/announcements/{id}', 'announcementShow')->name('announcements.show');
+        Route::post('/announcements/{id}/acknowledge', 'announcementAcknowledge')->name('announcements.acknowledge');
     });
 
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
@@ -414,6 +418,16 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::post('/promote', 'promote')->name('promote');
         Route::post('/graduate', 'graduate')->name('graduate');
         Route::get('/history', 'history')->name('history');
+    });
+
+    // === ประชาสัมพันธ์ (ส่งประกาศให้ผู้ปกครองดูผ่านระบบผู้ปกครอง) ===
+    Route::controller(\App\Http\Controllers\AnnouncementController::class)->prefix('announcements')->name('announcements.')->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{id}', 'show')->name('show');
+        Route::get('/{id}/edit', 'edit')->name('edit');
+        Route::put('/{id}', 'update')->name('update');
+        Route::delete('/{id}', 'destroy')->name('destroy');
     });
 
 

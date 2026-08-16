@@ -24,6 +24,15 @@
 
 <div class="row g-3">
     <div class="col-md-4">
+        <a href="{{ route('parent.announcements') }}" class="pp-card d-block text-decoration-none" style="text-align:center; position:relative;">
+            @if($unreadAnnouncements > 0)
+            <span style="position:absolute; top:10px; right:16px; background:#dc2626; color:#fff; font-size:.72rem; font-weight:700; border-radius:999px; padding:2px 8px;">{{ $unreadAnnouncements }} ใหม่</span>
+            @endif
+            <i class="bi bi-megaphone" style="font-size:1.8rem; color:#dc2626;"></i>
+            <div style="color:#082b75; font-weight:600; margin-top:8px;">ประกาศ/ข่าวสาร</div>
+        </a>
+    </div>
+    <div class="col-md-4">
         <a href="{{ route('parent.grades') }}" class="pp-card d-block text-decoration-none" style="text-align:center;">
             <i class="bi bi-mortarboard" style="font-size:1.8rem; color:#2563eb;"></i>
             <div style="color:#082b75; font-weight:600; margin-top:8px;">ดูผลการเรียน</div>

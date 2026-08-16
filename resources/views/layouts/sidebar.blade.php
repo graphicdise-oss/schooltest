@@ -618,12 +618,14 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ประชาสัมพันธ์</h4>
                                     <ul class="space-y-1 pl-2">
-                                        <li><a href="#"
+                                        @if(auth()->user()->isAdmin())
+                                        <li><a href="{{ route('announcements.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ประชาสัมพันธ์</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('announcements.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานประชาสัมพันธ์</a>
                                         </li>
+                                        @endif
                                         <li><a href="#"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่ากลุ่มประชาสัมพันธ์</a>
                                         </li>

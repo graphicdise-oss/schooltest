@@ -38,6 +38,7 @@
         @if($ppStudent)
         <div class="pp-nav">
             <a href="{{ route('parent.dashboard') }}" class="{{ request()->routeIs('parent.dashboard') ? 'active' : '' }}"><i class="bi bi-house"></i> หน้าหลัก</a>
+            <a href="{{ route('parent.announcements') }}" class="{{ request()->routeIs('parent.announcements*') ? 'active' : '' }}"><i class="bi bi-megaphone"></i> ประกาศ/ข่าวสาร</a>
             <a href="{{ route('parent.grades') }}" class="{{ request()->routeIs('parent.grades') ? 'active' : '' }}"><i class="bi bi-mortarboard"></i> ผลการเรียน</a>
             <a href="{{ route('parent.timetable') }}" class="{{ request()->routeIs('parent.timetable') ? 'active' : '' }}"><i class="bi bi-table"></i> ตารางเรียน</a>
             <a href="{{ route('parent.calendar') }}" class="{{ request()->routeIs('parent.calendar') ? 'active' : '' }}"><i class="bi bi-calendar3"></i> ปฏิทิน/วันหยุด</a>
