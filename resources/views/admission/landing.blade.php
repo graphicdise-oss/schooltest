@@ -38,9 +38,8 @@
     @endif
 
     <div class="head">
-        @if(config('school.logo'))
-            <img src="{{ asset(config('school.logo')) }}" alt="logo" style="height:64px;" onerror="this.style.display='none'">
-        @endif
+        @php $schoolLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path; @endphp
+        <img src="{{ $schoolLogoPath ? asset('storage/' . $schoolLogoPath) : asset(config('school.logo')) }}" alt="logo" style="height:64px;" onerror="this.style.display='none'">
         <h1>รับสมัครนักเรียนออนไลน์</h1>
         <p>{{ config('school.name') }}
             @if($setting->academicYear) · ปีการศึกษา {{ $setting->academicYear->year_name }} @endif

@@ -57,9 +57,8 @@
     <div class="wrap" style="margin-top:0; padding:0;">
         <a href="{{ route('admission.form') }}" class="back-link"><i class="bi bi-arrow-left"></i> กลับหน้าประชาสัมพันธ์</a>
     </div>
-    @if(config('school.logo'))
-        <img src="{{ asset(config('school.logo')) }}" alt="logo" class="logo" onerror="this.style.display='none'">
-    @endif
+    @php $schoolLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path; @endphp
+    <img src="{{ $schoolLogoPath ? asset('storage/' . $schoolLogoPath) : asset(config('school.logo')) }}" alt="logo" class="logo" onerror="this.style.display='none'">
     <h1>กรอกใบสมัครเรียน</h1>
     <p>{{ config('school.name') }}
         @if($setting->academicYear) · ปีการศึกษา {{ $setting->academicYear->year_name }} @endif
