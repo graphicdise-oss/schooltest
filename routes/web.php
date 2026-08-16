@@ -417,6 +417,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::post('/transfer', 'transfer')->name('transfer');
         Route::post('/promote', 'promote')->name('promote');
         Route::post('/graduate', 'graduate')->name('graduate');
+        Route::post('/open-semester2', 'openSemester2')->name('openSemester2');
         Route::get('/history', 'history')->name('history');
     });
 

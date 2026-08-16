@@ -76,7 +76,12 @@ class PromotionController extends Controller
             $nextLevelMap[(string) $lv->level_id] = $orderedLevels[$i + 1]->level_id ?? null;
         }
 
-        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester', 'nextLevelMap'));
+        // ห้องทั้งหมดของ "เทอม 1" ทุกปีการศึกษา ใช้ในแท็บ "เปิดเทอม 2" (คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างในเทอม 2)
+        $term1Sections = ClassSection::with(['level', 'semester'])
+            ->whereHas('semester', fn($q) => $q->where('semester_name', '1'))
+            ->orderBy('level_id')->orderBy('section_number')->get();
+
+        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester', 'nextLevelMap', 'term1Sections'));
     }
 
     // ย้ายห้อง (เทอมเดียวกัน)
@@ -175,6 +180,65 @@ class PromotionController extends Controller
         }
 
         return redirect()->back()->with('success', 'เลื่อนชั้นสำเร็จ ' . count($request->student_ids) . ' คน');
+    }
+
+    // เปิดเทอม 2: คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างเป็นห้องใหม่ในเทอม 2 ของปีการศึกษาเดียวกัน
+    // ไม่คัดลอกตารางสอน (teaching_assigns/timetable_slots) และไม่คัดลอกรายชื่อนักเรียน ตามที่ผู้ใช้ระบุไว้
+    // (ห้องเทอม 2 จะว่างเปล่า รอจัดตารางสอน/ลงทะเบียนนักเรียนทีหลัง)
+    public function openSemester2(Request $request)
+    {
+        $request->validate([
+            'year_id' => 'required|exists:academic_years,year_id',
+            'section_ids' => 'required|array',
+        ]);
+
+        $semester1 = Semester::where('year_id', $request->year_id)->where('semester_name', '1')->first();
+        if (!$semester1) {
+            return redirect()->back()->with('error', 'ไม่พบเทอม 1 ของปีการศึกษานี้');
+        }
+
+        $semester2 = Semester::firstOrCreate(
+            ['year_id' => $request->year_id, 'semester_name' => '2']
+        );
+
+        $copied = 0;
+        $skipped = 0;
+
+        foreach ($request->section_ids as $sectionId) {
+            $source = ClassSection::where('section_id', $sectionId)
+                ->where('semester_id', $semester1->semester_id)
+                ->first();
+            if (!$source) continue;
+
+            $alreadyExists = ClassSection::where('semester_id', $semester2->semester_id)
+                ->where('level_id', $source->level_id)
+                ->where('section_number', $source->section_number)
+                ->exists();
+            if ($alreadyExists) {
+                $skipped++;
+                continue;
+            }
+
+            ClassSection::create([
+                'semester_id'         => $semester2->semester_id,
+                'level_id'            => $source->level_id,
+                'section_number'      => $source->section_number,
+                'study_plan'          => $source->study_plan,
+                'homeroom_teacher_id' => $source->homeroom_teacher_id,
+                'max_students'        => $source->max_students,
+                'curriculum_id'       => $source->curriculum_id,
+                'lunch_start'         => $source->lunch_start,
+                'lunch_end'           => $source->lunch_end,
+            ]);
+            $copied++;
+        }
+
+        $message = "เปิดเทอม 2 สำเร็จ คัดลอกห้อง {$copied} ห้อง";
+        if ($skipped > 0) {
+            $message .= " (ข้าม {$skipped} ห้องที่มีอยู่แล้วในเทอม 2)";
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     // บันทึกสำเร็จการศึกษา

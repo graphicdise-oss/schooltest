@@ -2,7 +2,7 @@
 @push('styles')<link rel="stylesheet" href="{{ asset('css/academic/academic.css') }}?v={{ time() }}">@endpush
 
 @section('content')
-<div class="ac-page" x-data="{ tab: '{{ in_array(request('tab'), ['transfer','promote','graduate']) ? request('tab') : 'transfer' }}' }">
+<div class="ac-page" x-data="{ tab: '{{ in_array(request('tab'), ['transfer','promote','graduate','opensem2']) ? request('tab') : 'transfer' }}' }">
     <nav class="ac-breadcrumb"><a href="#">ข้อมูลบุคคล</a><i class="bi bi-chevron-right"></i><span>ย้ายห้อง/เลื่อนชั้น/บันทึกจบ</span></nav>
 
     <div class="ac-card" style="overflow:visible">
@@ -17,6 +17,7 @@
                 <button @click="tab='transfer'" :class="tab==='transfer'?'ac-tab-active':''" class="ac-tab"><i class="bi bi-arrow-left-right me-1"></i>ย้ายห้องเรียน</button>
                 <button @click="tab='promote'" :class="tab==='promote'?'ac-tab-active':''" class="ac-tab"><i class="bi bi-arrow-up-circle me-1"></i>เลื่อนระดับชั้นเรียน</button>
                 <button @click="tab='graduate'" :class="tab==='graduate'?'ac-tab-active':''" class="ac-tab"><i class="bi bi-mortarboard me-1"></i>บันทึกสำเร็จการศึกษา</button>
+                <button @click="tab='opensem2'" :class="tab==='opensem2'?'ac-tab-active':''" class="ac-tab"><i class="bi bi-copy me-1"></i>เปิดเทอม 2</button>
             </div>
 
             {{-- ===== Tab 1: ย้ายห้อง ===== --}}
@@ -180,9 +181,71 @@
                     <div class="ac-save-wrap"><button type="submit" class="ac-btn ac-btn-danger"><i class="bi bi-mortarboard"></i> บันทึกสำเร็จการศึกษา</button></div>
                 </form>
             </div>
+
+            {{-- ===== Tab 4: เปิดเทอม 2 ===== --}}
+            <div x-show="tab==='opensem2'" x-cloak>
+                <form method="POST" action="{{ route('promotions.openSemester2') }}">
+                    @csrf
+                    <p style="font-size:.85rem; color:#666; margin-bottom:14px">
+                        คัดลอกห้อง + แผนการเรียน + ครูประจำชั้น จาก "เทอม 1" ไปสร้างเป็นห้องใหม่ใน "เทอม 2" ของปีการศึกษาเดียวกัน —
+                        <strong>ไม่คัดลอกตารางสอนและไม่คัดลอกรายชื่อนักเรียน</strong> (ห้องใหม่จะว่างเปล่า รอจัดตารางสอน/ลงทะเบียนนักเรียนทีหลัง)
+                        ถ้าห้องนั้นมีอยู่ในเทอม 2 อยู่แล้ว ระบบจะข้ามให้อัตโนมัติ ไม่สร้างซ้ำ
+                    </p>
+                    <div class="ac-grid-4" style="margin-bottom:16px">
+                        <div class="ac-field"><label>ปีการศึกษา *</label>
+                            <select name="year_id" id="os2Year" class="ac-select" onchange="filterOs2Sections()" required>
+                                <option value="">-- เลือกปีการศึกษา --</option>
+                                @foreach($academicYears as $y)<option value="{{ $y->year_id }}">{{ $y->year_name }}</option>@endforeach
+                            </select>
+                        </div>
+                        <div class="ac-field"><label>ระดับ</label>
+                            <select id="os2Level" class="ac-select" onchange="filterOs2Sections()">
+                                <option value="">ทุกระดับชั้น</option>
+                                @foreach($levels as $lv)<option value="{{ $lv->level_id }}">{{ $lv->name }}</option>@endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="ac-table-wrap">
+                        <table class="ac-table">
+                            <thead><tr><th style="width:40px"><input type="checkbox" id="os2CheckAll" onchange="toggleOs2All(this)"></th><th>ห้อง (เทอม 1)</th><th>แผนการเรียน</th></tr></thead>
+                            <tbody id="os2Body">
+                                <tr><td colspan="3" class="ac-empty">เลือกปีการศึกษาก่อน</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="ac-save-wrap"><button type="submit" class="ac-btn ac-btn-success"><i class="bi bi-copy"></i> เปิดเทอม 2 (คัดลอกห้องที่เลือก)</button></div>
+                </form>
+            </div>
         </div>
     </div>
 </div>
+
+<script>
+// ===== เปิดเทอม 2 =====
+const term1Sections = @json($term1Sections->map(fn($s) => [
+    'section_id' => $s->section_id,
+    'year_id'    => $s->semester->year_id,
+    'level_id'   => $s->level_id,
+    'label'      => $s->full_name,
+    'study_plan' => $s->study_plan,
+]));
+
+function filterOs2Sections() {
+    const yearId = document.getElementById('os2Year').value;
+    const levelId = document.getElementById('os2Level').value;
+    const body = document.getElementById('os2Body');
+    if (!yearId) {
+        body.innerHTML = '<tr><td colspan="3" class="ac-empty">เลือกปีการศึกษาก่อน</td></tr>';
+        return;
+    }
+    const filtered = term1Sections.filter(s => String(s.year_id) === yearId && (!levelId || String(s.level_id) === levelId));
+    body.innerHTML = filtered.length
+        ? filtered.map(s => `<tr><td><input type="checkbox" name="section_ids[]" value="${s.section_id}" class="os2-cb"></td><td style="text-align:left">${s.label}</td><td>${s.study_plan || '-'}</td></tr>`).join('')
+        : '<tr><td colspan="3" class="ac-empty">ไม่มีห้องของเทอม 1 ในปีการศึกษานี้</td></tr>';
+}
+function toggleOs2All(el) { document.querySelectorAll('.os2-cb').forEach(cb => cb.checked = el.checked); }
+</script>
 
 <script>
 // ===== เลือกปีการศึกษา -> กรองภาคการศึกษา =====
