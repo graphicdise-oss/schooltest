@@ -263,7 +263,13 @@
                         <div class="pn-field"><label>นามสกุล <span class="text-danger">*</span></label><input type="text" name="thai_lastname" class="pn-input" value="{{ old('thai_lastname', $personnel->thai_lastname ?? '') }}" required></div>
                         <div class="pn-field"><label>ชื่อ(อังกฤษ)</label><input type="text" name="eng_firstname" class="pn-input" value="{{ old('eng_firstname', $personnel->eng_firstname ?? '') }}"></div>
                         <div class="pn-field"><label>นามสกุล(อังกฤษ)</label><input type="text" name="eng_lastname" class="pn-input" value="{{ old('eng_lastname', $personnel->eng_lastname ?? '') }}"></div>
-                        <div class="pn-field"><label>เลขบัตรประชาชน</label><input type="text" name="id_card_number" class="pn-input" maxlength="13" value="{{ old('id_card_number', $personnel->id_card_number ?? '') }}"></div>
+                        <div class="pn-field">
+                            <label>เลขบัตรประชาชน</label>
+                            <input type="text" name="id_card_number" class="pn-input" maxlength="13" value="{{ old('id_card_number', $personnel->id_card_number ?? '') }}">
+                            @if(!isset($personnel))
+                                <small style="color:#888">ใช้เป็นรหัสผ่านเริ่มต้นเข้าสู่ระบบ (แจ้งให้ไปเปลี่ยนเองภายหลัง)</small>
+                            @endif
+                        </div>
                         <div class="pn-field"><label>เลขหนังสือเดินทาง</label><input type="text" name="passport_number" class="pn-input" value="{{ old('passport_number', $personnel->passport_number ?? '') }}"></div>
                         <div class="pn-field"><label>ประเทศหนังสือเดินทาง</label><input type="text" name="passport_country" class="pn-input" value="{{ old('passport_country', $personnel->passport_country ?? '') }}"></div>
                         <div class="pn-field"><label>วันหมดอายุหนังสือเดินทาง</label><input type="date" name="passport_expiry" class="pn-input" value="{{ old('passport_expiry', optional($personnel->passport_expiry ?? null)->format('Y-m-d')) }}"></div>

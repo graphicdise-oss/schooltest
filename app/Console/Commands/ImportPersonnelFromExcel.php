@@ -11,6 +11,7 @@ use App\Models\Personne\PersonnelPosition;
 use App\Models\Personne\PersonnelTraining;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 
@@ -132,6 +133,8 @@ class ImportPersonnelFromExcel extends Command
 
             try {
                 DB::transaction(function () use ($get) {
+                    $idCardNumber = $get(self::COL['id_card_number']) ?: null;
+
                     $personnel = Personnel::create([
                         'personnel_type'    => $get(self::COL['personnel_type']) ?: null,
                         'employee_code'     => $get(self::COL['employee_code']),
@@ -143,7 +146,7 @@ class ImportPersonnelFromExcel extends Command
                         'thai_lastname'     => $get(self::COL['thai_lastname']) ?: null,
                         'eng_firstname'     => $get(self::COL['eng_firstname']) ?: null,
                         'eng_lastname'      => $get(self::COL['eng_lastname']) ?: null,
-                        'id_card_number'    => $get(self::COL['id_card_number']) ?: null,
+                        'id_card_number'    => $idCardNumber,
                         'passport_number'   => $get(self::COL['passport_number']) ?: null,
                         'passport_country'  => $get(self::COL['passport_country']) ?: null,
                         'date_of_birth'     => $this->parseThaiDate($get(self::COL['date_of_birth'])),
@@ -154,6 +157,9 @@ class ImportPersonnelFromExcel extends Command
                         'phone'             => $get(self::COL['phone']) ?: null,
                         'email'             => $get(self::COL['email']) ?: null,
                         'schedule'          => $get(self::COL['schedule']) ?: null,
+                        // ตั้งรหัสผ่านเริ่มต้นเป็นเลขบัตรประชาชน (คนละฟิลด์กับ id_card_number เดิม แค่ก็อปค่ามาตั้งตอนสร้างครั้งแรก)
+                        // ให้เข้าระบบครั้งแรกได้ทันที แล้วให้ไปเปลี่ยนรหัสผ่านเองทีหลัง
+                        'password'          => $idCardNumber ? Hash::make($idCardNumber) : null,
                         'created_by'        => 'import:personnel',
                     ]);
 

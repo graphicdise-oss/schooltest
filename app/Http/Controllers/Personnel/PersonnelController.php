@@ -61,6 +61,12 @@ class PersonnelController extends Controller
             $personnelData['personnel_image'] = $request->file('personnel_image')->store('personnels', 'public');
         }
 
+        // ตั้งรหัสผ่านเริ่มต้นเป็นเลขบัตรประชาชน (คนละฟิลด์กับ id_card_number เดิม แค่ก็อปค่ามาตั้งตอนสร้างครั้งแรก)
+        // ให้เข้าระบบครั้งแรกได้ทันที แล้วให้ไปเปลี่ยนรหัสผ่านเองทีหลัง
+        if (empty($personnelData['password']) && !empty($personnelData['id_card_number'])) {
+            $personnelData['password'] = Hash::make($personnelData['id_card_number']);
+        }
+
         $personnelData['created_by'] = Auth::user()->name ?? 'system';
         $personnel = Personnel::create($personnelData);
 
