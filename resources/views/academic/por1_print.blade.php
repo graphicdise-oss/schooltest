@@ -164,13 +164,24 @@ body {
 
     @php
         $logoSrc = null;
-        $logoExts = ['png','jpg','jpeg','gif','PNG','JPG','JPEG'];
-        foreach ($logoExts as $ext) {
-            $logoFile = public_path('img/pp_1/logo.' . $ext);
+        $uploadedLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
+        if ($uploadedLogoPath) {
+            $logoFile = storage_path('app/public/' . $uploadedLogoPath);
             if (file_exists($logoFile)) {
-                $mime    = in_array(strtolower($ext),['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+                $ext     = strtolower(pathinfo($logoFile, PATHINFO_EXTENSION));
+                $mime    = in_array($ext, ['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
                 $logoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoFile));
-                break;
+            }
+        }
+        if (!$logoSrc) {
+            $logoExts = ['png','jpg','jpeg','gif','PNG','JPG','JPEG'];
+            foreach ($logoExts as $ext) {
+                $logoFile = public_path('img/pp_1/logo.' . $ext);
+                if (file_exists($logoFile)) {
+                    $mime    = in_array(strtolower($ext),['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+                    $logoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($logoFile));
+                    break;
+                }
             }
         }
     @endphp

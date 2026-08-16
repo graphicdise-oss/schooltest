@@ -143,12 +143,23 @@ body {
 $school = $school ?? config('school');
 
 $logoSrc = null;
-foreach (['png','jpg','jpeg','PNG','JPG'] as $ext) {
-    $f = public_path('img/pp_1/logo.' . $ext);
+$uploadedLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
+if ($uploadedLogoPath) {
+    $f = storage_path('app/public/' . $uploadedLogoPath);
     if (file_exists($f)) {
-        $mime = in_array(strtolower($ext),['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+        $ext = strtolower(pathinfo($f, PATHINFO_EXTENSION));
+        $mime = in_array($ext, ['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
         $logoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($f));
-        break;
+    }
+}
+if (!$logoSrc) {
+    foreach (['png','jpg','jpeg','PNG','JPG'] as $ext) {
+        $f = public_path('img/pp_1/logo.' . $ext);
+        if (file_exists($f)) {
+            $mime = in_array(strtolower($ext),['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+            $logoSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($f));
+            break;
+        }
     }
 }
 

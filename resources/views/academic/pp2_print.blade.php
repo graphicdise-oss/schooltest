@@ -1,3 +1,7 @@
+@php
+    $schoolLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
+    $pp2LogoUrl = $schoolLogoPath ? asset('storage/' . $schoolLogoPath) : asset('img/pp_1/logo.png');
+@endphp
 <!DOCTYPE html>
 <html lang="th">
 
@@ -61,7 +65,7 @@
         }
 
         .page.front {
-            background-image: url('{{ asset("img/pp_1/logo.png") }}');
+            background-image: url('{{ $pp2LogoUrl }}');
             background-repeat: no-repeat;
             background-position: 2pt 4pt;
             background-size: 110pt auto;

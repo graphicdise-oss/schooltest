@@ -53,7 +53,8 @@ body { font-family:'TH Sarabun New','Sarabun','Tahoma',sans-serif; font-size:15p
 @endphp
 <div class="page">
     <div class="doc-top">
-        <div class="doc-logo"><img src="{{ asset(config('school.logo')) }}" alt="logo" onerror="this.style.display='none'"></div>
+        @php $schoolLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path; @endphp
+        <div class="doc-logo"><img src="{{ $schoolLogoPath ? asset('storage/' . $schoolLogoPath) : asset(config('school.logo')) }}" alt="logo" onerror="this.style.display='none'"></div>
         <div class="doc-title">
             <h2>แบบรายงานผลพัฒนาคุณภาพผู้เรียนรายบุคคล</h2>
             <p>{{ $section->level->name ?? '' }} ภาคเรียนที่ {{ $semester->semester_name }} ปีการศึกษา {{ $semester->academicYear->year_name ?? '' }}</p>
