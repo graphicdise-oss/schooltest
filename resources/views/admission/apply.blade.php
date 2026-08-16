@@ -14,13 +14,13 @@
         body { font-family:'Prompt',sans-serif; background:#eef3fb; margin:0; padding-bottom:110px; }
         .hero { background:linear-gradient(135deg,#1e40af 0%,#2563eb 55%,#3b82f6 100%); padding:34px 16px 64px; text-align:center; color:#fff; position:relative; }
         .hero::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:40px; background:#eef3fb; border-radius:50% 50% 0 0 / 100% 100% 0 0; }
-        .hero img.logo { height:56px; margin-bottom:8px; filter:drop-shadow(0 2px 6px rgba(0,0,0,.2)); }
+        .hero img.logo { height:96px; margin-bottom:8px; filter:drop-shadow(0 2px 6px rgba(0,0,0,.2)); }
         .hero h1 { font-weight:700; font-size:1.5rem; margin:4px 0 2px; }
         .hero p { opacity:.9; margin:0; font-size:.92rem; }
         .back-link { display:inline-flex; align-items:center; gap:6px; color:#fff; text-decoration:none; font-size:.85rem; opacity:.85; margin-bottom:14px; }
         .back-link:hover { opacity:1; color:#fff; }
 
-        .wrap { max-width:780px; margin:-40px auto 0; padding:0 14px; position:relative; z-index:2; }
+        .wrap { max-width:960px; margin:-40px auto 0; padding:0 14px; position:relative; z-index:2; }
 
         .steps { display:flex; justify-content:center; gap:6px; margin-bottom:22px; flex-wrap:wrap; }
         .steps span { background:rgba(255,255,255,.9); color:var(--ink); font-size:.72rem; font-weight:600; padding:5px 12px; border-radius:20px; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 8px rgba(8,43,117,.08); }
@@ -40,7 +40,7 @@
         .field-hint { font-size:.72rem; color:#94a3b8; margin-top:3px; }
 
         .submit-bar { position:fixed; left:0; right:0; bottom:0; background:#fff; border-top:1px solid #e6ebf5; box-shadow:0 -6px 20px rgba(8,43,117,.08); padding:12px 16px; z-index:10; }
-        .submit-bar .inner { max-width:780px; margin:0 auto; display:flex; align-items:center; gap:14px; }
+        .submit-bar .inner { max-width:960px; margin:0 auto; display:flex; align-items:center; gap:14px; }
         .submit-bar .legend { font-size:.75rem; color:#64748b; flex:1; }
         .btn-submit { background:linear-gradient(135deg,var(--brand),var(--brand-dark)); border:none; border-radius:12px; padding:13px 30px; font-weight:600; color:#fff; white-space:nowrap; box-shadow:0 6px 16px rgba(37,99,235,.3); }
         .btn-submit:hover { filter:brightness(1.06); color:#fff; }
@@ -69,9 +69,9 @@
 
     <div class="steps">
         <span><i class="bi bi-person-badge"></i> ข้อมูลนักเรียน</span>
+        <span><i class="bi bi-people"></i> ผู้ปกครอง</span>
         <span><i class="bi bi-house-door"></i> ที่อยู่</span>
         <span><i class="bi bi-mortarboard"></i> การศึกษาเดิม</span>
-        <span><i class="bi bi-people"></i> ผู้ปกครอง</span>
         <span><i class="bi bi-heart-pulse"></i> สุขภาพ</span>
     </div>
 
@@ -162,7 +162,62 @@
             </div>
         </div>
 
-        {{-- ===================== 2. ที่อยู่ปัจจุบัน ===================== --}}
+        {{-- ===================== 2. ข้อมูลผู้ปกครอง ===================== --}}
+        <div class="card2">
+            <div class="sec-head">
+                <div class="sec-num"><i class="bi bi-people"></i></div>
+                <div class="sec-titles">
+                    <h2>ข้อมูลผู้ปกครอง</h2>
+                    <p>ผู้ที่โรงเรียนสามารถติดต่อได้</p>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label>เกี่ยวข้องเป็น</label>
+                    <select name="guardian_type" class="form-select">
+                        @foreach(['ผู้ปกครอง','บิดา','มารดา'] as $gt)
+                            <option value="{{ $gt }}" {{ old('guardian_type', 'ผู้ปกครอง') === $gt ? 'selected' : '' }}>{{ $gt }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>คำนำหน้า</label>
+                    <select name="g_prefix" class="form-select">
+                        @foreach(['','นาย','นาง','นางสาว'] as $p)
+                            <option value="{{ $p }}" {{ old('g_prefix') === $p ? 'selected' : '' }}>{{ $p === '' ? '—' : $p }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label>ชื่อ <span class="req">*</span></label>
+                    <input type="text" name="g_firstname" class="form-control" value="{{ old('g_firstname') }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label>นามสกุล</label>
+                    <input type="text" name="g_lastname" class="form-control" value="{{ old('g_lastname') }}">
+                </div>
+
+                <div class="col-md-3">
+                    <label>ความเกี่ยวข้อง (ระบุเพิ่มเติม)</label>
+                    <input type="text" name="g_relationship" class="form-control" value="{{ old('g_relationship') }}" placeholder="เช่น ปู่ / ย่า / ญาติ">
+                </div>
+                <div class="col-md-3">
+                    <label>เบอร์โทรผู้ปกครอง <span class="req">*</span></label>
+                    <input type="text" name="g_phone" class="form-control" value="{{ old('g_phone') }}" required>
+                </div>
+                <div class="col-md-3">
+                    <label>อาชีพ</label>
+                    <input type="text" name="g_occupation" class="form-control" value="{{ old('g_occupation') }}">
+                </div>
+                <div class="col-md-3">
+                    <label>สถานที่ทำงาน</label>
+                    <input type="text" name="g_workplace" class="form-control" value="{{ old('g_workplace') }}">
+                </div>
+            </div>
+        </div>
+
+        {{-- ===================== 3. ที่อยู่ปัจจุบัน ===================== --}}
         <div class="card2">
             <div class="sec-head">
                 <div class="sec-num"><i class="bi bi-house-door"></i></div>
@@ -215,7 +270,7 @@
             </div>
         </div>
 
-        {{-- ===================== 3. การศึกษาเดิม ===================== --}}
+        {{-- ===================== 4. การศึกษาเดิม ===================== --}}
         <div class="card2">
             <div class="sec-head">
                 <div class="sec-num"><i class="bi bi-mortarboard"></i></div>
@@ -234,61 +289,6 @@
                 <div class="col-md-4">
                     <label>ระดับชั้นล่าสุด</label>
                     <input type="text" name="education_level" class="form-control" value="{{ old('education_level') }}" placeholder="เช่น อนุบาล 3">
-                </div>
-            </div>
-        </div>
-
-        {{-- ===================== 4. ข้อมูลผู้ปกครอง ===================== --}}
-        <div class="card2">
-            <div class="sec-head">
-                <div class="sec-num"><i class="bi bi-people"></i></div>
-                <div class="sec-titles">
-                    <h2>ข้อมูลผู้ปกครอง</h2>
-                    <p>ผู้ที่โรงเรียนสามารถติดต่อได้</p>
-                </div>
-            </div>
-
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label>เกี่ยวข้องเป็น</label>
-                    <select name="guardian_type" class="form-select">
-                        @foreach(['ผู้ปกครอง','บิดา','มารดา'] as $gt)
-                            <option value="{{ $gt }}" {{ old('guardian_type', 'ผู้ปกครอง') === $gt ? 'selected' : '' }}>{{ $gt }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <label>คำนำหน้า</label>
-                    <select name="g_prefix" class="form-select">
-                        @foreach(['','นาย','นาง','นางสาว'] as $p)
-                            <option value="{{ $p }}" {{ old('g_prefix') === $p ? 'selected' : '' }}>{{ $p === '' ? '—' : $p }}</option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label>ชื่อ <span class="req">*</span></label>
-                    <input type="text" name="g_firstname" class="form-control" value="{{ old('g_firstname') }}" required>
-                </div>
-                <div class="col-md-4">
-                    <label>นามสกุล</label>
-                    <input type="text" name="g_lastname" class="form-control" value="{{ old('g_lastname') }}">
-                </div>
-
-                <div class="col-md-3">
-                    <label>ความเกี่ยวข้อง (ระบุเพิ่มเติม)</label>
-                    <input type="text" name="g_relationship" class="form-control" value="{{ old('g_relationship') }}" placeholder="เช่น ปู่ / ย่า / ญาติ">
-                </div>
-                <div class="col-md-3">
-                    <label>เบอร์โทรผู้ปกครอง <span class="req">*</span></label>
-                    <input type="text" name="g_phone" class="form-control" value="{{ old('g_phone') }}" required>
-                </div>
-                <div class="col-md-3">
-                    <label>อาชีพ</label>
-                    <input type="text" name="g_occupation" class="form-control" value="{{ old('g_occupation') }}">
-                </div>
-                <div class="col-md-3">
-                    <label>สถานที่ทำงาน</label>
-                    <input type="text" name="g_workplace" class="form-control" value="{{ old('g_workplace') }}">
                 </div>
             </div>
         </div>
