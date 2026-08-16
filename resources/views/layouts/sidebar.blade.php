@@ -227,9 +227,6 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลนักเรียน</a>
                                         </li>
                                         @if(auth()->user()->isAdmin())
-                                        <li><a href="{{ route('personnels.index') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลผู้ปกครอง/ครอบครัว</a>
-                                        </li>
                                         <li><a href="{{ route('student-types.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จำแนกประเภทนักเรียน</a>
                                         </li>
