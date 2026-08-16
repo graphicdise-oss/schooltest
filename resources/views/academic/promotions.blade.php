@@ -128,6 +128,7 @@
                                     @foreach($toSections as $sec)<option value="{{ $sec->section_id }}" data-level="{{ $sec->level_id }}" hidden>{{ $sec->full_name }}</option>@endforeach
                                 </select>
                                 <p style="font-size:.78rem;color:#999;margin:6px 0 0">แสดงเฉพาะห้องของระดับชั้นถัดไปเท่านั้น (เลือกห้องเดิมก่อนถึงจะเห็นตัวเลือก)</p>
+                                <p id="promoteToEmptyHint" style="font-size:.78rem;color:#dc3545;margin:6px 0 0;display:none">⚠ ยังไม่มีห้องของระดับนี้ในเทอม "{{ $nextSemester->academicYear->year_name ?? '' }} เทอม {{ $nextSemester->semester_name ?? '' }}" กรุณาไปสร้างห้องเรียนที่หน้า "จัดการห้องเรียน" ก่อน</p>
                             </div>
                             @else
                             <div class="ac-empty">ยังไม่มีเทอมถัดไป กรุณาสร้างเทอมใหม่ก่อน</div>
@@ -274,13 +275,18 @@ function filterPromoteToRooms(fromLevelId) {
     if (!toSelect) return;
     const nextLevelId = fromLevelId ? String(nextLevelMap[fromLevelId] ?? '') : '';
     let currentStillVisible = false;
+    let anyMatch = false;
     Array.from(toSelect.options).forEach(opt => {
         if (!opt.value) { opt.hidden = false; return; }
         const matches = !!nextLevelId && opt.dataset.level === nextLevelId;
         opt.hidden = !matches;
+        if (matches) anyMatch = true;
         if (matches && opt.selected) currentStillVisible = true;
     });
     if (!currentStillVisible) toSelect.value = '';
+
+    const hint = document.getElementById('promoteToEmptyHint');
+    if (hint) hint.style.display = (fromLevelId && !anyMatch) ? 'block' : 'none';
 }
 
 function renderPromoteLists() {

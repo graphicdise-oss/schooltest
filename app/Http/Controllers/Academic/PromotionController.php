@@ -29,8 +29,11 @@ class PromotionController extends Controller
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number')->get();
 
-        // ห้องปลายทาง (เทอมถัดไป ถ้ามี)
-        $nextSemester = Semester::where('semester_id', '>', $semesterId)->orderBy('semester_id')->first();
+        // ห้องปลายทาง (เทอมถัดไป ถ้ามี) — ห้ามใช้ semester_id เทียบตรงๆ เพราะไม่ได้เรียงตามลำดับปี/เทอมจริงเสมอไป
+        // (เหตุผลเดียวกับที่ scope orderedByRecency() มีอยู่) ต้องเรียงตามปีการศึกษา+ชื่อภาคเรียนจริงแล้วหาตัวถัดไป
+        $semestersAsc = $semesters->sortBy(fn($s) => [(string) ($s->academicYear->year_name ?? ''), (string) $s->semester_name])->values();
+        $currentIndex = $semestersAsc->search(fn($s) => $s->semester_id == $semesterId);
+        $nextSemester = ($currentIndex !== false) ? $semestersAsc->get($currentIndex + 1) : null;
         $toSections = $nextSemester
             ? ClassSection::with('level')->where('semester_id', $nextSemester->semester_id)->orderBy('level_id')->orderBy('section_number')->get()
             : collect();
