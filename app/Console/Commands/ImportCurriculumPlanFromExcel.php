@@ -12,9 +12,9 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 /**
  * นำเข้ารายวิชาของแผนการเรียน (หลักสูตร) จากไฟล์ Excel รูปแบบ "PlanCourses" — 1 แถว = 1 วิชา
- * คอลัมน์คงที่ตามตำแหน่ง (A-M):
- *   A=รหัสวิชา B=ชื่อวิชา C=ประเภทรายวิชา(รายวิชาพื้นฐาน/เพิ่มเติม/กิจกรรมพัฒนาผู้เรียน) D=กลุ่มสาระการเรียนรู้
- *   E=หน่วยกิต F=ภาคเรียน(1/2) G=ชม./สัปดาห์ H=ชม./ปี I-M=ชื่อ-นามสกุลครูผู้สอน (สูงสุด 5 คน)
+ * คอลัมน์คงที่ตามตำแหน่ง (A-M) เรียงลำดับให้ตรงกับตาราง "จัดการวิชาเรียน" ในหน้าเว็บ:
+ *   A=รหัสวิชา B=หน่วยกิต C=ชื่อวิชา D-H=ชื่อ-นามสกุลครูผู้สอน (สูงสุด 5 คน) I=ภาคเรียน(1/2)
+ *   J=ชม./ปี K=ชม./สัปดาห์ L=ประเภทรายวิชา(รายวิชาพื้นฐาน/เพิ่มเติม/กิจกรรมพัฒนาผู้เรียน) M=กลุ่มสาระการเรียนรู้
  * วิชาที่ยังไม่มีในระบบจะถูกสร้างใหม่ (จับคู่ด้วยรหัสวิชา) ส่วนที่มีอยู่แล้วจะอัปเดตข้อมูลให้ตรงกับไฟล์
  * ครูผู้สอนจับคู่ด้วยชื่อ-นามสกุล (เทียบแบบตัดช่องว่าง/คำนำหน้าทิ้ง จะใส่คำนำหน้าหรือไม่ใส่ก็ได้)
  * คนไหนหาไม่เจอหรือชื่อซ้ำกันหลายคน ข้ามเฉพาะคนนั้น ไม่ข้ามทั้งแถว
@@ -27,7 +27,7 @@ class ImportCurriculumPlanFromExcel extends Command
         'กิจกรรมพัฒนาผู้เรียน' => 'กิจกรรม',
     ];
 
-    private const TEACHER_COLUMNS = ['I', 'J', 'K', 'L', 'M'];
+    private const TEACHER_COLUMNS = ['D', 'E', 'F', 'G', 'H'];
 
     protected $signature = 'import:curriculum-plan
         {curriculum_id : รหัสหลักสูตร/แผนที่จะนำเข้าวิชาเข้าไป}
@@ -188,14 +188,14 @@ class ImportCurriculumPlanFromExcel extends Command
                 continue; // แถวว่าง ข้ามเงียบๆ
             }
 
-            $name = trim((string) ($sheet->getCell("B{$r}")->getValue() ?? ''));
-            $typeRaw = trim((string) ($sheet->getCell("C{$r}")->getValue() ?? ''));
-            $group = trim((string) ($sheet->getCell("D{$r}")->getValue() ?? ''));
             // subjects.credits เป็น NOT NULL ในฐานข้อมูลจริง (แถวกิจกรรมพัฒนาผู้เรียนบางแถวในไฟล์ไม่กรอกหน่วยกิตไว้เลย) จึงต้อง default เป็น 0 แทน null
-            $credits = $this->numOrNull($sheet->getCell("E{$r}")->getValue()) ?? 0;
-            $semester = trim((string) ($sheet->getCell("F{$r}")->getValue() ?? ''));
-            $hoursPerWeek = $this->numOrNull($sheet->getCell("G{$r}")->getValue());
-            $hoursPerYear = $this->numOrNull($sheet->getCell("H{$r}")->getValue());
+            $credits = $this->numOrNull($sheet->getCell("B{$r}")->getValue()) ?? 0;
+            $name = trim((string) ($sheet->getCell("C{$r}")->getValue() ?? ''));
+            $semester = trim((string) ($sheet->getCell("I{$r}")->getValue() ?? ''));
+            $hoursPerYear = $this->numOrNull($sheet->getCell("J{$r}")->getValue());
+            $hoursPerWeek = $this->numOrNull($sheet->getCell("K{$r}")->getValue());
+            $typeRaw = trim((string) ($sheet->getCell("L{$r}")->getValue() ?? ''));
+            $group = trim((string) ($sheet->getCell("M{$r}")->getValue() ?? ''));
 
             if ($name === '') {
                 $warnings[] = "แถว {$r} (รหัสวิชา {$code}): ไม่มีชื่อวิชา — ข้ามทั้งแถว";
