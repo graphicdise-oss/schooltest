@@ -465,12 +465,6 @@
                                         <li><a href="{{ route('onet.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้า
                                                 ONET</a></li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">เทียบโอน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าระบบบันทึกคะแนน</a>
-                                        </li>
                                     </ul>
                                 </div>
                             </div>
