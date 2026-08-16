@@ -305,18 +305,26 @@ class CurriculumController extends Controller
             return back()->with('curriculum_import_output', 'อัปโหลดไฟล์ไม่สำเร็จ กรุณาเลือกไฟล์ใหม่แล้วลองอีกครั้ง');
         }
 
-        $path = $file->store('imports');
-        $fullPath = Storage::path($path);
+        $fullPath = null;
+        try {
+            $path = $file->store('imports');
+            $fullPath = Storage::path($path);
 
-        $options = ['curriculum_id' => $id, 'file' => $fullPath];
-        if ($request->boolean('dry_run')) {
-            $options['--dry-run'] = true;
+            $options = ['curriculum_id' => $id, 'file' => $fullPath];
+            if ($request->boolean('dry_run')) {
+                $options['--dry-run'] = true;
+            }
+
+            Artisan::call('import:curriculum-plan', $options);
+            $output = Artisan::output();
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('curriculum_import_output', "เกิดข้อผิดพลาดระหว่างนำเข้า: {$e->getMessage()}");
+        } finally {
+            if ($fullPath) {
+                @unlink($fullPath);
+            }
         }
-
-        Artisan::call('import:curriculum-plan', $options);
-        $output = Artisan::output();
-
-        @unlink($fullPath);
 
         return back()->with('curriculum_import_output', $output);
     }
@@ -337,18 +345,26 @@ class CurriculumController extends Controller
             return back()->with('curriculum_import_output', 'อัปโหลดไฟล์ไม่สำเร็จ กรุณาเลือกไฟล์ใหม่แล้วลองอีกครั้ง');
         }
 
-        $path = $file->store('imports');
-        $fullPath = Storage::path($path);
+        $fullPath = null;
+        try {
+            $path = $file->store('imports');
+            $fullPath = Storage::path($path);
 
-        $options = ['curriculum_id' => $id, 'file' => $fullPath];
-        if ($request->boolean('dry_run')) {
-            $options['--dry-run'] = true;
+            $options = ['curriculum_id' => $id, 'file' => $fullPath];
+            if ($request->boolean('dry_run')) {
+                $options['--dry-run'] = true;
+            }
+
+            Artisan::call('import:curriculum-assign', $options);
+            $output = Artisan::output();
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('curriculum_import_output', "เกิดข้อผิดพลาดระหว่างนำเข้า: {$e->getMessage()}");
+        } finally {
+            if ($fullPath) {
+                @unlink($fullPath);
+            }
         }
-
-        Artisan::call('import:curriculum-assign', $options);
-        $output = Artisan::output();
-
-        @unlink($fullPath);
 
         return back()->with('curriculum_import_output', $output);
     }
