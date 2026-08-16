@@ -178,14 +178,17 @@
                         {{-- เลือกภาคเรียนปัจจุบัน (ถ้ามี) เป็นค่าเริ่มต้นให้อัตโนมัติ ไม่ให้ค้างที่ช่องว่างทั้งที่มีเทอมปัจจุบันอยู่แล้ว --}}
                         <select id="semSelect" class="ac-select" onchange="handleSemChange(this)" style="background:#fff; font-size:0.9rem; width:100%;">
                             @foreach($selectedYear->semesters->sortBy('semester_name') as $sem)
-                                <option value="{{ $sem->semester_id }}" data-current="{{ $sem->is_current ? '1' : '0' }}" {{ $sem->is_current ? 'selected' : '' }}>
+                                <option value="{{ $sem->semester_id }}" data-current="{{ $sem->is_current ? '1' : '0' }}"
+                                    data-start="{{ optional($sem->start_date)->format('Y-m-d') }}"
+                                    data-end="{{ optional($sem->end_date)->format('Y-m-d') }}"
+                                    {{ $sem->is_current ? 'selected' : '' }}>
                                     เทอม {{ $sem->semester_name }} {{ $sem->is_current ? '⭐ (ปัจจุบัน)' : '' }}
                                 </option>
                             @endforeach
                         </select>
                     @endif
 
-                    <div id="semActionButtons" style="margin-top: 10px; display: none; gap: 8px;">
+                    <div id="semActionButtons" style="margin-top: 10px; display: none; gap: 8px; flex-wrap:wrap;">
                         <form id="formSetSem" method="POST" style="display:inline;">
                             @csrf @method('PUT')
                             <button type="submit" class="ac-btn ac-btn-sm" style="background:#10b981; color:white; font-size:0.75rem;"><i class="bi bi-check-circle"></i> ตั้งเป็นเทอมปัจจุบัน</button>
@@ -195,6 +198,19 @@
                             <button type="submit" class="ac-btn ac-btn-sm" style="background:#ef4444; color:white; font-size:0.75rem;"><i class="bi bi-trash"></i> ลบเทอม</button>
                         </form>
                     </div>
+
+                    <form id="formSemDates" method="POST" style="margin-top:10px; display:none; background:#f8fafc; border:1px solid #e2e8f0; border-radius:8px; padding:10px;">
+                        @csrf @method('PUT')
+                        <label style="font-size:0.78rem; font-weight:700; color:#475569; display:block; margin-bottom:6px;">
+                            <i class="bi bi-calendar-range"></i> วันเริ่ม-สิ้นสุดภาคเรียน (ใช้คำนวณตารางเช็คชื่อ ปพ.5)
+                        </label>
+                        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                            <input type="date" name="start_date" id="semDateStart" class="ac-input" style="width:auto;">
+                            <span style="color:#94a3b8">ถึง</span>
+                            <input type="date" name="end_date" id="semDateEnd" class="ac-input" style="width:auto;">
+                            <button type="submit" class="ac-btn ac-btn-sm" style="background:#2563eb; color:white; font-size:0.75rem;"><i class="bi bi-save"></i> บันทึก</button>
+                        </div>
+                    </form>
                 </div>
 
             </div>
@@ -362,6 +378,13 @@
                 <label style="margin-top:12px;">ภาคเรียน / เทอม *</label>
                 <input type="text" name="semester_name" class="ac-input" required placeholder="เช่น 1, 2 หรือ ฤดูร้อน">
 
+                <label style="margin-top:12px;">วันเริ่ม-สิ้นสุดภาคเรียน (ไม่บังคับ ใส่ทีหลังได้)</label>
+                <div style="display:flex; gap:8px; align-items:center;">
+                    <input type="date" name="start_date" class="ac-input">
+                    <span style="color:#94a3b8">ถึง</span>
+                    <input type="date" name="end_date" class="ac-input">
+                </div>
+
                 <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:14px; background:#f0fdf4; padding:10px; border-radius:8px; border:1px solid #dcfce7;">
                     <input type="checkbox" name="is_current" value="1" style="width:18px; height:18px; accent-color:#10b981; margin:0;" checked>
                     <span style="font-size:0.85rem; font-weight:600; color:#065f46;">ตั้งเป็นเทอมปัจจุบันทันที</span>
@@ -385,7 +408,8 @@ function openEditProgram(id, name, description) {
 
 function handleSemChange(selectObj) {
     const actionDiv = document.getElementById('semActionButtons');
-    if (!selectObj.value) { actionDiv.style.display = 'none'; return; }
+    const datesForm = document.getElementById('formSemDates');
+    if (!selectObj.value) { actionDiv.style.display = 'none'; datesForm.style.display = 'none'; return; }
 
     const selectedOption = selectObj.options[selectObj.selectedIndex];
     const isCurrent = selectedOption.getAttribute('data-current') === '1';
@@ -396,6 +420,11 @@ function handleSemChange(selectObj) {
 
     actionDiv.style.display = 'flex';
     document.getElementById('formSetSem').style.display = isCurrent ? 'none' : 'inline-block';
+
+    datesForm.action = `{{ url('academic-years/semester') }}/${selectedId}/dates`;
+    document.getElementById('semDateStart').value = selectedOption.getAttribute('data-start') || '';
+    document.getElementById('semDateEnd').value = selectedOption.getAttribute('data-end') || '';
+    datesForm.style.display = 'block';
 }
 
 document.addEventListener('DOMContentLoaded', () => {

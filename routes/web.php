@@ -488,6 +488,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
 
         Route::post('/semester', 'storeSemester')->name('storeSemester');
         Route::put('/semester/{id}/current', 'setSemesterCurrent')->name('setSemesterCurrent');
+        Route::put('/semester/{id}/dates', 'updateSemesterDates')->name('updateSemesterDates');
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
 
