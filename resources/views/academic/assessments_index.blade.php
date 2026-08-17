@@ -81,7 +81,7 @@
                 <label>ระดับชั้น</label>
                 <select name="level_id" class="filter-select" onchange="this.form.submit()">
                     <option value="">— ทุกระดับชั้น —</option>
-                    @foreach ($levels as $lv)
+                    @foreach ($classLevels as $lv)
                         <option value="{{ $lv->level_id }}" {{ (string)$levelId === (string)$lv->level_id ? 'selected' : '' }}>{{ $lv->name }}</option>
                     @endforeach
                 </select>

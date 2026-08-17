@@ -20,14 +20,16 @@ class AssessmentController extends Controller
             ?? optional(Semester::current())->semester_id
             ?? optional($semesters->first())->semester_id;
 
-        $levels  = Level::orderBy('sort_order')->get();
+        // ตั้งชื่อ classLevels (ไม่ใช่ levels เฉยๆ) เพราะหน้านี้มีตัวแปร $levels ที่ใช้ชื่ออยู่แล้ว
+        // (เป็น scale ให้คะแนน ดีเยี่ยม/ดี/ผ่าน/ไม่ผ่าน ไม่เกี่ยวกับระดับชั้นเรียนเลย) ชนกันแล้วจะเงียบๆ ทับกัน
+        $classLevels = Level::orderBy('sort_order')->get();
         $levelId = $request->get('level_id');
 
         $sections = ClassSection::with('level')
             ->where('semester_id', $semesterId)
             ->when($levelId, fn($q) => $q->where('level_id', $levelId))
             ->get()
-            ->sortBy(fn($s) => [$s->level->sort_order ?? 99, $s->section_number])
+            ->sortBy(fn($s) => [$s->level?->sort_order ?? 99, $s->section_number])
             ->values();
 
         $sectionId = $request->get('section_id');
@@ -48,7 +50,7 @@ class AssessmentController extends Controller
         }
 
         return view('academic.assessments_index', compact(
-            'semesters', 'semesterId', 'levels', 'levelId', 'sections', 'sectionId', 'students', 'assessments'
+            'semesters', 'semesterId', 'classLevels', 'levelId', 'sections', 'sectionId', 'students', 'assessments'
         ));
     }
 
