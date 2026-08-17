@@ -13,6 +13,14 @@ class LeaveType extends Model
         'leave_type_name',
         'days_per_year',
         'is_active',
+        'abbr_th',
+        'name_en',
+        'abbr_en',
+        'sort_order',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function leaveRequests()

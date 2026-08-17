@@ -517,6 +517,15 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::delete('/semester/{id}', 'destroySemester')->name('destroySemester');
     });
 
+    // === จัดการประเภทการลา ===
+    Route::controller(\App\Http\Controllers\Setting\LeaveTypeController::class)->prefix('leave-types')->name('leave-types.')->middleware('admin')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('/', 'store')->name('store');
+        Route::put('/{id}', 'update')->name('update');
+        Route::put('/{id}/toggle', 'toggle')->name('toggle');
+        Route::delete('/{id}', 'destroy')->name('destroy');
+    });
+
     // === ตั้งค่าการลา ===
     Route::controller(LeaveSettingController::class)->prefix('leave-settings')->name('leave-settings.')->middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');

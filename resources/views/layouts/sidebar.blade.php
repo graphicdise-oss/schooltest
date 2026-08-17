@@ -311,7 +311,7 @@
                                         <li><a href="{{ route('departments.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการฝ่าย/แผนกงาน</a>
                                         </li>
-                                        <li><a href="#"
+                                        <li><a href="{{ route('leave-types.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการประเภทการลา</a>
                                         </li>
                                         <li><a href="{{ route('leave-settings.index') }}"
@@ -450,9 +450,6 @@
                                         <li><a href="{{ route('scores.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกคะแนนผลการเรียน</a>
                                         </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกความคิดเห็นอาจารย์รายวิชา</a>
-                                        </li>
                                         <li><a href="{{ route('grades.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แก้ไขเกรด</a>
                                         </li>
@@ -516,12 +513,6 @@
                                     <ul class="space-y-1 pl-2">
                                         <li><a href="{{ route('attendance.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการมาเรียน</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการกิจกรรม</a>
-                                        </li>
-                                        <li><a href="#"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการทำกิจกรรม</a>
                                         </li>
                                         {{-- ย้ายเมนูการลา (ข้อมูลการลา/ประเภทการลา/ตั้งค่าการลา) ไปรวมที่กลุ่ม "บุคลากร - อาจารย์" แล้ว --}}
                                     </ul>
