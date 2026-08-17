@@ -43,16 +43,23 @@ class DashboardController extends Controller
             : collect();
         $holidayDays = $holidays->sum('day_count');
 
-        // แผนที่วันที่ -> ชื่อวันหยุด (กระจายช่วงวันหยุดหลายวันออกเป็นรายวัน) สำหรับปฏิทิน
+        // แผนที่วันที่ -> ชื่อวันหยุด สำหรับปฏิทิน — ใส่ไว้แค่ "วันเริ่ม" ของแต่ละวันหยุดเท่านั้น (ไม่กระจาย
+        // ออกเป็นรายวันแล้ว) ถ้าเป็นวันหยุดหลายวันจะต่อท้ายชื่อด้วยช่วงวันที่ เช่น "กิจกรรมวิทย์ (4-22 ส.ค.)"
+        // กันไม่ให้วันหยุดยาวๆ โชว์ซ้ำชื่อเดิมทุกวันจนดูรก
+        $thMonthsShort = [1=>'ม.ค.',2=>'ก.พ.',3=>'มี.ค.',4=>'เม.ย.',5=>'พ.ค.',6=>'มิ.ย.',
+                          7=>'ก.ค.',8=>'ส.ค.',9=>'ก.ย.',10=>'ต.ค.',11=>'พ.ย.',12=>'ธ.ค.'];
         $holidayMap = [];
         foreach ($holidays as $h) {
             if (!$h->start_date) continue;
-            $d   = $h->start_date->copy();
-            $end = $h->end_date ?? $h->start_date;
-            while ($d->lte($end)) {
-                $holidayMap[$d->format('Y-m-d')] = $h->title;
-                $d->addDay();
+            $start = $h->start_date;
+            $end   = $h->end_date ?? $h->start_date;
+            $label = $h->title;
+            if (!$end->isSameDay($start)) {
+                $label .= $end->month === $start->month
+                    ? " ({$start->day}-{$end->day} {$thMonthsShort[$start->month]})"
+                    : " ({$start->day} {$thMonthsShort[$start->month]}-{$end->day} {$thMonthsShort[$end->month]})";
             }
+            $holidayMap[$start->format('Y-m-d')] = $label;
         }
 
         // เดือนเริ่มต้นของปฏิทิน: เดือนของวันหยุดแรก ถ้าไม่มีใช้เดือนปัจจุบัน
