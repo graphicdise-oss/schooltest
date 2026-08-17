@@ -16,7 +16,6 @@ use App\Services\ExcelSchoolHeader;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
@@ -343,8 +342,14 @@ class GradeController extends Controller
                 return back()->with('error', 'อัปโหลดไฟล์ไม่สำเร็จ (ไฟล์อาจเสียหายหรือใหญ่เกินไป) กรุณาเลือกไฟล์แล้วลองใหม่อีกครั้ง');
             }
 
-            $path = $uploaded->store('imports');
-            $fullPath = Storage::path($path);
+            // อ่านจากไฟล์ temp ที่ PHP อัปโหลดไว้ให้โดยตรง ไม่ต้อง store('imports') ไปที่ storage disk ก่อน
+            // (ตัด Flysystem/Storage layer ออกไปเลย เพราะเราแค่จะอ่านไฟล์ครั้งเดียวแล้วทิ้ง ไม่ต้องเก็บถาวร
+            // — พบว่า store() ล้มเหลวบนบางเครื่อง Windows ด้วย error "Path cannot be empty" ทั้งที่ไฟล์ที่
+            // อัปโหลดมาสมบูรณ์ดี ตัดขั้นตอนที่ไม่จำเป็นนี้ออกไปแก้ปัญหาได้ตรงจุดกว่า)
+            $fullPath = $uploaded->getRealPath();
+            if (! $fullPath || ! is_file($fullPath)) {
+                return back()->with('error', 'อ่านไฟล์ที่อัปโหลดไม่ได้ กรุณาลองใหม่อีกครั้ง');
+            }
 
             $options = ['studentId' => $studentId, 'file' => $fullPath];
             if ($request->boolean('dry_run')) {
@@ -353,8 +358,6 @@ class GradeController extends Controller
 
             Artisan::call('import:transcript', $options);
             $output = Artisan::output();
-
-            @unlink($fullPath);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
@@ -492,8 +495,12 @@ class GradeController extends Controller
                 return back()->with('error', 'อัปโหลดไฟล์ไม่สำเร็จ (ไฟล์อาจเสียหายหรือใหญ่เกินไป) กรุณาเลือกไฟล์แล้วลองใหม่อีกครั้ง');
             }
 
-            $path = $uploaded->store('imports');
-            $fullPath = Storage::path($path);
+            // อ่านจากไฟล์ temp ที่ PHP อัปโหลดไว้ให้โดยตรง ไม่ต้อง store('imports') ไปที่ storage disk ก่อน
+            // (ดูเหตุผลเดียวกับ importTranscriptUpload() ด้านบน — ตัด Flysystem/Storage layer ที่ไม่จำเป็นออก)
+            $fullPath = $uploaded->getRealPath();
+            if (! $fullPath || ! is_file($fullPath)) {
+                return back()->with('error', 'อ่านไฟล์ที่อัปโหลดไม่ได้ กรุณาลองใหม่อีกครั้ง');
+            }
 
             $options = ['file' => $fullPath];
             if ($request->boolean('dry_run')) {
@@ -502,8 +509,6 @@ class GradeController extends Controller
 
             Artisan::call('import:transcript-bulk', $options);
             $output = Artisan::output();
-
-            @unlink($fullPath);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
