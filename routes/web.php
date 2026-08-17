@@ -417,8 +417,13 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::post('/transfer', 'transfer')->name('transfer');
         Route::post('/promote', 'promote')->name('promote');
         Route::post('/graduate', 'graduate')->name('graduate');
-        Route::post('/open-semester2', 'openSemester2')->name('openSemester2');
         Route::get('/history', 'history')->name('history');
+    });
+
+    // === เปิดภาคเรียน 2 (คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างในเทอม 2) — แยกเป็นเมนูของตัวเอง ===
+    Route::controller(PromotionController::class)->prefix('open-semester2')->name('open-semester2.')->middleware('admin')->group(function () {
+        Route::get('/', 'openSemester2Form')->name('form');
+        Route::post('/', 'openSemester2')->name('store');
     });
 
     // === ประชาสัมพันธ์ (ส่งประกาศให้ผู้ปกครองดูผ่านระบบผู้ปกครอง) ===

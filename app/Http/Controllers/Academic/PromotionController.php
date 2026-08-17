@@ -76,15 +76,7 @@ class PromotionController extends Controller
             $nextLevelMap[(string) $lv->level_id] = $orderedLevels[$i + 1]->level_id ?? null;
         }
 
-        // ห้องทั้งหมดของ "เทอม 1" ทุกปีการศึกษา ใช้ในแท็บ "เปิดเทอม 2" (คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างในเทอม 2)
-        // กรอง semester ที่โหลดไม่ได้ออกอีกชั้น (กันหน้าเว็บพังถ้าข้อมูลไม่ครบ)
-        $term1Sections = ClassSection::with(['level', 'semester'])
-            ->whereHas('semester', fn($q) => $q->where('semester_name', '1'))
-            ->orderBy('level_id')->orderBy('section_number')->get()
-            ->filter(fn($s) => $s->semester !== null)
-            ->values();
-
-        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester', 'nextLevelMap', 'term1Sections'));
+        return view('academic.promotions', compact('semesters', 'academicYears', 'yearId', 'levels', 'fromSections', 'toSections', 'graduateSections', 'graduateLevels', 'semesterId', 'nextSemester', 'nextLevelMap'));
     }
 
     // ย้ายห้อง (เทอมเดียวกัน)
@@ -185,6 +177,23 @@ class PromotionController extends Controller
         return redirect()->back()->with('success', 'เลื่อนชั้นสำเร็จ ' . count($request->student_ids) . ' คน');
     }
 
+    // หน้าฟอร์ม "เปิดภาคเรียน 2" — แยกเป็นเมนู/หน้าของตัวเอง ไม่ผูกกับหน้าย้ายห้อง/เลื่อนชั้น
+    public function openSemester2Form()
+    {
+        $academicYears = AcademicYear::orderByDesc('year_name')->get();
+        $levels = Level::orderBy('sort_order')->get();
+
+        // ห้องทั้งหมดของ "เทอม 1" ทุกปีการศึกษา ให้เลือกคัดลอกไปเทอม 2
+        // กรอง semester ที่โหลดไม่ได้ออกอีกชั้น (กันหน้าเว็บพังถ้าข้อมูลไม่ครบ)
+        $term1Sections = ClassSection::with(['level', 'semester'])
+            ->whereHas('semester', fn($q) => $q->where('semester_name', '1'))
+            ->orderBy('level_id')->orderBy('section_number')->get()
+            ->filter(fn($s) => $s->semester !== null)
+            ->values();
+
+        return view('academic.open_semester2', compact('academicYears', 'levels', 'term1Sections'));
+    }
+
     // เปิดเทอม 2: คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างเป็นห้องใหม่ในเทอม 2 ของปีการศึกษาเดียวกัน
     // ไม่คัดลอกตารางสอน (teaching_assigns/timetable_slots) และไม่คัดลอกรายชื่อนักเรียน ตามที่ผู้ใช้ระบุไว้
     // (ห้องเทอม 2 จะว่างเปล่า รอจัดตารางสอน/ลงทะเบียนนักเรียนทีหลัง)
@@ -241,7 +250,7 @@ class PromotionController extends Controller
             $message .= " (ข้าม {$skipped} ห้องที่มีอยู่แล้วในเทอม 2)";
         }
 
-        return redirect()->back()->with('success', $message);
+        return redirect()->route('open-semester2.form')->with('success', $message);
     }
 
     // บันทึกสำเร็จการศึกษา
