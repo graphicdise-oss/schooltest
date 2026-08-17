@@ -97,14 +97,18 @@ class AdmissionController extends Controller
             'g_phone.required'      => 'กรุณากรอกเบอร์โทรผู้ปกครอง',
         ]);
 
-        DB::transaction(function () use ($data, $setting) {
+        // ฟอร์มสมัครส่งค่าเป็น "ชาย"/"หญิง" แต่คอลัมน์ gender ในฐานข้อมูลเก็บเป็นรหัสตัวเดียว (M/F)
+        // ตามรูปแบบเดียวกับที่ StudentController ใช้ทั้งระบบ
+        $genderCode = $data['gender'] === 'หญิง' ? 'F' : 'M';
+
+        DB::transaction(function () use ($data, $setting, $genderCode) {
             // 1) สร้างนักเรียน สถานะ รอการตรวจสอบ
             $student = Student::create([
                 'thai_prefix'    => $data['thai_prefix'],
                 'thai_firstname' => $data['thai_firstname'],
                 'thai_lastname'  => $data['thai_lastname'],
                 'thai_nickname'  => $data['thai_nickname'] ?? null,
-                'gender'         => $data['gender'],
+                'gender'         => $genderCode,
                 'id_card_number' => $data['id_card_number'],
                 'date_of_birth'  => $data['date_of_birth'],
                 'nationality'    => $data['nationality'] ?? 'ไทย',

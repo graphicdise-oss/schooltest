@@ -78,30 +78,44 @@
     .btn-modal-cancel { background: #fff; color: #666; border: 1.5px solid #d0d7de; border-radius: 6px; padding: 9px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-close-x { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
 
-    /* ปฏิทิน */
-    #holidayCalendar { margin-top: 20px; }
-    .fc { font-family: 'Prompt', sans-serif; }
-    .fc .fc-toolbar-title { font-size: 1.4rem; font-weight: 700; color: #333; }
-    .fc .fc-button {
-        background: #8b5cf6; border: none; border-radius: 999px !important;
-        text-transform: lowercase; font-weight: 600; padding: 6px 18px;
-        box-shadow: none !important; font-family: inherit;
+    /* ปฏิทิน (สร้างเอง ไม่พึ่งไลบรารีภายนอก กันปัญหาโหลดไม่ขึ้น/พังบนบางเครื่อง) */
+    .cal-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin: 20px 0 14px; }
+    .cal-title { font-size: 1.3rem; font-weight: 700; color: #333; min-width: 160px; }
+    .cal-nav { display: flex; align-items: center; gap: 8px; }
+    .cal-nav-btn {
+        background: #8b5cf6; color: #fff; border: none; border-radius: 50%;
+        width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center;
+        cursor: pointer; font-size: 0.9rem;
     }
-    .fc .fc-button:hover { background: #7c3aed; }
-    .fc .fc-button-primary:not(:disabled).fc-button-active,
-    .fc .fc-button-primary:not(:disabled):active { background: #6d28d9; }
-    .fc .fc-today-button {
-        background: #e5e7eb !important; color: #9ca3af !important; opacity: 1 !important;
+    .cal-nav-btn:hover { background: #7c3aed; }
+    .cal-today-btn {
+        background: #e5e7eb; color: #6b7280; border: none; border-radius: 999px;
+        padding: 7px 18px; font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
     }
-    .fc .fc-prev-button, .fc .fc-next-button {
-        border-radius: 50% !important; width: 38px; height: 38px; padding: 0;
+    .cal-today-btn:hover { background: #d1d5db; }
+
+    .cal-grid { border: 1px solid #eef1f6; border-radius: 8px; overflow: hidden; }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); background: #f8f9fc; }
+    .cal-weekdays > div { padding: 10px 8px; text-align: center; font-size: 0.82rem; font-weight: 700; color: #555; }
+    .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); }
+    .cal-day {
+        min-height: 92px; border-top: 1px solid #eef1f6; border-left: 1px solid #eef1f6;
+        padding: 6px; display: flex; flex-direction: column; gap: 3px; overflow: hidden;
+    }
+    .cal-day:nth-child(7n+1) { border-left: none; }
+    .cal-day-num { font-size: 0.82rem; color: #333; font-weight: 600; }
+    .cal-day.other-month .cal-day-num { color: #ccc; }
+    .cal-day.is-today { background: #f5f3ff; }
+    .cal-day.is-today .cal-day-num {
         display: inline-flex; align-items: center; justify-content: center;
+        width: 22px; height: 22px; border-radius: 50%; background: #8b5cf6; color: #fff;
     }
-    .fc .fc-toolbar.fc-header-toolbar { margin-bottom: 1.2em; flex-wrap: wrap; gap: 10px; }
-    .fc-event { cursor: pointer; border: none !important; font-size: 0.8rem; }
-    .fc-daygrid-event { padding: 2px 6px; }
-    .fc-theme-standard td, .fc-theme-standard th { border-color: #eef1f6; }
-    .fc-day-today { background: #f5f3ff !important; }
+    .cal-pill {
+        font-size: 0.72rem; padding: 2px 7px; border-radius: 5px; color: #fff;
+        white-space: normal; word-break: break-word; cursor: pointer;
+        line-height: 1.4;
+    }
+    .cal-pill:hover { filter: brightness(0.92); }
 
     /* Modal รายละเอียดวันหยุด (คลิกจากปฏิทิน) */
     .info-modal-box { background: #fff; border-radius: 12px; width: 380px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); padding: 32px 28px 28px; text-align: center; }
@@ -167,7 +181,21 @@
     <div class="floating-card">
         <div class="floating-icon" style="background:#8b5cf6;"><i class="fas fa-calendar-days"></i></div>
         <div class="card-header-text">ปฏิทิน</div>
-        <div id="holidayCalendar"></div>
+
+        <div class="cal-header">
+            <div class="cal-title" id="calTitle"></div>
+            <div class="cal-nav">
+                <button type="button" class="cal-today-btn" onclick="calGoToday()">วันนี้</button>
+                <button type="button" class="cal-nav-btn" onclick="calChangeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                <button type="button" class="cal-nav-btn" onclick="calChangeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+        <div class="cal-grid">
+            <div class="cal-weekdays">
+                <div>อา</div><div>จ</div><div>อ</div><div>พ</div><div>พฤ</div><div>ศ</div><div>ส</div>
+            </div>
+            <div class="cal-days" id="calDays"></div>
+        </div>
     </div>
 
     {{-- ตารางวันหยุด --}}
@@ -352,8 +380,6 @@
 @endsection
 
 @push('scripts')
-{{-- โหลดจากไฟล์ในระบบเอง ไม่พึ่ง CDN ภายนอก (บางโรงเรียนบล็อก jsdelivr.net ทำให้ปฏิทินโหลดไม่ขึ้น/พังครึ่งๆ กลางๆ) --}}
-<script src="{{ asset('vendor/fullcalendar/fullcalendar.min.js') }}"></script>
 <script>
     // template URL สำหรับแก้ไข (id = 0) แล้วแทนที่ท้าย path ด้วย id จริง
     const EDIT_URL_TEMPLATE = "{{ route('holidays.update', 0) }}";
@@ -381,36 +407,115 @@
         });
     });
 
-    document.addEventListener('DOMContentLoaded', function () {
-        const calendarEl = document.getElementById('holidayCalendar');
-        if (!calendarEl || typeof FullCalendar === 'undefined') return;
+    // ===== ปฏิทิน (สร้างเอง — ไม่พึ่งไลบรารีภายนอก) =====
+    // เหตุการณ์หลายวันแสดงเป็น "ป้ายเดียว" บนวันเริ่มเท่านั้น พร้อมช่วงวันที่ต่อท้าย
+    // (เช่น "กิจกรรมวิทย์ (4-22 ส.ค.)") ไม่แสดงซ้ำทุกวันและไม่ทำเป็นแถบยาวคาดข้ามสัปดาห์
+    const CAL_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+    const CAL_MONTHS_SHORT = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
 
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            locale: 'en',
-            height: 'auto',
-            headerToolbar: {
-                left: 'title',
-                center: 'dayGridMonth,timeGridWeek,timeGridDay',
-                right: 'prev,next,today'
-            },
-            events: CALENDAR_EVENTS,
-            eventClick: function (info) {
-                const p = info.event.extendedProps;
-                document.getElementById('infoTitle').textContent = info.event.title;
-                document.getElementById('infoStart').textContent = p.start_th;
-                document.getElementById('infoEnd').textContent   = p.end_th;
-                document.getElementById('infoType').textContent  = p.type;
-                const noteRow = document.getElementById('infoNoteRow');
-                if (p.note) {
-                    document.getElementById('infoNote').textContent = p.note;
-                    noteRow.style.display = '';
-                } else {
-                    noteRow.style.display = 'none';
-                }
-                document.getElementById('infoModal').classList.add('active');
-            }
+    function calParseDate(s) {
+        const [y, m, d] = s.split('-').map(Number);
+        return new Date(y, m - 1, d);
+    }
+    function calYmd(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function calRangeLabel(startDate, endDateInclusive) {
+        if (calYmd(startDate) === calYmd(endDateInclusive)) return '';
+        if (startDate.getMonth() === endDateInclusive.getMonth()) {
+            return ` (${startDate.getDate()}-${endDateInclusive.getDate()} ${CAL_MONTHS_SHORT[startDate.getMonth()]})`;
+        }
+        return ` (${startDate.getDate()} ${CAL_MONTHS_SHORT[startDate.getMonth()]}-${endDateInclusive.getDate()} ${CAL_MONTHS_SHORT[endDateInclusive.getMonth()]})`;
+    }
+
+    // เตรียมข้อมูล event ครั้งเดียว: หา key วันเริ่ม (Y-m-d) + label ที่จะโชว์
+    const CAL_EVENTS_BY_START = {};
+    CALENDAR_EVENTS.forEach(ev => {
+        const start = calParseDate(ev.start);
+        const endExclusive = calParseDate(ev.end); // FullCalendar-style: exclusive
+        const endInclusive = new Date(endExclusive.getTime() - 86400000);
+        const key = calYmd(start);
+        (CAL_EVENTS_BY_START[key] = CAL_EVENTS_BY_START[key] || []).push({
+            ev, label: ev.title + calRangeLabel(start, endInclusive),
         });
-        calendar.render();
     });
+
+    let calCursor = new Date(); // เดือน/ปีที่กำลังดูอยู่
+    const calFirstEventDate = CALENDAR_EVENTS.length ? calParseDate(CALENDAR_EVENTS.slice().sort((a, b) => a.start.localeCompare(b.start))[0].start) : null;
+    if (calFirstEventDate) calCursor = new Date(calFirstEventDate.getFullYear(), calFirstEventDate.getMonth(), 1);
+
+    function calRender() {
+        const year = calCursor.getFullYear();
+        const month = calCursor.getMonth();
+        document.getElementById('calTitle').textContent = CAL_MONTHS[month] + ' ' + (year + 543);
+
+        const firstOfMonth = new Date(year, month, 1);
+        const startOffset = firstOfMonth.getDay(); // 0=Sun
+        const gridStart = new Date(year, month, 1 - startOffset);
+        const today = new Date();
+        const todayKey = calYmd(today);
+
+        const daysEl = document.getElementById('calDays');
+        daysEl.innerHTML = '';
+        for (let i = 0; i < 42; i++) {
+            const cellDate = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + i);
+            const key = calYmd(cellDate);
+            const cell = document.createElement('div');
+            cell.className = 'cal-day' + (cellDate.getMonth() !== month ? ' other-month' : '') + (key === todayKey ? ' is-today' : '');
+
+            const num = document.createElement('div');
+            num.className = 'cal-day-num';
+            num.textContent = cellDate.getDate();
+            cell.appendChild(num);
+
+            (CAL_EVENTS_BY_START[key] || []).forEach(item => {
+                const pill = document.createElement('div');
+                pill.className = 'cal-pill';
+                pill.style.background = item.ev.color;
+                pill.textContent = item.label;
+                pill.title = item.label;
+                pill.onclick = () => calShowInfo(item.ev);
+                cell.appendChild(pill);
+            });
+
+            daysEl.appendChild(cell);
+            // เต็ม 6 แถวพอดี (42 วัน) แต่ถ้าแถวสุดท้ายไม่มีวันของเดือนนี้เลย ตัดออกเพื่อไม่ให้ปฏิทินยาวเกินจำเป็น
+            if (i === 34) {
+                const remainingHasCurrentMonth = Array.from({length: 7}, (_, j) => {
+                    const d = new Date(gridStart.getFullYear(), gridStart.getMonth(), gridStart.getDate() + 35 + j);
+                    return d.getMonth() === month;
+                }).some(Boolean);
+                if (!remainingHasCurrentMonth) break;
+            }
+        }
+    }
+
+    function calShowInfo(ev) {
+        const p = ev.extendedProps;
+        document.getElementById('infoTitle').textContent = ev.title;
+        document.getElementById('infoStart').textContent = p.start_th;
+        document.getElementById('infoEnd').textContent   = p.end_th;
+        document.getElementById('infoType').textContent  = p.type;
+        const noteRow = document.getElementById('infoNoteRow');
+        if (p.note) {
+            document.getElementById('infoNote').textContent = p.note;
+            noteRow.style.display = '';
+        } else {
+            noteRow.style.display = 'none';
+        }
+        document.getElementById('infoModal').classList.add('active');
+    }
+
+    function calChangeMonth(delta) {
+        calCursor = new Date(calCursor.getFullYear(), calCursor.getMonth() + delta, 1);
+        calRender();
+    }
+    function calGoToday() {
+        const now = new Date();
+        calCursor = new Date(now.getFullYear(), now.getMonth(), 1);
+        calRender();
+    }
+
+    document.addEventListener('DOMContentLoaded', calRender);
 </script>
 @endpush
