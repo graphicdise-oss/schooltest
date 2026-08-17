@@ -347,8 +347,8 @@ class GradeController extends Controller
             // — พบว่า store() ล้มเหลวบนบางเครื่อง Windows ด้วย error "Path cannot be empty" ทั้งที่ไฟล์ที่
             // อัปโหลดมาสมบูรณ์ดี ตัดขั้นตอนที่ไม่จำเป็นนี้ออกไปแก้ปัญหาได้ตรงจุดกว่า)
             $fullPath = $uploaded->getRealPath();
-            if (! $fullPath || ! is_file($fullPath)) {
-                return back()->with('error', 'อ่านไฟล์ที่อัปโหลดไม่ได้ กรุณาลองใหม่อีกครั้ง');
+            if (! $fullPath || ! $this->waitForReadableFile($fullPath)) {
+                return back()->with('error', 'ระบบเข้าถึงไฟล์ที่อัปโหลดไม่ได้ (มักเกิดจากโปรแกรมป้องกันไวรัสสแกนไฟล์ค้างอยู่ พบบ่อยกับไฟล์ขนาดใหญ่บน Windows) กรุณาลองใหม่อีกครั้ง หรือปิด real-time protection ชั่วคราวแล้วลองใหม่');
             }
 
             $options = ['studentId' => $studentId, 'file' => $fullPath];
@@ -366,6 +366,24 @@ class GradeController extends Controller
         }
 
         return back()->with('transcript_import_output', $output);
+    }
+
+    // เช็คว่าไฟล์ temp ที่เพิ่งอัปโหลดมาอ่านได้จริงหรือยัง — บนบางเครื่อง Windows โปรแกรมป้องกันไวรัส
+    // จะสแกนไฟล์ที่เพิ่งเขียนเสร็จใหม่ๆ ทันที ทำให้ไฟล์ถูกล็อกชั่วคราวจนกว่าจะสแกนเสร็จ (ยิ่งไฟล์ใหญ่ยิ่งช้า
+    // เช่นไฟล์นำเข้าทั้งห้องที่มีหลายชีต) ลองอ่านซ้ำสั้นๆ ก่อนจะถือว่าอ่านไม่ได้จริง แทนที่จะฟันธงทันทีครั้งเดียว
+    private function waitForReadableFile(string $path, int $maxAttempts = 6, int $delayMs = 200): bool
+    {
+        for ($i = 0; $i < $maxAttempts; $i++) {
+            if (is_file($path)) {
+                $handle = @fopen($path, 'rb');
+                if ($handle) {
+                    fclose($handle);
+                    return true;
+                }
+            }
+            usleep($delayMs * 1000);
+        }
+        return false;
     }
 
     // หน้ารวม "นำเข้าเกรดรวมทั้งห้อง" — เลือกปี/เทอม/ระดับ/ห้อง แล้วโหลดฟอร์ม/อัปโหลดไฟล์รวมของทั้งห้องได้
@@ -498,8 +516,8 @@ class GradeController extends Controller
             // อ่านจากไฟล์ temp ที่ PHP อัปโหลดไว้ให้โดยตรง ไม่ต้อง store('imports') ไปที่ storage disk ก่อน
             // (ดูเหตุผลเดียวกับ importTranscriptUpload() ด้านบน — ตัด Flysystem/Storage layer ที่ไม่จำเป็นออก)
             $fullPath = $uploaded->getRealPath();
-            if (! $fullPath || ! is_file($fullPath)) {
-                return back()->with('error', 'อ่านไฟล์ที่อัปโหลดไม่ได้ กรุณาลองใหม่อีกครั้ง');
+            if (! $fullPath || ! $this->waitForReadableFile($fullPath)) {
+                return back()->with('error', 'ระบบเข้าถึงไฟล์ที่อัปโหลดไม่ได้ (มักเกิดจากโปรแกรมป้องกันไวรัสสแกนไฟล์ค้างอยู่ พบบ่อยกับไฟล์ขนาดใหญ่บน Windows) กรุณาลองใหม่อีกครั้ง หรือปิด real-time protection ชั่วคราวแล้วลองใหม่');
             }
 
             $options = ['file' => $fullPath];
