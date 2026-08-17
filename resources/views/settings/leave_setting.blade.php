@@ -501,6 +501,13 @@
 
 {{-- ===== Modals ===== --}}
 
+{{-- รายชื่อบุคลากรกลาง ให้ input พิมพ์ค้นหาแบบ autocomplete ทุกช่องที่ต้องเลือกคน (แทน select ยาวๆ) --}}
+<datalist id="personnelDatalist">
+    @foreach($personnelList as $p)
+    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}"></option>
+    @endforeach
+</datalist>
+
 {{-- Modal: เพิ่มแผนก --}}
 <div id="modal-add-dept" class="ls-modal-overlay" style="display:none;">
     <div class="ls-modal">
@@ -513,36 +520,15 @@
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ผู้อนุมัติ 1 (หัวหน้าแผนก)</div>
-                <select name="approver_1" class="ls-select">
-                    <option value="">-- เลือกผู้อนุมัติ --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <input type="text" name="approver_1" class="ls-input" list="personnelDatalist" placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off">
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ผู้อนุมัติ 2</div>
-                <select name="approver_2" class="ls-select">
-                    <option value="">-- เลือกผู้อนุมัติ --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <input type="text" name="approver_2" class="ls-input" list="personnelDatalist" placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off">
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ผู้อนุมัติ 3</div>
-                <select name="approver_3" class="ls-select">
-                    <option value="">-- เลือกผู้อนุมัติ --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <input type="text" name="approver_3" class="ls-input" list="personnelDatalist" placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off">
             </div>
             <div class="ls-modal-footer">
                 <button type="button" class="btn-cancel" onclick="document.getElementById('modal-add-dept').style.display='none'">ยกเลิก</button>
@@ -564,36 +550,15 @@
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ผู้อนุมัติ 1 (หัวหน้าแผนก)</div>
-                <select name="approver_1" id="edit-approver-1" class="ls-select">
-                    <option value="">-- เลือกผู้อนุมัติ --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <input type="text" name="approver_1" id="edit-approver-1" class="ls-input" list="personnelDatalist" placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off">
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ผู้อนุมัติ 2</div>
-                <select name="approver_2" id="edit-approver-2" class="ls-select">
-                    <option value="">-- เลือกผู้อนุมัติ --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <input type="text" name="approver_2" id="edit-approver-2" class="ls-input" list="personnelDatalist" placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off">
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ผู้อนุมัติ 3</div>
-                <select name="approver_3" id="edit-approver-3" class="ls-select">
-                    <option value="">-- เลือกผู้อนุมัติ --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->thai_firstname }} {{ $p->thai_lastname }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <input type="text" name="approver_3" id="edit-approver-3" class="ls-input" list="personnelDatalist" placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off">
             </div>
             <div class="ls-modal-footer">
                 <button type="button" class="btn-cancel" onclick="document.getElementById('modal-edit-dept').style.display='none'">ยกเลิก</button>
@@ -637,17 +602,10 @@
         <form action="{{ route('leave-settings.storeRecipient') }}" method="POST">
             @csrf
             <div style="margin-bottom:14px;">
-                <div class="ls-label">เลือกจากรายชื่อบุคลากร</div>
-                <select name="personnel_id" class="ls-select" onchange="fillRecipientName(this)">
-                    <option value="">-- เลือกบุคลากร --</option>
-                    @foreach($personnelList as $p)
-                    <option value="{{ $p->personnel_id }}"
-                        data-name="{{ $p->thai_firstname }} {{ $p->thai_lastname }}"
-                        data-position="{{ $p->department }}">
-                        {{ $p->thai_prefix }}{{ $p->thai_firstname }} {{ $p->thai_lastname }}
-                    </option>
-                    @endforeach
-                </select>
+                <div class="ls-label">เลือกจากรายชื่อบุคลากร (พิมพ์เพื่อค้นหา)</div>
+                <input type="text" id="recip-personnel-search" class="ls-input" list="personnelDatalist"
+                    placeholder="พิมพ์ชื่อเพื่อค้นหา..." autocomplete="off" oninput="matchRecipientPersonnel(this)">
+                <input type="hidden" name="personnel_id" id="recip-personnel-id">
             </div>
             <div style="margin-bottom:14px;">
                 <div class="ls-label">ตำแหน่ง</div>
@@ -670,25 +628,26 @@
 function openEditDept(id, deptName, app1, app2, app3) {
     document.getElementById('form-edit-dept').action = '/leave-settings/dept/' + id;
     document.getElementById('edit-dept-name').value = deptName;
-    setSelectValue('edit-approver-1', app1);
-    setSelectValue('edit-approver-2', app2);
-    setSelectValue('edit-approver-3', app3);
+    document.getElementById('edit-approver-1').value = app1;
+    document.getElementById('edit-approver-2').value = app2;
+    document.getElementById('edit-approver-3').value = app3;
     document.getElementById('modal-edit-dept').style.display = 'flex';
 }
 
-function setSelectValue(id, val) {
-    const sel = document.getElementById(id);
-    for (let opt of sel.options) {
-        if (opt.value === val) { sel.value = val; return; }
-    }
-    sel.value = '';
-}
-
-function fillRecipientName(sel) {
-    const opt = sel.options[sel.selectedIndex];
-    if (opt.value) {
-        document.getElementById('recip-name').value = opt.dataset.name;
-        document.getElementById('recip-position').value = opt.dataset.position || '';
+// ค้นชื่อ-รหัสบุคลากรจากช่อง "เลือกจากรายชื่อบุคลากร" (พิมพ์ค้นหาแบบ datalist) — ต้องพิมพ์ตรงกับชื่อในลิสต์เป๊ะถึงจะ match แล้วเติมให้อัตโนมัติ
+const personnelLookup = {
+    @foreach($personnelList as $p)
+    "{{ $p->thai_firstname }} {{ $p->thai_lastname }}": {id: {{ $p->personnel_id }}, position: @json($p->department)},
+    @endforeach
+};
+function matchRecipientPersonnel(input) {
+    const match = personnelLookup[input.value];
+    if (match) {
+        document.getElementById('recip-personnel-id').value = match.id;
+        document.getElementById('recip-name').value = input.value;
+        document.getElementById('recip-position').value = match.position || '';
+    } else {
+        document.getElementById('recip-personnel-id').value = '';
     }
 }
 
