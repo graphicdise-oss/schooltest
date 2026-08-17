@@ -342,12 +342,8 @@ class GradeController extends Controller
                 return back()->with('error', 'อัปโหลดไฟล์ไม่สำเร็จ (ไฟล์อาจเสียหายหรือใหญ่เกินไป) กรุณาเลือกไฟล์แล้วลองใหม่อีกครั้ง');
             }
 
-            // อ่านจากไฟล์ temp ที่ PHP อัปโหลดไว้ให้โดยตรง ไม่ต้อง store('imports') ไปที่ storage disk ก่อน
-            // (ตัด Flysystem/Storage layer ออกไปเลย เพราะเราแค่จะอ่านไฟล์ครั้งเดียวแล้วทิ้ง ไม่ต้องเก็บถาวร
-            // — พบว่า store() ล้มเหลวบนบางเครื่อง Windows ด้วย error "Path cannot be empty" ทั้งที่ไฟล์ที่
-            // อัปโหลดมาสมบูรณ์ดี ตัดขั้นตอนที่ไม่จำเป็นนี้ออกไปแก้ปัญหาได้ตรงจุดกว่า)
-            $fullPath = $uploaded->getRealPath();
-            if (! $fullPath || ! $this->waitForReadableFile($fullPath)) {
+            $fullPath = $this->moveUploadedFileToTemp($uploaded);
+            if (! $fullPath) {
                 return back()->with('error', 'ระบบเข้าถึงไฟล์ที่อัปโหลดไม่ได้ (มักเกิดจากโปรแกรมป้องกันไวรัสสแกนไฟล์ค้างอยู่ พบบ่อยกับไฟล์ขนาดใหญ่บน Windows) กรุณาลองใหม่อีกครั้ง หรือปิด real-time protection ชั่วคราวแล้วลองใหม่');
             }
 
@@ -358,6 +354,8 @@ class GradeController extends Controller
 
             Artisan::call('import:transcript', $options);
             $output = Artisan::output();
+
+            @unlink($fullPath);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
@@ -368,22 +366,34 @@ class GradeController extends Controller
         return back()->with('transcript_import_output', $output);
     }
 
-    // เช็คว่าไฟล์ temp ที่เพิ่งอัปโหลดมาอ่านได้จริงหรือยัง — บนบางเครื่อง Windows โปรแกรมป้องกันไวรัส
-    // จะสแกนไฟล์ที่เพิ่งเขียนเสร็จใหม่ๆ ทันที ทำให้ไฟล์ถูกล็อกชั่วคราวจนกว่าจะสแกนเสร็จ (ยิ่งไฟล์ใหญ่ยิ่งช้า
-    // เช่นไฟล์นำเข้าทั้งห้องที่มีหลายชีต) ลองอ่านซ้ำสั้นๆ ก่อนจะถือว่าอ่านไม่ได้จริง แทนที่จะฟันธงทันทีครั้งเดียว
-    private function waitForReadableFile(string $path, int $maxAttempts = 6, int $delayMs = 200): bool
+    // ย้ายไฟล์ temp ที่เพิ่งอัปโหลดมาไปเก็บที่ path ใหม่ที่เราคุมเอง โดยใช้ move_uploaded_file() ของ PHP
+    // ตรงๆ (ไม่ผ่าน Symfony/Laravel UploadedFile::store()/getRealPath()+fopen() ที่ล้มเหลวบนบางเครื่อง
+    // Windows แม้จะลองรออ่านซ้ำแล้วก็ตาม) — move_uploaded_file() เป็นฟังก์ชันของ PHP เองที่ออกแบบมา
+    // สำหรับไฟล์ที่อัปโหลดผ่าน HTTP โดยเฉพาะ ใช้กลไกภายในของ PHP เอง (is_uploaded_file) ไม่ใช่การเปิด
+    // ไฟล์ตรงๆ แบบ fopen ทั่วไป มีโอกาสรอดจากปัญหาไฟล์ถูกล็อกได้มากกว่า — ลองซ้ำสั้นๆ เผื่อไฟล์ยังไม่พร้อม
+    private function moveUploadedFileToTemp(\Illuminate\Http\UploadedFile $uploaded, int $maxAttempts = 6, int $delayMs = 200): ?string
     {
+        $source = $uploaded->getPathname();
+        if (! $source) {
+            return null;
+        }
+
+        $dest = tempnam(sys_get_temp_dir(), 'grade_import_') . '.xlsx';
+
         for ($i = 0; $i < $maxAttempts; $i++) {
-            if (is_file($path)) {
-                $handle = @fopen($path, 'rb');
-                if ($handle) {
-                    fclose($handle);
-                    return true;
-                }
+            if (is_uploaded_file($source) && @move_uploaded_file($source, $dest)) {
+                return $dest;
+            }
+            // เผื่อ move_uploaded_file ใช้ไม่ได้เพราะบริบทนี้ไม่ใช่ HTTP request จริง (เช่น artisan tinker/test) —
+            // ลอง copy() ธรรมดาสำรองไว้ด้วย
+            if (is_file($source) && @copy($source, $dest)) {
+                return $dest;
             }
             usleep($delayMs * 1000);
         }
-        return false;
+
+        @unlink($dest);
+        return null;
     }
 
     // หน้ารวม "นำเข้าเกรดรวมทั้งห้อง" — เลือกปี/เทอม/ระดับ/ห้อง แล้วโหลดฟอร์ม/อัปโหลดไฟล์รวมของทั้งห้องได้
@@ -513,10 +523,8 @@ class GradeController extends Controller
                 return back()->with('error', 'อัปโหลดไฟล์ไม่สำเร็จ (ไฟล์อาจเสียหายหรือใหญ่เกินไป) กรุณาเลือกไฟล์แล้วลองใหม่อีกครั้ง');
             }
 
-            // อ่านจากไฟล์ temp ที่ PHP อัปโหลดไว้ให้โดยตรง ไม่ต้อง store('imports') ไปที่ storage disk ก่อน
-            // (ดูเหตุผลเดียวกับ importTranscriptUpload() ด้านบน — ตัด Flysystem/Storage layer ที่ไม่จำเป็นออก)
-            $fullPath = $uploaded->getRealPath();
-            if (! $fullPath || ! $this->waitForReadableFile($fullPath)) {
+            $fullPath = $this->moveUploadedFileToTemp($uploaded);
+            if (! $fullPath) {
                 return back()->with('error', 'ระบบเข้าถึงไฟล์ที่อัปโหลดไม่ได้ (มักเกิดจากโปรแกรมป้องกันไวรัสสแกนไฟล์ค้างอยู่ พบบ่อยกับไฟล์ขนาดใหญ่บน Windows) กรุณาลองใหม่อีกครั้ง หรือปิด real-time protection ชั่วคราวแล้วลองใหม่');
             }
 
@@ -527,6 +535,8 @@ class GradeController extends Controller
 
             Artisan::call('import:transcript-bulk', $options);
             $output = Artisan::output();
+
+            @unlink($fullPath);
         } catch (\Illuminate\Validation\ValidationException $e) {
             throw $e;
         } catch (\Throwable $e) {
