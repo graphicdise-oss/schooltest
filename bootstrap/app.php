@@ -19,6 +19,13 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            // ตอน APP_DEBUG=true (เครื่อง dev/localhost) ปล่อยให้ Laravel โชว์หน้า debug เต็มๆ
+            // (stack trace จริง) ไปเลย ไม่ต้องทับด้วยหน้าอะไรทั้งนั้น จะได้ debug ง่าย — เงื่อนไขด้านล่าง
+            // (ซ่อน error หลังหน้าสวยๆ) มีผลเฉพาะตอน APP_DEBUG=false (production) เท่านั้น
+            if (config('app.debug')) {
+                return null;
+            }
+
             if ($request->is('parent/*')
                 && ! $request->expectsJson()
                 && ! $e instanceof \Illuminate\Validation\ValidationException) {
@@ -26,7 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     ->with('error', 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
 
-            // ไม่ต้องการให้ผู้ใช้เห็นหน้า debug ของ Laravel (stack trace เต็มๆ) ไม่ว่า APP_DEBUG จะเปิดหรือปิด
+            // ไม่ต้องการให้ผู้ใช้เห็นหน้า debug ของ Laravel (stack trace เต็มๆ) ตอน production (APP_DEBUG=false)
             // ยกเว้น HTTP exception ปกติ (404/403/419/429/503 ฯลฯ) ที่มีหน้า errors/{code}.blade.php ของตัวเองอยู่แล้ว
             // ยกเว้น AuthenticationException (ยังไม่ได้ login) เพราะไม่ใช่ HttpExceptionInterface แต่ต้องปล่อยให้
             // Laravel จัดการแบบปกติ (เด้งไปหน้า login พร้อมจำหน้าที่ตั้งใจจะเข้าไว้ ไม่ใช่ทับด้วยหน้า error 500)

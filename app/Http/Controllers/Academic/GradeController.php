@@ -321,31 +321,46 @@ class GradeController extends Controller
     }
 
     // รับไฟล์ Excel เกรดรวมที่กรอกมา แล้วรันคำสั่งนำเข้าให้นักเรียนคนนี้
+    // ครอบทั้งฟังก์ชันด้วย try/catch เพราะการอัปโหลดไฟล์มีจุดพังได้หลายจุด (validate() เองก็แตะไฟล์
+    // เพื่อเดา mime type, store() ก็แตะไฟล์อีกที) — ถ้าไฟล์ชั่วคราวหายไปกลางทาง อยากให้ขึ้นข้อความแจ้งเตือน
+    // สวยๆ ไม่ใช่หน้า error ระบบ ยกเว้น validation error ปกติที่ต้องปล่อยผ่านให้ Laravel จัดการแบบเดิม
     public function importTranscriptUpload(Request $request, $studentId)
     {
         Student::findOrFail($studentId);
 
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx',
-        ], [
-            'file.required' => 'กรุณาเลือกไฟล์ Excel',
-            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
-        ]);
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx',
+            ], [
+                'file.required' => 'กรุณาเลือกไฟล์ Excel',
+                'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+            ]);
 
-        set_time_limit(0);
+            set_time_limit(0);
 
-        $path = $request->file('file')->store('imports');
-        $fullPath = Storage::path($path);
+            $uploaded = $request->file('file');
+            if (! $uploaded || ! $uploaded->isValid()) {
+                return back()->with('error', 'อัปโหลดไฟล์ไม่สำเร็จ (ไฟล์อาจเสียหายหรือใหญ่เกินไป) กรุณาเลือกไฟล์แล้วลองใหม่อีกครั้ง');
+            }
 
-        $options = ['studentId' => $studentId, 'file' => $fullPath];
-        if ($request->boolean('dry_run')) {
-            $options['--dry-run'] = true;
+            $path = $uploaded->store('imports');
+            $fullPath = Storage::path($path);
+
+            $options = ['studentId' => $studentId, 'file' => $fullPath];
+            if ($request->boolean('dry_run')) {
+                $options['--dry-run'] = true;
+            }
+
+            Artisan::call('import:transcript', $options);
+            $output = Artisan::output();
+
+            @unlink($fullPath);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'นำเข้าไฟล์ไม่สำเร็จ: ' . $e->getMessage());
         }
-
-        Artisan::call('import:transcript', $options);
-        $output = Artisan::output();
-
-        @unlink($fullPath);
 
         return back()->with('transcript_import_output', $output);
     }
@@ -456,29 +471,45 @@ class GradeController extends Controller
     }
 
     // รับไฟล์ Excel เกรดรวมทั้งห้องที่กรอกมา แล้วรันคำสั่งนำเข้าให้หลายคนพร้อมกัน
+    // ครอบทั้งฟังก์ชันด้วย try/catch เพราะการอัปโหลดไฟล์มีจุดพังได้หลายจุด (validate() เองก็แตะไฟล์
+    // เพื่อเดา mime type, store() ก็แตะไฟล์อีกที) — ถ้าไฟล์ชั่วคราวหายไปกลางทาง (เช่น เบราว์เซอร์/เครื่อง
+    // บางเครื่องมีปัญหา) อยากให้ขึ้นข้อความแจ้งเตือนสวยๆ ไม่ใช่หน้า error ระบบ ยกเว้น validation error ปกติ
+    // (เช่น ยังไม่เลือกไฟล์) ที่ต้องปล่อยผ่านให้ Laravel จัดการแบบเดิม (redirect back พร้อม $errors)
     public function importBulkUpload(Request $request)
     {
-        $request->validate([
-            'file' => 'required|file|mimes:xlsx',
-        ], [
-            'file.required' => 'กรุณาเลือกไฟล์ Excel',
-            'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
-        ]);
+        try {
+            $request->validate([
+                'file' => 'required|file|mimes:xlsx',
+            ], [
+                'file.required' => 'กรุณาเลือกไฟล์ Excel',
+                'file.mimes' => 'ไฟล์ต้องเป็นสกุล .xlsx เท่านั้น',
+            ]);
 
-        set_time_limit(0);
+            set_time_limit(0);
 
-        $path = $request->file('file')->store('imports');
-        $fullPath = Storage::path($path);
+            $uploaded = $request->file('file');
+            if (! $uploaded || ! $uploaded->isValid()) {
+                return back()->with('error', 'อัปโหลดไฟล์ไม่สำเร็จ (ไฟล์อาจเสียหายหรือใหญ่เกินไป) กรุณาเลือกไฟล์แล้วลองใหม่อีกครั้ง');
+            }
 
-        $options = ['file' => $fullPath];
-        if ($request->boolean('dry_run')) {
-            $options['--dry-run'] = true;
+            $path = $uploaded->store('imports');
+            $fullPath = Storage::path($path);
+
+            $options = ['file' => $fullPath];
+            if ($request->boolean('dry_run')) {
+                $options['--dry-run'] = true;
+            }
+
+            Artisan::call('import:transcript-bulk', $options);
+            $output = Artisan::output();
+
+            @unlink($fullPath);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            throw $e;
+        } catch (\Throwable $e) {
+            report($e);
+            return back()->with('error', 'นำเข้าไฟล์ไม่สำเร็จ: ' . $e->getMessage());
         }
-
-        Artisan::call('import:transcript-bulk', $options);
-        $output = Artisan::output();
-
-        @unlink($fullPath);
 
         return back()->with('transcript_import_output', $output);
     }

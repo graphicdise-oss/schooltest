@@ -212,6 +212,20 @@
     </div>
 </div>
 
+@if (session('error'))
+<div class="gib-overlay active" id="bulkImportErrorOverlay">
+    <div class="gib-modal" style="width:520px; max-width:95vw">
+        <div class="gib-modal-header" style="background:#dc3545"><i class="bi bi-exclamation-triangle"></i> นำเข้าไม่สำเร็จ</div>
+        <div class="gib-modal-body">
+            <p style="margin:0">{{ session('error') }}</p>
+        </div>
+        <div class="gib-modal-footer">
+            <button type="button" class="btn-modal-save" onclick="document.getElementById('bulkImportErrorOverlay').remove()">ปิด</button>
+        </div>
+    </div>
+</div>
+@endif
+
 @if (session('transcript_import_output'))
 <div class="gib-overlay active" id="bulkImportResultOverlay">
     <div class="gib-modal" style="width:640px; max-width:95vw">

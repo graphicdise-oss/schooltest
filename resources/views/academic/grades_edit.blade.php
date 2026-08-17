@@ -312,6 +312,20 @@
     </div>
 </div>
 
+@if (session('error'))
+<div class="ge-overlay active" id="transcriptImportErrorOverlay">
+    <div class="ge-modal" style="width:520px; max-width:95vw">
+        <div class="ge-modal-header" style="background:#dc3545"><i class="bi bi-exclamation-triangle"></i> นำเข้าไม่สำเร็จ</div>
+        <div class="ge-modal-body">
+            <p style="margin:0">{{ session('error') }}</p>
+        </div>
+        <div class="ge-modal-footer">
+            <button type="button" class="btn-modal-save" onclick="document.getElementById('transcriptImportErrorOverlay').remove()">ปิด</button>
+        </div>
+    </div>
+</div>
+@endif
+
 @if (session('transcript_import_output'))
 <div class="ge-overlay active" id="transcriptImportResultOverlay">
     <div class="ge-modal" style="width:640px; max-width:95vw">
