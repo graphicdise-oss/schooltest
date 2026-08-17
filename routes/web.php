@@ -599,6 +599,13 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
             Route::get('/', 'index')->name('index');
         });
 
+    // === ติดต่อ-แจ้งปัญหา (ทุกคนที่ login แล้วใช้ได้) ===
+    Route::controller(\App\Http\Controllers\ContactController::class)
+        ->prefix('contact')->name('contact.')->group(function () {
+            Route::get('/', 'create')->name('create');
+            Route::post('/', 'store')->name('store');
+        });
+
     Route::controller(\App\Http\Controllers\Setting\SchoolSettingController::class)
         ->prefix('settings/school')->name('settings.school.')->middleware('admin')->group(function () {
             Route::get('/', 'index')->name('index');

@@ -685,6 +685,14 @@
                 </a>
                 @endif
 
+                {{-- ===== ติดต่อ-แจ้งปัญหา ===== --}}
+                <a id="menu-contact" data-menu="contact" href="{{ route('contact.create') }}"
+                    @mouseenter="moveIndicator($el); hoverItem = 'contact'"
+                    :class="(hoverItem === 'contact' || (hoverItem === null && activeItem === 'contact')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                    class="flex items-center py-3 pl-6 transition-colors rounded-l-[30px] mb-2 block relative z-10">
+                    <i class="fa-solid fa-headset w-6 text-center mr-2"></i> ติดต่อ-แจ้งปัญหา
+                </a>
+
             </div>
         </nav>
 
