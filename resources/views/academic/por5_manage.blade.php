@@ -62,7 +62,7 @@
                                         <td>
                                             <div class="assess-cell">
                                                 <span class="assess-preview" id="char-preview-{{ $s->student_id }}">{{ $a->desired_char ?? '—' }}</span>
-                                                <button type="button" class="ac-action-btn" onclick="openItemModal('char', {{ $s->student_id }}, '{{ addslashes($s->student->thai_prefix . $s->student->thai_firstname . ' ' . $s->student->thai_lastname) }}')"><i class="bi bi-pencil"></i> แก้ไขรายข้อ</button>
+                                                <button type="button" class="ac-action-btn ac-action-btn-text ac-action-edit" onclick="openItemModal('char', {{ $s->student_id }}, '{{ addslashes($s->student->thai_prefix . $s->student->thai_firstname . ' ' . $s->student->thai_lastname) }}')"><i class="bi bi-pencil"></i> แก้ไขรายข้อ</button>
                                             </div>
                                             @foreach(range(1,$unitCount) as $i)
                                                 <input type="hidden" name="assess[{{ $s->student_id }}][char][{{ $i }}]" id="char-{{ $i }}-{{ $s->student_id }}" value="{{ $charUnits[$i-1] ?? '' }}">
@@ -71,7 +71,7 @@
                                         <td>
                                             <div class="assess-cell">
                                                 <span class="assess-preview" id="read-preview-{{ $s->student_id }}">{{ $a->reading_thinking ?? '—' }}</span>
-                                                <button type="button" class="ac-action-btn" onclick="openItemModal('read', {{ $s->student_id }}, '{{ addslashes($s->student->thai_prefix . $s->student->thai_firstname . ' ' . $s->student->thai_lastname) }}')"><i class="bi bi-pencil"></i> แก้ไขรายข้อ</button>
+                                                <button type="button" class="ac-action-btn ac-action-btn-text ac-action-edit" onclick="openItemModal('read', {{ $s->student_id }}, '{{ addslashes($s->student->thai_prefix . $s->student->thai_firstname . ' ' . $s->student->thai_lastname) }}')"><i class="bi bi-pencil"></i> แก้ไขรายข้อ</button>
                                             </div>
                                             @foreach(range(1,5) as $i)
                                                 <input type="hidden" name="assess[{{ $s->student_id }}][read][{{ $i }}]" id="read-{{ $i }}-{{ $s->student_id }}" value="{{ $a?->{"read_$i"} }}">
