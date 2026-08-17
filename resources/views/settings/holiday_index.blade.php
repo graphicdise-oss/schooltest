@@ -352,8 +352,8 @@
 @endsection
 
 @push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
+{{-- โหลดจากไฟล์ในระบบเอง ไม่พึ่ง CDN ภายนอก (บางโรงเรียนบล็อก jsdelivr.net ทำให้ปฏิทินโหลดไม่ขึ้น/พังครึ่งๆ กลางๆ) --}}
+<script src="{{ asset('vendor/fullcalendar/fullcalendar.min.js') }}"></script>
 <script>
     // template URL สำหรับแก้ไข (id = 0) แล้วแทนที่ท้าย path ด้วย id จริง
     const EDIT_URL_TEMPLATE = "{{ route('holidays.update', 0) }}";
