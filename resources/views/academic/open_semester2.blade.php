@@ -45,13 +45,7 @@
 </div>
 
 <script>
-const term1Sections = @json($term1Sections->map(fn($s) => [
-    'section_id' => $s->section_id,
-    'year_id'    => $s->semester?->year_id,
-    'level_id'   => $s->level_id,
-    'label'      => $s->full_name,
-    'study_plan' => $s->study_plan,
-])->values());
+const term1Sections = @json($term1SectionsJson);
 
 function filterOs2Sections() {
     const yearId = document.getElementById('os2Year').value;

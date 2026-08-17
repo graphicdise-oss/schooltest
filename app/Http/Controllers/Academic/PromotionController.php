@@ -185,13 +185,22 @@ class PromotionController extends Controller
 
         // ห้องทั้งหมดของ "เทอม 1" ทุกปีการศึกษา ให้เลือกคัดลอกไปเทอม 2
         // กรอง semester ที่โหลดไม่ได้ออกอีกชั้น (กันหน้าเว็บพังถ้าข้อมูลไม่ครบ)
-        $term1Sections = ClassSection::with(['level', 'semester'])
+        // แปลงเป็น array ธรรมดาตั้งแต่ใน controller (ไม่ใช่ในหน้าเว็บ) กัน Blade ตีความ
+        // นิพจน์ปนกันระหว่าง @json() กับ fn()=>[...] ที่มี ?-> ซับซ้อนผิดพลาด
+        $term1SectionsJson = ClassSection::with(['level', 'semester'])
             ->whereHas('semester', fn($q) => $q->where('semester_name', '1'))
             ->orderBy('level_id')->orderBy('section_number')->get()
             ->filter(fn($s) => $s->semester !== null)
-            ->values();
+            ->values()
+            ->map(fn($s) => [
+                'section_id' => $s->section_id,
+                'year_id'    => $s->semester?->year_id,
+                'level_id'   => $s->level_id,
+                'label'      => $s->full_name,
+                'study_plan' => $s->study_plan,
+            ]);
 
-        return view('academic.open_semester2', compact('academicYears', 'levels', 'term1Sections'));
+        return view('academic.open_semester2', compact('academicYears', 'levels', 'term1SectionsJson'));
     }
 
     // เปิดเทอม 2: คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างเป็นห้องใหม่ในเทอม 2 ของปีการศึกษาเดียวกัน
