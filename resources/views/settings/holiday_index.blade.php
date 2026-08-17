@@ -77,6 +77,39 @@
     .btn-modal-save.edit-mode { background: #f59e0b; }
     .btn-modal-cancel { background: #fff; color: #666; border: 1.5px solid #d0d7de; border-radius: 6px; padding: 9px 20px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; }
     .btn-close-x { background: none; border: none; color: #fff; font-size: 1.2rem; cursor: pointer; }
+
+    /* ปฏิทิน */
+    #holidayCalendar { margin-top: 20px; }
+    .fc { font-family: 'Prompt', sans-serif; }
+    .fc .fc-toolbar-title { font-size: 1.4rem; font-weight: 700; color: #333; }
+    .fc .fc-button {
+        background: #8b5cf6; border: none; border-radius: 999px !important;
+        text-transform: lowercase; font-weight: 600; padding: 6px 18px;
+        box-shadow: none !important; font-family: inherit;
+    }
+    .fc .fc-button:hover { background: #7c3aed; }
+    .fc .fc-button-primary:not(:disabled).fc-button-active,
+    .fc .fc-button-primary:not(:disabled):active { background: #6d28d9; }
+    .fc .fc-today-button {
+        background: #e5e7eb !important; color: #9ca3af !important; opacity: 1 !important;
+    }
+    .fc .fc-prev-button, .fc .fc-next-button {
+        border-radius: 50% !important; width: 38px; height: 38px; padding: 0;
+        display: inline-flex; align-items: center; justify-content: center;
+    }
+    .fc .fc-toolbar.fc-header-toolbar { margin-bottom: 1.2em; flex-wrap: wrap; gap: 10px; }
+    .fc-event { cursor: pointer; border: none !important; font-size: 0.8rem; }
+    .fc-daygrid-event { padding: 2px 6px; }
+    .fc-theme-standard td, .fc-theme-standard th { border-color: #eef1f6; }
+    .fc-day-today { background: #f5f3ff !important; }
+
+    /* Modal รายละเอียดวันหยุด (คลิกจากปฏิทิน) */
+    .info-modal-box { background: #fff; border-radius: 12px; width: 380px; max-width: 92vw; box-shadow: 0 20px 60px rgba(0,0,0,0.2); padding: 32px 28px 28px; text-align: center; }
+    .info-modal-icon { width: 56px; height: 56px; border-radius: 50%; border: 2.5px solid #38bdf8; color: #38bdf8; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 18px; }
+    .info-modal-title-chip { display: inline-block; background: #1d4ed8; color: #fff; font-weight: 700; padding: 6px 14px; border-radius: 4px; margin-bottom: 18px; }
+    .info-modal-row { text-align: left; font-size: 0.92rem; color: #333; margin-bottom: 10px; }
+    .info-modal-row strong { color: #111; }
+    .btn-info-close { background: #2563eb; color: #fff; border: none; border-radius: 6px; padding: 9px 26px; font-size: 0.9rem; font-weight: 600; cursor: pointer; font-family: inherit; margin-top: 10px; }
 </style>
 @endpush
 
@@ -130,6 +163,13 @@
         </form>
     </div>
 
+    {{-- ปฏิทินวันหยุด --}}
+    <div class="floating-card">
+        <div class="floating-icon" style="background:#8b5cf6;"><i class="fas fa-calendar-days"></i></div>
+        <div class="card-header-text">ปฏิทิน</div>
+        <div id="holidayCalendar"></div>
+    </div>
+
     {{-- ตารางวันหยุด --}}
     <div class="floating-card">
         <div class="floating-icon" style="background:#f59e0b;"><i class="fas fa-umbrella-beach"></i></div>
@@ -157,7 +197,7 @@
                             <td>{{ $i + 1 }}</td>
                             <td>
                                 <a class="hol-title-link"
-                                   onclick='openEditModal(@json($h->id), @json($h->title), @json(optional($h->start_date)->format("Y-m-d")), @json(optional($h->end_date)->format("Y-m-d")), @json($h->note), @json($h->year_id))'>
+                                   onclick='openEditModal(@json($h->id), @json($h->title), @json(optional($h->start_date)->format("Y-m-d")), @json(optional($h->end_date)->format("Y-m-d")), @json($h->note), @json($h->year_id), @json($h->type))'>
                                     {{ $h->title }}
                                 </a>
                             </td>
@@ -171,7 +211,7 @@
                             <td>{{ $h->note ?: '-' }}</td>
                             <td style="text-align:right;">
                                 <button class="btn-icon-edit" title="แก้ไข"
-                                        onclick='openEditModal(@json($h->id), @json($h->title), @json(optional($h->start_date)->format("Y-m-d")), @json(optional($h->end_date)->format("Y-m-d")), @json($h->note), @json($h->year_id))'>
+                                        onclick='openEditModal(@json($h->id), @json($h->title), @json(optional($h->start_date)->format("Y-m-d")), @json(optional($h->end_date)->format("Y-m-d")), @json($h->note), @json($h->year_id), @json($h->type))'>
                                     <i class="fas fa-pen"></i>
                                 </button>
                                 <form action="{{ route('holidays.destroy', $h->id) }}" method="POST" class="d-inline"
@@ -218,6 +258,13 @@
                 <div class="modal-label">ชื่อวันหยุด <span style="color:red">*</span></div>
                 <input type="text" name="title" class="modal-input" placeholder="เช่น วันสงกรานต์" required>
 
+                <div class="modal-label">ประเภทวันหยุด</div>
+                <select name="type" class="modal-select">
+                    @foreach (\App\Http\Controllers\Setting\HolidayController::TYPES as $t)
+                        <option value="{{ $t }}" {{ $t === 'วันหยุดราชการ' ? 'selected' : '' }}>{{ $t }}</option>
+                    @endforeach
+                </select>
+
                 <div style="display:flex; gap:12px;">
                     <div style="flex:1;">
                         <div class="modal-label">วันเริ่ม <span style="color:red">*</span></div>
@@ -260,6 +307,13 @@
                 <div class="modal-label">ชื่อวันหยุด <span style="color:red">*</span></div>
                 <input type="text" name="title" id="editTitle" class="modal-input" required>
 
+                <div class="modal-label">ประเภทวันหยุด</div>
+                <select name="type" id="editType" class="modal-select">
+                    @foreach (\App\Http\Controllers\Setting\HolidayController::TYPES as $t)
+                        <option value="{{ $t }}">{{ $t }}</option>
+                    @endforeach
+                </select>
+
                 <div style="display:flex; gap:12px;">
                     <div style="flex:1;">
                         <div class="modal-label">วันเริ่ม <span style="color:red">*</span></div>
@@ -282,20 +336,39 @@
     </div>
 </div>
 
+{{-- Modal รายละเอียดวันหยุด (คลิกจากปฏิทิน) --}}
+<div class="modal-overlay" id="infoModal">
+    <div class="info-modal-box">
+        <div class="info-modal-icon"><i class="fas fa-info"></i></div>
+        <div><span class="info-modal-title-chip" id="infoTitle"></span></div>
+        <div class="info-modal-row"><strong>เริ่มวันที่:</strong> <span id="infoStart"></span></div>
+        <div class="info-modal-row"><strong>สิ้นสุดวันที่:</strong> <span id="infoEnd"></span></div>
+        <div class="info-modal-row"><strong>ประเภทวันหยุด:</strong> <span id="infoType"></span></div>
+        <div class="info-modal-row" id="infoNoteRow" style="display:none;"><strong>หมายเหตุ:</strong> <span id="infoNote"></span></div>
+        <button type="button" class="btn-info-close" onclick="closeModal('infoModal')"><i class="fas fa-times me-1"></i>Close</button>
+    </div>
+</div>
+
+@endsection
+
 @push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js"></script>
 <script>
     // template URL สำหรับแก้ไข (id = 0) แล้วแทนที่ท้าย path ด้วย id จริง
     const EDIT_URL_TEMPLATE = "{{ route('holidays.update', 0) }}";
+    const CALENDAR_EVENTS = @json($calendarEvents);
 
     function openAddModal() {
         document.getElementById('addModal').classList.add('active');
     }
-    function openEditModal(id, title, start, end, note, yearId) {
+    function openEditModal(id, title, start, end, note, yearId, type) {
         document.getElementById('editTitle').value = title ?? '';
         document.getElementById('editStart').value = start ?? '';
         document.getElementById('editEnd').value   = end ?? '';
         document.getElementById('editNote').value  = note ?? '';
         if (yearId != null) document.getElementById('editYear').value = yearId;
+        if (type) document.getElementById('editType').value = type;
         document.getElementById('editForm').action = EDIT_URL_TEMPLATE.replace(/\/0$/, '/' + id);
         document.getElementById('editModal').classList.add('active');
     }
@@ -307,6 +380,37 @@
             if (e.target === this) this.classList.remove('active');
         });
     });
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const calendarEl = document.getElementById('holidayCalendar');
+        if (!calendarEl || typeof FullCalendar === 'undefined') return;
+
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            locale: 'en',
+            height: 'auto',
+            headerToolbar: {
+                left: 'title',
+                center: 'dayGridMonth,timeGridWeek,timeGridDay',
+                right: 'prev,next,today'
+            },
+            events: CALENDAR_EVENTS,
+            eventClick: function (info) {
+                const p = info.event.extendedProps;
+                document.getElementById('infoTitle').textContent = info.event.title;
+                document.getElementById('infoStart').textContent = p.start_th;
+                document.getElementById('infoEnd').textContent   = p.end_th;
+                document.getElementById('infoType').textContent  = p.type;
+                const noteRow = document.getElementById('infoNoteRow');
+                if (p.note) {
+                    document.getElementById('infoNote').textContent = p.note;
+                    noteRow.style.display = '';
+                } else {
+                    noteRow.style.display = 'none';
+                }
+                document.getElementById('infoModal').classList.add('active');
+            }
+        });
+        calendar.render();
+    });
 </script>
 @endpush
-@endsection

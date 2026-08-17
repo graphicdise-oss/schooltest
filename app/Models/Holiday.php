@@ -9,7 +9,7 @@ class Holiday extends Model
 {
     protected $table = 'holidays';
 
-    protected $fillable = ['year_id', 'title', 'start_date', 'end_date', 'note'];
+    protected $fillable = ['year_id', 'title', 'type', 'start_date', 'end_date', 'note'];
 
     protected $casts = [
         'start_date' => 'date',
