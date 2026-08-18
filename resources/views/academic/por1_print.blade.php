@@ -31,6 +31,8 @@ body {
 .doc-logo { width: 18mm; height: 16mm; flex-shrink: 0; }
 .doc-logo img { width: 100%; height: 100%; object-fit: contain; display: block;
     filter: contrast(0.8) brightness(1.15); }
+.doc-logo-garuda { width: 16mm; height: 16mm; flex-shrink: 0; }
+.doc-logo-garuda img { width: 100%; height: 100%; object-fit: contain; display: block; }
 .doc-title-block { line-height: 1.0; flex: 1; overflow: hidden; }
 .doc-title-block h2 {
     font-family: 'TH Sarabun New', 'Sarabun', sans-serif;
@@ -184,6 +186,17 @@ body {
                 }
             }
         }
+
+        // ตราครุฑ — แยกจากตราโรงเรียนโดยเจตนา (ตั้งค่าที่หน้าตั้งค่าโรงเรียน)
+        $garudaSrc = null;
+        foreach (['png','jpg','jpeg','gif','PNG','JPG','JPEG'] as $ext) {
+            $garudaFile = public_path('img/pp_1/garuda.' . $ext);
+            if (file_exists($garudaFile)) {
+                $mime      = in_array(strtolower($ext),['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+                $garudaSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($garudaFile));
+                break;
+            }
+        }
     @endphp
     <div class="doc-top">
         <div class="doc-logo">
@@ -196,6 +209,9 @@ body {
                 <div class="field-group"><span>ชุดที่</span><span class="field-val">{{ $docNumber->doc_set ?? '' }}</span></div>
                 <div class="field-group"><span>เลขที่</span><span class="field-val">{{ $docNumber->doc_number ?? '' }}</span></div>
             </div>
+        </div>
+        <div class="doc-logo-garuda">
+            @if($garudaSrc)<img src="{{ $garudaSrc }}" alt="ตราครุฑ">@endif
         </div>
     </div>
     <br>

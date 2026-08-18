@@ -1,6 +1,17 @@
 @php
     $schoolLogoPath = \App\Models\SchoolInfoSetting::getInstance()->logo_path;
     $pp2LogoUrl = $schoolLogoPath ? asset('storage/' . $schoolLogoPath) : asset('img/pp_1/logo.png');
+
+    // ตราครุฑ — แยกจากตราโรงเรียนโดยเจตนา (ตั้งค่าที่หน้าตั้งค่าโรงเรียน) แสดงกึ่งกลางเหนือ "กระทรวงศึกษาธิการ"
+    $pp2GarudaSrc = null;
+    foreach (['png','jpg','jpeg','gif','PNG','JPG','JPEG'] as $ext) {
+        $garudaFile = public_path('img/pp_1/garuda.' . $ext);
+        if (file_exists($garudaFile)) {
+            $mime = in_array(strtolower($ext), ['jpg','jpeg']) ? 'image/jpeg' : 'image/png';
+            $pp2GarudaSrc = 'data:' . $mime . ';base64,' . base64_encode(file_get_contents($garudaFile));
+            break;
+        }
+    }
 @endphp
 <!DOCTYPE html>
 <html lang="th">
@@ -357,7 +368,17 @@
                 </div>
             </div>
 
-            <div style="height:50pt;"></div>
+            <div style="height:16pt;"></div>
+
+            @if($pp2GarudaSrc)
+            <div class="row">
+                <div class="col-12 text-center" style="height:34pt;">
+                    <img src="{{ $pp2GarudaSrc }}" alt="ตราครุฑ" style="height:34pt; width:auto;">
+                </div>
+            </div>
+            @else
+            <div style="height:34pt;"></div>
+            @endif
 
             <div class="row">
                 <div class="col-12 text-center" style="height:35pt;">

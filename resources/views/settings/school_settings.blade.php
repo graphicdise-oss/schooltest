@@ -117,9 +117,39 @@
                     @endif
                 </div>
                 <div style="flex:1;min-width:240px">
-                    <input type="file" name="logo" accept=".png,.jpg,.jpeg" onchange="previewLogo(this)" class="ac-input" style="height:auto;padding:8px">
+                    <input type="file" name="logo" accept=".png,.jpg,.jpeg" onchange="previewImage(this, 'logoPreview', 'logoPreviewEmpty')" class="ac-input" style="height:auto;padding:8px">
                     <div class="ac-save-wrap" style="text-align:left;padding-top:14px">
                         <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-upload"></i> อัปโหลดตราโรงเรียน</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    {{-- ตราครุฑ --}}
+    <div class="ss-card">
+        <div class="ss-icon ss-icon-logo"><i class="bi bi-shield-fill-check"></i></div>
+        <div class="ss-card-header">
+            <span class="ss-card-title">
+                ตราครุฑ
+                <small>ใช้แสดงในเอกสารราชการ (ปพ.1/ปพ.2) แยกจากตราโรงเรียน — PNG หรือ JPG ขนาดไม่เกิน 2 MB</small>
+            </span>
+        </div>
+        <form method="POST" action="{{ route('settings.school.uploadGaruda') }}" enctype="multipart/form-data">
+            @csrf
+            <div class="ss-logo-row">
+                <div class="ss-logo-preview" id="garudaPreviewWrap">
+                    @if($garudaUrl)
+                    <img src="{{ $garudaUrl }}" id="garudaPreview" alt="ตราครุฑ">
+                    @else
+                    <span class="ss-no-logo" id="garudaPreviewEmpty">ยังไม่มีตราครุฑ</span>
+                    <img src="" id="garudaPreview" alt="ตราครุฑ" style="display:none">
+                    @endif
+                </div>
+                <div style="flex:1;min-width:240px">
+                    <input type="file" name="garuda" accept=".png,.jpg,.jpeg" onchange="previewImage(this, 'garudaPreview', 'garudaPreviewEmpty')" class="ac-input" style="height:auto;padding:8px">
+                    <div class="ac-save-wrap" style="text-align:left;padding-top:14px">
+                        <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-upload"></i> อัปโหลดตราครุฑ</button>
                     </div>
                 </div>
             </div>
@@ -275,7 +305,7 @@ function onPersonnelChange(role) {
     manualRow.style.display = sel.value === '__manual__' || sel.value === '' ? '' : 'none';
 }
 
-function previewLogo(input) {
+function previewImage(input, previewId, emptyId) {
     const maxMB = 2;
     if (input.files && input.files[0]) {
         const file = input.files[0];
@@ -286,10 +316,10 @@ function previewLogo(input) {
         }
         const reader = new FileReader();
         reader.onload = e => {
-            const img = document.getElementById('logoPreview');
+            const img = document.getElementById(previewId);
             img.src = e.target.result;
             img.style.display = '';
-            const empty = document.getElementById('logoPreviewEmpty');
+            const empty = document.getElementById(emptyId);
             if (empty) empty.style.display = 'none';
         };
         reader.readAsDataURL(file);

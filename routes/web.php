@@ -613,6 +613,7 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
             Route::post('/signatures', 'updateSignatures')->name('updateSignatures');
             Route::post('/subject-group-heads', 'updateSubjectGroupHeads')->name('updateSubjectGroupHeads');
             Route::post('/logo', 'uploadLogo')->name('uploadLogo');
+            Route::post('/garuda', 'uploadGaruda')->name('uploadGaruda');
         });
 
     Route::controller(Pp2Controller::class)->prefix('pp2')->name('pp2.')->group(function () {

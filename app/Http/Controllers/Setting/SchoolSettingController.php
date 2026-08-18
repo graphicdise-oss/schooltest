@@ -34,10 +34,20 @@ class SchoolSettingController extends Controller
             }
         }
 
+        // ตราครุฑ — ใช้แยกจากตราโรงเรียน แสดงคนละจุดในเอกสารราชการ (ปพ.1/ปพ.2)
+        $garudaUrl = null;
+        foreach (['png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG'] as $ext) {
+            $path = public_path('img/pp_1/garuda.' . $ext);
+            if (file_exists($path)) {
+                $garudaUrl = asset('img/pp_1/garuda.' . $ext) . '?v=' . filemtime($path);
+                break;
+            }
+        }
+
         $subjectGroupHeads = SubjectGroupHead::all()->keyBy('subject_group');
         $subjectGroups = SubjectGroupHead::groupList();
 
-        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'subjectGroupHeads', 'subjectGroups'));
+        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups'));
     }
 
     public function updateSchool(Request $request)
@@ -158,5 +168,28 @@ class SchoolSettingController extends Controller
         SchoolInfoSync::propagateLogoFromStatic($dir . '/logo.' . $ext, $ext);
 
         return redirect()->route('settings.school.index')->with('success', 'อัปโหลดตราโรงเรียนสำเร็จ');
+    }
+
+    // ตราครุฑ — แยกจากตราโรงเรียนโดยเจตนา ใช้แสดงคนละจุดกันในเอกสารราชการ (ปพ.1/ปพ.2)
+    public function uploadGaruda(Request $request)
+    {
+        $request->validate([
+            'garuda' => 'required|image|mimes:png,jpg,jpeg|max:2048',
+        ]);
+
+        $dir = public_path('img/pp_1');
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        foreach (['png', 'jpg', 'jpeg', 'PNG', 'JPG', 'JPEG'] as $ext) {
+            $old = $dir . '/garuda.' . $ext;
+            if (file_exists($old)) unlink($old);
+        }
+
+        $ext = strtolower($request->file('garuda')->getClientOriginalExtension());
+        $request->file('garuda')->move($dir, 'garuda.' . $ext);
+
+        return redirect()->route('settings.school.index')->with('success', 'อัปโหลดตราครุฑสำเร็จ');
     }
 }
