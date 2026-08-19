@@ -17,17 +17,6 @@
                 <i class="bi bi-check-circle-fill me-2"></i> {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
-            <script>
-                document.addEventListener('DOMContentLoaded', function () {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'สำเร็จ!',
-                        text: '{{ session('success') }}',
-                        timer: 2500,
-                        showConfirmButton: false
-                    });
-                });
-            </script>
         @endif
 
        @if ($errors->any())

@@ -171,8 +171,11 @@
             <div class="relative w-full pt-[30px] pb-[30px]">
 
                 {{-- แถบ Active Indicator --}}
+                {{-- indicatorHeight เป็น 0 ตอนไม่มีเมนูไหน active/hover อยู่ แต่เส้นโค้งบน-ล่าง (::before/::after)
+                     ยังคงเรนเดอร์อยู่เสมอไม่ว่ากล่องนี้จะสูงแค่ไหน ถ้าไม่ซ่อนด้วย opacity มันจะเหลือเป็นก้อนสีฟ้า
+                     ลอยค้างอยู่ที่ตำแหน่ง top เดิม (จากการ hover ครั้งล่าสุด) ทั้งที่ไม่มีเมนูไหนถูกไฮไลต์จริง --}}
                 <div class="absolute right-0 bg-[#bbf0ff] transition-all duration-300 ease-out z-0 rounded-l-[30px] active-menu-slide"
-                    :style="`top: ${indicatorTop}px; height: ${indicatorHeight}px; width: 100%;`">
+                    :style="`top: ${indicatorTop}px; height: ${indicatorHeight}px; width: 100%; opacity: ${indicatorHeight > 0 ? 1 : 0};`">
                 </div>
 
                 {{-- Dashboard --}}
