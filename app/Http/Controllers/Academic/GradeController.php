@@ -723,6 +723,9 @@ class GradeController extends Controller
         $docNumber = StudentDocNumber::where('student_id', $studentId)->latest()->first()
             ?? (object)['doc_set' => '', 'doc_number' => ''];
 
+        // ปกปิดชุดที่/เลขที่ตามระเบียบ — ติ๊กจาก Modal ตั้งค่าการพิมพ์
+        $hideDocNumber = $request->boolean('hide_doc_number');
+
         // 2. รับค่าเทอมที่ติ๊กมาจาก Modal
         $filterActive = $request->has('filter_active'); // เช็คว่าส่งมาจากหน้าป๊อปอัปหรือไม่
         $selectedSemesters = $request->input('semesters', []); 
@@ -793,7 +796,7 @@ class GradeController extends Controller
         $onetYearId = $onetScores->first()?->year_id;
         $onetScores = $onetScores->where('year_id', $onetYearId)->keyBy('subject');
 
-        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment', 'onetScores'));
+        return view('academic.por1_print', compact('student', 'father', 'mother', 'yearGroups', 'docNumber', 'hideDocNumber', 'approveDate', 'leaveDate', 'leaveReason', 'school', 'assessment', 'onetScores'));
     }
 
     private function formatThaiDate(string $dateStr): string

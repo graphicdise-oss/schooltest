@@ -336,6 +336,12 @@
                     ไม่แสดงสรุปผลการประเมิน
                 </label>
             </div>
+            <div style="margin-bottom:14px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:normal;">
+                    <input type="checkbox" name="hide_doc_number" value="1" style="width:auto;margin:0;accent-color:#00bcd4;">
+                    ปกปิดชุดที่/เลขที่ (ไม่แสดงเลย)
+                </label>
+            </div>
             <div style="text-align:center;margin-bottom:16px;font-weight:bold;color:#555;font-size:15px;">
                 แสดงเกรดตามเทอม
             </div>
