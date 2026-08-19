@@ -5,6 +5,7 @@
 > * `MOBILE_APP_CAPACITOR.md` — เจาะลึกทางเลือก B และ 2 โหมดของ Capacitor
 > * `MOBILE_APP_NATIVE.md` — เจาะลึกทางเลือก C (Flutter / React Native)
 > * `MOBILE_APP_IOS.md` — **ถ้าต้องมี iOS ด้วย อ่านไฟล์นี้** (ข้อสรุป: ใช้ Flutter/RN)
+> * `MOBILE_APP_TIMELINE.md` — **รายการงาน + ชั่วโมง + ไทม์ไลน์ 3 แบบ (เร็วสุด/ชิว ๆ/ครบสุด)**
 
 เอกสารนี้สรุปแนวทางแนะนำสำหรับการต่อยอดระบบ `schooltest` (Laravel 12 + Blade)
 ให้กลายเป็นแอปพลิเคชันบนมือถือ Android และ iOS
