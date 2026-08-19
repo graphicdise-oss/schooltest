@@ -179,12 +179,10 @@ body {
         </div>
         <div class="doc-title-block">
             <h2>ระเบียนแสดงผลการเรียนหลักสูตรแกนกลางการศึกษาขั้นพื้นฐาน ระดับมัธยมศึกษาตอนปลาย</h2>
-            <div class="doc-meta-row">
-                @unless($hideDocNumber ?? false)
+            <div class="doc-meta-row" style="{{ ($hideDocNumber ?? false) ? 'visibility:hidden;' : '' }}">
                 <div class="label">ปพ.1 : พ</div>
                 <div class="field-group"><span>ชุดที่</span><span class="field-val">{{ $docNumber->doc_set ?? '' }}</span></div>
                 <div class="field-group"><span>เลขที่</span><span class="field-val">{{ $docNumber->doc_number ?? '' }}</span></div>
-                @endunless
             </div>
         </div>
     </div>
