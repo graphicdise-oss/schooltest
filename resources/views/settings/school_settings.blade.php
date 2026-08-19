@@ -97,41 +97,84 @@
         </form>
     </div>
 
-    {{-- วันเริ่ม-สิ้นสุดภาคเรียนปัจจุบัน — ทางลัดจากหน้าจัดการหลักสูตร/แผน ใช้คำนวณตารางเช็คชื่อ ปพ.5 --}}
-    <div class="ss-card">
+    {{-- วันเริ่ม-สิ้นสุดภาคเรียน — แก้ได้ทุกปี/ทุกเทอม ไม่ใช่แค่เทอมปัจจุบัน ใช้คำนวณตารางเช็คชื่อ ปพ.5 --}}
+    <div class="ss-card" id="ssTermCard">
         <div class="ss-icon ss-icon-term"><i class="bi bi-calendar-range"></i></div>
         <div class="ss-card-header">
             <span class="ss-card-title">
-                วันเริ่ม-สิ้นสุดภาคเรียน (เทอมปัจจุบัน)
-                <small>ใช้คำนวณตารางเช็คชื่อ ปพ.5 — จัดการภาคเรียนอื่นๆ แบบเต็มได้ที่หน้า งานวิชาการ &gt; จัดการหลักสูตร/แผน</small>
+                วันเริ่ม-สิ้นสุดภาคเรียน
+                <small>ใช้คำนวณตารางเช็คชื่อ ปพ.5 — เลือกปี/เทอมได้ทุกปี ไม่จำกัดแค่เทอมปัจจุบัน (จัดการปี/เทอมแบบเต็มได้ที่หน้า งานวิชาการ &gt; จัดการหลักสูตร/แผน)</small>
             </span>
         </div>
-        @if($currentSemester)
-            <form method="POST" action="{{ route('academic-years.updateSemesterDates', $currentSemester->semester_id) }}">
-                @csrf @method('PUT')
-                <div class="ac-field" style="margin-bottom:14px">
-                    <label>กำลังแก้ไข: ปีการศึกษา {{ $currentSemester->academicYear->year_name ?? '' }} เทอม {{ $currentSemester->semester_name }}</label>
-                </div>
-                <div class="ac-grid-4">
-                    <div class="ac-field">
-                        <label>วันเริ่มภาคเรียน</label>
-                        <input type="date" name="start_date" class="ac-input"
-                               value="{{ old('start_date', optional($currentSemester->start_date)->format('Y-m-d')) }}">
-                    </div>
-                    <div class="ac-field">
-                        <label>วันสิ้นสุดภาคเรียน</label>
-                        <input type="date" name="end_date" class="ac-input"
-                               value="{{ old('end_date', optional($currentSemester->end_date)->format('Y-m-d')) }}">
-                    </div>
-                </div>
-                <div class="ac-save-wrap">
-                    <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกวันเริ่ม-สิ้นสุดภาคเรียน</button>
-                </div>
-            </form>
-        @else
+
+        @if($academicYears->isEmpty())
             <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:12px 16px; color:#9a3412; font-size:0.85rem;">
-                <i class="bi bi-info-circle-fill"></i> ยังไม่ได้ตั้งเทอมปัจจุบัน — ไปที่หน้า งานวิชาการ &gt; จัดการหลักสูตร/แผน เพื่อตั้งเทอมปัจจุบันก่อน
+                <i class="bi bi-info-circle-fill"></i> ยังไม่มีปีการศึกษาในระบบ — ไปที่หน้า งานวิชาการ &gt; จัดการหลักสูตร/แผน เพื่อเพิ่มปีการศึกษาก่อน
             </div>
+        @else
+            <div style="display:flex; flex-wrap:wrap; gap:20px; margin-bottom:16px;">
+                <div style="flex:1; min-width:220px;">
+                    <label style="font-size:0.85rem; font-weight:700; color:#475569; display:block; margin-bottom:6px;">ปีการศึกษา</label>
+                    <select id="ssTermYearSelect" class="ac-select" style="background:#fff; width:100%;"
+                            onchange="window.location.href = '{{ route('settings.school.index') }}?year_id=' + this.value + '#ssTermCard'">
+                        @foreach($academicYears as $y)
+                            <option value="{{ $y->year_id }}" {{ (string) $y->year_id === (string) $selectedTermYearId ? 'selected' : '' }}>
+                                {{ $y->year_name }}{{ $y->is_current ? ' ⭐ (ปีปัจจุบัน)' : '' }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div style="flex:1; min-width:220px;">
+                    <label style="font-size:0.85rem; font-weight:700; color:#475569; display:block; margin-bottom:6px;">ภาคเรียน</label>
+                    @if($selectedTermYear && $selectedTermYear->semesters->isNotEmpty())
+                        <select id="ssTermSemSelect" class="ac-select" style="background:#fff; width:100%;" onchange="ssHandleSemChange(this)">
+                            @foreach($selectedTermYear->semesters->sortBy('semester_name') as $sem)
+                                <option value="{{ $sem->semester_id }}"
+                                    data-start="{{ optional($sem->start_date)->format('Y-m-d') }}"
+                                    data-end="{{ optional($sem->end_date)->format('Y-m-d') }}"
+                                    {{ $sem->is_current ? 'selected' : '' }}>
+                                    เทอม {{ $sem->semester_name }} {{ $sem->is_current ? '⭐ (ปัจจุบัน)' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    @else
+                        <div style="padding:8px 12px; background:#f8fafc; color:#64748b; font-size:0.85rem; border-radius:6px; border:1px solid #e2e8f0;">
+                            ปีนี้ยังไม่มีภาคเรียน
+                        </div>
+                    @endif
+                </div>
+            </div>
+
+            @if($selectedTermYear && $selectedTermYear->semesters->isNotEmpty())
+                <form method="POST" id="ssTermDatesForm">
+                    @csrf @method('PUT')
+                    <div class="ac-grid-4">
+                        <div class="ac-field">
+                            <label>วันเริ่มภาคเรียน</label>
+                            <input type="date" name="start_date" id="ssTermStart" class="ac-input">
+                        </div>
+                        <div class="ac-field">
+                            <label>วันสิ้นสุดภาคเรียน</label>
+                            <input type="date" name="end_date" id="ssTermEnd" class="ac-input">
+                        </div>
+                    </div>
+                    <div class="ac-save-wrap">
+                        <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกวันเริ่ม-สิ้นสุดภาคเรียน</button>
+                    </div>
+                </form>
+                <script>
+                    function ssHandleSemChange(selectObj) {
+                        const opt = selectObj.options[selectObj.selectedIndex];
+                        document.getElementById('ssTermStart').value = opt.getAttribute('data-start') || '';
+                        document.getElementById('ssTermEnd').value = opt.getAttribute('data-end') || '';
+                        document.getElementById('ssTermDatesForm').action =
+                            '{{ url('academic-years/semester') }}/' + selectObj.value + '/dates';
+                    }
+                    document.addEventListener('DOMContentLoaded', () => {
+                        ssHandleSemChange(document.getElementById('ssTermSemSelect'));
+                    });
+                </script>
+            @endif
         @endif
     </div>
 

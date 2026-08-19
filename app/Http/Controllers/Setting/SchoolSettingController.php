@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
+use App\Models\Academic\AcademicYear;
 use App\Models\Academic\Pp2Setting;
-use App\Models\Academic\Semester;
 use App\Models\Academic\SubjectGroupHead;
 use App\Models\Personne\Personnel;
 use App\Services\SchoolInfoSync;
@@ -15,7 +15,7 @@ class SchoolSettingController extends Controller
     // หน้ากลางเดียวสำหรับตั้งค่าข้อมูลโรงเรียน/ตราโรงเรียน/ลายเซ็น ใช้ร่วมกันทุกหน้าที่ต้องพิมพ์เอกสาร
     // (ปพ.1/3/5/6/7, ใบระเบียนผลการเรียน, รายงานจัดอันดับคะแนนรายวิชา ฯลฯ) — ก่อนหน้านี้แต่ละหน้ามีของตัวเอง
     // แยกกัน (บางหน้าเก็บลง session ชั่วคราว บางหน้าเก็บ DB ไม่ครบทุกช่อง) ทำให้ตั้งค่าที่หนึ่งแล้วไม่ไปอีกที่
-    public function index()
+    public function index(Request $request)
     {
         $setting = Pp2Setting::getInstance();
 
@@ -48,11 +48,20 @@ class SchoolSettingController extends Controller
         $subjectGroupHeads = SubjectGroupHead::all()->keyBy('subject_group');
         $subjectGroups = SubjectGroupHead::groupList();
 
-        // เทอมปัจจุบัน — ใช้แสดง/แก้ไขวันเริ่ม-สิ้นสุดภาคเรียนแบบเข้าถึงเร็วในหน้าตั้งค่ากลาง
-        // (จัดการภาคเรียนอื่นๆ แบบเต็มยังอยู่ที่หน้า จัดการหลักสูตร/แผน)
-        $currentSemester = Semester::with('academicYear')->where('is_current', true)->first();
+        // ปีการศึกษา/ภาคเรียน — ใช้แก้ไขวันเริ่ม-สิ้นสุดของ "ปีไหน/เทอมไหนก็ได้" แบบเข้าถึงเร็วในหน้าตั้งค่ากลาง
+        // (เลือกปีผ่าน ?year_id= เหมือนหน้า จัดการหลักสูตร/แผน ซึ่งเป็นที่จัดการปี/เทอมแบบเต็ม)
+        $academicYears = AcademicYear::with('semesters')->orderByDesc('year_name')->get();
+        $selectedTermYearId = $request->get('year_id')
+            ?? optional($academicYears->firstWhere('is_current', true))->year_id
+            ?? optional($academicYears->first())->year_id;
+        $selectedTermYear = $selectedTermYearId
+            ? $academicYears->firstWhere('year_id', $selectedTermYearId)
+            : null;
 
-        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups', 'currentSemester'));
+        return view('settings.school_settings', compact(
+            'setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups',
+            'academicYears', 'selectedTermYearId', 'selectedTermYear'
+        ));
     }
 
     public function updateSchool(Request $request)
