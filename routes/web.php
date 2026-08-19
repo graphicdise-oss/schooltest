@@ -81,7 +81,7 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
     });
 
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
-Route::middleware(['auth', 'track.activity'])->group(function () {
+Route::middleware(['auth', 'track.activity', 'auto.advance.semester'])->group(function () {
 
     // Dashboard
     Route::get('/dashboard', [\App\Http\Controllers\DashboardController::class, 'index'])

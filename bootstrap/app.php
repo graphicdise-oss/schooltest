@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'admin' => \App\Http\Middleware\EnsureAdmin::class,
             'parent.auth' => \App\Http\Middleware\EnsureParentAuth::class,
             'track.activity' => \App\Http\Middleware\TrackFirstActivity::class,
+            'auto.advance.semester' => \App\Http\Middleware\AutoAdvanceSemester::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
