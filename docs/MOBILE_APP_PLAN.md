@@ -4,6 +4,7 @@
 > * `MOBILE_APP_PLAN.md` (ไฟล์นี้) — ภาพรวมและเปรียบเทียบทางเลือก
 > * `MOBILE_APP_CAPACITOR.md` — เจาะลึกทางเลือก B และ 2 โหมดของ Capacitor
 > * `MOBILE_APP_NATIVE.md` — เจาะลึกทางเลือก C (Flutter / React Native)
+> * `MOBILE_APP_IOS.md` — **ถ้าต้องมี iOS ด้วย อ่านไฟล์นี้** (ข้อสรุป: ใช้ Flutter/RN)
 
 เอกสารนี้สรุปแนวทางแนะนำสำหรับการต่อยอดระบบ `schooltest` (Laravel 12 + Blade)
 ให้กลายเป็นแอปพลิเคชันบนมือถือ Android และ iOS
@@ -78,7 +79,7 @@
 |---|---|
 | "แค่เปิดในมือถือให้สะดวก" งบน้อย เอาเร็ว | **A — PWA** |
 | "อยากมีแอปใน Play Store เร็ว ๆ" (Android เป็นหลัก) | **A + B โหมด Remote URL** ⭐ |
-| "ต้องมีทั้ง App Store และ Play Store ทำครั้งเดียวจบ" | **C — Flutter / RN** |
+| **"ต้องมี iOS ด้วย"** | **C — Flutter / RN** ⭐ (ดู `MOBILE_APP_IOS.md`) |
 | "ครูต้องเช็คชื่อ/กรอกคะแนนออฟไลน์ในห้องเรียน" | **C — Flutter** (เฉพาะโมดูลครู) |
 
 > หมายเหตุ: ถ้าทีมมีพื้นฐาน Flutter หรือ React Native อยู่แล้ว
