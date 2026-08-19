@@ -212,10 +212,15 @@
                         <th style="width:230px;">ช่วงวันที่</th>
                         <th style="width:90px; text-align:center;">จำนวนวัน</th>
                         <th>หมายเหตุ</th>
-                        <th style="width:150px; text-align:right;">
-                            <button class="btn-add" onclick="openAddModal()" {{ $academicYears->isEmpty() ? 'disabled' : '' }}>
-                                <i class="fas fa-plus"></i> เพิ่มวันหยุด
-                            </button>
+                        <th style="width:280px; text-align:right;">
+                            <div style="display:flex; gap:8px; justify-content:flex-end;">
+                                <button class="btn-add" style="background:#0891b2;" onclick="openImportModal()" {{ $academicYears->isEmpty() ? 'disabled' : '' }}>
+                                    <i class="fas fa-cloud-download-alt"></i> นำเข้าจาก API
+                                </button>
+                                <button class="btn-add" onclick="openAddModal()" {{ $academicYears->isEmpty() ? 'disabled' : '' }}>
+                                    <i class="fas fa-plus"></i> เพิ่มวันหยุด
+                                </button>
+                            </div>
                         </th>
                     </tr>
                 </thead>
@@ -364,6 +369,42 @@
     </div>
 </div>
 
+{{-- Modal นำเข้าวันหยุดจาก API (Nager.Date) --}}
+<div class="modal-overlay" id="importModal">
+    <div class="modal-box" style="width:560px;">
+        <div class="modal-header" style="background:#0891b2;">
+            <span><i class="fas fa-cloud-download-alt me-2"></i>นำเข้าวันหยุดจาก API</span>
+            <button class="btn-close-x" onclick="closeModal('importModal')">✕</button>
+        </div>
+        <div class="modal-body">
+            <div style="background:#ecfeff;border:1px solid #a5f3fc;border-radius:8px;padding:10px 14px;font-size:0.82rem;color:#155e75;margin-bottom:16px;">
+                <i class="fas fa-info-circle"></i>
+                ดึงข้อมูลวันหยุดราชการไทยจาก Nager.Date (ฟรี ไม่ต้องขอ API Key) — ชื่ออาจเป็นภาษาอังกฤษ
+                แก้ไขก่อนนำเข้าได้ วันหยุดที่จะถูกเพิ่มไปที่ <strong>ปีการศึกษาที่เลือกอยู่ตอนนี้</strong>
+            </div>
+
+            <div style="display:flex; gap:10px; align-items:flex-end; margin-bottom:16px;">
+                <div style="flex:1;">
+                    <div class="modal-label">ปี ค.ศ. ที่จะดึงข้อมูล</div>
+                    <input type="number" id="importCeYear" class="modal-input" value="{{ now()->year }}" min="2000" max="2100">
+                </div>
+                <button type="button" class="btn-modal-save" style="background:#0891b2;" onclick="fetchImportPreview()">
+                    <i class="fas fa-search me-1"></i>ดึงข้อมูล
+                </button>
+            </div>
+
+            <div id="importStatus" style="font-size:0.85rem;color:#888;margin-bottom:10px;"></div>
+            <div id="importList" style="max-height:320px;overflow-y:auto;"></div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn-modal-cancel" onclick="closeModal('importModal')">ยกเลิก</button>
+            <button type="button" id="importSubmitBtn" class="btn-modal-save" style="background:#0891b2;display:none;" onclick="submitImport()">
+                <i class="fas fa-check me-1"></i>นำเข้าที่เลือก
+            </button>
+        </div>
+    </div>
+</div>
+
 {{-- Modal รายละเอียดวันหยุด (คลิกจากปฏิทิน) --}}
 <div class="modal-overlay" id="infoModal">
     <div class="info-modal-box">
@@ -406,6 +447,86 @@
             if (e.target === this) this.classList.remove('active');
         });
     });
+
+    // ===== นำเข้าวันหยุดจาก API (Nager.Date) =====
+    const IMPORT_PREVIEW_URL = "{{ route('holidays.importPreview') }}";
+    const IMPORT_APPLY_URL   = "{{ route('holidays.import') }}";
+    const IMPORT_YEAR_ID     = {{ $yearId ?? 'null' }};
+    const CSRF_TOKEN = document.querySelector('meta[name="csrf-token"]').content;
+
+    function openImportModal() {
+        document.getElementById('importList').innerHTML = '';
+        document.getElementById('importStatus').textContent = '';
+        document.getElementById('importSubmitBtn').style.display = 'none';
+        document.getElementById('importModal').classList.add('active');
+    }
+
+    function fetchImportPreview() {
+        const ceYear = document.getElementById('importCeYear').value;
+        const statusEl = document.getElementById('importStatus');
+        const listEl = document.getElementById('importList');
+        statusEl.textContent = 'กำลังดึงข้อมูล...';
+        listEl.innerHTML = '';
+        document.getElementById('importSubmitBtn').style.display = 'none';
+
+        fetch(IMPORT_PREVIEW_URL + '?ce_year=' + encodeURIComponent(ceYear), {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.error) {
+                    statusEl.textContent = data.error;
+                    return;
+                }
+                if (!data.items || !data.items.length) {
+                    statusEl.textContent = 'ไม่พบข้อมูลวันหยุดปีนี้';
+                    return;
+                }
+                statusEl.textContent = `พบ ${data.items.length} รายการ — ติ๊กเลือกและแก้ไขชื่อได้ก่อนนำเข้า`;
+                listEl.innerHTML = data.items.map((item, i) => `
+                    <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f0f0f0;">
+                        <input type="checkbox" class="import-chk" data-i="${i}" ${item.exists ? '' : 'checked'} style="width:16px;height:16px;flex-shrink:0;">
+                        <span style="width:90px;flex-shrink:0;color:#666;font-size:0.85rem;">${item.date}</span>
+                        <input type="text" class="modal-input import-title" data-i="${i}" value="${item.title.replace(/"/g, '&quot;')}" style="margin:0;padding:5px 8px;font-size:0.85rem;">
+                        ${item.exists ? '<span style="font-size:0.75rem;color:#f59e0b;flex-shrink:0;">มีอยู่แล้ว</span>' : ''}
+                    </div>
+                `).join('');
+                window.IMPORT_ITEMS = data.items;
+                document.getElementById('importSubmitBtn').style.display = 'inline-block';
+            })
+            .catch(() => { statusEl.textContent = 'เชื่อมต่อไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'; });
+    }
+
+    function submitImport() {
+        const checked = Array.from(document.querySelectorAll('.import-chk')).filter(c => c.checked);
+        if (!checked.length) { alert('กรุณาเลือกอย่างน้อย 1 รายการ'); return; }
+
+        // ส่งเป็นฟอร์มธรรมดา (ไม่ใช่ fetch) เพื่อให้ redirect + flash 'success' หลังบันทึกทำงานปกติ
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = IMPORT_APPLY_URL;
+
+        const addField = (name, value) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            form.appendChild(input);
+        };
+
+        addField('_token', CSRF_TOKEN);
+        addField('year_id', IMPORT_YEAR_ID);
+
+        checked.forEach(c => {
+            const i = c.dataset.i;
+            const titleInput = document.querySelector(`.import-title[data-i="${i}"]`);
+            addField(`items[${i}][date]`, window.IMPORT_ITEMS[i].date);
+            addField(`items[${i}][title]`, titleInput.value);
+        });
+
+        document.body.appendChild(form);
+        form.submit();
+    }
 
     // ===== ปฏิทิน (สร้างเอง — ไม่พึ่งไลบรารีภายนอก) =====
     // เหตุการณ์หลายวันแสดงเป็น "ป้ายเดียว" บนวันเริ่มเท่านั้น พร้อมช่วงวันที่ต่อท้าย

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Holiday;
 use App\Models\Academic\AcademicYear;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class HolidayController extends Controller
 {
@@ -112,5 +113,70 @@ class HolidayController extends Controller
     {
         Holiday::findOrFail($id)->delete();
         return back()->with('success', 'ลบวันหยุดสำเร็จ');
+    }
+
+    // ดึงรายชื่อวันหยุดราชการไทยจาก Nager.Date (ฟรี ไม่ต้องขอ API Key) มาให้เลือกก่อนนำเข้าจริง
+    // หมายเหตุ: ชื่อวันหยุดที่ได้อาจเป็นภาษาอังกฤษ เพราะ API นี้ไม่มีข้อมูลชื่อภาษาไทยของทุกวัน
+    // ให้แก้ไขชื่อในหน้า preview ก่อนกดนำเข้าได้
+    public function importPreview(Request $request)
+    {
+        $request->validate([
+            'ce_year' => 'required|integer|min:2000|max:2100',
+        ]);
+
+        try {
+            $response = Http::timeout(10)->get(
+                "https://date.nager.at/api/v3/PublicHolidays/{$request->ce_year}/TH"
+            );
+        } catch (\Throwable $e) {
+            return response()->json(['error' => 'เชื่อมต่อ API ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง'], 500);
+        }
+
+        if (! $response->successful()) {
+            return response()->json(['error' => 'ดึงข้อมูลไม่สำเร็จ (API ตอบกลับผิดพลาด)'], 500);
+        }
+
+        $existingDates = Holiday::pluck('start_date')
+            ->map(fn ($d) => $d->format('Y-m-d'))
+            ->flip();
+
+        $items = collect($response->json())->map(fn ($h) => [
+            'date'   => $h['date'],
+            'title'  => $h['localName'] ?? $h['name'] ?? 'วันหยุด',
+            'exists' => $existingDates->has($h['date']),
+        ])->values();
+
+        return response()->json(['items' => $items]);
+    }
+
+    public function importApply(Request $request)
+    {
+        $data = $request->validate([
+            'year_id'        => 'required|exists:academic_years,year_id',
+            'items'          => 'required|array|min:1',
+            'items.*.date'   => 'required|date',
+            'items.*.title'  => 'required|string|max:255',
+        ]);
+
+        $count = 0;
+        foreach ($data['items'] as $item) {
+            $duplicate = Holiday::where('year_id', $data['year_id'])
+                ->where('start_date', $item['date'])
+                ->where('title', $item['title'])
+                ->exists();
+            if ($duplicate) continue;
+
+            Holiday::create([
+                'year_id'    => $data['year_id'],
+                'title'      => $item['title'],
+                'type'       => 'วันหยุดราชการ',
+                'start_date' => $item['date'],
+                'end_date'   => $item['date'],
+                'note'       => 'นำเข้าจาก Nager.Date API',
+            ]);
+            $count++;
+        }
+
+        return back()->with('success', "นำเข้าวันหยุดสำเร็จ {$count} รายการ");
     }
 }

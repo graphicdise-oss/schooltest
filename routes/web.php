@@ -588,6 +588,8 @@ Route::middleware(['auth', 'track.activity'])->group(function () {
         Route::post('/', 'store')->name('store');
         Route::put('/{id}', 'update')->name('update');
         Route::delete('/{id}', 'destroy')->name('destroy');
+        Route::get('/import-preview', 'importPreview')->name('importPreview');
+        Route::post('/import', 'importApply')->name('import');
     });
 
     Route::get('/student-stat', [StudentStatController::class, 'index'])->name('student-stat.index');
