@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Academic\Pp2Setting;
+use App\Models\Academic\Semester;
 use App\Models\Academic\SubjectGroupHead;
 use App\Models\Personne\Personnel;
 use App\Services\SchoolInfoSync;
@@ -47,7 +48,11 @@ class SchoolSettingController extends Controller
         $subjectGroupHeads = SubjectGroupHead::all()->keyBy('subject_group');
         $subjectGroups = SubjectGroupHead::groupList();
 
-        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups'));
+        // เทอมปัจจุบัน — ใช้แสดง/แก้ไขวันเริ่ม-สิ้นสุดภาคเรียนแบบเข้าถึงเร็วในหน้าตั้งค่ากลาง
+        // (จัดการภาคเรียนอื่นๆ แบบเต็มยังอยู่ที่หน้า จัดการหลักสูตร/แผน)
+        $currentSemester = Semester::with('academicYear')->where('is_current', true)->first();
+
+        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups', 'currentSemester'));
     }
 
     public function updateSchool(Request $request)

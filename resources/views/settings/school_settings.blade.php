@@ -18,6 +18,7 @@
 .ss-icon-school { background: #00897b; }
 .ss-icon-logo { background: #e65100; }
 .ss-icon-sign { background: #5c6bc0; }
+.ss-icon-term { background: #2563eb; }
 .ss-card-header { margin-left: 90px; margin-top: -8px; margin-bottom: 20px; }
 .ss-card-title { font-size: 1.05rem; color: #555; }
 .ss-card-title small { display:block; font-size:0.78rem; color:#999; font-weight:400; margin-top:2px; }
@@ -94,6 +95,44 @@
                 <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกข้อมูลโรงเรียน</button>
             </div>
         </form>
+    </div>
+
+    {{-- วันเริ่ม-สิ้นสุดภาคเรียนปัจจุบัน — ทางลัดจากหน้าจัดการหลักสูตร/แผน ใช้คำนวณตารางเช็คชื่อ ปพ.5 --}}
+    <div class="ss-card">
+        <div class="ss-icon ss-icon-term"><i class="bi bi-calendar-range"></i></div>
+        <div class="ss-card-header">
+            <span class="ss-card-title">
+                วันเริ่ม-สิ้นสุดภาคเรียน (เทอมปัจจุบัน)
+                <small>ใช้คำนวณตารางเช็คชื่อ ปพ.5 — จัดการภาคเรียนอื่นๆ แบบเต็มได้ที่หน้า งานวิชาการ &gt; จัดการหลักสูตร/แผน</small>
+            </span>
+        </div>
+        @if($currentSemester)
+            <form method="POST" action="{{ route('academic-years.updateSemesterDates', $currentSemester->semester_id) }}">
+                @csrf @method('PUT')
+                <div class="ac-field" style="margin-bottom:14px">
+                    <label>กำลังแก้ไข: ปีการศึกษา {{ $currentSemester->academicYear->year_name ?? '' }} เทอม {{ $currentSemester->semester_name }}</label>
+                </div>
+                <div class="ac-grid-4">
+                    <div class="ac-field">
+                        <label>วันเริ่มภาคเรียน</label>
+                        <input type="date" name="start_date" class="ac-input"
+                               value="{{ old('start_date', optional($currentSemester->start_date)->format('Y-m-d')) }}">
+                    </div>
+                    <div class="ac-field">
+                        <label>วันสิ้นสุดภาคเรียน</label>
+                        <input type="date" name="end_date" class="ac-input"
+                               value="{{ old('end_date', optional($currentSemester->end_date)->format('Y-m-d')) }}">
+                    </div>
+                </div>
+                <div class="ac-save-wrap">
+                    <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกวันเริ่ม-สิ้นสุดภาคเรียน</button>
+                </div>
+            </form>
+        @else
+            <div style="background:#fff7ed; border:1px solid #fed7aa; border-radius:8px; padding:12px 16px; color:#9a3412; font-size:0.85rem;">
+                <i class="bi bi-info-circle-fill"></i> ยังไม่ได้ตั้งเทอมปัจจุบัน — ไปที่หน้า งานวิชาการ &gt; จัดการหลักสูตร/แผน เพื่อตั้งเทอมปัจจุบันก่อน
+            </div>
+        @endif
     </div>
 
     {{-- ตราโรงเรียน --}}
