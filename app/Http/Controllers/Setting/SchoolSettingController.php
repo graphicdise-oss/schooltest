@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
-use App\Models\Academic\AcademicYear;
-use App\Models\Academic\ClassSection;
 use App\Models\Academic\Pp2Setting;
 use App\Models\Academic\SubjectGroupHead;
 use App\Models\Personne\Personnel;
@@ -16,7 +14,9 @@ class SchoolSettingController extends Controller
     // หน้ากลางเดียวสำหรับตั้งค่าข้อมูลโรงเรียน/ตราโรงเรียน/ลายเซ็น ใช้ร่วมกันทุกหน้าที่ต้องพิมพ์เอกสาร
     // (ปพ.1/3/5/6/7, ใบระเบียนผลการเรียน, รายงานจัดอันดับคะแนนรายวิชา ฯลฯ) — ก่อนหน้านี้แต่ละหน้ามีของตัวเอง
     // แยกกัน (บางหน้าเก็บลง session ชั่วคราว บางหน้าเก็บ DB ไม่ครบทุกช่อง) ทำให้ตั้งค่าที่หนึ่งแล้วไม่ไปอีกที่
-    public function index(Request $request)
+    // (การตั้งค่าปีการศึกษา/ภาคเรียน — วันเริ่ม-สิ้นสุด/ตั้งเป็นเทอมปัจจุบัน/เปิดภาคเรียน 2 — อยู่ที่เมนู
+    // "เปิดภาคเรียน" (PromotionController::openSemester2Form) แยกต่างหาก ไม่ได้อยู่ในหน้านี้)
+    public function index()
     {
         $setting = Pp2Setting::getInstance();
 
@@ -49,33 +49,7 @@ class SchoolSettingController extends Controller
         $subjectGroupHeads = SubjectGroupHead::all()->keyBy('subject_group');
         $subjectGroups = SubjectGroupHead::groupList();
 
-        // ปีการศึกษา/ภาคเรียน — ใช้แก้ไขวันเริ่ม-สิ้นสุดของ "ปีไหน/เทอมไหนก็ได้" แบบเข้าถึงเร็วในหน้าตั้งค่ากลาง
-        // (เลือกปีผ่าน ?year_id= เหมือนหน้า จัดการหลักสูตร/แผน ซึ่งเป็นที่จัดการปี/เทอมแบบเต็ม)
-        $academicYears = AcademicYear::with('semesters')->orderByDesc('year_name')->get();
-        $selectedTermYearId = $request->get('year_id')
-            ?? optional($academicYears->firstWhere('is_current', true))->year_id
-            ?? optional($academicYears->first())->year_id;
-        $selectedTermYear = $selectedTermYearId
-            ? $academicYears->firstWhere('year_id', $selectedTermYearId)
-            : null;
-
-        // เปิดภาคเรียน 2 — ห้องเรียนของเทอม 1 ในปีที่เลือกอยู่ ให้เลือกคัดลอกไปเทอม 2 ได้จากการ์ดนี้เลย
-        // (ตรรกะเดียวกับเมนู "เปิดภาคเรียน 2" เดิม แค่ย่อมาไว้ในหน้าเดียวกับการตั้งค่าเทอมอื่นๆ)
-        $term1SectionsForSelectedYear = collect();
-        if ($selectedTermYear) {
-            $semester1 = $selectedTermYear->semesters->firstWhere('semester_name', '1');
-            if ($semester1) {
-                $term1SectionsForSelectedYear = ClassSection::with('level')
-                    ->where('semester_id', $semester1->semester_id)
-                    ->orderBy('level_id')->orderBy('section_number')
-                    ->get();
-            }
-        }
-
-        return view('settings.school_settings', compact(
-            'setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups',
-            'academicYears', 'selectedTermYearId', 'selectedTermYear', 'term1SectionsForSelectedYear'
-        ));
+        return view('settings.school_settings', compact('setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups'));
     }
 
     public function updateSchool(Request $request)

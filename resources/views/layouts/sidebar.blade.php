@@ -238,7 +238,7 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จัดการชั้นเรียน/สำเร็จการศึกษา</a>
                                         </li>
                                         <li><a href="{{ route('open-semester2.form') }}"
-                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">เปิดภาคเรียน 2</a>
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">เปิดภาคเรียน</a>
                                         </li>
                                         @endif
                                         <li><a href="{{ route('student-alumni.index') }}"

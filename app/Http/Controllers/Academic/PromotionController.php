@@ -178,29 +178,39 @@ class PromotionController extends Controller
     }
 
     // หน้าฟอร์ม "เปิดภาคเรียน 2" — แยกเป็นเมนู/หน้าของตัวเอง ไม่ผูกกับหน้าย้ายห้อง/เลื่อนชั้น
-    public function openSemester2Form()
+    // รวมการตั้งค่าเทอมที่เกี่ยวข้องไว้ในหน้าเดียว: วันเริ่ม-สิ้นสุดภาคเรียน, ตั้งเป็นเทอมปัจจุบัน,
+    // และคัดลอกห้อง+แผนการเรียนจากเทอม 1 มาเปิดเทอม 2 (ย้ายมาจากหน้าตั้งค่าเริ่มต้นตามที่ผู้ใช้ระบุ)
+    public function openSemester2Form(Request $request)
     {
-        $academicYears = AcademicYear::orderByDesc('year_name')->get();
+        $academicYears = AcademicYear::with('semesters')->orderByDesc('year_name')->get();
         $levels = Level::orderBy('sort_order')->get();
 
-        // ห้องทั้งหมดของ "เทอม 1" ทุกปีการศึกษา ให้เลือกคัดลอกไปเทอม 2
-        // กรอง semester ที่โหลดไม่ได้ออกอีกชั้น (กันหน้าเว็บพังถ้าข้อมูลไม่ครบ)
-        // แปลงเป็น array ธรรมดาตั้งแต่ใน controller (ไม่ใช่ในหน้าเว็บ) กัน Blade ตีความ
-        // นิพจน์ปนกันระหว่าง @json() กับ fn()=>[...] ที่มี ?-> ซับซ้อนผิดพลาด
-        $term1SectionsJson = ClassSection::with(['level', 'semester'])
-            ->whereHas('semester', fn($q) => $q->where('semester_name', '1'))
-            ->orderBy('level_id')->orderBy('section_number')->get()
-            ->filter(fn($s) => $s->semester !== null)
-            ->values()
-            ->map(fn($s) => [
-                'section_id' => $s->section_id,
-                'year_id'    => $s->semester?->year_id,
-                'level_id'   => $s->level_id,
-                'label'      => $s->full_name,
-                'study_plan' => $s->study_plan,
-            ]);
+        $selectedYearId = $request->get('year_id')
+            ?? optional($academicYears->firstWhere('is_current', true))->year_id
+            ?? optional($academicYears->first())->year_id;
+        $selectedYear = $selectedYearId ? $academicYears->firstWhere('year_id', $selectedYearId) : null;
 
-        return view('academic.open_semester2', compact('academicYears', 'levels', 'term1SectionsJson'));
+        // ห้องเทอม 1 ของ "ปีที่เลือกอยู่" เท่านั้น ให้เลือกคัดลอกไปเทอม 2 (กรองระดับชั้นด้วย JS ต่อได้)
+        // แปลงเป็น array ธรรมดาตั้งแต่ใน controller กัน Blade ตีความนิพจน์ @json() ปนกับ fn()=>[...] ผิดพลาด
+        $term1SectionsJson = collect();
+        if ($selectedYear) {
+            $semester1 = $selectedYear->semesters->firstWhere('semester_name', '1');
+            if ($semester1) {
+                $term1SectionsJson = ClassSection::with('level')
+                    ->where('semester_id', $semester1->semester_id)
+                    ->orderBy('level_id')->orderBy('section_number')->get()
+                    ->map(fn($s) => [
+                        'section_id' => $s->section_id,
+                        'level_id'   => $s->level_id,
+                        'label'      => $s->full_name,
+                        'study_plan' => $s->study_plan,
+                    ]);
+            }
+        }
+
+        return view('academic.open_semester2', compact(
+            'academicYears', 'levels', 'selectedYearId', 'selectedYear', 'term1SectionsJson'
+        ));
     }
 
     // เปิดเทอม 2: คัดลอกห้อง+แผนการเรียนจากเทอม 1 ไปสร้างเป็นห้องใหม่ในเทอม 2 ของปีการศึกษาเดียวกัน
