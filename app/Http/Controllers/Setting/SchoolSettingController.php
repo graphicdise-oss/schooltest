@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Academic\AcademicYear;
+use App\Models\Academic\ClassSection;
 use App\Models\Academic\Pp2Setting;
 use App\Models\Academic\SubjectGroupHead;
 use App\Models\Personne\Personnel;
@@ -58,9 +59,22 @@ class SchoolSettingController extends Controller
             ? $academicYears->firstWhere('year_id', $selectedTermYearId)
             : null;
 
+        // เปิดภาคเรียน 2 — ห้องเรียนของเทอม 1 ในปีที่เลือกอยู่ ให้เลือกคัดลอกไปเทอม 2 ได้จากการ์ดนี้เลย
+        // (ตรรกะเดียวกับเมนู "เปิดภาคเรียน 2" เดิม แค่ย่อมาไว้ในหน้าเดียวกับการตั้งค่าเทอมอื่นๆ)
+        $term1SectionsForSelectedYear = collect();
+        if ($selectedTermYear) {
+            $semester1 = $selectedTermYear->semesters->firstWhere('semester_name', '1');
+            if ($semester1) {
+                $term1SectionsForSelectedYear = ClassSection::with('level')
+                    ->where('semester_id', $semester1->semester_id)
+                    ->orderBy('level_id')->orderBy('section_number')
+                    ->get();
+            }
+        }
+
         return view('settings.school_settings', compact(
             'setting', 'personnels', 'directors', 'logoUrl', 'garudaUrl', 'subjectGroupHeads', 'subjectGroups',
-            'academicYears', 'selectedTermYearId', 'selectedTermYear'
+            'academicYears', 'selectedTermYearId', 'selectedTermYear', 'term1SectionsForSelectedYear'
         ));
     }
 

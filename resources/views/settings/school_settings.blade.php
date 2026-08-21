@@ -132,6 +132,7 @@
                                 <option value="{{ $sem->semester_id }}"
                                     data-start="{{ optional($sem->start_date)->format('Y-m-d') }}"
                                     data-end="{{ optional($sem->end_date)->format('Y-m-d') }}"
+                                    data-current="{{ $sem->is_current ? '1' : '0' }}"
                                     {{ $sem->is_current ? 'selected' : '' }}>
                                     เทอม {{ $sem->semester_name }} {{ $sem->is_current ? '⭐ (ปัจจุบัน)' : '' }}
                                 </option>
@@ -158,9 +159,15 @@
                             <input type="date" name="end_date" id="ssTermEnd" class="ac-input">
                         </div>
                     </div>
-                    <div class="ac-save-wrap">
+                    <div class="ac-save-wrap" style="display:flex; gap:10px; align-items:center;">
                         <button type="submit" class="ac-btn ac-btn-primary"><i class="bi bi-check-lg"></i> บันทึกวันเริ่ม-สิ้นสุดภาคเรียน</button>
                     </div>
+                </form>
+                <form method="POST" id="ssTermSetCurrentForm" style="margin-top:8px;">
+                    @csrf @method('PUT')
+                    <button type="submit" id="ssTermSetCurrentBtn" class="ac-btn ac-btn-sm" style="background:#10b981; color:#fff;">
+                        <i class="bi bi-check-circle"></i> ตั้งเป็นเทอมปัจจุบัน
+                    </button>
                 </form>
                 <script>
                     function ssHandleSemChange(selectObj) {
@@ -169,11 +176,50 @@
                         document.getElementById('ssTermEnd').value = opt.getAttribute('data-end') || '';
                         document.getElementById('ssTermDatesForm').action =
                             '{{ url('academic-years/semester') }}/' + selectObj.value + '/dates';
+                        document.getElementById('ssTermSetCurrentForm').action =
+                            '{{ url('academic-years/semester') }}/' + selectObj.value + '/current';
+                        document.getElementById('ssTermSetCurrentBtn').style.display =
+                            opt.getAttribute('data-current') === '1' ? 'none' : 'inline-block';
                     }
                     document.addEventListener('DOMContentLoaded', () => {
                         ssHandleSemChange(document.getElementById('ssTermSemSelect'));
                     });
                 </script>
+            @endif
+
+            {{-- เปิดภาคเรียน 2 — คัดลอกห้อง+แผนการเรียนจากเทอม 1 ของปีที่เลือกอยู่ --}}
+            @if($selectedTermYear)
+                <hr style="margin:22px 0 18px; border-top:1px dashed #e2e8f0;">
+                <div style="font-size:0.85rem; font-weight:700; color:#475569; margin-bottom:10px;">
+                    <i class="bi bi-copy"></i> เปิดภาคเรียน 2 (คัดลอกห้อง+แผนการเรียนจากเทอม 1 ของปี {{ $selectedTermYear->year_name }})
+                </div>
+                @if($term1SectionsForSelectedYear->isEmpty())
+                    <div style="padding:8px 12px; background:#f8fafc; color:#64748b; font-size:0.85rem; border-radius:6px; border:1px solid #e2e8f0;">
+                        ปีนี้ยังไม่มีห้องเรียนในเทอม 1 ให้คัดลอก
+                    </div>
+                @else
+                    <form method="POST" action="{{ route('open-semester2.store') }}">
+                        @csrf
+                        <input type="hidden" name="year_id" value="{{ $selectedTermYear->year_id }}">
+                        <div style="max-height:220px; overflow-y:auto; border:1px solid #e2e8f0; border-radius:8px; padding:10px; margin-bottom:12px;">
+                            <label style="display:flex; align-items:center; gap:8px; font-weight:700; font-size:0.85rem; margin-bottom:8px; cursor:pointer; padding-bottom:8px; border-bottom:1px solid #f0f0f0;">
+                                <input type="checkbox" onchange="document.querySelectorAll('.ssOs2Cb').forEach(cb=>cb.checked=this.checked)" style="width:16px;height:16px;">
+                                เลือกทั้งหมด
+                            </label>
+                            @foreach($term1SectionsForSelectedYear as $sec)
+                                <label style="display:flex; align-items:center; gap:8px; font-size:0.85rem; padding:4px 0; cursor:pointer;">
+                                    <input type="checkbox" name="section_ids[]" value="{{ $sec->section_id }}" class="ssOs2Cb" checked style="width:16px;height:16px;">
+                                    {{ $sec->full_name }}
+                                </label>
+                            @endforeach
+                        </div>
+                        <p style="font-size:0.78rem; color:#94a3b8; margin:0 0 10px;">
+                            <i class="bi bi-info-circle"></i> ไม่คัดลอกตารางสอนและรายชื่อนักเรียน (ห้องใหม่จะว่างเปล่า รอจัดทีหลัง)
+                            ห้องที่มีอยู่ในเทอม 2 แล้วจะถูกข้ามอัตโนมัติ ไม่สร้างซ้ำ
+                        </p>
+                        <button type="submit" class="ac-btn" style="background:#0891b2; color:#fff;"><i class="bi bi-copy"></i> เปิดภาคเรียน 2 (คัดลอกห้องที่เลือก)</button>
+                    </form>
+                @endif
             @endif
         @endif
     </div>
