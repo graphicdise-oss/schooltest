@@ -23,6 +23,17 @@
         .pp-wrap { max-width:960px; margin:0 auto 40px; padding:0 16px; }
         .pp-card { background:#fff; border-radius:16px; box-shadow:0 6px 24px rgba(8,43,117,.10); padding:24px 26px; margin-bottom:18px; }
         .pp-title { color:#082b75; font-weight:700; font-size:1.15rem; border-left:4px solid #4b7ce3; padding-left:10px; margin:0 0 16px; }
+
+        @media (max-width: 767px) {
+            .pp-brand span { font-size:.9rem; }
+            .pp-nav { gap:2px; width:100%; justify-content:flex-start; }
+            .pp-nav a { padding:7px 10px; font-size:.82rem; }
+            .pp-card { padding:16px; border-radius:12px; }
+            .pp-logout { order:3; width:100%; }
+            .pp-logout button { width:100%; }
+            table { min-width:600px; }
+            table:not(.table-responsive table) { display:block; overflow-x:auto; -webkit-overflow-scrolling:touch; white-space:nowrap; }
+        }
     </style>
     @stack('styles')
 </head>

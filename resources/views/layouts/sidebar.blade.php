@@ -90,13 +90,60 @@
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 31'%3E%3Cpath d='M30,0 L30,31 C30,14.432 16.568,1 0,1 L0,0 Z' fill='%23bbf0ff'/%3E%3C/svg%3E");
             pointer-events: none;
         }
+
+        /* ===== Mobile safety net =====
+           หน้าเนื้อหาแต่ละหน้า (@yield('content')) มี CSS เฉพาะของตัวเองเยอะมาก (ตาราง/กริด/โมดัล ฯลฯ)
+           ไม่ได้ทำ responsive ไว้ทีละหน้า กฎด้านล่างนี้เป็นตาข่ายรองรับกลางที่โหลดในทุกหน้าที่ใช้ layout นี้
+           (มาทีหลัง @stack('styles') ในเอกสาร จึงชนะ CSS เฉพาะหน้าที่ specificity เท่ากัน) ทำให้อย่างน้อย
+           "ใช้งานได้" บนจอมือถือทุกหน้าโดยไม่ต้องไปไล่แก้ทีละไฟล์ */
+        @media (max-width: 767px) {
+            main { padding: 0 !important; }
+
+            /* ตารางกว้างเกินจอ — ให้เลื่อนแนวนอนได้แทนที่จะบีบ/ล้นจอ */
+            table { min-width: 600px; }
+            .table-responsive, .ac-table-wrap, .pg-table-wrap {
+                overflow-x: auto !important;
+                -webkit-overflow-scrolling: touch;
+            }
+            table:not(.table-responsive table):not(.ac-table-wrap table):not(.pg-table-wrap table) {
+                display: block;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                white-space: nowrap;
+            }
+
+            /* กริด/แถวคอลัมน์คงที่ — บีบเป็นคอลัมน์เดียวจะได้ไม่ล้นจอ */
+            .ac-grid-4, .ac-grid-3, .ac-grid-2,
+            [class*="grid-cols-"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* กล่อง/การ์ดที่ตั้ง width เป็น px ตายตัว (โมดัล ฯลฯ) — ให้พอดีความกว้างจอแทน */
+            [class*="ac-modal"], [class*="modal-box"], [class*="p1-modal"] {
+                width: 94vw !important;
+                max-width: 94vw !important;
+            }
+
+            /* padding/margin แน่นเกินไปตอนจอแคบ ลดลงเล็กน้อยทั้งเว็บ */
+            .ac-page, .pg-page, .ss-page { padding: 10px !important; }
+            .ac-card-body, .pg-card, .ss-card { padding: 14px !important; }
+
+            /* แถวปุ่ม/ตัวกรองที่เรียงแนวนอนแน่น — อนุญาตให้ตกบรรทัดแทนล้นจอ */
+            .ac-toolbar, .pg-toolbar { flex-wrap: wrap !important; }
+        }
     </style>
 </head>
 
-<body class="flex h-screen overflow-hidden">
+<body class="flex h-screen overflow-hidden" x-data="{ sidebarOpen: false }">
+
+    {{-- ฉากทึบมืดหลังเมนู เฉพาะจอมือถือ ตอนเมนูเปิดอยู่ แตะเพื่อปิด --}}
+    <div x-show="sidebarOpen" x-transition.opacity @click="sidebarOpen = false"
+        class="fixed inset-0 bg-black/50 z-30 md:hidden" style="display:none;"></div>
 
     {{-- ===== SIDEBAR ===== --}}
-    <aside class="w-[250px] sidebar-bg flex flex-col flex-shrink-0 z-20 text-white relative">
+    {{-- จอมือถือ: ซ่อนไว้นอกจอ (fixed, เลื่อนเข้า-ออกด้วย translate) / จอ md ขึ้นไป: แสดงตลอด ตำแหน่งปกติ --}}
+    <aside class="w-[250px] sidebar-bg flex flex-col flex-shrink-0 z-40 text-white fixed inset-y-0 left-0 transition-transform duration-300 md:relative md:translate-x-0"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
         {{-- โปรไฟล์ --}}
         <div class="flex flex-col items-center justify-center pt-10 pb-4">
@@ -202,7 +249,8 @@
                 }" @mouseenter="moveIndicator($el); hoverItem = 'personnel'; calcPos($el)"
                     class="mb-2 relative z-10 block">
 
-                    <a :class="(hoverItem === 'personnel' || (hoverItem === null && activeItem === 'personnel')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                    <a @click="hoverItem = (hoverItem === 'personnel' ? null : 'personnel')"
+                        :class="(hoverItem === 'personnel' || (hoverItem === null && activeItem === 'personnel')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
                         <i class="fa-regular fa-user w-6 text-center mr-2"></i> นักเรียน-บุคลากร
                     </a>
@@ -212,13 +260,13 @@
                         x-transition:enter-end="opacity-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-2" class="fixed left-[250px] z-[100]"
+                        x-transition:leave-end="opacity-0 translate-y-2" class="static md:fixed md:left-[250px] z-[100] w-full md:w-auto"
                         x-bind:style="`top: ${myTop}px`" style="display: none;">
 
-                        <div class="absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
+                        <div class="hidden md:block absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
                         <div
-                            class="ml-[15px] w-[880px] bg-white rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-8 flex gap-8 border border-gray-100 relative">
-                            <div class="absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
+                            class="w-full md:ml-[15px] md:w-[880px] bg-white rounded-2xl md:rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-8 border border-gray-100 relative max-h-[70vh] md:max-h-none overflow-y-auto md:overflow-visible">
+                            <div class="hidden md:block absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
                                 x-bind:style="`top: ${myArrow}px`"></div>
 
                             {{-- คอลัมน์ 1 --}}
@@ -358,7 +406,8 @@
                 }" @mouseenter="moveIndicator($el); hoverItem = 'academic'; calcPos($el)"
                     class="mb-2 relative z-10 block">
 
-                    <a :class="(hoverItem === 'academic' || (hoverItem === null && activeItem === 'academic')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                    <a @click="hoverItem = (hoverItem === 'academic' ? null : 'academic')"
+                        :class="(hoverItem === 'academic' || (hoverItem === null && activeItem === 'academic')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
                         <i class="fa-solid fa-book-open w-6 text-center mr-2"></i> งานวิชาการ
                     </a>
@@ -368,13 +417,13 @@
                         x-transition:enter-end="opacity-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-2" class="fixed left-[250px] z-[100]"
+                        x-transition:leave-end="opacity-0 translate-y-2" class="static md:fixed md:left-[250px] z-[100] w-full md:w-auto"
                         x-bind:style="`top: ${myTop}px`" style="display: none;">
 
-                        <div class="absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
+                        <div class="hidden md:block absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
                         <div
-                            class="ml-[15px] w-[880px] bg-white rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-8 flex gap-8 border border-gray-100 relative">
-                            <div class="absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
+                            class="w-full md:ml-[15px] md:w-[880px] bg-white rounded-2xl md:rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-8 border border-gray-100 relative max-h-[70vh] md:max-h-none overflow-y-auto md:overflow-visible">
+                            <div class="hidden md:block absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
                                 x-bind:style="`top: ${myArrow}px`"></div>
 
                             <div class="flex-1">
@@ -491,7 +540,8 @@
                     data-menu="student_affairs"
                     class="mb-2 relative z-10 block">
 
-                    <a :class="(hoverItem === 'student_affairs' || (hoverItem === null && activeItem === 'student_affairs')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                    <a @click="hoverItem = (hoverItem === 'student_affairs' ? null : 'student_affairs')"
+                        :class="(hoverItem === 'student_affairs' || (hoverItem === null && activeItem === 'student_affairs')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
                         <i class="fa-solid fa-graduation-cap w-6 text-center mr-2"></i> กิจกรรมพัฒนาผู้เรียน
                     </a>
@@ -501,13 +551,13 @@
                         x-transition:enter-end="opacity-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-2" class="fixed left-[250px] z-[100]"
+                        x-transition:leave-end="opacity-0 translate-y-2" class="static md:fixed md:left-[250px] z-[100] w-full md:w-auto"
                         x-bind:style="`top: ${myTop}px`" style="display: none;">
 
-                        <div class="absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
+                        <div class="hidden md:block absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
                         <div
-                            class="ml-[15px] w-[880px] bg-white rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-8 flex gap-8 border border-gray-100 relative">
-                            <div class="absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
+                            class="w-full md:ml-[15px] md:w-[880px] bg-white rounded-2xl md:rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-8 border border-gray-100 relative max-h-[70vh] md:max-h-none overflow-y-auto md:overflow-visible">
+                            <div class="hidden md:block absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
                                 x-bind:style="`top: ${myArrow}px`"></div>
 
                             <div class="flex-1">
@@ -571,7 +621,8 @@
                     data-menu="general_admin"
                     class="mb-2 relative z-10 block">
 
-                    <a :class="(hoverItem === 'general_admin' || (hoverItem === null && activeItem === 'general_admin')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
+                    <a @click="hoverItem = (hoverItem === 'general_admin' ? null : 'general_admin')"
+                        :class="(hoverItem === 'general_admin' || (hoverItem === null && activeItem === 'general_admin')) ? 'text-[#5282e5] font-bold' : 'text-white hover:bg-white/10'"
                         class="flex items-center py-3 pl-6 transition-colors w-full cursor-pointer rounded-l-[30px]">
                         <i class="fa-solid fa-users w-6 text-center mr-2"></i> บริหารทั่วไป
                     </a>
@@ -581,13 +632,13 @@
                         x-transition:enter-end="opacity-100 translate-y-0"
                         x-transition:leave="transition ease-in duration-100"
                         x-transition:leave-start="opacity-100 translate-y-0"
-                        x-transition:leave-end="opacity-0 translate-y-2" class="fixed left-[250px] z-[100]"
+                        x-transition:leave-end="opacity-0 translate-y-2" class="static md:fixed md:left-[250px] z-[100] w-full md:w-auto"
                         x-bind:style="`top: ${myTop}px`" style="display: none;">
 
-                        <div class="absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
+                        <div class="hidden md:block absolute left-[-20px] top-[-200px] w-[40px] h-[1000px] bg-transparent"></div>
                         <div
-                            class="ml-[15px] w-[880px] bg-white rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-8 flex gap-8 border border-gray-100 relative">
-                            <div class="absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
+                            class="w-full md:ml-[15px] md:w-[880px] bg-white rounded-2xl md:rounded-[2.5rem] shadow-[0_15px_40px_rgba(0,0,0,0.12)] p-4 md:p-8 flex flex-col md:flex-row gap-4 md:gap-8 border border-gray-100 relative max-h-[70vh] md:max-h-none overflow-y-auto md:overflow-visible">
+                            <div class="hidden md:block absolute left-[-12px] w-0 h-0 border-t-[12px] border-t-transparent border-b-[12px] border-b-transparent border-r-[14px] border-r-white drop-shadow-sm"
                                 x-bind:style="`top: ${myArrow}px`"></div>
                             <div class="flex-1">
                                 <div class="mb-4">
@@ -717,25 +768,31 @@
     <div class="flex-1 flex flex-col h-screen overflow-hidden">
 
         {{-- Header --}}
-        <header class="h-[70px] bg-white flex items-center justify-between px-6 z-10 shadow-sm">
+        <header class="h-[70px] bg-white flex items-center justify-between px-3 sm:px-6 z-10 shadow-sm">
             @php
                 $siteBrand = \App\Models\SchoolInfoSetting::getInstance();
                 $siteBrandLogoUrl = $siteBrand->logo_path ? asset('storage/' . $siteBrand->logo_path) : null;
                 $siteBrandName = $siteBrand->school_name ?: 'SCHOOL TECH';
             @endphp
-            <div class="flex items-center gap-2 text-[#3b5cb4] font-bold text-[18px] tracking-wide">
-                @if($siteBrandLogoUrl)
-                    <img src="{{ $siteBrandLogoUrl }}" alt="logo" class="h-12 w-12 object-contain" onerror="this.style.display='none'">
-                @else
-                    <i class="fa-solid fa-graduation-cap text-[#3b5cb4] text-xl"></i>
-                @endif
-                {{ $siteBrandName }}
-            </div>
-            <div class="flex items-center gap-4">
-                <button class="text-gray-700 hover:text-orange-500 transition">
-                    <i class="fa-regular fa-bell text-[22px]"></i>
+            <div class="flex items-center gap-2 sm:gap-3 min-w-0">
+                <button type="button" @click="sidebarOpen = !sidebarOpen"
+                    class="md:hidden flex-shrink-0 text-[#3b5cb4] text-2xl leading-none p-1 -ml-1" aria-label="เปิดเมนู">
+                    <i class="fa-solid fa-bars"></i>
                 </button>
-                <span class="text-sm text-gray-600 font-medium">{{ Auth::user()->first_name ?? '' }}</span>
+                <div class="flex items-center gap-2 text-[#3b5cb4] font-bold text-[15px] sm:text-[18px] tracking-wide min-w-0">
+                    @if($siteBrandLogoUrl)
+                        <img src="{{ $siteBrandLogoUrl }}" alt="logo" class="h-9 w-9 sm:h-12 sm:w-12 object-contain flex-shrink-0" onerror="this.style.display='none'">
+                    @else
+                        <i class="fa-solid fa-graduation-cap text-[#3b5cb4] text-xl flex-shrink-0"></i>
+                    @endif
+                    <span class="truncate">{{ $siteBrandName }}</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                <button class="text-gray-700 hover:text-orange-500 transition">
+                    <i class="fa-regular fa-bell text-[20px] sm:text-[22px]"></i>
+                </button>
+                <span class="hidden sm:inline text-sm text-gray-600 font-medium">{{ Auth::user()->first_name ?? '' }}</span>
             </div>
         </header>
 
