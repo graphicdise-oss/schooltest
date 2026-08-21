@@ -67,7 +67,16 @@ trait WritesTranscriptGrades
             foreach ($block['semesters'] as $semesterName => $subjects) {
                 $semester = Semester::firstOrCreate(['year_id' => $year->year_id, 'semester_name' => $semesterName]);
 
-                $section = ClassSection::firstOrCreate(
+                // หาห้องเรียนจริงที่นักเรียนคนนี้เคยอยู่ในปี/เทอมนี้ก่อน (จาก student_sections ที่มีอยู่แล้ว
+                // ในระบบ) ถ้าเจอให้ใช้ห้องจริงเลย ไม่ต้องสร้างห้องปลอม — ใช้ห้องปลอม (9998) เฉพาะตอนหา
+                // ห้องจริงไม่เจอจริงๆ เท่านั้น (เช่น นำเข้าเกรดของปี/เทอมที่ยังไม่เคยจัดนักเรียนเข้าห้องในระบบนี้)
+                $section = ClassSection::real()
+                    ->where('semester_id', $semester->semester_id)
+                    ->where('level_id', $level->level_id)
+                    ->whereHas('studentSections', fn ($q) => $q->where('student_id', $student->student_id))
+                    ->first();
+
+                $section ??= ClassSection::firstOrCreate(
                     [
                         'semester_id' => $semester->semester_id,
                         'level_id' => $level->level_id,
