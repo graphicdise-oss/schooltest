@@ -50,7 +50,7 @@ class AutoAdvanceSemester
                 return;
             }
 
-            if ($due->semester_name === '2' && ! ClassSection::where('semester_id', $due->semester_id)->exists()) {
+            if ($due->semester_name === '2' && ! ClassSection::real()->where('semester_id', $due->semester_id)->exists()) {
                 $this->copyTerm1SectionsToTerm2($due);
             }
 
@@ -80,7 +80,7 @@ class AutoAdvanceSemester
             return;
         }
 
-        $sources = ClassSection::where('semester_id', $semester1->semester_id)->get();
+        $sources = ClassSection::real()->where('semester_id', $semester1->semester_id)->get();
 
         foreach ($sources as $source) {
             $alreadyExists = ClassSection::where('semester_id', $semester2->semester_id)

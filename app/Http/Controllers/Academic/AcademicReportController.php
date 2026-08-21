@@ -33,7 +33,7 @@ class AcademicReportController extends Controller
             : collect();
 
         $sections = $sem1
-            ? ClassSection::with('level')->where('semester_id', $sem1->semester_id)
+            ? ClassSection::real()->with('level')->where('semester_id', $sem1->semester_id)
                 ->when($levelId, fn ($q) => $q->where('level_id', $levelId))
                 ->orderBy('level_id')->orderBy('section_number')->get()
             : collect();
@@ -192,7 +192,7 @@ class AcademicReportController extends Controller
             $sectionIds = TeachingAssign::where('semester_id', $semester->semester_id)
                 ->where('subject_id', $subjectId)
                 ->pluck('section_id')->unique();
-            $sections = ClassSection::with('level')->whereIn('section_id', $sectionIds)
+            $sections = ClassSection::real()->with('level')->whereIn('section_id', $sectionIds)
                 ->orderBy('level_id')->orderBy('section_number')->get();
         }
         $sectionId = $request->section_id;

@@ -36,7 +36,7 @@ class ClassSectionController extends Controller
         $levels = Level::orderBy('sort_order')->get();
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
 
-        $sections = ClassSection::with(['level', 'homeroomTeacher', 'studentSections', 'curriculum'])
+        $sections = ClassSection::real()->with(['level', 'homeroomTeacher', 'studentSections', 'curriculum'])
             ->where('semester_id', $semesterId)
             ->get()
             ->sortBy([

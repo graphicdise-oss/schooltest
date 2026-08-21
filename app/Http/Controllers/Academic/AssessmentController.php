@@ -25,7 +25,7 @@ class AssessmentController extends Controller
         $classLevels = Level::orderBy('sort_order')->get();
         $levelId = $request->get('level_id');
 
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->where('semester_id', $semesterId)
             ->when($levelId, fn($q) => $q->where('level_id', $levelId))
             ->get()

@@ -28,7 +28,7 @@ class OnetController extends Controller
                 ?? Semester::where('year_id', $yearId)->orderByDesc('semester_name')->first();
 
             if ($semester) {
-                $sections = ClassSection::where('level_id', $levelId)
+                $sections = ClassSection::real()->where('level_id', $levelId)
                     ->where('semester_id', $semester->semester_id)
                     ->orderBy('section_number')
                     ->get();

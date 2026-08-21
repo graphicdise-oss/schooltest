@@ -26,7 +26,7 @@ class Por6Controller extends Controller
 
         $sections = collect();
         if ($semesterId) {
-            $sections = ClassSection::with('level')
+            $sections = ClassSection::real()->with('level')
                 ->where('semester_id', $semesterId)
                 ->when($levelId, fn($q) => $q->where('level_id', $levelId))
                 ->orderBy('section_number')

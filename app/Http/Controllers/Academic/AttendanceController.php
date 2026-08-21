@@ -53,7 +53,7 @@ class AttendanceController extends Controller
             return $a;
         });
 
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number')
             ->get();

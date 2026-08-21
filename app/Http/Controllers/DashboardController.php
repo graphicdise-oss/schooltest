@@ -76,7 +76,7 @@ class DashboardController extends Controller
         $enrolledStudentIds = collect();
 
         if ($currentSemester) {
-            $sectionIds = ClassSection::where('semester_id', $currentSemester->semester_id)
+            $sectionIds = ClassSection::real()->where('semester_id', $currentSemester->semester_id)
                 ->pluck('section_id');
 
             // รายชื่อ student_id ที่ถูกจัดเข้าห้องในเทอมนี้แล้ว
@@ -119,7 +119,7 @@ class DashboardController extends Controller
         $overview = [
             'students_total'  => Student::count(),
             'sections_total'  => $currentSemester
-                ? ClassSection::where('semester_id', $currentSemester->semester_id)->count()
+                ? ClassSection::real()->where('semester_id', $currentSemester->semester_id)->count()
                 : 0,
             'personnel_total' => Personnel::count(),
             'levels_total'    => $levels->count(),

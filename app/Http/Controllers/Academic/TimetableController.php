@@ -21,7 +21,7 @@ class TimetableController extends Controller
         $levels     = Level::orderBy('sort_order')->get();
         $semesters  = Semester::with('academicYear')->orderedByRecency()->get();
 
-        $query = ClassSection::with(['level', 'homeroomTeacher', 'teachingAssigns.timetableSlots'])
+        $query = ClassSection::real()->with(['level', 'homeroomTeacher', 'teachingAssigns.timetableSlots'])
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number');
 
@@ -132,7 +132,7 @@ class TimetableController extends Controller
     {
         $semesterId = $request->semester_id ?? Semester::where('is_current', true)->value('semester_id');
 
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number')
             ->get();

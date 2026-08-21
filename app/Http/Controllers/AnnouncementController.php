@@ -22,7 +22,7 @@ class AnnouncementController extends Controller
             ->paginate(20);
 
         $levels = Level::orderBy('sort_order')->get();
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->whereHas('semester', fn($q) => $q->where('is_current', true))
             ->orderBy('level_id')->orderBy('section_number')->get();
 
@@ -113,7 +113,7 @@ class AnnouncementController extends Controller
     {
         $announcement = Announcement::findOrFail($id);
         $levels = Level::orderBy('sort_order')->get();
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->whereHas('semester', fn($q) => $q->where('is_current', true))
             ->orderBy('level_id')->orderBy('section_number')->get();
 

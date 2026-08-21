@@ -36,7 +36,7 @@ class BehaviorScoreController extends Controller
 
         $sections = collect();
         if ($levelId && $semester) {
-            $sections = ClassSection::with('level')
+            $sections = ClassSection::real()->with('level')
                 ->where('level_id', $levelId)
                 ->where('semester_id', $semester->semester_id)
                 ->orderBy('section_number')

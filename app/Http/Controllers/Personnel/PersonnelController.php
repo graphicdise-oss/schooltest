@@ -329,7 +329,7 @@ class PersonnelController extends Controller
             ->sort()
             ->values();
 
-        $sections = \App\Models\Academic\ClassSection::with('level')
+        $sections = \App\Models\Academic\ClassSection::real()->with('level')
             ->whereHas('semester', fn($q) => $q->where('is_current', true))
             ->get()
             ->sortBy([['level.sort_order', 'asc'], ['section_number', 'asc']])

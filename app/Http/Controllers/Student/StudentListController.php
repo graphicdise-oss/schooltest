@@ -31,7 +31,7 @@ class StudentListController extends Controller
 
         $levels = Level::orderBy('sort_order')->get();
 
-        $classrooms = ClassSection::with('level')
+        $classrooms = ClassSection::real()->with('level')
             ->orderBy('level_id')->orderBy('section_number')
             ->get()
             ->map(fn($s) => [

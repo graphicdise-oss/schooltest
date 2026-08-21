@@ -52,7 +52,7 @@ class ClassRosterController extends Controller
         // sections ของ level+semester ที่เลือก
         $sections = collect();
         if ($levelId && $semesterId) {
-            $sections = ClassSection::with('level')
+            $sections = ClassSection::real()->with('level')
                 ->where('level_id', $levelId)
                 ->where('semester_id', $semesterId)
                 ->orderBy('section_number')
@@ -126,7 +126,7 @@ class ClassRosterController extends Controller
         $sectionIds = null; // null = ไม่จำกัดห้อง (เฉพาะ admin เท่านั้นที่ทำได้)
 
         if (!$isAdmin) {
-            $ownSectionIds = ClassSection::where('homeroom_teacher_id', $user?->personnel_id)->pluck('section_id');
+            $ownSectionIds = ClassSection::real()->where('homeroom_teacher_id', $user?->personnel_id)->pluck('section_id');
             if ($wholeLevel) {
                 $sectionIds = $ownSectionIds->all();
             } elseif ($sectionId && !$ownSectionIds->contains((int) $sectionId)) {
@@ -135,11 +135,11 @@ class ClassRosterController extends Controller
                 $sectionIds = $sectionId ? [(int) $sectionId] : $ownSectionIds->all();
             }
         } elseif ($wholeLevel && $levelId && $semesterId) {
-            $sectionIds = ClassSection::where('level_id', $levelId)->where('semester_id', $semesterId)->pluck('section_id')->all();
+            $sectionIds = ClassSection::real()->where('level_id', $levelId)->where('semester_id', $semesterId)->pluck('section_id')->all();
         } elseif ($sectionId) {
             $sectionIds = [(int) $sectionId];
         } elseif ($levelId && $semesterId) {
-            $sectionIds = ClassSection::where('level_id', $levelId)->where('semester_id', $semesterId)->pluck('section_id')->all();
+            $sectionIds = ClassSection::real()->where('level_id', $levelId)->where('semester_id', $semesterId)->pluck('section_id')->all();
         }
 
         $query = Student::query();

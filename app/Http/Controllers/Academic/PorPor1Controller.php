@@ -42,8 +42,8 @@ class PorPor1Controller extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        // ห้องเรียน (กรองตาม level ถ้าเลือก)
-        $sections = ClassSection::with('level')
+        // ห้องเรียน (กรองตาม level ถ้าเลือก) — ->real() กันห้องปลอม (นำเข้าเกรดจากไฟล์/ทดสอบระบบ) หลุดมาให้เลือก
+        $sections = ClassSection::real()->with('level')
             ->where('semester_id', $semesterId)
             ->when($levelId, fn($q) => $q->where('level_id', $levelId))
             ->orderBy('level_id')->orderBy('section_number')

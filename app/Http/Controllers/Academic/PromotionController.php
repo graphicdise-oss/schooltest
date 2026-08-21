@@ -25,7 +25,7 @@ class PromotionController extends Controller
         $yearId = $semesters->firstWhere('semester_id', $semesterId)?->year_id;
         $levels = Level::orderBy('sort_order')->get();
 
-        $fromSections = ClassSection::with(['level', 'studentSections.student'])
+        $fromSections = ClassSection::real()->with(['level', 'studentSections.student'])
             ->where('semester_id', $semesterId)
             ->orderBy('level_id')->orderBy('section_number')->get();
 
@@ -37,7 +37,7 @@ class PromotionController extends Controller
         $currentYearName = (string) ($semestersAsc->firstWhere('semester_id', $semesterId)?->academicYear?->year_name ?? '');
         $nextSemester = $semestersAsc->first(fn($s) => (string) ($s->academicYear?->year_name ?? '') > $currentYearName);
         $toSections = $nextSemester
-            ? ClassSection::with('level')->where('semester_id', $nextSemester->semester_id)->orderBy('level_id')->orderBy('section_number')->get()
+            ? ClassSection::real()->with('level')->where('semester_id', $nextSemester->semester_id)->orderBy('level_id')->orderBy('section_number')->get()
             : collect();
 
         // บันทึกจบ (Tab 3) เลือกได้เฉพาะห้องของ "ชั้นปีสุดท้าย" ของแต่ละช่วงชั้นเท่านั้น (ป.6/ม.3/ม.6)
@@ -196,7 +196,7 @@ class PromotionController extends Controller
         if ($selectedYear) {
             $semester1 = $selectedYear->semesters->firstWhere('semester_name', '1');
             if ($semester1) {
-                $term1SectionsJson = ClassSection::with('level')
+                $term1SectionsJson = ClassSection::real()->with('level')
                     ->where('semester_id', $semester1->semester_id)
                     ->orderBy('level_id')->orderBy('section_number')->get()
                     ->map(fn($s) => [

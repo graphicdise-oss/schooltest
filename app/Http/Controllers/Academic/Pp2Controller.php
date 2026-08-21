@@ -45,7 +45,7 @@ class Pp2Controller extends Controller
             ->orderBy('sort_order')->get();
 
         $sections = ($levelId && $yearId)
-            ? ClassSection::with('level')
+            ? ClassSection::real()->with('level')
                 ->where('level_id', $levelId)
                 ->whereHas('semester', fn($q) => $q->where('year_id', $yearId))
                 ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))

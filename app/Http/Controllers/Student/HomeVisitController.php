@@ -167,7 +167,7 @@ class HomeVisitController extends Controller
             $studentIds = StudentSection::where('section_id', $sectionId)->pluck('student_id');
             $query->whereIn('student_id', $studentIds);
         } elseif ($levelId) {
-            $sectionIds = ClassSection::where('level_id', $levelId)->pluck('section_id');
+            $sectionIds = ClassSection::real()->where('level_id', $levelId)->pluck('section_id');
             $studentIds = StudentSection::whereIn('section_id', $sectionIds)->pluck('student_id');
             $query->whereIn('student_id', $studentIds);
         }
@@ -229,7 +229,7 @@ class HomeVisitController extends Controller
 
         $sections = collect();
         if ($levelId && $semesterId) {
-            $sections = ClassSection::with('level')
+            $sections = ClassSection::real()->with('level')
                 ->where('level_id', $levelId)
                 ->where('semester_id', $semesterId)
                 ->orderBy('section_number')

@@ -32,7 +32,7 @@ class GradeController extends Controller
         $semesters = Semester::with('academicYear')->orderedByRecency()->get();
         $levels  = Level::orderBy('sort_order')->get();
         $levelId = $request->level_id;
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->where('semester_id', $semesterId)
             ->when($levelId, fn($q) => $q->where('level_id', $levelId))
             ->orderBy('level_id')->orderBy('section_number')->get();
@@ -413,7 +413,7 @@ class GradeController extends Controller
         $levels = Level::whereHas('classSections', fn($q) => $q->where('semester_id', $semesterId))
             ->orderBy('sort_order')->get();
 
-        $sections = ClassSection::with('level')
+        $sections = ClassSection::real()->with('level')
             ->where('semester_id', $semesterId)
             ->when($levelId, fn($q) => $q->where('level_id', $levelId))
             ->orderBy('level_id')->orderBy('section_number')->get();

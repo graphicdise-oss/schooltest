@@ -65,7 +65,7 @@ class StudentAlumniController extends Controller
             : collect();
 
         $sections = ($yearId && $levelId)
-            ? ClassSection::with('level')
+            ? ClassSection::real()->with('level')
                 ->where('level_id', $levelId)
                 ->whereHas('semester', fn($q) => $q->where('year_id', $yearId))
                 ->get()
@@ -99,7 +99,7 @@ class StudentAlumniController extends Controller
 
         // สำหรับ dropdown ระบุห้องใหม่
         $newLevels   = Level::orderBy('sort_order')->get();
-        $allSections = ClassSection::with(['level', 'semester.academicYear'])
+        $allSections = ClassSection::real()->with(['level', 'semester.academicYear'])
             ->whereHas('semester', fn($q) => $q->where('is_current', true))
             ->get()
             ->groupBy('level_id');

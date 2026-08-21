@@ -173,7 +173,7 @@ class StudentStatController extends Controller
     {
         $stats = collect();
 
-        $sectionQuery = ClassSection::with('level')
+        $sectionQuery = ClassSection::real()->with('level')
             ->whereHas('semester', fn($q) => $q->where('year_id', $yearId))
             ->when($semesterId, fn($q) => $q->where('semester_id', $semesterId))
             ->when($levelId, fn($q) => $q->where('level_id', $levelId))

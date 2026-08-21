@@ -23,7 +23,7 @@ class StudentCardController extends Controller
             : collect();
 
         $sections = ($request->filled('semester_id') && $request->filled('level_id'))
-            ? ClassSection::with('level')
+            ? ClassSection::real()->with('level')
                 ->where('semester_id', $request->semester_id)
                 ->where('level_id', $request->level_id)
                 ->orderBy('section_number')->get()
