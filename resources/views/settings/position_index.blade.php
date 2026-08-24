@@ -86,6 +86,8 @@
     }
     .pos-btn-edit   { background: #fff3e0; color: #e65100; }
     .pos-btn-edit:hover   { background: #ffe0b2; }
+    .pos-btn-perm   { background: #fef3c7; color: #92400e; }
+    .pos-btn-perm:hover   { background: #fde68a; }
     .pos-btn-delete { background: transparent; color: #e53935; font-size: 1rem; }
     .pos-btn-delete:hover { color: #b71c1c; }
 
@@ -190,6 +192,12 @@
                                 title="แก้ไข">
                                 <i class="bi bi-pencil-fill"></i>
                             </button>
+
+                            {{-- กำหนดสิทธิ์ --}}
+                            <a href="{{ route('positions.permissions', $p->position_id) }}"
+                                class="pos-btn pos-btn-perm" title="กำหนดสิทธิ์">
+                                <i class="bi bi-shield-lock"></i>
+                            </a>
 
                             {{-- ลบ --}}
                             <form action="{{ route('positions.destroy', $p->position_id) }}" method="POST" style="display:inline"

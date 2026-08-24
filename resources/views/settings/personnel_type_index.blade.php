@@ -143,12 +143,6 @@
                             <i class="bi bi-pencil"></i>
                         </button>
 
-                        {{-- กำหนดสิทธิ์ --}}
-                        <a href="{{ route('personnel-types.permissions', $t->type_id) }}"
-                            class="pt-action-btn pt-action-perm" title="กำหนดสิทธิ์">
-                            <i class="bi bi-shield-lock"></i>
-                        </a>
-
                         {{-- ลบ --}}
                         <form action="{{ route('personnel-types.destroy', $t->type_id) }}" method="POST" style="display:inline"
                             onsubmit="return confirm('ลบประเภทนี้?')">

@@ -448,6 +448,8 @@ Route::middleware(['auth', 'track.activity', 'auto.advance.semester'])->group(fu
         Route::put('/{id}', 'update')->name('update');
         Route::put('/{id}/toggle', 'toggle')->name('toggle');
         Route::delete('/{id}', 'destroy')->name('destroy');
+        Route::get('/{id}/permissions', 'permissions')->name('permissions');
+        Route::post('/{id}/permissions', 'savePermissions')->name('savePermissions');
     });
 
     Route::controller(StudentCardController::class)->prefix('student-cards')->name('student-cards.')->group(function () {

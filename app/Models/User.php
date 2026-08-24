@@ -34,6 +34,7 @@ class User extends Authenticatable
     }
 
     // รายการ menu_key ที่อนุญาต (null = เห็นทุกเมนู)
+    // เดิมเช็คผ่าน "ประเภทบุคลากร" (personnel_type) — ย้ายมาเช็คผ่าน "ตำแหน่ง" (position) แทนแล้ว
     public function allowedMenuKeys()
     {
         if ($this->menuKeysCache !== false) {
@@ -45,14 +46,14 @@ class User extends Authenticatable
             return $this->menuKeysCache = null;
         }
 
-        $type = \App\Models\Personne\PersonnelType::where('name', $this->personnel_type)->first();
+        $position = \App\Models\Personne\Position::where('name', $this->position)->first();
 
-        // ไม่มีประเภท หรือยังไม่ตั้งค่าสิทธิ์เลย = เห็นทุกเมนู (กันล็อกเอาต์)
-        if (!$type || $type->permissions()->count() === 0) {
+        // ไม่มีตำแหน่ง หรือยังไม่ตั้งค่าสิทธิ์เลย = เห็นทุกเมนู (กันล็อกเอาต์)
+        if (!$position || $position->permissions()->count() === 0) {
             return $this->menuKeysCache = null;
         }
 
-        return $this->menuKeysCache = $type->permissions()
+        return $this->menuKeysCache = $position->permissions()
             ->where('is_allowed', true)->pluck('menu_key')->all();
     }
 

@@ -5,48 +5,17 @@ namespace App\Http\Controllers\Setting;
 use App\Http\Controllers\Controller;
 use App\Models\Personne\PersonnelType;
 use App\Models\Personne\PersonnelTypePermission;
+use App\Support\MenuPermissionCatalog;
 use Illuminate\Http\Request;
 
 class PersonnelTypeController extends Controller
 {
-    // รายการเมนูทั้งหมดที่จะให้กำหนดสิทธิ์
+    // เดิมกำหนดสิทธิ์ตรงนี้ (ตามประเภทบุคลากร) — ย้ายไปกำหนดตาม "ตำแหน่ง" แทนแล้ว (ดู PositionController)
+    // เมธอด/route/view หน้ากำหนดสิทธิ์ในไฟล์นี้ไม่ได้ผูกกับการเช็คสิทธิ์จริงอีกต่อไป (User::allowedMenuKeys()
+    // เช็คผ่าน Position แล้ว) เหลือไว้เฉยๆ ไม่ได้ลบเผื่ออยากดูค่าที่เคยตั้งไว้ ไม่มีลิงก์เข้าถึงจากหน้าเว็บแล้ว
     private function getMenuList()
     {
-        return [
-            'ข้อมูลบุคคล' => [
-                ['key' => 'students.index', 'label' => 'ข้อมูลนักเรียน'],
-                ['key' => 'students.create', 'label' => 'เพิ่มนักเรียน'],
-                ['key' => 'personnels.index', 'label' => 'ข้อมูลบุคลากร'],
-                ['key' => 'personnels.create', 'label' => 'เพิ่มบุคลากร'],
-            ],
-            'วิชาการ' => [
-                ['key' => 'academic.curriculum', 'label' => 'จัดการหลักสูตร'],
-                ['key' => 'academic.timetable', 'label' => 'ตารางสอน'],
-                ['key' => 'academic.scores', 'label' => 'บันทึกคะแนน'],
-                ['key' => 'academic.reports', 'label' => 'รายงานวิชาการ'],
-            ],
-            'กิจการนักเรียน' => [
-                ['key' => 'affairs.attendance', 'label' => 'เช็คชื่อ/ลา'],
-                ['key' => 'affairs.behavior', 'label' => 'ความประพฤติ'],
-                ['key' => 'affairs.homevisit', 'label' => 'เยี่ยมบ้าน'],
-            ],
-            'บริหารทั่วไป' => [
-                ['key' => 'admin.news', 'label' => 'ประชาสัมพันธ์'],
-                ['key' => 'admin.library', 'label' => 'ห้องสมุด'],
-                ['key' => 'admin.bus', 'label' => 'School Bus'],
-            ],
-            'บัญชี/การเงิน' => [
-                ['key' => 'finance.income', 'label' => 'ระบบบัญชีรายรับ'],
-                ['key' => 'finance.expense', 'label' => 'ระบบบัญชีรายจ่าย'],
-                ['key' => 'finance.salary', 'label' => 'ระบบเงินเดือน'],
-                ['key' => 'finance.reports', 'label' => 'รายงานบัญชี'],
-            ],
-            'ตั้งค่า' => [
-                ['key' => 'settings.prefix', 'label' => 'ตั้งค่าคำนำหน้า'],
-                ['key' => 'settings.personnel_type', 'label' => 'ตั้งค่าประเภทบุคลากร'],
-                ['key' => 'settings.general', 'label' => 'ตั้งค่าทั่วไป'],
-            ],
-        ];
+        return MenuPermissionCatalog::list();
     }
 
     // หน้ารายการ

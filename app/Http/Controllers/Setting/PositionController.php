@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Setting;
 
 use App\Http\Controllers\Controller;
 use App\Models\Personne\Position;
+use App\Models\Personne\PositionPermission;
+use App\Support\MenuPermissionCatalog;
 use Illuminate\Http\Request;
 
 class PositionController extends Controller
@@ -64,5 +66,38 @@ class PositionController extends Controller
     {
         Position::findOrFail($id)->delete();
         return redirect()->back()->with('success', 'ลบสำเร็จ');
+    }
+
+    // ===== หน้ากำหนดสิทธิ์ (ย้ายมาจากประเภทบุคลากร — ดู PersonnelTypeController สำหรับกลไกเดิม) =====
+    public function permissions($id)
+    {
+        $position = Position::with('permissions')->findOrFail($id);
+        $menuList = MenuPermissionCatalog::list();
+
+        $existingPerms = $position->permissions->keyBy('menu_key');
+
+        return view('settings.position_permissions', compact('position', 'menuList', 'existingPerms'));
+    }
+
+    public function savePermissions(Request $request, $id)
+    {
+        $position = Position::findOrFail($id);
+        $menuList = MenuPermissionCatalog::list();
+        $allowed = $request->input('permissions', []);
+
+        foreach ($menuList as $group => $menus) {
+            foreach ($menus as $menu) {
+                PositionPermission::updateOrCreate(
+                    ['position_id' => $position->position_id, 'menu_key' => $menu['key']],
+                    [
+                        'menu_label' => $menu['label'],
+                        'menu_group' => $group,
+                        'is_allowed' => in_array($menu['key'], $allowed),
+                    ]
+                );
+            }
+        }
+
+        return redirect()->back()->with('success', 'บันทึกสิทธิ์สำเร็จ');
     }
 }
