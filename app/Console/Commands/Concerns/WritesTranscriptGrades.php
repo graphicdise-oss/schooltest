@@ -67,24 +67,40 @@ trait WritesTranscriptGrades
             foreach ($block['semesters'] as $semesterName => $subjects) {
                 $semester = Semester::firstOrCreate(['year_id' => $year->year_id, 'semester_name' => $semesterName]);
 
-                // หาห้องเรียนจริงที่นักเรียนคนนี้เคยอยู่ในปี/เทอมนี้ก่อน (จาก student_sections ที่มีอยู่แล้ว
-                // ในระบบ) ถ้าเจอให้ใช้ห้องจริงเลย ไม่ต้องสร้างห้องปลอม — ใช้ห้องปลอม (9998) เฉพาะตอนหา
-                // ห้องจริงไม่เจอจริงๆ เท่านั้น (เช่น นำเข้าเกรดของปี/เทอมที่ยังไม่เคยจัดนักเรียนเข้าห้องในระบบนี้)
-                $section = ClassSection::real()
-                    ->where('semester_id', $semester->semester_id)
-                    ->where('level_id', $level->level_id)
-                    ->whereHas('studentSections', fn ($q) => $q->where('student_id', $student->student_id))
-                    ->first();
+                $roomText = trim($block['rooms'][$semesterName] ?? '');
 
-                $section ??= ClassSection::firstOrCreate(
-                    [
-                        'semester_id' => $semester->semester_id,
-                        'level_id' => $level->level_id,
-                        'section_number' => self::IMPORT_SECTION_NUMBER,
-                        'study_plan' => self::IMPORT_STUDY_PLAN,
-                    ],
-                    []
-                );
+                if ($roomText !== '') {
+                    // ไฟล์ระบุห้องมาตรงๆ (แถว "ห้อง") — ใช้ห้องนั้นเลย หา/สร้างห้องจริงตามเลขห้องที่ระบุ
+                    // (ไม่ทับ study_plan ของห้องที่มีอยู่แล้ว ใช้ค่าจากไฟล์แค่ตอนต้องสร้างห้องใหม่เท่านั้น)
+                    [$sectionNumber, $studyPlan] = $this->parseRoomText($roomText);
+                    $section = ClassSection::firstOrCreate(
+                        [
+                            'semester_id' => $semester->semester_id,
+                            'level_id' => $level->level_id,
+                            'section_number' => $sectionNumber,
+                        ],
+                        ['study_plan' => $studyPlan]
+                    );
+                } else {
+                    // ไฟล์ไม่ได้ระบุห้องมา — หาห้องเรียนจริงที่นักเรียนคนนี้เคยอยู่ในปี/เทอมนี้ก่อน (จาก
+                    // student_sections ที่มีอยู่แล้วในระบบ) ถ้าเจอให้ใช้ห้องจริงเลย ไม่ต้องสร้างห้องปลอม —
+                    // ใช้ห้องปลอม (9998) เฉพาะตอนหาห้องจริงไม่เจอจริงๆ เท่านั้น
+                    $section = ClassSection::real()
+                        ->where('semester_id', $semester->semester_id)
+                        ->where('level_id', $level->level_id)
+                        ->whereHas('studentSections', fn ($q) => $q->where('student_id', $student->student_id))
+                        ->first();
+
+                    $section ??= ClassSection::firstOrCreate(
+                        [
+                            'semester_id' => $semester->semester_id,
+                            'level_id' => $level->level_id,
+                            'section_number' => self::IMPORT_SECTION_NUMBER,
+                            'study_plan' => self::IMPORT_STUDY_PLAN,
+                        ],
+                        []
+                    );
+                }
 
                 $teacher = Personnel::firstOrCreate(
                     ['employee_code' => self::IMPORT_TEACHER_CODE],
@@ -230,6 +246,16 @@ trait WritesTranscriptGrades
             return ((int) $m[1]) <= 3 ? 'มัธยมศึกษาตอนต้น' : 'มัธยมศึกษาตอนปลาย';
         }
         return '';
+    }
+
+    // แยกข้อความห้องจากไฟล์ (เช่น "2" หรือ "2 วิทย์-คณิต") ออกเป็น [เลขห้อง, แผนการเรียน]
+    // เอาคำแรกเป็นเลขห้อง ที่เหลือ (ถ้ามี) เป็นแผนการเรียน — ไม่บังคับต้องมีแผนการเรียน
+    private function parseRoomText(string $roomText): array
+    {
+        $parts = preg_split('/\s+/u', trim($roomText), 2);
+        $sectionNumber = $parts[0];
+        $studyPlan = $parts[1] ?? null;
+        return [$sectionNumber, $studyPlan];
     }
 
     // เลข 3 ตัวท้ายของรหัสวิชา ตามมาตรฐาน: ขึ้นต้นด้วย 1 = พื้นฐาน, ขึ้นต้นด้วย 2 = เพิ่มเติม

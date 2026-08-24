@@ -138,7 +138,10 @@ class GradeController extends Controller
             "แบบฟอร์มนำเข้าเกรดรวม (Transcript) ของ {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} — "
             . 'กรอกได้สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน (กรอกไม่ครบ 3 กลุ่มก็ได้ และแต่ละคนมีจำนวนวิชาไม่เท่ากันได้ ไม่ต้องกรอกให้ครบทุกแถว), '
             . 'แถว "ปีการศึกษา" ให้ใส่ปี พ.ศ. เช่น 2567 และแถว "ระดับชั้น" ให้ใส่แบบย่อ เช่น ม.4, ป.6, อ.2, '
-            . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2", แถววิชาใส่ "รหัสวิชา : ชื่อวิชา" หน่วยกิต เกรด(0-4) ตามลำดับ, '
+            . 'แถว "ห้อง" ใส่ห้องเรียนจริงถ้าทราบ เช่น "2" หรือ "2 วิทย์-คณิต" (ไม่บังคับ เว้นว่างได้ถ้าไม่ทราบ — '
+            . 'ถ้าเว้นว่างระบบจะลองหาห้องที่นักเรียนเคยถูกจัดไว้เองให้ก่อน ถ้าไม่เจอเลยจะเก็บเกรดไว้ในห้องชั่วคราวแทน), '
+            . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2" (ห้องแยกกันได้คนละภาคเรียน), '
+            . 'แถววิชาใส่ "รหัสวิชา : ชื่อวิชา" หน่วยกิต เกรด(0-4) ตามลำดับ, '
             . 'ด้านล่างสุดเป็นตารางกิจกรรมพัฒนาผู้เรียนแยกต่างหาก'
         );
 
@@ -157,23 +160,27 @@ class GradeController extends Controller
         $this->writeIdentityRow($sheet, $totalCols, $identityRow1, 'ชื่อ-สกุล', $studentName);
         $this->writeIdentityRow($sheet, $totalCols, $identityRow2, 'รหัสนักศึกษา', (string) ($student->student_code ?? ''));
 
+        $sem1RoomRow = $identityRow2 + 5;
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
             $this->writeTranscriptGroupHeader($sheet, $col, $identityRow2 + 1, $identityRow2 + 2, $identityRow2 + 4, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
+            $this->writeTranscriptYearLevelRow($sheet, $col, $sem1RoomRow, 'ห้อง');
         }
         // เผื่อแถวว่างต่อภาคเรียนไว้เยอะๆ (30 แถว) กันกรณีเทอมนั้นมีวิชาเยอะ (เช่น มีวิชาเพิ่มเติมหลายตัว) ล้นไปทับ
         // แถวคั่นภาคเรียนถัดไปพอดี — ของจริงเจอเคสเทอมเดียวมีถึง 19 วิชา เผื่อ 17 แถวเดิมไม่พอ
         $subjectRowsPerSemester = 30;
-        $sem1From = $identityRow2 + 5;
+        $sem1From = $sem1RoomRow + 1;
         $sem1To   = $sem1From + $subjectRowsPerSemester - 1;
         $sem2MarkerRow = $sem1To + 1;
-        $sem2From = $sem2MarkerRow + 1;
+        $sem2RoomRow = $sem2MarkerRow + 1;
+        $sem2From = $sem2RoomRow + 1;
         $sem2To   = $sem2From + $subjectRowsPerSemester - 1;
 
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem1From, $sem1To);
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
             $this->writeTranscriptSemesterMarker($sheet, $col, $sem2MarkerRow, 'ภาคเรียนที่ 2');
+            $this->writeTranscriptYearLevelRow($sheet, $col, $sem2RoomRow, 'ห้อง');
         }
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem2From, $sem2To);
 

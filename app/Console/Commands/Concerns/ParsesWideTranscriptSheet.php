@@ -87,7 +87,7 @@ trait ParsesWideTranscriptSheet
                 $warnings[] = "อ่านปีการศึกษา/ระดับชั้นจากข้อความ \"{$header}\" ไม่ได้ — ข้ามกลุ่มนี้ทั้งกลุ่ม";
                 continue;
             }
-            $groups[] = ['col' => $col, 'year' => $year, 'level' => $level, 'semester' => '1'];
+            $groups[] = ['col' => $col, 'year' => $year, 'level' => $level, 'semester' => '1', 'room' => null];
         }
         return $groups;
     }
@@ -121,6 +121,18 @@ trait ParsesWideTranscriptSheet
                     continue;
                 }
 
+                // แถวระบุห้องเรียนจริง (ไม่บังคับ) — เว้นว่างได้ถ้าไม่ทราบ ระบบจะลองหาห้องที่นักเรียนเคยถูก
+                // จัดไว้เองให้ก่อน รูปแบบ: "ห้อง" (แบบฟอร์มที่ระบบสร้างให้ ห้องอยู่ช่องถัดไป) หรือ
+                // "ห้อง 2" / "ห้อง: 2 วิทย์-คณิต" (พิมพ์รวมในช่องเดียว ตามด้วยเลขห้อง + แผนการเรียน ไม่บังคับ)
+                if (str_starts_with($c1, 'ห้อง')) {
+                    $roomText = trim(preg_replace('/^ห้อง(ที่)?\s*:?\s*/u', '', $c1));
+                    if ($roomText === '') {
+                        $roomText = $c2;
+                    }
+                    $groups[$gi]['room'] = $roomText !== '' ? $roomText : null;
+                    continue;
+                }
+
                 if (!preg_match('/^(\S+)\s*:\s*(.+)$/u', $c1, $m)) {
                     // มีแค่คอลัมน์แรก ไม่มีหน่วยกิต/เกรดเลย — เป็นข้อความอื่น (เช่น แถบคำแนะนำที่ทับเข้ามาในช่วงแถว)
                     // ไม่ใช่ความตั้งใจกรอกวิชา จึงข้ามแบบเงียบๆ ไม่ต้องเตือน
@@ -146,6 +158,9 @@ trait ParsesWideTranscriptSheet
                 $sem = $groups[$gi]['semester'];
                 $data[$grp['year']]['level'] = $grp['level'];
                 $data[$grp['year']]['semesters'][$sem][] = [$code, $name, $credit, $grade];
+                if (!empty($groups[$gi]['room'])) {
+                    $data[$grp['year']]['rooms'][$sem] = $groups[$gi]['room'];
+                }
             }
         }
 
