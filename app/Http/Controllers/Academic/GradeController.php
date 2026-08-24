@@ -17,10 +17,12 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
+use PhpOffice\PhpSpreadsheet\Cell\DataValidation;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class GradeController extends Controller
@@ -138,12 +140,14 @@ class GradeController extends Controller
             "แบบฟอร์มนำเข้าเกรดรวม (Transcript) ของ {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} — "
             . 'กรอกได้สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน (กรอกไม่ครบ 3 กลุ่มก็ได้ และแต่ละคนมีจำนวนวิชาไม่เท่ากันได้ ไม่ต้องกรอกให้ครบทุกแถว), '
             . 'แถว "ปีการศึกษา" ให้ใส่ปี พ.ศ. เช่น 2567 และแถว "ระดับชั้น" ให้ใส่แบบย่อ เช่น ม.4, ป.6, อ.2, '
-            . 'แถว "ห้อง" ใส่ห้องเรียนจริงถ้าทราบ เช่น "2" หรือ "2 วิทย์-คณิต" (ไม่บังคับ เว้นว่างได้ถ้าไม่ทราบ — '
-            . 'ถ้าเว้นว่างระบบจะลองหาห้องที่นักเรียนเคยถูกจัดไว้เองให้ก่อน ถ้าไม่เจอเลยจะเก็บเกรดไว้ในห้องชั่วคราวแทน), '
+            . 'แถว "ห้อง" กดเลือกจากลิสต์ห้องจริงที่มีในระบบได้เลย (หรือพิมพ์เองก็ได้ถ้าห้องนั้นยังไม่มี) ไม่บังคับ '
+            . 'เว้นว่างได้ถ้าไม่ทราบ — ถ้าเว้นว่างระบบจะลองหาห้องที่นักเรียนเคยถูกจัดไว้เองให้ก่อน ถ้าไม่เจอเลยจะเก็บเกรดไว้ในห้องชั่วคราวแทน, '
             . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2" (ห้องแยกกันได้คนละภาคเรียน), '
             . 'แถววิชาใส่ "รหัสวิชา : ชื่อวิชา" หน่วยกิต เกรด(0-4) ตามลำดับ, '
             . 'ด้านล่างสุดเป็นตารางกิจกรรมพัฒนาผู้เรียนแยกต่างหาก'
         );
+
+        $roomListRange = $this->ensureRoomListSheet($sheet->getParent());
 
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
@@ -165,6 +169,9 @@ class GradeController extends Controller
             $col = 1 + $g * 3;
             $this->writeTranscriptGroupHeader($sheet, $col, $identityRow2 + 1, $identityRow2 + 2, $identityRow2 + 4, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
             $this->writeTranscriptYearLevelRow($sheet, $col, $sem1RoomRow, 'ห้อง');
+            if ($roomListRange) {
+                $this->applyRoomDropdown($sheet, Coordinate::stringFromColumnIndex($col + 1) . $sem1RoomRow, $roomListRange);
+            }
         }
         // เผื่อแถวว่างต่อภาคเรียนไว้เยอะๆ (30 แถว) กันกรณีเทอมนั้นมีวิชาเยอะ (เช่น มีวิชาเพิ่มเติมหลายตัว) ล้นไปทับ
         // แถวคั่นภาคเรียนถัดไปพอดี — ของจริงเจอเคสเทอมเดียวมีถึง 19 วิชา เผื่อ 17 แถวเดิมไม่พอ
@@ -181,6 +188,9 @@ class GradeController extends Controller
             $col = 1 + $g * 3;
             $this->writeTranscriptSemesterMarker($sheet, $col, $sem2MarkerRow, 'ภาคเรียนที่ 2');
             $this->writeTranscriptYearLevelRow($sheet, $col, $sem2RoomRow, 'ห้อง');
+            if ($roomListRange) {
+                $this->applyRoomDropdown($sheet, Coordinate::stringFromColumnIndex($col + 1) . $sem2RoomRow, $roomListRange);
+            }
         }
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem2From, $sem2To);
 
@@ -228,6 +238,63 @@ class GradeController extends Controller
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $actSem1From, $actSem2To);
 
         $sheet->freezePane('A' . $sem1From);
+    }
+
+    /**
+     * สร้าง sheet ซ่อนไว้เก็บรายชื่อห้องเรียนจริงทั้งหมดในระบบ (ไม่รวมห้องปลอม 9998/9999) ให้แถว "ห้อง"
+     * ของแบบฟอร์มนำเข้าเกรดกดเลือกจากลิสต์นี้ได้ แทนที่จะพิมพ์เดาเอง — ใช้ cell range อ้างอิงแทนลิสต์คำแบบ
+     * พิมพ์รวมในสูตรเดียว (มีเพดานความยาวราว 255 ตัวอักษรใน Excel ถ้าห้องในระบบเยอะจะพังได้)
+     *
+     * เรียกซ้ำได้หลายครั้งในสเปรดชีตเดียวกันอย่างปลอดภัย (import:transcript-bulk เรียก buildTranscriptSheet
+     * วนหลายรอบ ชีตละคน ในสเปรดชีตเดียวกัน) — สร้างแค่ครั้งแรกเท่านั้น คืนค่า range string หรือ null ถ้า
+     * ไม่มีห้องจริงในระบบเลย (จะได้ไม่ต้องใส่ data validation ให้ range ว่างเปล่า)
+     */
+    private function ensureRoomListSheet(Spreadsheet $spreadsheet): ?string
+    {
+        $sheetName = 'รายชื่อห้อง (ใช้ภายใน)';
+
+        $helper = $spreadsheet->getSheetByName($sheetName);
+        if ($helper) {
+            $lastRow = (int) $helper->getHighestRow();
+            return $lastRow > 0 ? "'{$sheetName}'!\$A\$1:\$A\${$lastRow}" : null;
+        }
+
+        $rooms = ClassSection::real()
+            ->with('level')
+            ->get()
+            ->map(fn ($s) => $s->full_name)
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
+
+        if ($rooms->isEmpty()) {
+            return null;
+        }
+
+        $helper = $spreadsheet->createSheet();
+        $helper->setTitle($sheetName);
+        foreach ($rooms as $i => $label) {
+            $helper->setCellValue('A' . ($i + 1), $label);
+        }
+        $helper->setSheetState(Worksheet::SHEETSTATE_HIDDEN);
+
+        return "'{$sheetName}'!\$A\$1:\$A\${$rooms->count()}";
+    }
+
+    // ใส่ dropdown เลือกห้องจริง (จาก ensureRoomListSheet) ให้ช่องกรอก "ห้อง" — ยังพิมพ์เองได้ตามปกติ
+    // (ไม่บังคับเลือกจากลิสต์เท่านั้น กันเคสห้องที่ต้องการยังไม่มีในระบบ) แค่เตือนเบาๆ ถ้าพิมพ์นอกลิสต์
+    private function applyRoomDropdown($sheet, string $cellRef, string $rangeRef): void
+    {
+        $validation = $sheet->getCell($cellRef)->getDataValidation();
+        $validation->setType(DataValidation::TYPE_LIST);
+        $validation->setErrorStyle(DataValidation::STYLE_WARNING);
+        $validation->setAllowBlank(true);
+        $validation->setShowDropDown(true);
+        $validation->setShowErrorMessage(true);
+        $validation->setErrorTitle('ห้องนี้ไม่อยู่ในรายชื่อ');
+        $validation->setError('เลือกจากลิสต์ห้องที่มีอยู่แล้วได้ หรือพิมพ์เองก็ได้ถ้าห้องนี้ยังไม่มีในระบบ');
+        $validation->setFormula1($rangeRef);
     }
 
     // แถว "ชื่อ-สกุล" หรือ "รหัสนักศึกษา" ของแบบฟอร์มนำเข้าเกรดรวม — เต็มความกว้างตาราง (ไม่ใช่แค่กลุ่มเดียว

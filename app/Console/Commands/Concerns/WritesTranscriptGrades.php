@@ -248,11 +248,17 @@ trait WritesTranscriptGrades
         return '';
     }
 
-    // แยกข้อความห้องจากไฟล์ (เช่น "2" หรือ "2 วิทย์-คณิต") ออกเป็น [เลขห้อง, แผนการเรียน]
-    // เอาคำแรกเป็นเลขห้อง ที่เหลือ (ถ้ามี) เป็นแผนการเรียน — ไม่บังคับต้องมีแผนการเรียน
+    // แยกข้อความห้องจากไฟล์ ออกเป็น [เลขห้อง, แผนการเรียน] — รองรับ 2 รูปแบบ:
+    // (1) พิมพ์เอง "2" หรือ "2 วิทย์-คณิต" — เอาคำแรกเป็นเลขห้อง ที่เหลือ (ถ้ามี) เป็นแผนการเรียน
+    // (2) เลือกจากลิสต์ dropdown ที่ระบบให้มา (ClassSection::full_name เต็มๆ) เช่น "ม.4/2 วิทย์-คณิต"
+    //     — ตัดส่วนระดับชั้นหน้า "/" ออกก่อน เพราะระดับชั้นอ่านจากแถว "ระดับชั้น" ต่างหากอยู่แล้ว
     private function parseRoomText(string $roomText): array
     {
-        $parts = preg_split('/\s+/u', trim($roomText), 2);
+        $roomText = trim($roomText);
+        if (str_contains($roomText, '/')) {
+            $roomText = trim(substr($roomText, strpos($roomText, '/') + 1));
+        }
+        $parts = preg_split('/\s+/u', $roomText, 2);
         $sectionNumber = $parts[0];
         $studyPlan = $parts[1] ?? null;
         return [$sectionNumber, $studyPlan];
