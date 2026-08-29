@@ -92,9 +92,21 @@ class PorPor1Controller extends Controller
                 ->each(fn($d) => $docNumbers[$d->student_id] = $d);
         }
 
+        // ดึงประวัติห้องเรียนของนักเรียนทั้งหมดทีเดียว (แทนที่จะยิงคิวรีแยกทีละคนในลูป
+        // ซึ่งช้ามากเวลาพิมพ์ ปพ.1 ทั้งระดับชั้นที่มีนักเรียนหลายร้อยคน)
+        $allSectionsByStudent = StudentSection::with([
+                'classSection.level',
+                'classSection.semester.academicYear',
+            ])
+            ->whereIn('student_id', $students->pluck('student_id'))
+            ->get()
+            ->groupBy('student_id');
+
         $studentSemesters = [];
         foreach ($students as $stu) {
-            $studentSemesters[$stu->student_id] = $this->buildStudentSemesters($stu->student_id);
+            $studentSemesters[$stu->student_id] = $this->buildStudentSemesters(
+                $allSectionsByStudent->get($stu->student_id, collect())
+            );
         }
 
         $personnels = Personnel::where('status', 'ปฏิบัติงาน')
@@ -318,15 +330,8 @@ class PorPor1Controller extends Controller
         return redirect()->back()->with('success', 'ตั้งเลขชุดทั้งห้องสำเร็จ (' . $rows->count() . ' คน)');
     }
 
-    private function buildStudentSemesters($studentId): array
+    private function buildStudentSemesters($sections): array
     {
-        $sections = StudentSection::with([
-                'classSection.level',
-                'classSection.semester.academicYear',
-            ])
-            ->where('student_id', $studentId)
-            ->get();
-
         $byLevel = [];
         $currentOrder = 0;
 

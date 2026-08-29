@@ -59,6 +59,9 @@ class ChangeRequestController extends Controller
 
     public function destroy($id)
     {
+        // ดูได้ทุกคน แต่ลบได้เฉพาะแอดมิน (คำขอเปลี่ยนแปลงระบบไม่ได้ผูกกับผู้สร้างจริง เก็บแค่ชื่อเป็นข้อความ)
+        abort_unless(auth()->user()->isAdmin(), 403);
+
         ChangeRequest::findOrFail($id)->delete();
         return redirect()->route('change-request.history')->with('success', 'ลบรายการเรียบร้อยแล้ว');
     }
