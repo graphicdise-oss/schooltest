@@ -233,7 +233,7 @@
                 </a>
 
                 {{-- ===== ข้อมูลบุคคล ===== --}}
-                @if(auth()->user()->canArea(['students.index','students.create','personnels.index','personnels.create','settings.prefix','settings.personnel_type','settings.general']))
+                @if(auth()->user()->canArea(['personnel.students.index','personnel.student-types.index','personnel.promotions.index','personnel.open-semester2','personnel.student-alumni.index','personnel.student-alumni.import','personnel.class-roster.index','personnel.student-stat.index','personnel.student-alumni.withdrawal','personnel.personnels.index','personnel.leave.personnel.index','personnel.reports.staff-list','personnel.reports.leave-summary','personnel.reports.training','personnel.settings.prefixes','personnel.settings.personnel-types','personnel.settings.positions','personnel.settings.departments','personnel.settings.leave-types','personnel.settings.leave-settings','personnel.settings.holidays','personnel.student-cards.index']))
                 <div id="menu-personnel" data-menu="personnel" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -274,9 +274,11 @@
                                 <div class="mb-5">
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานข้อมูลนักเรียน</h4>
                                     <ul class="space-y-1.5 pl-2">
+                                        @if(auth()->user()->canArea(['personnel.students.index']))
                                         <li><a href="{{ route('students.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลนักเรียน</a>
                                         </li>
+                                        @endif
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('student-types.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">จำแนกประเภทนักเรียน</a>
@@ -289,27 +291,37 @@
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">เปิดภาคเรียน</a>
                                         </li>
                                         @endif
+                                        @if(auth()->user()->canArea(['personnel.student-alumni.index']))
                                         <li><a href="{{ route('student-alumni.index') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ทำเนียบศิษย์เก่า</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['personnel.student-alumni.import']))
                                         <li><a href="{{ route('student-alumni.import') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">นำเข้าทำเนียบศิษย์เก่า</a>
                                         </li>
+                                        @endif
 
                                     </ul>
                                 </div>
                                 <div class="mb-5">
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงาน/สถิตินักเรียน</h4>
                                     <ul class="space-y-1.5 pl-2">
+                                        @if(auth()->user()->canArea(['personnel.class-roster.index']))
                                         <li><a href="{{ route('class-roster.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บัญชีรายชื่อนักเรียน</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['personnel.student-stat.index']))
                                         <li><a href="{{ route('student-stat.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">สรุปสถิตินักเรียน</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['personnel.student-alumni.withdrawal']))
                                         <li><a href="{{ route('student-alumni.withdrawal') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">รายงานนักเรียนพ้นสภาพ</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -323,22 +335,30 @@
                                         <li><a href="{{ route('personnels.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ข้อมูลบุคลากร/ครู</a></li>
                                         @endif
+                                        @if(auth()->user()->canArea(['personnel.leave.personnel.index']))
                                         <li><a href="{{ route('leave.personnel.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บันทึกการลางาน</a></li>
+                                        @endif
                                     </ul>
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">รายงาน/สถิติบุคลากร</h4>
                                     <ul class="space-y-1.5 pl-2">
+                                        @if(auth()->user()->canArea(['personnel.reports.staff-list']))
                                         <li><a href="{{ route('personnel-reports.staff-list') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">บัญชีรายชื่อบุคลากร</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['personnel.reports.leave-summary']))
                                         <li><a href="{{ route('leave.personnel.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">สรุปรายงานการลา</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['personnel.reports.training']))
                                         <li><a href="{{ route('personnel-reports.training') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">สรุปการพัฒนา/อบรมบุคลากร</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -377,9 +397,11 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[16px] mb-2">งานออกบัตรประจำตัว</h4>
                                     <ul class="space-y-1.5 pl-2">
+                                        @if(auth()->user()->canArea(['personnel.student-cards.index']))
                                         <li><a href="{{ route('student-cards.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline transition-colors">ออกบัตรประจำตัวนักเรียน</a>
                                         </li>
+                                        @endif
                                         {{-- เมนูบัตรอื่น ๆ (บันทึกบัตร / บัตรสอบ / บัตรพนักงาน / บัตรผู้ปกครอง / บัตรสำรอง) ยังไม่เปิดใช้ ซ่อนไว้ก่อน --}}
                                     </ul>
                                 </div>
@@ -390,7 +412,7 @@
 
                 @endif
                 {{-- ===== วิชาการ ===== --}}
-                @if(auth()->user()->canArea(['academic.curriculum','academic.timetable','academic.scores','academic.reports']))
+                @if(auth()->user()->canArea(['academic.subjects.index','academic.programs.index','academic.class-sections.index','academic.timetable.view','academic.timetable.index','academic.reports.avg-score','academic.reports.subject-rank','academic.por1','academic.pp2','academic.por3','academic.por5','academic.por6','academic.por7','academic.scores.index','academic.grades.index','academic.assessments.index','academic.grades.import','academic.onet.index']))
                 <div id="menu-academic" data-menu="academic" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -446,9 +468,11 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ตารางสอน</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['academic.timetable.view']))
                                         <li><a href="{{ route('timetable.view') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ดูตารางสอน</a>
                                         </li>
+                                        @endif
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('timetable.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการตารางสอน</a>
@@ -460,12 +484,16 @@
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานวิชาการ</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['academic.reports.avg-score']))
                                         <li><a href="{{ route('academic-reports.avg-score') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานคะแนนเฉลี่ย
                                                 2 ภาคเรียน</a></li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.reports.subject-rank']))
                                         <li><a href="{{ route('academic-reports.subject-rank') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานจัดอันดับคะแนนรายวิชา</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -473,25 +501,37 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">เอกสาร ปพ./รบ.</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['academic.por1']))
                                         <li><a href="{{ route('por1.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ระเบียนแสดงผลการเรียน
                                                 (ปพ.1)</a></li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.pp2']))
                                         <li><a href="{{ route('pp2.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบประกาศนียบัตร
                                                 (ปพ.2)</a></li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.por3']))
                                         <li><a href="{{ route('por3.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบรายงานผู้สำเร็จการศึกษา
                                                 (ปพ.3)</a></li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.por5']))
                                         <li><a href="{{ route('por5.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบบันทึกผลการพัฒนาคุณภาพผู้เรียน
                                                 (ปพ.5)</a></li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.por6']))
                                         <li><a href="{{ route('por6.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แบบรายงานผลพัฒนาคุณภาพผู้เรียนรายบุคคล
                                                 (ปพ.6)</a></li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.por7']))
                                         <li><a href="{{ route('por7.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ใบรับรองผลการเรียน
                                                 (ปพ.7)</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -499,21 +539,31 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">บันทึกคะแนน</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['academic.scores.index']))
                                         <li><a href="{{ route('scores.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกคะแนนผลการเรียน</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.grades.index']))
                                         <li><a href="{{ route('grades.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">แก้ไขเกรด</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.assessments.index']))
                                         <li><a href="{{ route('assessments.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกผลการประเมิน (อ่าน/คุณลักษณะ/กิจกรรม)</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.grades.import']))
                                         <li><a href="{{ route('grades.importBulkIndex') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้าเกรดสำหรับปพ.1/รบ.1</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['academic.onet.index']))
                                         <li><a href="{{ route('onet.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">นำเข้า
                                                 ONET</a></li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -523,7 +573,7 @@
 
                 @endif
                 {{-- ===== กิจการนักเรียน ===== --}}
-                @if(auth()->user()->canArea(['affairs.attendance','affairs.behavior','affairs.homevisit']))
+                @if(auth()->user()->canArea(['affairs.attendance.index','affairs.behavior-items.index','affairs.behavior-scores.index','affairs.home-visits.status','affairs.home-visits.results']))
                 <div id="menu-student_affairs" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -564,9 +614,11 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">เช็คชื่อ/ลา</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['affairs.attendance.index']))
                                         <li><a href="{{ route('attendance.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ปรับสถานะการมาเรียน</a>
                                         </li>
+                                        @endif
                                         {{-- ย้ายเมนูการลา (ข้อมูลการลา/ประเภทการลา/ตั้งค่าการลา) ไปรวมที่กลุ่ม "บุคลากร - อาจารย์" แล้ว --}}
                                     </ul>
                                 </div>
@@ -575,26 +627,36 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบความประพฤติ</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['affairs.behavior-items.index']))
                                         <li><a href="{{ route('behavior-items.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">เพิ่มข้อมูลคะแนนความประพฤติ</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['affairs.behavior-scores.index']))
                                         <li><a href="{{ route('behavior-scores.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตัดคะแนนความประพฤติ</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['affairs.behavior-items.index']))
                                         <li><a href="{{ route('behavior-items.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าการตัดคะแนนความประพฤติ</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                                 <div>
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">บันทึกการเยี่ยมบ้าน</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['affairs.home-visits.status']))
                                         <li><a href="{{ route('home-visits.status-summary') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">บันทึกสถานะการเยี่ยมบ้าน</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['affairs.home-visits.results']))
                                         <li><a href="{{ route('home-visits.results-summary') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปผลการเยี่ยมบ้าน</a>
                                         </li>
+                                        @endif
                                     </ul>
                                 </div>
                             </div>
@@ -604,7 +666,7 @@
 
                 @endif
                 {{-- ===== บริหารทั่วไป ===== --}}
-                @if(auth()->user()->canArea(['admin.news','admin.library','admin.bus']))
+                @if(auth()->user()->canArea(['admin.announcements.index','admin.admission.form','admin.admissions.applicants','admin.admissions.settings','admin.exam-rooms.index','admin.library.checkin','admin.library.books','admin.library.categories','admin.library.reports']))
                 <div id="menu-general_admin" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -657,12 +719,16 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ระบบรับนักเรียน</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['admin.admission.form']))
                                         <li><a href="{{ route('admission.form') }}" target="_blank"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">หน้ารับสมัคร (สาธารณะ)</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['admin.admissions.applicants']))
                                         <li><a href="{{ route('admissions.applicants') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตรวจสอบผู้สมัคร</a>
                                         </li>
+                                        @endif
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('admissions.settings') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าระบบรับนักเรียน</a>
@@ -678,12 +744,16 @@
                                 <div class="mb-4">
                                     <h4 class="font-bold text-[#082b75] text-[18px] mb-1">ห้องสมุด</h4>
                                     <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['admin.library.checkin']))
                                         <li><a href="{{ route('library.checkin.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ลงชื่อเข้าใช้ห้องสมุด</a>
                                         </li>
+                                        @endif
+                                        @if(auth()->user()->canArea(['admin.library.books']))
                                         <li><a href="{{ route('library.books.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">จัดการห้องสมุด</a>
                                         </li>
+                                        @endif
                                         @if(auth()->user()->isAdmin())
                                         <li><a href="{{ route('library.categories.index') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">ตั้งค่าหมวดหมู่หนังสือ</a>
@@ -695,6 +765,7 @@
                             <div class="flex-1">
                                 <h4 class="font-bold text-[#082b75] text-[18px] mb-1">รายงานห้องสมุด</h4>
                                 <ul class="space-y-1 pl-2">
+                                    @if(auth()->user()->canArea(['admin.library.reports']))
                                     <li><a href="{{ route('library.reports.books') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานข้อมูลหนังสือ</a>
                                     </li>
@@ -713,6 +784,7 @@
                                     <li><a href="{{ route('library.reports.visits') }}"
                                             class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายงานเข้าใช้ห้องสมุด
                                             (สถิติ)</a></li>
+                                    @endif
                                 </ul>
                             </div>
                         </div>
