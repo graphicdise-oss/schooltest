@@ -201,7 +201,7 @@ public function manageStudents($id)
                 ]);
             }
 
-            $fromSections = ClassSection::with('studentSections')
+            $fromSections = ClassSection::with('studentSections')->real()
                 ->where('semester_id', $fromSemester->semester_id)
                 ->get();
 
@@ -217,9 +217,12 @@ public function manageStudents($id)
                         'semester_id'         => $toSemester->semester_id,
                         'level_id'            => $sec->level_id,
                         'section_number'      => $sec->section_number,
+                        'study_plan'          => $sec->study_plan,
                         'homeroom_teacher_id' => $sec->homeroom_teacher_id,
                         'max_students'        => $sec->max_students,
                         'curriculum_id'       => $sec->curriculum_id,
+                        'lunch_start'         => $sec->lunch_start,
+                        'lunch_end'           => $sec->lunch_end,
                     ]);
 
                     // ย้ายนักเรียนเข้าห้องใหม่

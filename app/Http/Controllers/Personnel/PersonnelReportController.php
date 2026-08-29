@@ -176,6 +176,8 @@ class PersonnelReportController extends Controller
     // จับคู่ด้วย "รหัสพนักงาน": มีอยู่แล้ว = อัปเดตข้อมูลทุกส่วน, ยังไม่มี = สร้างใหม่
     public function importStaffList(Request $request)
     {
+        abort_unless(auth()->user()->isAdmin(), 403);
+
         $request->validate([
             'file' => 'required|file|mimes:xlsx,xls',
         ], [

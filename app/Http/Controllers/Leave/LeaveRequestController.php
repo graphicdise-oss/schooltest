@@ -100,6 +100,13 @@ class LeaveRequestController extends Controller
     public function destroy($id)
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // ลบได้เฉพาะแอดมิน หรือเจ้าของใบลาเอง (ยกเลิกใบที่ยื่นผิด) กันคนอื่นเข้ามาลบใบลาคนอื่นผ่าน URL ตรงๆ
+        abort_unless(
+            auth()->user()->isAdmin() || auth()->id() === $leaveRequest->requester_id,
+            403
+        );
+
         $personnelId  = $leaveRequest->requester_id;
         $leaveRequest->delete();
         return redirect()->route('leave.personnel.show', $personnelId)->with('success', 'ลบรายการลาสำเร็จ');
@@ -108,6 +115,16 @@ class LeaveRequestController extends Controller
     public function updateStatus(Request $request, $id)
     {
         $leaveRequest = LeaveRequest::findOrFail($id);
+
+        // อนุมัติ/ไม่อนุมัติได้เฉพาะแอดมิน หรือคนที่ถูกระบุเป็นผู้อนุมัติ (approver1/approver2) ของใบลานี้เท่านั้น
+        // (ผู้อนุมัติกำหนดต่อใบลาแต่ละใบตอนยื่น เช่น หัวหน้าแผนก/ผู้บังคับบัญชาของคนที่ลา ไม่ใช่พนักงานทั่วไป)
+        abort_unless(
+            auth()->user()->isAdmin()
+                || auth()->id() === $leaveRequest->approver1_id
+                || auth()->id() === $leaveRequest->approver2_id,
+            403
+        );
+
         $request->validate(['status' => 'required|in:อนุมัติ,ไม่อนุมัติ,รอการอนุมัติ']);
         $leaveRequest->update([
             'status'           => $request->status,

@@ -122,6 +122,10 @@ class PersonnelController extends Controller
                 $personnelData[$key] = $value;
         }
 
+        // password ต้องเปลี่ยนผ่าน updateCredentials/updatePassword เท่านั้น (แฮชค่าให้ถูกต้อง)
+        // กันไว้ไม่ให้ช่องทางแก้ข้อมูลทั่วไปนี้เผลอเขียนรหัสผ่านเป็นข้อความธรรมดาทับของเดิม
+        unset($personnelData['password']);
+
         // แก้ตัวเอง (ไม่ใช่แอดมิน) ห้ามแตะฟิลด์ที่ควบคุมสิทธิ์/สถานะการจ้างงาน
         // แม้ฟอร์มจะไม่ได้โชว์บางฟิลด์ แต่กันไว้เผื่อมีคน POST ค่าเข้ามาตรงๆ
         if (!Auth::user()->isAdmin()) {

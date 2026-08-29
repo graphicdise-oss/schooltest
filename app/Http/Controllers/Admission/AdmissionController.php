@@ -273,6 +273,8 @@ class AdmissionController extends Controller
 
     public function applicants(Request $request)
     {
+        abort_unless(auth()->user()->canArea(['admin.admissions.applicants']), 403);
+
         $status = $request->get('status', 'รอการตรวจสอบ');
 
         $applications = AdmissionApplication::with(['student', 'level', 'academicYear'])
@@ -285,6 +287,8 @@ class AdmissionController extends Controller
 
     public function approve($id)
     {
+        abort_unless(auth()->user()->canArea(['admin.admissions.applicants']), 403);
+
         $app = AdmissionApplication::with('student')->findOrFail($id);
         $app->update(['status' => 'ผ่าน']);
         if ($app->student) {
@@ -295,6 +299,8 @@ class AdmissionController extends Controller
 
     public function reject($id)
     {
+        abort_unless(auth()->user()->canArea(['admin.admissions.applicants']), 403);
+
         $app = AdmissionApplication::with('student')->findOrFail($id);
         $app->update(['status' => 'ไม่ผ่าน']);
         if ($app->student) {
