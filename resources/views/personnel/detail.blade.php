@@ -266,7 +266,7 @@
                         <div class="pn-field">
                             <label>เลขบัตรประชาชน</label>
                             <input type="text" name="id_card_number" class="pn-input" maxlength="13" value="{{ old('id_card_number', $personnel->id_card_number ?? '') }}">
-                            @if(!isset($personnel))
+                            @if(!isset($personnel) || empty($personnel->password))
                                 <small style="color:#888">ใช้เป็นรหัสผ่านเริ่มต้นเข้าสู่ระบบ (แจ้งให้ไปเปลี่ยนเองภายหลัง)</small>
                             @endif
                         </div>
@@ -301,6 +301,12 @@
                         <button type="button" class="pn-btn-save" style="background:#fff;color:#5482e7;border:1.5px solid #5482e7;"
                             onclick="document.getElementById('pwOverlay').classList.add('active')">
                             <i class="bi bi-key"></i> เปลี่ยนรหัสผ่าน
+                        </button>
+                        @endif
+                        @if(isset($personnel) && $personnel->personnel_id != Auth::id() && Auth::user()->isAdmin() && !($personnel->role === 'superadmin' && !Auth::user()->isSuperAdmin()))
+                        <button type="button" class="pn-btn-save" style="background:#fff;color:#c0392b;border:1.5px solid #c0392b;"
+                            onclick="document.getElementById('pwResetOverlay').classList.add('active')">
+                            <i class="bi bi-key"></i> ตั้ง/รีเซ็ตรหัสผ่านให้คนนี้
                         </button>
                         @endif
                         <button type="submit" class="pn-btn-save"><i class="bi bi-check-lg"></i> บันทึกข้อมูลประวัติส่วนตัว</button>
@@ -350,6 +356,35 @@
             document.getElementById('pwOverlay').classList.add('active');
             @endif
             </script>
+            @endif
+
+            @if(isset($personnel) && $personnel->personnel_id != Auth::id() && Auth::user()->isAdmin() && !($personnel->role === 'superadmin' && !Auth::user()->isSuperAdmin()))
+            <div class="pf-overlay" id="pwResetOverlay" onclick="if(event.target===this)this.classList.remove('active')"
+                style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.45); z-index:9999; justify-content:center; align-items:center;">
+                <div onclick="event.stopPropagation()" style="background:#fff; border-radius:14px; width:400px; max-width:94vw; box-shadow:0 20px 60px rgba(0,0,0,0.2); overflow:hidden;">
+                    <div style="background:linear-gradient(135deg,#c0392b,#e0685c); color:#fff; padding:18px 24px; font-size:1rem; font-weight:700;">
+                        <i class="bi bi-key me-2"></i> ตั้ง/รีเซ็ตรหัสผ่านให้ {{ $personnel->thai_firstname }} {{ $personnel->thai_lastname }}
+                    </div>
+                    <form method="POST" action="{{ route('personnels.updateCredentials', $personnel->personnel_id) }}" style="padding:24px;">
+                        @csrf
+                        @method('PUT')
+                        <p style="font-size:0.8rem;color:#888;margin:0 0 14px;">ใช้เมื่อคนนี้เข้าระบบไม่ได้ (เช่น ตอนสร้างบัญชียังไม่มีเลขบัตรประชาชน) ไม่ต้องรู้รหัสผ่านเดิม ตั้งใหม่ได้เลย</p>
+                        <label style="font-size:0.82rem;font-weight:600;color:#555;margin-bottom:4px;display:block;">รหัสผ่านใหม่ <span style="color:red">*</span></label>
+                        <input type="password" name="password" required minlength="6" autocomplete="new-password"
+                            style="width:100%;height:40px;border:1.5px solid #e0e0e0;border-radius:10px;padding:0 14px;font-size:0.85rem;box-sizing:border-box;margin-bottom:14px;">
+
+                        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:10px;">
+                            <button type="button" onclick="document.getElementById('pwResetOverlay').classList.remove('active')"
+                                style="background:#f5f5f5;color:#666;border:none;border-radius:8px;padding:9px 22px;font-size:0.85rem;font-weight:600;cursor:pointer;">ยกเลิก</button>
+                            <button type="submit"
+                                style="background:#c0392b;color:#fff;border:none;border-radius:8px;padding:9px 22px;font-size:0.85rem;font-weight:600;cursor:pointer;">
+                                <i class="bi bi-check-lg me-1"></i> บันทึก
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <style>.pf-overlay.active { display: flex !important; }</style>
             @endif
 
             {{-- 2. ที่อยู่ตามทะเบียนบ้าน --}}

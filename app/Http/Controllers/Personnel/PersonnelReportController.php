@@ -13,6 +13,7 @@ use App\Models\Personne\PersonnelPosition;
 use App\Models\Personne\PersonnelTraining;
 use App\Services\PersonnelExcelTemplate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -235,9 +236,18 @@ class PersonnelReportController extends Controller
             $personnel = Personnel::where('employee_code', $employeeCode)->first();
 
             if ($personnel) {
+                // ถ้ายังไม่เคยมีรหัสผ่านและตอนนี้ไฟล์มีเลขบัตรประชาชนมาด้วย ตั้งให้อัตโนมัติ
+                // (คนละกรณีกับตอนสร้างใหม่ด้านล่าง แต่ใช้หลักการเดียวกัน) ไม่แตะรหัสผ่านที่มีอยู่แล้ว
+                if (empty($personnel->password) && !empty($data['id_card_number'])) {
+                    $data['password'] = Hash::make($data['id_card_number']);
+                }
                 $personnel->update($data);
                 $updated++;
             } else {
+                // ตั้งรหัสผ่านเริ่มต้นเป็นเลขบัตรประชาชนให้เหมือนตอนเพิ่มบุคลากรทีละคน จะได้เข้าระบบได้เลย
+                if (!empty($data['id_card_number'])) {
+                    $data['password'] = Hash::make($data['id_card_number']);
+                }
                 $personnel = Personnel::create($data + [
                     'employee_code' => $employeeCode,
                     'role' => 'user',
