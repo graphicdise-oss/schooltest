@@ -139,7 +139,8 @@ class GradeController extends Controller
             $sheet, $totalCols,
             "แบบฟอร์มนำเข้าเกรดรวม (Transcript) ของ {$student->thai_prefix}{$student->thai_firstname} {$student->thai_lastname} — "
             . 'กรอกได้สูงสุด 3 ปีการศึกษา/ระดับชั้น เคียงกัน (กรอกไม่ครบ 3 กลุ่มก็ได้ และแต่ละคนมีจำนวนวิชาไม่เท่ากันได้ ไม่ต้องกรอกให้ครบทุกแถว), '
-            . 'แถว "ปีการศึกษา" ให้ใส่ปี พ.ศ. เช่น 2567 และแถว "ระดับชั้น" ให้ใส่แบบย่อ เช่น ม.4, ป.6, อ.2, '
+            . 'แถว "ปีการศึกษา"/"ระดับชั้น"/"ห้อง" กรอกล่วงหน้าให้อัตโนมัติจากข้อมูลจริงในระบบเท่าที่มี (ปีที่ไม่เคยมีข้อมูล จะเดาจากห้อง/แผนการเรียนปัจจุบันแทน) '
+            . 'ตรวจสอบและแก้ไขในไฟล์นี้ได้เลยถ้าไม่ตรง — "ปีการศึกษา" ใส่ปี พ.ศ. เช่น 2567 และ "ระดับชั้น" ใส่แบบย่อ เช่น ม.4, ป.6, อ.2, '
             . 'แถว "ห้อง" กดเลือกจากลิสต์ห้องจริงที่มีในระบบได้เลย (หรือพิมพ์เองก็ได้ถ้าห้องนั้นยังไม่มี) ไม่บังคับ '
             . 'เว้นว่างได้ถ้าไม่ทราบ — ถ้าเว้นว่างระบบจะลองหาห้องที่นักเรียนเคยถูกจัดไว้เองให้ก่อน ถ้าไม่เจอเลยจะเก็บเกรดไว้ในห้องชั่วคราวแทน, '
             . 'แถวคั่นภาคเรียนใส่ "ภาคเรียนที่ 1" หรือ "ภาคเรียนที่ 2" (ห้องแยกกันได้คนละภาคเรียน), '
@@ -148,6 +149,7 @@ class GradeController extends Controller
         );
 
         $roomListRange = $this->ensureRoomListSheet($sheet->getParent());
+        $yearGroups = $this->resolveTranscriptYearGroups($student);
 
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
@@ -167,8 +169,12 @@ class GradeController extends Controller
         $sem1RoomRow = $identityRow2 + 5;
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
-            $this->writeTranscriptGroupHeader($sheet, $col, $identityRow2 + 1, $identityRow2 + 2, $identityRow2 + 4, ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน']);
-            $this->writeTranscriptYearLevelRow($sheet, $col, $sem1RoomRow, 'ห้อง');
+            $grp = $yearGroups[$g] ?? null;
+            $this->writeTranscriptGroupHeader(
+                $sheet, $col, $identityRow2 + 1, $identityRow2 + 2, $identityRow2 + 4,
+                ['รหัส/รายวิชา', 'หน่วยกิต', 'ผลการเรียน'], $grp['year'] ?? null, $grp['level'] ?? null
+            );
+            $this->writeTranscriptYearLevelRow($sheet, $col, $sem1RoomRow, 'ห้อง', $grp['room'] ?? null);
             if ($roomListRange) {
                 $this->applyRoomDropdown($sheet, Coordinate::stringFromColumnIndex($col + 1) . $sem1RoomRow, $roomListRange);
             }
@@ -186,8 +192,9 @@ class GradeController extends Controller
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem1From, $sem1To);
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
+            $grp = $yearGroups[$g] ?? null;
             $this->writeTranscriptSemesterMarker($sheet, $col, $sem2MarkerRow, 'ภาคเรียนที่ 2');
-            $this->writeTranscriptYearLevelRow($sheet, $col, $sem2RoomRow, 'ห้อง');
+            $this->writeTranscriptYearLevelRow($sheet, $col, $sem2RoomRow, 'ห้อง', $grp['room'] ?? null);
             if ($roomListRange) {
                 $this->applyRoomDropdown($sheet, Coordinate::stringFromColumnIndex($col + 1) . $sem2RoomRow, $roomListRange);
             }
@@ -217,7 +224,11 @@ class GradeController extends Controller
 
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
-            $this->writeTranscriptGroupHeader($sheet, $col, $actLabelRow, $actYearRow, $actSemRow, ['กิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน']);
+            $grp = $yearGroups[$g] ?? null;
+            $this->writeTranscriptGroupHeader(
+                $sheet, $col, $actLabelRow, $actYearRow, $actSemRow,
+                ['กิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน'], $grp['year'] ?? null, $grp['level'] ?? null
+            );
 
             $row = $actSem1From;
             foreach ($activityRows as $actName => $hours) {
@@ -238,6 +249,80 @@ class GradeController extends Controller
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $actSem1From, $actSem2To);
 
         $sheet->freezePane('A' . $sem1From);
+    }
+
+    /**
+     * คำนวณปีการศึกษา/ระดับชั้น/ห้อง 3 กลุ่มล่าสุดของนักเรียนคนนี้ (ปัจจุบัน + ย้อนหลัง 2 ปี) ไว้กรอกล่วงหน้า
+     * ให้ในไฟล์ export ตำแหน่ง [0]=ปัจจุบัน [1]=ย้อนหลัง 1 ปี [2]=ย้อนหลัง 2 ปี — แต่ละตำแหน่งเป็น
+     * ['year'=>string,'level'=>string,'room'=>string] หรือ null ถ้าไม่มีข้อมูลเลย
+     *
+     * ถ้านักเรียนเคยอยู่ระดับชั้นนั้นจริงในระบบ (มี student_sections) ใช้ข้อมูลจริง (ปี/ห้องที่เคยอยู่จริง)
+     * ถ้าไม่เคยมีข้อมูลเลย (เช่น เพิ่งย้ายเข้ามาเรียนที่นี่) จะเดาจากห้อง/แผนการเรียนปัจจุบัน ลดระดับชั้นลง
+     * ทีละขั้นตาม sort_order และลดปีการศึกษาลงทีละปี (เช่น ปัจจุบัน ม.6/1 วิทย์-คณิต ปี 2569 จะเดาย้อนหลัง
+     * เป็น ม.5/1 วิทย์-คณิต ปี 2568 และ ม.4/1 วิทย์-คณิต ปี 2567) — เดาให้เท่านั้น ผู้ใช้แก้ในไฟล์ได้ปกติ
+     */
+    private function resolveTranscriptYearGroups(Student $student): array
+    {
+        $sections = StudentSection::with(['classSection.level', 'classSection.semester.academicYear'])
+            ->where('student_id', $student->student_id)
+            ->get()
+            ->filter(fn($ss) => $ss->classSection && $ss->classSection->level
+                && $ss->classSection->semester && $ss->classSection->semester->academicYear);
+
+        if ($sections->isEmpty()) {
+            return [null, null, null];
+        }
+
+        // ตัวแทนของแต่ละระดับชั้นที่นักเรียนเคยอยู่จริง (ถ้าอยู่หลายห้อง/เทอมในระดับเดียวกัน เอาปีล่าสุด)
+        $byLevelId = [];
+        foreach ($sections as $ss) {
+            $level = $ss->classSection->level;
+            $year = $ss->classSection->semester->academicYear;
+            $existing = $byLevelId[$level->level_id] ?? null;
+            if (!$existing || (int) $year->year_name > (int) $existing['year']->year_name) {
+                $byLevelId[$level->level_id] = ['level' => $level, 'year' => $year, 'section' => $ss->classSection];
+            }
+        }
+        $byLevelSortOrder = collect($byLevelId)->keyBy(fn($b) => (int) ($b['level']->sort_order ?? 0));
+        $current = $byLevelSortOrder->sortKeysDesc()->first();
+        if (!$current) {
+            return [null, null, null];
+        }
+
+        $currentSortOrder = (int) ($current['level']->sort_order ?? 0);
+        $currentYear = (int) $current['year']->year_name;
+        $currentSectionNumber = $current['section']->section_number;
+        $currentStudyPlan = $current['section']->study_plan;
+
+        $levelsBySortOrder = Level::orderBy('sort_order')->get()->keyBy(fn($l) => (int) $l->sort_order);
+
+        $groups = [];
+        for ($i = 0; $i < 3; $i++) {
+            $targetSortOrder = $currentSortOrder - $i;
+            $real = $byLevelSortOrder->get($targetSortOrder);
+
+            if ($real) {
+                $groups[] = [
+                    'year'  => (string) $real['year']->year_name,
+                    'level' => $real['level']->name,
+                    'room'  => $real['section']->full_name,
+                ];
+                continue;
+            }
+
+            $guessLevel = $levelsBySortOrder->get($targetSortOrder);
+            if (!$guessLevel) {
+                $groups[] = null;
+                continue;
+            }
+            $groups[] = [
+                'year'  => (string) ($currentYear - $i),
+                'level' => $guessLevel->name,
+                'room'  => trim($guessLevel->name . '/' . $currentSectionNumber . ($currentStudyPlan ? ' ' . $currentStudyPlan : '')),
+            ];
+        }
+
+        return $groups;
     }
 
     /**
@@ -324,7 +409,7 @@ class GradeController extends Controller
     // เขียนหัวกลุ่ม 1 กลุ่ม (3 คอลัมน์ติดกัน) ของแบบฟอร์มนำเข้าเกรดรวม:
     // แถวป้ายคอลัมน์ + แถวปีการศึกษา + แถวระดับชั้น (คนละแถว คนละช่องกรอก) + แถวภาคเรียนที่ 1
     // semRow ต้องเท่ากับ yearRow + 2 เสมอ (เว้นแถวระดับชั้นไว้ตรงกลาง)
-    private function writeTranscriptGroupHeader($sheet, int $col, int $labelRow, int $yearRow, int $semRow, array $labels): void
+    private function writeTranscriptGroupHeader($sheet, int $col, int $labelRow, int $yearRow, int $semRow, array $labels, ?string $year = null, ?string $level = null): void
     {
         $colLetter = Coordinate::stringFromColumnIndex($col);
         $lastColLetter = Coordinate::stringFromColumnIndex($col + 2);
@@ -339,15 +424,16 @@ class GradeController extends Controller
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'DDDDDD']]],
         ]);
 
-        $this->writeTranscriptYearLevelRow($sheet, $col, $yearRow, 'ปีการศึกษา');
-        $this->writeTranscriptYearLevelRow($sheet, $col, $yearRow + 1, 'ระดับชั้น');
+        $this->writeTranscriptYearLevelRow($sheet, $col, $yearRow, 'ปีการศึกษา', $year);
+        $this->writeTranscriptYearLevelRow($sheet, $col, $yearRow + 1, 'ระดับชั้น', $level);
 
         $this->writeTranscriptSemesterMarker($sheet, $col, $semRow, 'ภาคเรียนที่ 1');
     }
 
-    // แถว "ปีการศึกษา" หรือ "ระดับชั้น" ของแบบฟอร์มนำเข้าเกรดรวม — ป้ายชื่ออยู่คอลัมน์แรก
-    // ส่วนอีก 2 คอลัมน์ที่เหลือ merge เป็นช่องกรอกว่างๆ แยกต่างหาก (ไม่มีขีดใต้ให้พิมพ์ทับ)
-    private function writeTranscriptYearLevelRow($sheet, int $col, int $row, string $label): void
+    // แถว "ปีการศึกษา"/"ระดับชั้น"/"ห้อง" ของแบบฟอร์มนำเข้าเกรดรวม — ป้ายชื่ออยู่คอลัมน์แรก ส่วนอีก 2
+    // คอลัมน์ที่เหลือ merge เป็นช่องกรอก ถ้ามี $value (เดา/รู้จากข้อมูลจริงมาก่อน) จะกรอกให้ล่วงหน้า
+    // แต่ยังแก้ทับในไฟล์ได้ตามปกติ ไม่ได้ล็อกเซลล์
+    private function writeTranscriptYearLevelRow($sheet, int $col, int $row, string $label, ?string $value = null): void
     {
         $colLetter = Coordinate::stringFromColumnIndex($col);
         $inputColLetter = Coordinate::stringFromColumnIndex($col + 1);
@@ -362,6 +448,9 @@ class GradeController extends Controller
         ]);
 
         $sheet->mergeCells("{$inputColLetter}{$row}:{$inputLastColLetter}{$row}");
+        if ($value !== null && $value !== '') {
+            $sheet->setCellValue("{$inputColLetter}{$row}", $value);
+        }
         $sheet->getStyle("{$inputColLetter}{$row}")->applyFromArray([
             'font' => ['bold' => true, 'size' => 11],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFFFFF']],
