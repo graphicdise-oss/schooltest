@@ -573,7 +573,7 @@
 
                 @endif
                 {{-- ===== กิจการนักเรียน ===== --}}
-                @if(auth()->user()->canArea(['affairs.attendance.index','affairs.behavior-items.index','affairs.behavior-scores.index','affairs.home-visits.status','affairs.home-visits.results']))
+                @if(auth()->user()->canArea(['affairs.attendance.index','affairs.behavior-items.index','affairs.behavior-scores.index','affairs.home-visits.status','affairs.home-visits.results','affairs.pickup-notices.index']))
                 <div id="menu-student_affairs" x-data="{
                     myTop: 0, myArrow: 0,
                     calcPos(el) {
@@ -655,6 +655,16 @@
                                         @if(auth()->user()->canArea(['affairs.home-visits.results']))
                                         <li><a href="{{ route('home-visits.results-summary') }}"
                                                 class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">สรุปผลการเยี่ยมบ้าน</a>
+                                        </li>
+                                        @endif
+                                    </ul>
+                                </div>
+                                <div class="mt-4">
+                                    <h4 class="font-bold text-[#082b75] text-[18px] mb-1">การรับ-ส่งนักเรียน</h4>
+                                    <ul class="space-y-1 pl-2">
+                                        @if(auth()->user()->canArea(['affairs.pickup-notices.index']))
+                                        <li><a href="{{ route('pickup-notices.index') }}"
+                                                class="text-[#4b7ce3] text-[16px] hover:text-[#082b75] hover:underline">รายการที่ผู้ปกครองแจ้งรับ-ส่ง</a>
                                         </li>
                                         @endif
                                     </ul>

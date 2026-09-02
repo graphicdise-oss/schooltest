@@ -10,6 +10,8 @@ use App\Models\Academic\TeachingAssign;
 use App\Models\Holiday;
 use App\Models\Announcement;
 use App\Models\AnnouncementRecipient;
+use App\Models\StudentFamily;
+use App\Models\StudentPickupNotice;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -279,5 +281,62 @@ class ParentPortalController extends Controller
         }
 
         return back()->with('success', 'กดรับทราบเรียบร้อยแล้ว');
+    }
+
+    // ===== แจ้งการรับ-ส่งนักเรียน =====
+    // ผู้ปกครองพิมพ์แจ้งเองว่าวันไหนใครจะมารับ (เผื่อไม่ใช่พ่อแม่) ให้โรงเรียนเห็นล่วงหน้า
+    public function pickupNotices()
+    {
+        $student = Auth::guard('parent')->user();
+
+        $families = StudentFamily::where('student_id', $student->student_id)->get();
+
+        $notices = StudentPickupNotice::where('student_id', $student->student_id)
+            ->orderByDesc('notice_date')
+            ->orderByDesc('id')
+            ->get();
+
+        return view('parent.pickup_notices', compact('student', 'families', 'notices'));
+    }
+
+    public function pickupNoticeStore(Request $request)
+    {
+        $student = Auth::guard('parent')->user();
+
+        $request->validate([
+            'notice_date'         => 'required|date',
+            'pickup_time'         => 'nullable',
+            'pickup_person_name'  => 'required|string|max:255',
+            'relationship'        => 'nullable|string|max:100',
+            'phone'               => 'nullable|string|max:30',
+            'note'                => 'nullable|string|max:1000',
+        ], [
+            'notice_date.required'        => 'กรุณาเลือกวันที่',
+            'pickup_person_name.required' => 'กรุณาระบุชื่อผู้มารับ',
+        ]);
+
+        StudentPickupNotice::create([
+            'student_id'          => $student->student_id,
+            'notice_date'         => $request->notice_date,
+            'pickup_time'         => $request->pickup_time ?: null,
+            'pickup_person_name'  => $request->pickup_person_name,
+            'relationship'        => $request->relationship,
+            'phone'               => $request->phone,
+            'note'                => $request->note,
+        ]);
+
+        return back()->with('success', 'แจ้งการรับ-ส่งนักเรียนสำเร็จ');
+    }
+
+    public function pickupNoticeDestroy($id)
+    {
+        $student = Auth::guard('parent')->user();
+
+        StudentPickupNotice::where('student_id', $student->student_id)
+            ->where('id', $id)
+            ->firstOrFail()
+            ->delete();
+
+        return back()->with('success', 'ยกเลิกการแจ้งเรียบร้อยแล้ว');
     }
 }

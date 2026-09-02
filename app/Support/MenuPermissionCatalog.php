@@ -65,6 +65,7 @@ class MenuPermissionCatalog
                 ['key' => 'affairs.behavior-scores.index', 'label' => 'ตัดคะแนนความประพฤติ'],
                 ['key' => 'affairs.home-visits.status', 'label' => 'บันทึกสถานะการเยี่ยมบ้าน'],
                 ['key' => 'affairs.home-visits.results', 'label' => 'สรุปผลการเยี่ยมบ้าน'],
+                ['key' => 'affairs.pickup-notices.index', 'label' => 'การรับ-ส่งนักเรียน (ที่ผู้ปกครองแจ้ง)'],
             ],
             'บริหารทั่วไป' => [
                 ['key' => 'admin.announcements.index', 'label' => 'ประชาสัมพันธ์/รายงานประชาสัมพันธ์'],

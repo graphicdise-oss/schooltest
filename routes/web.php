@@ -78,6 +78,10 @@ Route::controller(\App\Http\Controllers\Parent\ParentPortalController::class)
         Route::get('/announcements', 'announcements')->name('announcements');
         Route::get('/announcements/{id}', 'announcementShow')->name('announcements.show');
         Route::post('/announcements/{id}/acknowledge', 'announcementAcknowledge')->name('announcements.acknowledge');
+
+        Route::get('/pickup-notices', 'pickupNotices')->name('pickup-notices');
+        Route::post('/pickup-notices', 'pickupNoticeStore')->name('pickup-notices.store');
+        Route::delete('/pickup-notices/{id}', 'pickupNoticeDestroy')->name('pickup-notices.destroy');
     });
 
 // --- 3. ส่วนของคนที่ Login แล้ว (Auth) ---
@@ -562,6 +566,9 @@ Route::middleware(['auth', 'track.activity', 'auto.advance.semester'])->group(fu
             Route::get('/status-summary', 'statusSummary')->name('status-summary');
             Route::get('/results-summary', 'resultsSummary')->name('results-summary');
         });
+
+    // === การรับ-ส่งนักเรียน (ที่ผู้ปกครองแจ้งเข้ามาเองผ่านหน้าเว็บผู้ปกครอง) ===
+    Route::get('/pickup-notices', [\App\Http\Controllers\Student\PickupNoticeController::class, 'index'])->name('pickup-notices.index');
 
     // === ข้อมูลการลา ===
     Route::prefix('leave')->name('leave.')->group(function () {
