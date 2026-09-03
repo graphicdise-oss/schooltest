@@ -150,6 +150,10 @@ class GradeController extends Controller
 
         $roomListRange = $this->ensureRoomListSheet($sheet->getParent());
         $yearGroups = $this->resolveTranscriptYearGroups($student);
+        $existingGradesByGroup = array_map(
+            fn($grp) => $this->resolveExistingGrades($student, is_array($grp) ? ($grp['year'] ?? null) : null),
+            $yearGroups
+        );
 
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
@@ -192,6 +196,10 @@ class GradeController extends Controller
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem1From, $sem1To);
         for ($g = 0; $g < 3; $g++) {
             $col = 1 + $g * 3;
+            $this->writeTranscriptSubjectRows($sheet, $col, $sem1From, $sem1To, $existingGradesByGroup[$g]['1'] ?? []);
+        }
+        for ($g = 0; $g < 3; $g++) {
+            $col = 1 + $g * 3;
             $grp = $yearGroups[$g] ?? null;
             $this->writeTranscriptSemesterMarker($sheet, $col, $sem2MarkerRow, 'ภาคเรียนที่ 2');
             $this->writeTranscriptYearLevelRow($sheet, $col, $sem2RoomRow, 'ห้อง', $grp['room'] ?? null);
@@ -200,6 +208,10 @@ class GradeController extends Controller
             }
         }
         $this->writeTranscriptGroupBlanks($sheet, $totalCols, $sem2From, $sem2To);
+        for ($g = 0; $g < 3; $g++) {
+            $col = 1 + $g * 3;
+            $this->writeTranscriptSubjectRows($sheet, $col, $sem2From, $sem2To, $existingGradesByGroup[$g]['2'] ?? []);
+        }
 
         // ตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — แยกจากตารางผลการเรียนข้างบน
         $actInstructionRow = $sem2To + 2;
@@ -331,6 +343,74 @@ class GradeController extends Controller
         // $groups ตอนนี้เรียง [ปัจจุบัน, ย้อน 1 ปี, ย้อน 2 ปี] — กลับด้านให้เก่าสุดอยู่ซ้าย (ตรงกับ
         // ตำแหน่งกลุ่มคอลัมน์ A-C ซ้ายสุดในแบบฟอร์ม) ปัจจุบันอยู่ขวาสุด
         return array_reverse($groups);
+    }
+
+    /**
+     * ดึงผลการเรียนที่มีอยู่แล้วจริงในระบบของนักเรียนคนนี้ ในปีการศึกษาที่กำหนด (ทั้ง 2 ภาคเรียน) มาไว้
+     * กรอกล่วงหน้าให้ในไฟล์ export — คืนค่า ['1' => [ [code,name,credit,grade], ... ], '2' => [...]]
+     * ไม่รวมวิชากลุ่ม "กิจกรรมพัฒนาผู้เรียน" (แยกไปอยู่ตารางกิจกรรมต่างหากอยู่แล้ว) และข้ามเกรดที่ไม่ใช่
+     * ตัวเลข 0-4 (เช่น "มส"/"ร") เพราะฟอร์แมตไฟล์นี้รับได้แค่ตัวเลขเท่านั้น (ดู ParsesWideTranscriptSheet)
+     * ถ้าไม่รู้ปีการศึกษา หรือปีนั้นไม่มีในระบบเลย คืนค่าว่างเปล่าทั้งคู่ (ให้กรอกเองตามเดิม)
+     */
+    private function resolveExistingGrades(Student $student, ?string $yearName): array
+    {
+        $empty = ['1' => [], '2' => []];
+        if (!$yearName) {
+            return $empty;
+        }
+
+        $semesters = Semester::whereHas('academicYear', fn($q) => $q->where('year_name', $yearName))->get();
+        if ($semesters->isEmpty()) {
+            return $empty;
+        }
+        $semNameBySemId = $semesters->pluck('semester_name', 'semester_id');
+
+        $grades = FinalGrade::with('teachingAssign.subject')
+            ->where('student_id', $student->student_id)
+            ->whereIn('semester_id', $semNameBySemId->keys())
+            ->get();
+
+        $result = $empty;
+        foreach ($grades as $g) {
+            $subject = $g->teachingAssign->subject ?? null;
+            if (!$subject || ($subject->subject_group ?? '') === 'กิจกรรมพัฒนาผู้เรียน') {
+                continue;
+            }
+            if (!is_numeric($g->grade)) {
+                continue;
+            }
+            $semName = $semNameBySemId->get($g->semester_id);
+            if (!isset($result[$semName])) {
+                continue;
+            }
+            $result[$semName][] = [
+                'code'   => $subject->code,
+                'name'   => $subject->name_th,
+                'credit' => (float) ($subject->credits ?? 0),
+                'grade'  => (float) $g->grade,
+            ];
+        }
+
+        return $result;
+    }
+
+    // เขียนแถววิชา (รหัสวิชา : ชื่อวิชา, หน่วยกิต, เกรด) ที่ดึงมาจากผลการเรียนจริงที่มีอยู่แล้ว ลงในช่วง
+    // แถวว่างของกลุ่มปีนั้น ($fromRow..$toRow) — เขียนตามฟอร์แมตเดียวกับที่ ParsesWideTranscriptSheet
+    // อ่านตอน import เป๊ะๆ (คอลัมน์แรก "รหัส : ชื่อ" คั่นด้วยโคลอน) เผื่อพื้นที่ไม่พอ (เกิน $toRow) จะหยุด
+    // เขียนแค่เท่าที่พอ ไม่ล้นทับแถวคั่นภาคเรียนถัดไป
+    private function writeTranscriptSubjectRows($sheet, int $col, int $fromRow, int $toRow, array $rows): void
+    {
+        $row = $fromRow;
+        foreach ($rows as $r) {
+            if ($row > $toRow) {
+                break;
+            }
+            $colLetter = Coordinate::stringFromColumnIndex($col);
+            $sheet->setCellValue("{$colLetter}{$row}", "{$r['code']} : {$r['name']}");
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $row, $r['credit']);
+            $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $row, $r['grade']);
+            $row++;
+        }
     }
 
     /**
