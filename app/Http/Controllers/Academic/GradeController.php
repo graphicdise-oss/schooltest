@@ -253,13 +253,18 @@ class GradeController extends Controller
 
     /**
      * คำนวณปีการศึกษา/ระดับชั้น/ห้อง 3 กลุ่มล่าสุดของนักเรียนคนนี้ (ปัจจุบัน + ย้อนหลัง 2 ปี) ไว้กรอกล่วงหน้า
-     * ให้ในไฟล์ export ตำแหน่ง [0]=ปัจจุบัน [1]=ย้อนหลัง 1 ปี [2]=ย้อนหลัง 2 ปี — แต่ละตำแหน่งเป็น
+     * ให้ในไฟล์ export — คืนค่าเรียงจาก "เก่าสุดไปใหม่สุด" ตำแหน่ง [0]=ย้อนหลัง 2 ปี [1]=ย้อนหลัง 1 ปี
+     * [2]=ปัจจุบัน (ตรงกับที่แบบฟอร์มวางกลุ่มปีจากซ้าย=เก่าไปขวา=ปัจจุบัน) แต่ละตำแหน่งเป็น
      * ['year'=>string,'level'=>string,'room'=>string] หรือ null ถ้าไม่มีข้อมูลเลย
      *
      * ถ้านักเรียนเคยอยู่ระดับชั้นนั้นจริงในระบบ (มี student_sections) ใช้ข้อมูลจริง (ปี/ห้องที่เคยอยู่จริง)
      * ถ้าไม่เคยมีข้อมูลเลย (เช่น เพิ่งย้ายเข้ามาเรียนที่นี่) จะเดาจากห้อง/แผนการเรียนปัจจุบัน ลดระดับชั้นลง
      * ทีละขั้นตาม sort_order และลดปีการศึกษาลงทีละปี (เช่น ปัจจุบัน ม.6/1 วิทย์-คณิต ปี 2569 จะเดาย้อนหลัง
      * เป็น ม.5/1 วิทย์-คณิต ปี 2568 และ ม.4/1 วิทย์-คณิต ปี 2567) — เดาให้เท่านั้น ผู้ใช้แก้ในไฟล์ได้ปกติ
+     *
+     * ตัดห้องปลอมออก (ClassSection::FAKE_SECTION_NUMBERS — ห้องชั่วคราว "นำเข้าเกรดจากไฟล์ (ไม่ใช่ห้อง
+     * เรียนจริง)" ที่ import เกรดเก่าใช้เก็บตอนไม่รู้ห้องจริง) ไม่นับเป็น "ข้อมูลจริง" เพราะไม่ใช่ห้องจริง
+     * ถ้าปีนั้นมีแต่ห้องปลอม ให้ตกไปใช้การเดาแทนเหมือนไม่มีข้อมูลเลย ไม่โชว์ชื่อห้องปลอมออกไปในไฟล์
      */
     private function resolveTranscriptYearGroups(Student $student): array
     {
@@ -267,7 +272,8 @@ class GradeController extends Controller
             ->where('student_id', $student->student_id)
             ->get()
             ->filter(fn($ss) => $ss->classSection && $ss->classSection->level
-                && $ss->classSection->semester && $ss->classSection->semester->academicYear);
+                && $ss->classSection->semester && $ss->classSection->semester->academicYear
+                && !in_array($ss->classSection->section_number, ClassSection::FAKE_SECTION_NUMBERS, true));
 
         if ($sections->isEmpty()) {
             return [null, null, null];
@@ -322,7 +328,9 @@ class GradeController extends Controller
             ];
         }
 
-        return $groups;
+        // $groups ตอนนี้เรียง [ปัจจุบัน, ย้อน 1 ปี, ย้อน 2 ปี] — กลับด้านให้เก่าสุดอยู่ซ้าย (ตรงกับ
+        // ตำแหน่งกลุ่มคอลัมน์ A-C ซ้ายสุดในแบบฟอร์ม) ปัจจุบันอยู่ขวาสุด
+        return array_reverse($groups);
     }
 
     /**
