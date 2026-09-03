@@ -448,7 +448,7 @@
         });
     });
 
-    // ===== นำเข้าวันหยุดจาก API (Nager.Date) =====
+    // ===== นำเข้าวันหยุดจาก API (Thailand Formats) =====
     const IMPORT_PREVIEW_URL = "{{ route('holidays.importPreview') }}";
     const IMPORT_APPLY_URL   = "{{ route('holidays.import') }}";
     const IMPORT_YEAR_ID     = {{ $yearId ?? 'null' }};
@@ -486,7 +486,7 @@
                 listEl.innerHTML = data.items.map((item, i) => `
                     <div style="display:flex;align-items:center;gap:8px;padding:6px 4px;border-bottom:1px solid #f0f0f0;">
                         <input type="checkbox" class="import-chk" data-i="${i}" ${item.exists ? '' : 'checked'} style="width:16px;height:16px;flex-shrink:0;">
-                        <span style="width:90px;flex-shrink:0;color:#666;font-size:0.85rem;">${item.date}</span>
+                        <span style="width:120px;flex-shrink:0;color:#666;font-size:0.8rem;">${item.date}${item.end_date && item.end_date !== item.date ? ' – ' + item.end_date : ''}</span>
                         <input type="text" class="modal-input import-title" data-i="${i}" value="${item.title.replace(/"/g, '&quot;')}" style="margin:0;padding:5px 8px;font-size:0.85rem;">
                         ${item.exists ? '<span style="font-size:0.75rem;color:#f59e0b;flex-shrink:0;">มีอยู่แล้ว</span>' : ''}
                     </div>
@@ -521,6 +521,7 @@
             const i = c.dataset.i;
             const titleInput = document.querySelector(`.import-title[data-i="${i}"]`);
             addField(`items[${i}][date]`, window.IMPORT_ITEMS[i].date);
+            addField(`items[${i}][end_date]`, window.IMPORT_ITEMS[i].end_date || window.IMPORT_ITEMS[i].date);
             addField(`items[${i}][title]`, titleInput.value);
         });
 
