@@ -216,7 +216,7 @@ class GradeController extends Controller
         // ตารางกิจกรรมพัฒนาผู้เรียน (แนะแนว/ชุมนุม/กิจกรรมเพื่อสังคมฯ) — แยกจากตารางผลการเรียนข้างบน
         $actInstructionRow = $sem2To + 2;
         $sheet->mergeCells("A{$actInstructionRow}:" . Coordinate::stringFromColumnIndex($totalCols) . $actInstructionRow);
-        $sheet->setCellValue("A{$actInstructionRow}", 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินให้ใส่ "ผ" (ผ่าน) หรือ "มผ" (ไม่ผ่าน)');
+        $sheet->setCellValue("A{$actInstructionRow}", 'ตารางกิจกรรมพัฒนาผู้เรียน (แยกจากตารางผลการเรียนด้านบน) — ผลการประเมินกรอก "ผ" (ผ่าน) ให้อัตโนมัติแล้ว ถ้ามีนักเรียนคนไหนไม่ผ่านกิจกรรมไหน แก้เป็น "มผ" เองในไฟล์ได้เลย');
         $sheet->getStyle("A{$actInstructionRow}")->applyFromArray([
             'font' => ['bold' => true, 'size' => 10, 'color' => ['rgb' => 'B8720A']],
             'fill' => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => 'FFF4E5']],
@@ -242,11 +242,14 @@ class GradeController extends Controller
                 ['กิจกรรม', 'เวลา (ชั่วโมง)', 'ผลการประเมิน'], $grp['year'] ?? null, $grp['level'] ?? null
             );
 
+            // ค่าเริ่มต้นผลการประเมิน = "ผ" (ผ่าน) ให้เลย ไม่ต้องพิมพ์เองทุกแถว เพราะปกตินักเรียนแทบทั้งหมด
+            // ผ่านกิจกรรมพื้นฐานเหล่านี้อยู่แล้ว — คนไหนไม่ผ่านจริงๆ ค่อยแก้เป็น "มผ" เองในไฟล์เป็นรายคนไป
             $row = $actSem1From;
             foreach ($activityRows as $actName => $hours) {
                 $colLetter = Coordinate::stringFromColumnIndex($col);
                 $sheet->setCellValue("{$colLetter}{$row}", $actName);
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $row, $hours);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $row, 'ผ');
                 $row++;
             }
             $this->writeTranscriptSemesterMarker($sheet, $col, $actSem2MarkerRow, 'ภาคเรียนที่ 2');
@@ -255,6 +258,7 @@ class GradeController extends Controller
                 $colLetter = Coordinate::stringFromColumnIndex($col);
                 $sheet->setCellValue("{$colLetter}{$row}", $actName);
                 $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 1) . $row, $hours);
+                $sheet->setCellValue(Coordinate::stringFromColumnIndex($col + 2) . $row, 'ผ');
                 $row++;
             }
         }
