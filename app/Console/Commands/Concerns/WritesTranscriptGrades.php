@@ -133,6 +133,18 @@ trait WritesTranscriptGrades
                         'semester_id' => $semester->semester_id,
                     ]);
 
+                    // กันเกรดซ้ำ: ถ้านักเรียนคนนี้มีเกรดวิชานี้เทอมนี้อยู่แล้วจาก teaching_assign อื่นของ
+                    // ครูนำเข้าเกรดคนเดียวกัน (เช่น นำเข้ารอบก่อนตกห้องปลอมไปเพราะตอนนั้นยังไม่รู้ห้องจริง
+                    // พอนำเข้าใหม่รู้ห้องจริงแล้วเลยสร้าง assign ใหม่ในห้องจริง) ลบของเก่าทิ้ง กันวิชาซ้ำ
+                    // ในหน้า ปพ.1 — ลบเฉพาะที่เป็นของครูนำเข้าเกรดเท่านั้น ไม่แตะเกรดที่ครูจริงกรอกเอง
+                    FinalGrade::where('student_id', $student->student_id)
+                        ->where('semester_id', $semester->semester_id)
+                        ->where('assign_id', '!=', $assign->assign_id)
+                        ->whereHas('teachingAssign', fn ($q) => $q
+                            ->where('subject_id', $subject->subject_id)
+                            ->where('personnel_id', $teacher->personnel_id))
+                        ->delete();
+
                     $existing = FinalGrade::where([
                         'student_id' => $student->student_id,
                         'assign_id' => $assign->assign_id,
@@ -176,6 +188,15 @@ trait WritesTranscriptGrades
                         'section_id' => $section->section_id,
                         'semester_id' => $semester->semester_id,
                     ]);
+
+                    // กันซ้ำเหมือนตารางรายวิชาด้านบน (กิจกรรมก็โดนบั๊กเดียวกันได้ถ้าห้องเปลี่ยนระหว่างนำเข้า)
+                    FinalGrade::where('student_id', $student->student_id)
+                        ->where('semester_id', $semester->semester_id)
+                        ->where('assign_id', '!=', $actAssign->assign_id)
+                        ->whereHas('teachingAssign', fn ($q) => $q
+                            ->where('subject_id', $actSubject->subject_id)
+                            ->where('personnel_id', $teacher->personnel_id))
+                        ->delete();
 
                     $existingAct = FinalGrade::where([
                         'student_id' => $student->student_id,
